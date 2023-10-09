@@ -1,0 +1,16 @@
+ crab status -d crab_projects/crab_clustAlg_QCDMC1000to1500_2015__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC2000toInf_2015__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC1500to2000_2015__000
+ crab status -d crab_projects/crab_clustAlg_TTbarMC_2015__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC1000to1500_2016__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC2000toInf_2016__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC1500to2000_2016__000
+ crab status -d crab_projects/crab_clustAlg_TTbarMC_2016__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC1000to1500_2017__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC2000toInf_2017__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC1500to2000_2017__000
+ crab status -d crab_projects/crab_clustAlg_TTbarMC_2017__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC1000to1500_2018__000
+ crab status -d crab_projects/crab_clustAlg_QCDMC1500to2000_2018__000
+ crab status -d crab_projects/crab_clustAlg_TTbarMC_2018__000
+crab status -d crab_projects/crab_clustAlg_QCDMC2000toInf_2018__000

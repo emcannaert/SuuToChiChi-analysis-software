@@ -1,0 +1,4 @@
+crab submit -c crab_CreateEfficiencyMapHists_dataA_2018_cfg.py
+crab submit -c crab_CreateEfficiencyMapHists_dataB_2018_cfg.py
+crab submit -c crab_CreateEfficiencyMapHists_dataC_2018_cfg.py
+crab submit -c crab_CreateEfficiencyMapHists_dataD_2018_cfg.py
