@@ -19,6 +19,6 @@ python createCfgTemplate.py
 
 and run one with   
 
-cmsRun <your cfg selection>.py  
+cmsRun (your cfg selection).py  
 
 The output files will be in this main src directory.   
