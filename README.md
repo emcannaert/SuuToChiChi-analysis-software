@@ -5,7 +5,7 @@ Code in the CMSSW software framework (EDAnalyzer, ROOT base) used for the fully 
 
 To run this, you must first have a valid installation of CMSSW, in particular CMSSW_10_6_30. From the lpc   
 
-mkdir analysis 
+mkdir analysis   
 scram p CMSSW_10_6_30  
 cd CMSSW_10_6_30/src  
 git clone https://github.com/emcannaert/SuuToChiChi-analysis-software.git  
