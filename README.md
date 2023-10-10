@@ -1,21 +1,24 @@
-Code in the CMSSW software framework (EDAnalyzer, ROOT base) used for the fully hadronic diquark (Suu) to vector-like quark pair analysis on the CMS Experiment at CERN. This code is normally stored and run on the Fermilab LHC Physics Cluster (LPC). 
-
-To run this, you must first have a valid installation of CMSSW, in particular CMSSW_10_6_30. From the lpc
-
-mkdir analysis
-scram p CMSSW_10_6_30
-cd CMSSW_10_6_30/src
-git clone https://github.com/emcannaert/SuuToChiChi-analysis-software.git
-scram b 
-cmsenv 
+# SuuToChiChi-analysis-software
 
 
-To run the main analyzer, create the cfg files with 
+Code in the CMSSW software framework (EDAnalyzer, ROOT base) used for the fully hadronic diquark (Suu) to vector-like quark pair analysis on the CMS Experiment at CERN. This code is normally stored and run on the Fermilab LHC Physics Cluster (LPC). Code is written by Ethan Cannaert with some contributions from the UC Davis Boosted Event Shape Tagger (BEST) group for the neural network implementation.  
 
-python createCfgTemplate.py
+To run this, you must first have a valid installation of CMSSW, in particular CMSSW_10_6_30. From the lpc   
 
-and run one with 
+mkdir analysis 
+scram p CMSSW_10_6_30  
+cd CMSSW_10_6_30/src  
+git clone https://github.com/emcannaert/SuuToChiChi-analysis-software.git  
+scram b   
+cmsenv  
 
-cmsRun <your cfg selection>.py
 
-The output files will be in this main src directory. 
+To run the main analyzer, create the cfg files with   
+
+python createCfgTemplate.py  
+
+and run one with   
+
+cmsRun <your cfg selection>.py  
+
+The output files will be in this main src directory.   
