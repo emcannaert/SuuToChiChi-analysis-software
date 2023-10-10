@@ -118,8 +118,12 @@ class hadronFilter : public edm::stream::EDFilter<> {
       std::string runType;
       std::string triggers;
 
-      bool doJEC = false;
-      bool doJER = false;
+      edm::FileInPath JECUncert_AK4_path;
+      JetCorrectionUncertainty *jecUnc_AK4;
+
+
+      bool doJEC = true;
+      bool doJER = true;
       edm::EDGetTokenT<double> m_rho_token;
       TRandom3 *randomNum = new TRandom3();
       //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
@@ -143,16 +147,21 @@ class hadronFilter : public edm::stream::EDFilter<> {
 //
 hadronFilter::hadronFilter(const edm::ParameterSet& iConfig)
 {
+
    //now do what ever initialization is needed
    fatJetToken_ =    consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
    triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"));
    jetToken_    = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetCollection"));
    systematicType = iConfig.getParameter<std::string>("systematicType");
    triggers     = iConfig.getParameter<std::string>("triggers");
-
    runType = iConfig.getParameter<std::string>("runType");
+
+
+   JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
    edm::InputTag fixedGridRhoAllTag_ = edm::InputTag("fixedGridRhoAll", "", "RECO");   
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
+
+   jecUnc_AK4 = new JetCorrectionUncertainty(JECUncert_AK4_path.fullPath().c_str());
 
 }
 
@@ -183,6 +192,7 @@ bool hadronFilter::isgoodjet(const float eta, const float NHF,const float NEMF, 
 // ------------ method called on each new Event  ------------
 bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+
 /////////////////Trigger///////////////
 
    edm::Handle<edm::TriggerResults> triggerBits;
@@ -219,10 +229,12 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    double totHT = 0;
 
 
+   /* old way of doing this
    edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl_AK4;//c-r
    iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl_AK4);//c-r
    JetCorrectorParameters const & JetCorPar_AK4 =( (*JetCorParColl_AK4)["Uncertainty"]);//c-r
    JetCorrectionUncertainty *jecUnc_AK4 = new JetCorrectionUncertainty(JetCorPar_AK4);//c-r
+   */
 
    JME::JetResolution resolution_AK4               = JME::JetResolution::get(iSetup, "AK4PFchs_pt");                          //load JER stuff from global tag
    JME::JetResolutionScaleFactor resolution_sf_AK4 = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
@@ -237,19 +249,17 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
       double AK4_sf_total = 1.0;
 
-
-
       ///////////////////////////////////////////////////////
       /////////////// _JEC ENERGY CORRECTIONS ///////////////
       ///////////////////////////////////////////////////////
       if(doJEC)
       {
+         if (systematicType == "") continue;   // JECs are already done in cfg, this isn't needed unless you want the uncertainties
          double AK4_JEC_corr_factor = 1.0;
 
          jecUnc_AK4->setJetEta( iJet->eta() );
          jecUnc_AK4->setJetPt( iJet->pt() );
          double AK4_uncertainty = fabs(jecUnc_AK4->getUncertainty(true));
-
          if(systematicType=="JEC_up")
          {
             AK4_JEC_corr_factor = 1 + AK4_uncertainty;
@@ -261,12 +271,10 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
          AK4_sf_total *= AK4_JEC_corr_factor;
       }
 
-
-
-
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
       if(doJER)
       {
          if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) )
@@ -312,11 +320,6 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
          }
       }
-      
-
-
-
-
 
       // create scaled jet object that will be used for cuts 
       pat::Jet corrJet(*iJet);
@@ -331,26 +334,8 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       nBtaggedAK4++;
    }
 
-   //if(totHT < 1250.) return false;
-///////////////////////AK8 jets//////////////////
-
-   /*
-   edm::Handle<std::vector<pat::Jet> > fatJets;
-   iEvent.getByToken(fatJetToken_, fatJets);
-   int nfatjets = 0;
-
-   for(auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++)         ////////Over AK8 Jets
-   {
-      //std::cout << "Mass " << iJet->userFloat("ak8PFJetsPuppiSoftDropMass") << " pT = " << iJet->pt();
-      if((iJet->pt() < 300.) || (!(iJet->isPFJet())) || (!isgoodjet(iJet->eta(),iJet->neutralHadronEnergyFraction(), iJet->neutralEmEnergyFraction(),iJet->numberOfDaughters(),iJet->chargedHadronEnergyFraction(),iJet->chargedMultiplicity(),iJet->muonEnergyFraction(),iJet->chargedEmEnergyFraction())) || (iJet->userFloat("ak8PFJetsPuppiSoftDropMass")< 40.)) continue;
-      nfatjets++;
-   }
-	*/
    if ((totHT < 1200.))  return false;  //btagged jet cuts
    else{return true;}
-
-   //if(nBtaggedAK4 < 2)return false;
-   //return true;
 
    
 }

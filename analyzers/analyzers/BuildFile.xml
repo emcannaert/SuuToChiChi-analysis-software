@@ -1,0 +1,32 @@
+<use   name="CondCore/PluginSystem"/>
+<use   name="CondCore/DBCommon"/>
+<use   name="CondCore/DBOutputService"/>
+<use   name="DataFormats/JetReco"/>
+<use   name="DataFormats/METReco"/>
+<use   name="FWCore/Utilities"/>
+<use   name="JetMETCorrections/Algorithms"/>
+<use   name="JetMETCorrections/Objects"/>
+<use   name="JetMETCorrections/Modules"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="PhysicsTools/UtilAlgos"/>
+<use name="PhysicsTools/CandUtils"/>
+<use name="FWCore/ServiceRegistry"/>
+<use name="CondFormats/JetMETObjects"/>
+<use name="PhysicsTools/TensorFlow"/>
+<use name="CondFormats/DataRecord/"/>
+<use name="ROOT"/>
+<use name="clhep"/>
+<use name="correctionlib"/>
+<use name="fastjet"/>
+<Flags LDFLAGS="`correction config --cflags --ldflags --rpath`"/>
+<export>
+<lib name="1"/>
+</export>
+<flags EDM_PLUGIN="1"/>
+
+<flags CXXFLAGS="-O0 -g3 -fno-inline"/>
+<export>
+  <lib   name="1"/>
+</export>

@@ -4,7 +4,7 @@ import sys
 import os
 
 ### this can be updated to create the different cfgs for each systematic
-def makeACfg(sample, year, systematic, datafile):
+def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
 
    # need to change trigger for yhears
@@ -46,7 +46,7 @@ def makeACfg(sample, year, systematic, datafile):
    #OLD: global tags found here https://twiki.cern.ch/twiki/bin/view/CMSPublic/GTsAfter2019#Global_tag_for_2020_UL_MC_p_AN34 for Summer20 UL campaigns
    #NEW and what is in use: https://twiki.cern.ch/twiki/bin/view/CMS/PdmVRun2LegacyAnalysis
    if not "data" in sample: 
-      if year == "2018":     
+      if year == "2018":
          newCfg.write("process.GlobalTag.globaltag = '106X_upgrade2018_realistic_v16_L1v1'\n")  
       elif year == "2017":
          newCfg.write("process.GlobalTag.globaltag = '106X_mc2017_realistic_v10'\n")
@@ -111,17 +111,8 @@ def makeACfg(sample, year, systematic, datafile):
    newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
    newCfg.write('   triggers = cms.string("%s"),\n'%trigger)
    newCfg.write('   systematicType = cms.string("%s"),\n'%systematic)
-         #should this be for data and MC?
+   newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
 
-   if year == "2015":
-      newCfg.write('   JECUncert_path = cms.FileInPath("data/POG/JME/2016preVFP_UL/jet_jerc.json"),\n')
-   elif year == "2016":
-      newCfg.write('   JECUncert_path = cms.FileInPath("data/POG/JME/2016postVFP_UL/jet_jerc.json"),\n')
-   elif year == "2017":
-      newCfg.write('   JECUncert_path = cms.FileInPath("data/POG/JME/2017_UL/jet_jerc.json"),\n')
-   elif year == "2018":
-      newCfg.write('   JECUncert_path = cms.FileInPath("data/POG/JME/2018_UL/jet_jerc.json"),\n')
-   
    newCfg.write('   runType = cms.string("%s")   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n'%sample)
    newCfg.write(")\n")
 
@@ -175,14 +166,8 @@ def makeACfg(sample, year, systematic, datafile):
          elif year == "2018":
             newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2018_UL/btagging.json'),\n")
 
-      if year == "2015":
-         newCfg.write('   JECUncert_path = cms.FileInPath("data/POG/JME/2016preVFP_UL/fatJet_jerc.json"),\n')
-      elif year == "2016":
-         newCfg.write('   JECUncert_path = cms.FileInPath("data/POG/JME/2016postVFP_UL/fatJet_jerc.json"),\n')
-      elif year == "2017":
-         newCfg.write('   JECUncert_path = cms.FileInPath("data/POG/JME/2017_UL/fatJet_jerc.json"),\n')
-      elif year == "2018":
-         newCfg.write('   JECUncert_path = cms.FileInPath("data/POG/JME/2018_UL/fatJet_jerc.json"),\n')
+      newCfg.write('   JECUncert_AK8_path = cms.FileInPath("%s"),\n'%jec_file_AK8)
+      newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
 
       newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
       newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
@@ -284,6 +269,83 @@ def main():
                           'dataD': '/store/data/Run2018D/JetHT/MINIAOD/UL2018_MiniAODv2-v1/250000/DAB917DB-036A-324D-88CA-6DD8AA4FEC0F.root'}
 
    }
+
+
+   jec_file_AK4 = { '2015': { 'QCDMC1000to1500': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+                       'QCDMC1500to2000': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+                       'QCDMC2000toInf':  'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+                       'TTbarMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',  
+                       'dataB-ver1': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataB-ver2': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataC-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt'},
+            '2016': { 'QCDMC1000to1500': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                       'QCDMC1500to2000': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                       'QCDMC2000toInf':  'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                       'TTbarMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',  
+                       'dataF': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataG': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt'},
+
+'2017': { 'QCDMC1000to1500': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                       'QCDMC1500to2000': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                       'QCDMC2000toInf':  'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                       'TTbarMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',  
+                       'dataB': 'data/JEC/2017_UL/data/Summer19UL17_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataC': 'data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataD': 'data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataE': 'data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK4PFchs.txt'},
+'2018': { 'QCDMC1000to1500': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                       'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                       'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                       'TTbarMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',  
+                       'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt',
+                       'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
+                       'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK4PFchs.txt'}
+
+}
+
+   jec_file_AK8 = { '2015': { 'QCDMC1000to1500': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                       'QCDMC1500to2000': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                       'QCDMC2000toInf':  'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                       'TTbarMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',  
+                       'dataB-ver1': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataB-ver2': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataC-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt'},
+            '2016': { 'QCDMC1000to1500': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                       'QCDMC1500to2000': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                       'QCDMC2000toInf':  'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                       'TTbarMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',  
+                       'dataF': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataG': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt'},
+
+'2017': { 'QCDMC1000to1500': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                       'QCDMC1500to2000': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                       'QCDMC2000toInf':  'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                       'TTbarMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',  
+                       'dataB': 'data/JEC/2017_UL/data/Summer19UL17_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataC': 'data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataD': 'data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataE': 'data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK8PFPuppi.txt'},
+'2018': { 'QCDMC1000to1500': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                       'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                       'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                       'TTbarMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',  
+                       'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_UncertaintySources_AK8PFPuppi.txt',
+                       'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                       'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt'}
+
+}
    """datafile = [ 
       "signalCfgs/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
       "signalCfgs/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
@@ -369,7 +431,7 @@ def main():
          for systematic in systematics:
             if "Suu" in sample:
                continue
-            makeACfg(sample, year, systematic, datafiles[year][sample])   # change input to write systematic type
+            makeACfg(sample, year, systematic, datafiles[year][sample], jec_file_AK4[year][sample],jec_file_AK8[year][sample])   # change input to write systematic type
    return
 
 

@@ -1,0 +1,10 @@
+*.root
+*.h5
+data/
+allAltCrabCfgs/
+allCrabCfgs/
+allCfgs/
+btagging/
+crab_projects/
+jsonpog-integration/
+lumimasks/

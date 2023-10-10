@@ -62,8 +62,7 @@ def main():
 	lastCrabSubmission.write("/store/user/ecannaer/SuuToChiChi_AltDatasets_%s\n"%dateTimeString)
  	years   = ["2015","2016","2017","2018"]
 
-	systematics = ["JEC_up", "JEC_down", 
-	              "JER_up", "JER_down",
+	systematics = ["JEC", "JER",
 
 
 
@@ -176,7 +175,7 @@ def main():
 				if "Suu" in sample:
 					continue
 				#print("Creating Crab cfg for %s, %s and %s"%(sample,year,systematic))
-				makeAltCrabCfg(sample, year, "", datasets[year][sample],dateTimeString)   # change input to write systematic type
+				makeAltCrabCfg(sample, year, systematic, datasets[year][sample],dateTimeString)   # change input to write systematic type
 
 	return
 
