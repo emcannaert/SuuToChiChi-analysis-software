@@ -8,3 +8,4 @@ btagging/
 crab_projects/
 jsonpog-integration/
 lumimasks/
+*.log

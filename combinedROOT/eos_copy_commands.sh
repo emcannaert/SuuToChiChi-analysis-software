@@ -1,0 +1,39 @@
+hadd  QCDMC2000toInf_2017_nom_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/clustAlg_QCDMC2000toInf_2017_/231010_185520/0000 | grep "\.root"`
+hadd  QCDMC2000toInf_2017_JEC_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/clustAlg_QCDMC2000toInf_2017_JEC/231010_041154/0000 | grep "\.root"`
+hadd  QCDMC2000toInf_2017_JER_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/clustAlg_QCDMC2000toInf_2017_JER/231010_041344/0000 | grep "\.root"`
+hadd  QCDMC2000toInf_2018_nom_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/clustAlg_QCDMC2000toInf_2018_/231010_185712/0000 | grep "\.root"`
+hadd  QCDMC2000toInf_2018_JEC_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/clustAlg_QCDMC2000toInf_2018_JEC/231010_034711/0000 | grep "\.root"`
+hadd  QCDMC2000toInf_2018_JER_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/clustAlg_QCDMC2000toInf_2018_JER/231010_040551/0000 | grep "\.root"`
+hadd  TTToHadronic_2018_nom_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_/231010_185107/0000 | grep "\.root"`
+hadd  TTToHadronic_2018_nom_combined_1_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_/231010_185107/0001 | grep "\.root"`
+hadd  TTToHadronic_2018_nom_combined_2_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_/231010_185107/0002 | grep "\.root"`
+hadd  TTToHadronic_2018_nom_combined_3_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_/231010_185107/0003 | grep "\.root"`
+hadd  TTToHadronic_2018_nom_combined_4_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_/231010_185107/0004 | grep "\.root"`
+hadd  TTToHadronic_2018_nom_combined_5_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_/231010_185107/0005 | grep "\.root"`
+hadd  TTToHadronic_2018_nom_combined_6_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_/231010_185107/0006 | grep "\.root"`
+hadd  TTToHadronic_2018_nom_combined_7_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_/231010_185107/0007 | grep "\.root"`
+hadd  TTToHadronic_2018_JEC_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JEC/231010_040811/0000 | grep "\.root"`
+hadd  TTToHadronic_2018_JEC_combined_1_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JEC/231010_040811/0001 | grep "\.root"`
+hadd  TTToHadronic_2018_JEC_combined_2_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JEC/231010_040811/0002 | grep "\.root"`
+hadd  TTToHadronic_2018_JEC_combined_3_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JEC/231010_040811/0003 | grep "\.root"`
+hadd  TTToHadronic_2018_JEC_combined_4_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JEC/231010_040811/0004 | grep "\.root"`
+hadd  TTToHadronic_2018_JEC_combined_5_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JEC/231010_040811/0005 | grep "\.root"`
+hadd  TTToHadronic_2018_JEC_combined_6_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JEC/231010_040811/0006 | grep "\.root"`
+hadd  TTToHadronic_2018_JEC_combined_7_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JEC/231010_040811/0007 | grep "\.root"`
+hadd  TTToHadronic_2018_JER_combined_0_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JER/231010_041003/0000 | grep "\.root"`
+hadd  TTToHadronic_2018_JER_combined_1_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JER/231010_041003/0001 | grep "\.root"`
+hadd  TTToHadronic_2018_JER_combined_2_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JER/231010_041003/0002 | grep "\.root"`
+hadd  TTToHadronic_2018_JER_combined_3_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JER/231010_041003/0003 | grep "\.root"`
+hadd  TTToHadronic_2018_JER_combined_4_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JER/231010_041003/0004 | grep "\.root"`
+hadd  TTToHadronic_2018_JER_combined_5_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JER/231010_041003/0005 | grep "\.root"`
+hadd  TTToHadronic_2018_JER_combined_6_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JER/231010_041003/0006 | grep "\.root"`
+hadd  TTToHadronic_2018_JER_combined_7_.root `xrdfsls -u /store/user/ecannaer/SuuToChiChi_2023109_22241/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTbarMC_2018_JER/231010_041003/0007 | grep "\.root"`
+mv QCDMC2000toInf_2017_JER_combined_0_.root QCDMC2000toInf_2017_JER_combined.root
+mv QCDMC2000toInf_2017_JEC_combined_0_.root QCDMC2000toInf_2017_JEC_combined.root
+mv QCDMC2000toInf_2017_nom_combined_0_.root QCDMC2000toInf_2017_nom_combined.root
+hadd TTToHadronic_2018_JER_combined.root  TTToHadronic_2018_JER_combined_0_.root TTToHadronic_2018_JER_combined_1_.root TTToHadronic_2018_JER_combined_2_.root TTToHadronic_2018_JER_combined_3_.root TTToHadronic_2018_JER_combined_4_.root TTToHadronic_2018_JER_combined_5_.root TTToHadronic_2018_JER_combined_6_.root TTToHadronic_2018_JER_combined_7_.root
+hadd TTToHadronic_2018_JEC_combined.root  TTToHadronic_2018_JEC_combined_0_.root TTToHadronic_2018_JEC_combined_1_.root TTToHadronic_2018_JEC_combined_2_.root TTToHadronic_2018_JEC_combined_3_.root TTToHadronic_2018_JEC_combined_4_.root TTToHadronic_2018_JEC_combined_5_.root TTToHadronic_2018_JEC_combined_6_.root TTToHadronic_2018_JEC_combined_7_.root
+hadd TTToHadronic_2018_nom_combined.root  TTToHadronic_2018_nom_combined_0_.root TTToHadronic_2018_nom_combined_1_.root TTToHadronic_2018_nom_combined_2_.root TTToHadronic_2018_nom_combined_3_.root TTToHadronic_2018_nom_combined_4_.root TTToHadronic_2018_nom_combined_5_.root TTToHadronic_2018_nom_combined_6_.root TTToHadronic_2018_nom_combined_7_.root
+mv QCDMC2000toInf_2018_JER_combined_0_.root QCDMC2000toInf_2018_JER_combined.root
+mv QCDMC2000toInf_2018_JEC_combined_0_.root QCDMC2000toInf_2018_JEC_combined.root
+mv QCDMC2000toInf_2018_nom_combined_0_.root QCDMC2000toInf_2018_nom_combined.root

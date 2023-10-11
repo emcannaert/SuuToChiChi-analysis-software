@@ -205,8 +205,8 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
       if systematic == "":
          if(iii>0):
             continue
-         #elif iii == 0:
-            #suffix = ""
+         elif iii == 0:
+            suffix = ""
       newCfg.write(" * process.clusteringAnalyzerAll_%s%s\n"%(systematic, suffix) )
    newCfg.write(")\n")
    newCfg.write("from PhysicsTools.PatAlgos.tools.helpers  import getPatAlgosToolsTask\n")
