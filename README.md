@@ -39,4 +39,4 @@ The full pipeline for the analysis looks like this -
 11.	create plots from this with script of your choice (the files will be under rootFiles/processeRootFiles), or move on to bin merging
 12.	run bin merging script
 13.	run script to create final combine plots with these binnings
-14.	run this output in HIggs Combine 
+14.	run this output in Higgs Combine 
