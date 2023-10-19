@@ -119,10 +119,11 @@ class hadronFilter : public edm::stream::EDFilter<> {
       std::string triggers;
 
       edm::FileInPath JECUncert_AK4_path;
-      JetCorrectionUncertainty *jecUnc_AK4;
+      //JetCorrectionUncertainty *jecUnc_AK4;
 
+      edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl_AK4;//c-r
 
-      bool doJEC = true;
+      bool doJEC = false;
       bool doJER = true;
       edm::EDGetTokenT<double> m_rho_token;
       TRandom3 *randomNum = new TRandom3();
@@ -157,11 +158,11 @@ hadronFilter::hadronFilter(const edm::ParameterSet& iConfig)
    runType = iConfig.getParameter<std::string>("runType");
 
 
-   JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
+   //JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
    edm::InputTag fixedGridRhoAllTag_ = edm::InputTag("fixedGridRhoAll", "", "RECO");   
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
 
-   jecUnc_AK4 = new JetCorrectionUncertainty(JECUncert_AK4_path.fullPath().c_str());
+   //jecUnc_AK4 = new JetCorrectionUncertainty(JECUncert_AK4_path.fullPath().c_str());
 
 }
 
@@ -198,7 +199,6 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle<edm::TriggerResults> triggerBits;
    iEvent.getByToken(triggerBits_, triggerBits);
    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-
    bool pass = false;
    std::string trigname= triggers;
    for (unsigned int i = 0; i < triggerBits->size(); ++i) 
@@ -212,7 +212,6 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    {  
        return false;
    }
-
    //std::cout << "Pases trigger" << std::endl;
    //calculate HT -> make HT > 1250. GeV
 
@@ -229,12 +228,11 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    double totHT = 0;
 
 
-   /* old way of doing this
-   edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl_AK4;//c-r
+
    iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl_AK4);//c-r
    JetCorrectorParameters const & JetCorPar_AK4 =( (*JetCorParColl_AK4)["Uncertainty"]);//c-r
    JetCorrectionUncertainty *jecUnc_AK4 = new JetCorrectionUncertainty(JetCorPar_AK4);//c-r
-   */
+
 
    JME::JetResolution resolution_AK4               = JME::JetResolution::get(iSetup, "AK4PFchs_pt");                          //load JER stuff from global tag
    JME::JetResolutionScaleFactor resolution_sf_AK4 = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
@@ -254,7 +252,6 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       ///////////////////////////////////////////////////////
       if(doJEC)
       {
-         if (systematicType == "") continue;   // JECs are already done in cfg, this isn't needed unless you want the uncertainties
          double AK4_JEC_corr_factor = 1.0;
 
          jecUnc_AK4->setJetEta( iJet->eta() );
@@ -326,15 +323,20 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       LorentzVector corrJetP4(AK4_sf_total*iJet->px(),AK4_sf_total*iJet->py(),AK4_sf_total*iJet->pz(),AK4_sf_total*iJet->energy());
       corrJet.setP4(corrJetP4);
 
+
+      if(corrJet.pt() > 30.)totHT+= abs(corrJet.pt() );
+
       //loose WP 0.1522
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
-      if(corrJet.pt() > 30.)totHT+= abs(corrJet.pt() );
       if( ((corrJet.bDiscriminator("pfDeepCSVJetTags:probb") + corrJet.bDiscriminator("pfDeepCSVJetTags:probbb") )< 0.4184)||(corrJet.pt() < 30.) )continue;
       //loose
       nBtaggedAK4++;
    }
 
-   if ((totHT < 1200.))  return false;  //btagged jet cuts
+   if ((totHT < 1200.)) 
+   {
+      return false;  //btagged jet cuts
+   }
    else{return true;}
 
    

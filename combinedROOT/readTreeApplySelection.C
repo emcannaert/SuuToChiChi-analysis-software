@@ -4,13 +4,13 @@
 
 using namespace std;
 
-void doThings(std::string inFileName, std::string outFileName, double& nEvents,double &nHTcut,  double &nAK8JetCut, double &nHeavyAK8Cut,double &nBtagCut,double &nDoubleTagged, double &eventScaleFactors, std::string year, std::string systematic)
+void doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::string systematic)
 {
 
-
    double totHT, dijetMassOne, dijetMassTwo;
-   int nfatjets, nfatjet_pre;
-
+   int nfatjets, nfatjet_pre,nAK4;
+   double SJ_mass_100[100], AK4_pt[100],AK4_DeepJet_disc[100];
+   int SJ_nAK4_300[100];
    const char *_inFilename = inFileName.c_str();
 
    std::cout << "Reading file: " << _inFilename << std::endl;
@@ -31,6 +31,8 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents,d
 
    for(auto systematic_suffix = systematic_suffices.begin(); systematic_suffix < systematic_suffices.end();systematic_suffix++)
    {
+
+      int nEvents =0,nHTcut =0 ,nAK8JetCut =0,nHeavyAK8Cut=0,nBtagCut=0,nSJEnergyCut=0, nSJMass100Cut=0;
       std::cout << "Looking at the " << *systematic_suffix << " tree" << std::endl;
 
 
@@ -79,20 +81,81 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents,d
       t1->SetBranchAddress("dijetMassOne", &dijetMassOne);   
       t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
 
+      t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
+      t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
+      t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
+      t1->SetBranchAddress("nAK4" , &nAK4); 
+
+      t1->SetBranchAddress("SJ_mass_100", SJ_mass_100);   
+      t1->SetBranchAddress("lab_AK4_pt", AK4_pt); 
+      t1->SetBranchAddress("SJ_nAK4_300", SJ_nAK4_300);
+      t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
+
+      double looseDeepCSV_DeepJet;
+      double medDeepCSV_DeepJet;
+      double tightDeepCSV_DeepJet;
+
+      if(year == "2015")
+      {
+         looseDeepCSV_DeepJet = 0.0490;
+         medDeepCSV_DeepJet   = 0.2783;
+         tightDeepCSV_DeepJet = 0.7100;
+      }
+      else if(year == "2016")
+      {
+         looseDeepCSV_DeepJet = 0.0490;
+         medDeepCSV_DeepJet   = 0.2783;
+         tightDeepCSV_DeepJet = 0.7100;
+      }
+      else if(year == "2017")
+      {
+         looseDeepCSV_DeepJet = 0.0490;
+         medDeepCSV_DeepJet   = 0.2783;
+         tightDeepCSV_DeepJet = 0.7100;
+      }
+      else if(year == "2018")
+      {
+         looseDeepCSV_DeepJet = 0.0490;
+         medDeepCSV_DeepJet   = 0.2783;
+         tightDeepCSV_DeepJet = 0.7100;
+      }
       for (Int_t i=0;i<nentries;i++) 
       {  
-         nEvents+=eventScaleFactors;
+         nEvents++;
          t1->GetEntry(i);
          if (totHT < 1500.) continue; 
-         nHTcut+=eventScaleFactors;
+         nHTcut++;
          if( (nfatjets < 3)   ) continue;
-         nAK8JetCut+=eventScaleFactors;
+         nAK8JetCut++;
          if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))continue;
+         nHeavyAK8Cut++;
 
-         nHeavyAK8Cut+=eventScaleFactors;
+         int nTightBTags = 0;
+         for(int iii = 0;iii< nAK4; iii++)
+         {
+
+            if ( (AK4_DeepJet_disc[iii] > tightDeepCSV_DeepJet ) && (AK4_pt[iii] > 30.)) nTightBTags++;
+         }
+         if ( (nTightBTags > 0)  )
+         {
+            nBtagCut++;
+            if((SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
+            {
+               nSJEnergyCut++;
+               if((SJ_mass_100[0]>=400.) && (SJ_mass_100[1]>400.)   )
+               {
+                  nSJMass100Cut++;
+               }
+               else
+               {
+                  std::cout << "no high mass SJs 100s" << std::endl;
+               }
+            }
+         }
          t2->Fill();
       }
       outFile.Write();
+      std::cout << "For " << year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut/nSJMass100Cut:" <<nEvents << "/" << nHTcut << "/" << nAK8JetCut<< "/" << nHeavyAK8Cut<< "/" << nBtagCut << "/" << nSJEnergyCut << "/" << nSJMass100Cut << std::endl;
 
 
    }
@@ -108,14 +171,9 @@ void readTreeApplySelection()
    bool runData = false;
    bool includeTTBar = true;
    bool allHTBins    = true;
-   double nEvents = 0.;
-   double nHTcut  = 0.;
-   double nAK8JetCut = 0.;
-   double nHeavyAK8Cut = 0.;
-   double nBtagCut = 0.;
-   double nDoubleTagged = 0.;
-   //std::vector<std::string> dataYear = {"2015","2016","2017","2018"};
-   std::vector<std::string> dataYear = {"2018"};    // for testing 
+
+   //std::vector<std::string> year = {"2015","2016","2017","2018"};
+   std::vector<std::string> years = {"2017","2018"};    // for testing  "2015","2016",
 
    std::vector<std::string> systematics = {"JEC","JER","nom"};   // will eventually use this to skim the systematic files too
    if(!runData)
@@ -127,38 +185,38 @@ void readTreeApplySelection()
 
          //need to have the event scale factors calculated for each year and dataset
          double eventScaleFactors[4][4] = {  {1.0,1.0,1.0}, {1.0,1.0,1.0}, {1.0,1.0,1.0},{1.0,1.0,1.0}   }; //TODO
-         for(auto year = dataYear.begin();year<dataYear.end();year++)
+         for(auto datayear = years.begin();datayear<years.end();datayear++)
          {
             for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
             {
 
 
-               std::string dataYear = *year;
+               std::string year = *datayear;
                std::string systematic_str = *systematic;
-               std::vector<std::string> inFileNames = { "TTToHadronic_"+dataYear +  "_"+ systematic_str+ "_combined.root"
- 
-                                                /*   TESTING
-                                                 ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1000to1500_" +dataYear+ "_"+systematic_str +"_combined.root").c_str(),
-                                                 ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1500to2000_" +dataYear+ "_"+systematic_str +"_combined.root").c_str(),
-                                                  ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT2000toInf_" +dataYear+ "_" +systematic_str +"_combined.root").c_str(),
-                                                  ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/TTToHadronic_" +dataYear+ "_" +systematic_str +"_combined.root").c_str()*/
-                                               };
-               std::vector<std::string> outFileNames = {"TTToHadronic_"+dataYear +  "_"+ systematic_str+ "_SKIMMED.root"
+               std::vector<std::string> inFileNames = { ("QCDMC2000toInf_"+year +  "_"+ systematic_str+ "_combined.root").c_str()
 
-                                                /*           TESTING
-                                                 ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1000to1500_" +dataYear+ "_" +systematic_str+"_SKIMMED.root").c_str(),
-                                                 ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1500to2000_" +dataYear+ "_" +systematic_str+"_SKIMMED.root").c_str(),
-                                                  ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT2000toInf_" +dataYear+ "_" +systematic_str+"_SKIMMED.root").c_str(),
-                                                  ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/TTToHadronic_" +dataYear+ "_" +systematic_str+"_SKIMMED.root").c_str()*/
+
+                                                   /*("QCDMC1000to1500_"+year +  "_"+ systematic_str+ "_combined.root").c_str(),
+                                                   ("QCDMC1500to2000_"+year +  "_"+ systematic_str+ "_combined.root").c_str(),
+                                                   ("QCDMC2000toInf_"+year +  "_"+ systematic_str+ "_combined.root").c_str(),
+                                                   ("TTToHadronic_"+year +  "_"+ systematic_str+ "_combined.root").c_str()*/
+                                                
+                                               };
+               std::vector<std::string> outFileNames = {("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1000to1500_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str()
+                                                   /*
+                                                 ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1000to1500_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str(),
+                                                 ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1500to2000_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str(),
+                                                  ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT2000toInf_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str(),
+                                                  ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/TTToHadronic_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str()*/
                                                };
            
                for(unsigned int iii = 0; iii<inFileNames.size(); iii++)
                {
-                  doThings(inFileNames[iii],outFileNames[iii],nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,eventScaleFactors[yearNum][iii],*year, *systematic);
+                  doThings(inFileNames[iii],outFileNames[iii],eventScaleFactors[yearNum][iii],year, *systematic);
                }
 
-               std::cout << "Finished with "<< inFileNames.size() << " files for "<< *year<< "." << std::endl;
-               std::cout << "For " << *year<< ": total/HTcut/AK8jetCut/heavyAK8JetCut:" <<nEvents << "/" << nHTcut << "/" << nAK8JetCut<< "/" << nHeavyAK8Cut<< std::endl;
+               std::cout << "Finished with "<< inFileNames.size() << " files for "<< year<< "." << std::endl;
+               //std::cout << "For " << *year<< ": total/HTcut/AK8jetCut/heavyAK8JetCut:" <<nEvents << "/" << nHTcut << "/" << nAK8JetCut<< "/" << nHeavyAK8Cut<< std::endl;
 
                yearNum++;
             }
