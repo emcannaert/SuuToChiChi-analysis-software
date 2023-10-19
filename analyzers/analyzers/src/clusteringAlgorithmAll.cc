@@ -1262,7 +1262,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if(doBtagSF)
       {
          // calculate the b-tag scale factor for the event using the efficiency maps that were loaded in the constructor and correctionlib
-         if ( ( runType.find("MC") != std::string::npos  )  || (runType.find("Suu")) )    //only run this on MC (we won't have the hadron flavor stuff for data )
+         if ( ( runType.find("MC") != std::string::npos  ) || (runType.find("Suu")) )    //only run this on MC (we won't have the hadron flavor stuff for data )
          {
 
             //these are the bins of the eff histogram you need to draw from
