@@ -44,7 +44,46 @@ if __name__=="__main__":
 
 	samples = ["QCDMC2000toInf","QCDMC1500to2000","QCDMC1000to1500","TTToHadronic"]
 	years = ["2015","2016","2017","2018"]
-	eos_path = open(sys.argv[1], "r")
+	eos_path = open(sys.argv[1], "r")	
+	if ('data' in eos_path):
+		samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM","dataF-HIPM","dataF","dataG","dataH","dataB","dataC","dataD","dataE","dataF","dataA","dataB","dataC","dataD"]
+		nCommands	= {  "2015": { "dataB-ver1": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
+					 "dataB-ver2":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataC-HIPM":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataD-HIPM":{ 'JEC':0,'JER':0,'nom':0  }, 
+					 "dataE-HIPM":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataF-HIPM":{ 'JEC':0,'JER':0,'nom':0  }   }, 
+					 "2016": { "dataF": { 'JEC':0,'JER':0,'nom':0  },
+					 "dataG":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataH":{ 'JEC':0,'JER':0,'nom':0  }   } ,
+					 "2017": { "dataB": { 'JEC':0,'JER':0,'nom':0  },
+					 "dataC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataD":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataE":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataF":{ 'JEC':0,'JER':0,'nom':0  }   } ,
+					 "2018": { "dataA": { 'JEC':0,'JER':0,'nom':0  },
+					 "dataB":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataD":{ 'JEC':0,'JER':0,'nom':0  }   }   }
+		all_files_made= {  "2015": { "dataB-ver1": { 'JEC':[]'JER':[]'nom':[] },     #nCommands[year][sample][systematic]
+					 "dataB-ver2":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataC-HIPM":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataD-HIPM":{ 'JEC':[]'JER':[]'nom':[] }, 
+					 "dataE-HIPM":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataF-HIPM":{ 'JEC':[]'JER':[]'nom':[] }   }, 
+					 "2016": { "dataF": { 'JEC':[]'JER':[]'nom':[] },
+					 "dataG":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataH":{ 'JEC':[]'JER':[]'nom':[] }   } ,
+					 "2017": { "dataB": { 'JEC':[]'JER':[]'nom':[] },
+					 "dataC":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataD":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataE":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataF":{ 'JEC':[]'JER':[]'nom':[] }   } ,
+					 "2018": { "dataA": { 'JEC':[]'JER':[]'nom':[] },
+					 "dataB":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataC":{ 'JEC':[]'JER':[]'nom':[] },
+					 "dataD":{ 'JEC':[]'JER':[]'nom':[] }   }   }
+
 	command_path = open("eos_copy_commands.sh", "w")
 	for line in eos_path:
 		if line.split() == "[]" or line == "\n" or line == "":
@@ -54,7 +93,7 @@ if __name__=="__main__":
 		sys_str = ""
 		sample_str = ""
 		for sample in samples:
-			if sample in line:
+			if sample in line and (len(sample_str) < len(sample)):   # this should guarantee that dataB doesn't overwrite dataB-vers-1
 				sample_str = sample
 		if "JEC" in line:
 			sys_str = "JEC"

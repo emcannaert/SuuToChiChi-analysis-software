@@ -156,7 +156,7 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
       #should this be for data and MC?
       if "MC" in sample:
-         newCfg.write("   bTagEff_path = cms.FileInPath('data/btag_efficiency_map_%s_%s.root'),\n"%(sample,year))
+         newCfg.write("   bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_%s.root'),\n"%(sample,year))
          if year == "2015":
             newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
          elif year == "2016":
