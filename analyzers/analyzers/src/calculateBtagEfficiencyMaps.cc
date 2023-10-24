@@ -191,11 +191,13 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
    edm::Handle<std::vector<pat::Jet> > smallJets;
    iEvent.getByToken(jetToken_, smallJets);
 
+
+/*
    edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl_AK4;//c-r
    iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl_AK4);//c-r
    JetCorrectorParameters const & JetCorPar_AK4 =( (*JetCorParColl_AK4)["Uncertainty"]);//c-r
    JetCorrectionUncertainty *jecUnc_AK4 = new JetCorrectionUncertainty(JetCorPar_AK4);//c-r
-
+*/   //this isn't needed because there won't be efficiency maps for +- sigma
    JME::JetResolution resolution_AK4               = JME::JetResolution::get(iSetup, "AK4PFchs_pt");                          //load JER stuff from global tag
    JME::JetResolutionScaleFactor resolution_sf_AK4 = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
 
@@ -238,17 +240,6 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
 
       double AK4_sf_total = 1.0;
 
-
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      ///////// _JET ENERGY CORRECTION UNCERTAINTY STUFF, AK8 jets should already be corrected in the cfg ////////
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-      jecUnc_AK4->setJetEta( iJet->eta() );
-      jecUnc_AK4->setJetPt( iJet->pt() );
-
-      double AK4_JEC_corr_factor = 1.0;
-
-      AK4_sf_total*= AK4_JEC_corr_factor;
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
