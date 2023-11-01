@@ -33,10 +33,12 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 	if "QCD" in sample:
 		newCfg.write("config.JobType.maxMemoryMB = 3000 # might be necessary for some of the QCD jobs\n")
+	if "data" in sample:
+		newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
 	#### lumimask info: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2#2018
 	if "data" in sample:
 		if year=="2015":
-			newCfg.write("config.Data.lumiMask = '../lumimasks/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'\n")
+			newCfg.write("config.Data.lumiMask = '../lumimasks/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'\n")
 		elif year=="2016":
 			newCfg.write("config.Data.lumiMask = '../lumimasks/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'\n")
 		elif year=="2017":
@@ -98,10 +100,10 @@ def main():
    							  'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
    							  'QCDMC2000toInf':  '/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
    							  'TTbarMC':'/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM',  
-   							  'dataA': '/JetHT/Run2018A-UL2018_MiniAODv2-v1/MINIAOD',
-   							  'dataB': '/JetHT/Run2018B-UL2018_MiniAODv2-v1/MINIAOD',
-    							  'dataC': '/JetHT/Run2018C-UL2018_MiniAODv2-v1/MINIAOD',
-   							  'dataD': '/JetHT/Run2018D-UL2018_MiniAODv2-v1/MINIAOD'}
+   							  'dataA': '/JetHT/Run2018A-UL2018_MiniAODv2_GT36-v1/MINIAOD',
+   							  'dataB': '/JetHT/Run2018B-UL2018_MiniAODv2_GT36-v1/MINIAOD',
+    						  'dataC': '/JetHT/Run2018C-UL2018_MiniAODv2_GT36-v1/MINIAOD',
+   							  'dataD': '/JetHT/Run2018D-UL2018_MiniAODv2_GT36-v1/MINIAOD'}
 
    }
 	for year in years:

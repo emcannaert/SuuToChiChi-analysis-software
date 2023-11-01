@@ -147,8 +147,8 @@ private:
 
    //init event variables
    bool doJEC = true;
-   bool doJER = true;
-   bool doBtagSF = true;
+   bool doJER = false;
+   bool doBtagSF = false;
    bool doPUSF   = true;
    int SJ_nAK4_50[100],SJ_nAK4_70[100],SJ_nAK4_100[100],SJ_nAK4_125[100],SJ_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_300[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
    double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
@@ -238,6 +238,12 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
 
 {
 
+   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos)) 
+   {
+      doBtagSF = true;
+      doJER    = true;
+   }
+
    // import parameters from cfg, set variables needed to analyze the event
    
    // necessary for importing NN file
@@ -248,8 +254,12 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    runType        = iConfig.getParameter<std::string>("runType");
    systematicType = iConfig.getParameter<std::string>("systematicType");
    year           = iConfig.getParameter<std::string>("year");
-   bTagSF_path    = iConfig.getParameter<edm::FileInPath>("bTagSF_path");
-   bTagEff_path   = iConfig.getParameter<edm::FileInPath>("bTagEff_path");
+
+   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
+   {
+      bTagSF_path    = iConfig.getParameter<edm::FileInPath>("bTagSF_path");
+      bTagEff_path   = iConfig.getParameter<edm::FileInPath>("bTagEff_path");
+   }
    PUfile_path    = iConfig.getParameter<edm::FileInPath>("PUfile_path");
    JECUncert_AK8_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK8_path");
    JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
@@ -275,16 +285,26 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    //triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"));
 
    tree = fs->make<TTree>(  ("tree_"+systematicType).c_str(), ("tree_"+systematicType).c_str());
-   TFile *bTagEff_file = new TFile( bTagEff_path.fullPath().c_str() );   //this path might need to be updated
+   TFile *bTagEff_file;
+
+   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
+   {
+      bTagEff_file = new TFile( bTagEff_path.fullPath().c_str() );   //this path might need to be updated
+      truebjet_eff = (TH2F*)bTagEff_file->Get("h_effbJets");
+      truecjet_eff = (TH2F*)bTagEff_file->Get("h_effcJets");
+      lightjet_eff = (TH2F*)bTagEff_file->Get("h_effLightJets");
+   }
 
 
-   truebjet_eff = (TH2F*)bTagEff_file->Get("h_effbJets");
-   truecjet_eff = (TH2F*)bTagEff_file->Get("h_effcJets");
-   lightjet_eff = (TH2F*)bTagEff_file->Get("h_effLightJets");
 
-   cset = CorrectionSet::from_file(bTagSF_path.fullPath());
-   cset_corrector_bc = cset->at("deepJet_mujets");   //deepJet_comb, 
-   cset_corrector_light = cset->at("deepJet_incl");   //deepJet_incl
+
+
+   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
+   {
+      cset = CorrectionSet::from_file(bTagSF_path.fullPath());
+      cset_corrector_bc = cset->at("deepJet_mujets");   //deepJet_comb, 
+      cset_corrector_light = cset->at("deepJet_incl");   //deepJet_incl
+   }
 
    if(year == "2018")
    {
@@ -899,7 +919,7 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
 
    //AK4 jet boosted information - boost reclustered AK4 jets into their COM and look at BES variables, ndaughters, nsubjettiness
    treeVars["AK41_ndaughters"] = jetsFJ_jet[0].constituents().size();  
-   treeVars["AK41_nsubjets"] = jetsFJ_jet[0].n_exclusive_subjets(0.2); 
+   treeVars["AK41_nsubjets"] = jetsFJ_jet[0].n_exclusive_subjets(0.2).size(); 
    treeVars["AK41_thrust"] = thrustCalculatorAK41.thrust();
    treeVars["AK41_sphericity"] = eventShapesAK41.sphericity();
    treeVars["AK41_asymmetry"] = sumPz_AK41/sumP_AK41; 
@@ -1060,7 +1080,7 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
 
 void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   bool _verbose = false;                    // do printouts of each section for debugging
+   bool _verbose =  false;                    // do printouts of each section for debugging
    if(_verbose)std::cout << " -----------------Starting Event -----------------" << std::endl;
    eventnum++;
 
@@ -1159,7 +1179,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       if(doJEC)
       {
-         if (systematicType == "") continue;
+         //if (systematicType == "") continue;   // 
          double AK4_JEC_corr_factor = 1.0;
 
          jecUnc_AK4->setJetEta( iJet->eta() );
@@ -1467,7 +1487,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    {
 
 
-      if( (sqrt(pow(iJet->mass(),2)+pow(iJet->pt(),2)) < 100.) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.4 )) continue;   //don't even bother with these jets
+      if( (sqrt(pow(iJet->mass(),2)+pow(iJet->pt(),2)) < 25.) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.4 )) continue;   //don't even bother with these jets
 
       double AK8_sf_total = 1.0;     // this scales jet/particle 4-vectors, compounds all scale factors
 
