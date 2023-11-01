@@ -72,7 +72,7 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
    newCfg.write("corrLabels = ['L1FastJet','L2Relative','L3Absolute']\n")
    newCfg.write("if isData:\n")
-   newCfg.write("	corrLabels.append('L2L3Residuals')\n")
+   newCfg.write("	corrLabels.append('L2L3Residual')\n")
    newCfg.write("from PhysicsTools.PatAlgos.tools.jetTools import *\n")
    newCfg.write("from RecoBTag.ONNXRuntime.pfDeepBoostedJet_cff import *\n")
    newCfg.write("updateJetCollection(\n")
@@ -302,7 +302,7 @@ def main():
                        'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'TTbarMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',  
-                       'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_UncertaintySources_AK4PFchs.txt',
+                       'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK4PFPuppi.txt',
                        'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
                        'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
                        'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK4PFchs.txt'}
@@ -340,7 +340,7 @@ def main():
                        'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'TTbarMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',  
-                       'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_UncertaintySources_AK8PFPuppi.txt',
+                       'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt'}

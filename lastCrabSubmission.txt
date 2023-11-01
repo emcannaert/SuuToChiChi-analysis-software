@@ -10,3 +10,7 @@
 /store/user/ecannaer/SuuToChiChi_AltDatasets_2023109_222158
 /store/user/ecannaer/SuuToChiChi_AltDatasets_2023109_22241
 /store/user/ecannaer/SuuToChiChi_AltDatasets_20231023_233750
+/store/user/ecannaer/SuuToChiChi_AltDatasets_20231027_223336
+/store/user/ecannaer/SuuToChiChi_AltDatasets_20231027_223844
+/store/user/ecannaer/SuuToChiChi_AltDatasets_20231028_131432
+/store/user/ecannaer/SuuToChiChi_AltDatasets_20231031_19426

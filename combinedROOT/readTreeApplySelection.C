@@ -155,7 +155,7 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          t2->Fill();
       }
       outFile.Write();
-      std::cout << "For " << year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut/nSJMass100Cut:" <<nEvents << "/" << nHTcut << "/" << nAK8JetCut<< "/" << nHeavyAK8Cut<< "/" << nBtagCut << "/" << nSJEnergyCut << "/" << nSJMass100Cut << std::endl;
+      std::cout << "For " << year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut/nSJMass100Cut:" <<nEvents << " " << nHTcut << " " << nAK8JetCut<< " " << nHeavyAK8Cut<< " " << nBtagCut << " " << nSJEnergyCut << " " << nSJMass100Cut << std::endl;
 
 
    }
@@ -172,57 +172,59 @@ void readTreeApplySelection()
    bool includeTTBar = true;
    bool allHTBins    = true;
 
-   //std::vector<std::string> year = {"2015","2016","2017","2018"};
-   std::vector<std::string> years = {"2017","2018"};    // for testing  "2015","2016",
-
-   std::vector<std::string> systematics = {"JEC","JER","nom"};   // will eventually use this to skim the systematic files too
-   if(!runData)
+   std::vector<std::string> years = {"2015","2016","2017","2018"};    // for testing  "2015","2016",
+   std::vector<std::string> systematics = {"nom"};   // will eventually use this to skim the systematic files too
+   int yearNum = 0;
+   //need to have the event scale factors calculated for each year and dataset
+   double eventScaleFactor = 1; 
+   for(auto datayear = years.begin();datayear<years.end();datayear++)
    {
-      int yearNum = 0;
-      if(includeTTBar && allHTBins)
+
+      std::vector<std::string> dataBlocks; 
+      std::string skimmedFilePaths;
+
+      if(runData)
       {
 
-
-         //need to have the event scale factors calculated for each year and dataset
-         double eventScaleFactors[4][4] = {  {1.0,1.0,1.0}, {1.0,1.0,1.0}, {1.0,1.0,1.0},{1.0,1.0,1.0}   }; //TODO
-         for(auto datayear = years.begin();datayear<years.end();datayear++)
+         if(*datayear == "2015")
          {
-            for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
-            {
-
-
-               std::string year = *datayear;
-               std::string systematic_str = *systematic;
-               std::vector<std::string> inFileNames = { ("QCDMC2000toInf_"+year +  "_"+ systematic_str+ "_combined.root").c_str()
-
-
-                                                   /*("QCDMC1000to1500_"+year +  "_"+ systematic_str+ "_combined.root").c_str(),
-                                                   ("QCDMC1500to2000_"+year +  "_"+ systematic_str+ "_combined.root").c_str(),
-                                                   ("QCDMC2000toInf_"+year +  "_"+ systematic_str+ "_combined.root").c_str(),
-                                                   ("TTToHadronic_"+year +  "_"+ systematic_str+ "_combined.root").c_str()*/
-                                                
-                                               };
-               std::vector<std::string> outFileNames = {("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1000to1500_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str()
-                                                   /*
-                                                 ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1000to1500_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str(),
-                                                 ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT1500to2000_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str(),
-                                                  ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/QCDMC_HT2000toInf_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str(),
-                                                  ("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/TTToHadronic_" +year+ "_" +systematic_str+"_SKIMMED.root").c_str()*/
-                                               };
-           
-               for(unsigned int iii = 0; iii<inFileNames.size(); iii++)
-               {
-                  doThings(inFileNames[iii],outFileNames[iii],eventScaleFactors[yearNum][iii],year, *systematic);
-               }
-
-               std::cout << "Finished with "<< inFileNames.size() << " files for "<< year<< "." << std::endl;
-               //std::cout << "For " << *year<< ": total/HTcut/AK8jetCut/heavyAK8JetCut:" <<nEvents << "/" << nHTcut << "/" << nAK8JetCut<< "/" << nHeavyAK8Cut<< std::endl;
-
-               yearNum++;
-            }
+            dataBlocks = {"JetHT_dataB-ver1","JetHT_dataB-ver2","JetHT_dataC-HIPM","JetHT_dataD-HIPM","JetHT_dataE-HIPM","JetHT_dataF-HIPM"};
          }
+         else if(*datayear == "2016")
+         {
+            dataBlocks = {"JetHT_dataF", "JetHT_dataG", "JetHT_dataH"};
+         }
+         else if(*datayear == "2017")
+         {
+            dataBlocks = {"JetHT_dataB","JetHT_dataC","JetHT_dataD","JetHT_dataE", "JetHT_dataF"};
+         }
+         else if(*datayear == "2018")
+         {
+            dataBlocks = {"JetHT_dataA","JetHT_dataB","JetHT_dataC","JetHT_dataD"};
+         }
+      }
+      else
+      {  
+         dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronic_"};
+      }
+      for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
+      {
+         for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
+         {
 
 
+            std::string year = *datayear;
+            std::string systematic_str = *systematic;
+
+            std::string inFileName = (*dataBlock+year +  "_"+ systematic_str+ "_combined.root").c_str();
+            std::string outFileName = (*dataBlock+year +  "_"+ systematic_str+ "_SKIMMED.root").c_str();
+
+            doThings(inFileName,outFileName,eventScaleFactor,year, *systematic);
+
+            std::cout << "Finished with "<< inFileName << std::endl;
+
+            yearNum++;
+         }
       }
    }
 }
