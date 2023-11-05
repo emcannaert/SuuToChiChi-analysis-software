@@ -127,12 +127,6 @@ private:
    TH2F *h_nTruebJets_btagged = new TH2F("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
    TH2F *h_nTruecJets_btagged = new TH2F("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
 
-
-   //TH2F *h_effLightJets = new TH2F( "h_effLightJets" ,"total number of true light jets that are b-tagged / total number of true light; jet p_{T} [GeV];jet eta", 50,0, 2500, 24, -2.4, 2.4);
-   //TH2F *h_effbJets = new TH2F( "h_effbJets" ,"total number of true b jets that are b-tagged / total number of true b jets; jet p_{T} [GeV];jet eta", 50,0, 2500, 24, -2.4, 2.4);
-   //TH2F *h_effcJets = new TH2F( "h_effcJets" ,"total number of true c jets that are b-tagged / total number of true c jets; jet p_{T} [GeV];jet eta", 50,0, 2500, 24, -2.4, 2.4);
-
-
 };
 
 //_constructor_
@@ -191,20 +185,11 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
    edm::Handle<std::vector<pat::Jet> > smallJets;
    iEvent.getByToken(jetToken_, smallJets);
 
-
-/*
-   edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl_AK4;//c-r
-   iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl_AK4);//c-r
-   JetCorrectorParameters const & JetCorPar_AK4 =( (*JetCorParColl_AK4)["Uncertainty"]);//c-r
-   JetCorrectionUncertainty *jecUnc_AK4 = new JetCorrectionUncertainty(JetCorPar_AK4);//c-r
-*/   //this isn't needed because there won't be efficiency maps for +- sigma
    JME::JetResolution resolution_AK4               = JME::JetResolution::get(iSetup, "AK4PFchs_pt");                          //load JER stuff from global tag
    JME::JetResolutionScaleFactor resolution_sf_AK4 = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
 
-
    edm::Handle<double> rho;
    iEvent.getByToken(m_rho_token, rho);
-
 
    // set working points 
    double deepJet_wp_loose, deepJet_wp_med, deepjet_wp_tight;
@@ -224,7 +209,7 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
    {
       //deepJet_wp_loose = 0.0480;
       //deepJet_wp_med   = 0.2489;
-      deepjet_wp_tight = 0.8767;
+      deepjet_wp_tight = 0.6377;
    }
    else if(year == "2015")
    {
