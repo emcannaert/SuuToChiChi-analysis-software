@@ -172,8 +172,8 @@ void readTreeApplySelection()
    bool includeTTBar = true;
    bool allHTBins    = true;
 
-   std::vector<std::string> years = {"2015","2016","2017","2018"};    // for testing  "2015","2016",
-   std::vector<std::string> systematics = {"nom"};   // will eventually use this to skim the systematic files too
+   std::vector<std::string> years = {"2018"};    // for testing  "2015","2016","2017"
+   std::vector<std::string> systematics = {"JEC"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
@@ -205,7 +205,8 @@ void readTreeApplySelection()
       }
       else
       {  
-         dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronic_"};
+        dataBlocks = {"QCDMC2000toInf_"}; 
+	//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronic_"};
       }
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
       {

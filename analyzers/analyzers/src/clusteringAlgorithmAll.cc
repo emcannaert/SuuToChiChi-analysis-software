@@ -149,7 +149,7 @@ private:
    bool doJEC = true;
    bool doJER = false;
    bool doBtagSF = false;
-   bool doPUSF   = true;
+   bool doPUSF   = false;
    int SJ_nAK4_50[100],SJ_nAK4_70[100],SJ_nAK4_100[100],SJ_nAK4_125[100],SJ_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_300[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
    double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
    double jet_beta[100], beta_T[100], AK4_mass_20[100],AK4_mass_30[100],AK4_mass_50[100],AK4_mass_70[100],AK4_mass_100[100],AK4_mass_150[100];
@@ -238,11 +238,6 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
 
 {
 
-   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos)) 
-   {
-      doBtagSF = true;
-      doJER    = true;
-   }
 
    // import parameters from cfg, set variables needed to analyze the event
    
@@ -287,24 +282,7 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree = fs->make<TTree>(  ("tree_"+systematicType).c_str(), ("tree_"+systematicType).c_str());
    TFile *bTagEff_file;
 
-   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
-   {
-      bTagEff_file = new TFile( bTagEff_path.fullPath().c_str() );   //this path might need to be updated
-      truebjet_eff = (TH2F*)bTagEff_file->Get("h_effbJets");
-      truecjet_eff = (TH2F*)bTagEff_file->Get("h_effcJets");
-      lightjet_eff = (TH2F*)bTagEff_file->Get("h_effLightJets");
-   }
 
-
-
-
-
-   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
-   {
-      cset = CorrectionSet::from_file(bTagSF_path.fullPath());
-      cset_corrector_bc = cset->at("deepJet_mujets");   //deepJet_comb, 
-      cset_corrector_light = cset->at("deepJet_incl");   //deepJet_incl
-   }
 
    if(year == "2018")
    {
@@ -340,9 +318,26 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       return;
    }
 
-   //get corrections from PU file
-   PUjson = CorrectionSet::from_file(PUfile_path.fullPath());
-   PUjson_year = PUjson->at(lumiTag);
+   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
+   {
+      // these will only be done for MC
+      doBtagSF = true;
+      doJER    = true;
+      doPUSF   = true;
+
+      bTagEff_file = new TFile( bTagEff_path.fullPath().c_str() );   //this path might need to be updated
+      truebjet_eff = (TH2F*)bTagEff_file->Get("h_effbJets");
+      truecjet_eff = (TH2F*)bTagEff_file->Get("h_effcJets");
+      lightjet_eff = (TH2F*)bTagEff_file->Get("h_effLightJets");
+
+      cset = CorrectionSet::from_file(bTagSF_path.fullPath());
+      cset_corrector_bc = cset->at("deepJet_mujets");   //deepJet_comb, 
+      cset_corrector_light = cset->at("deepJet_incl");   //deepJet_incl
+
+      //get corrections from PU file
+      PUjson = CorrectionSet::from_file(PUfile_path.fullPath());
+      PUjson_year = PUjson->at(lumiTag);
+   }
 
 
    // init tree branches
@@ -919,7 +914,7 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
 
    //AK4 jet boosted information - boost reclustered AK4 jets into their COM and look at BES variables, ndaughters, nsubjettiness
    treeVars["AK41_ndaughters"] = jetsFJ_jet[0].constituents().size();  
-   treeVars["AK41_nsubjets"] = jetsFJ_jet[0].n_exclusive_subjets(0.2).size(); 
+   treeVars["AK41_nsubjets"] = jetsFJ_jet[0].n_exclusive_subjets(0.2); 
    treeVars["AK41_thrust"] = thrustCalculatorAK41.thrust();
    treeVars["AK41_sphericity"] = eventShapesAK41.sphericity();
    treeVars["AK41_asymmetry"] = sumPz_AK41/sumP_AK41; 
@@ -1118,18 +1113,30 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////_pileup_//////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
       if(doPUSF)
       {
          edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;
          iEvent.getByToken(puSummaryToken_, PupInfo);
-
+         /*int test_true_interactions[200];
+         for(int iii = 0;iii<100;iii+=2)
+         {
+            for(int jjj = 0;jjj<2;jjj++)
+            {
+               test_true_interactions[iii+jjj] = iii;
+            }
+            
+         }*/
          for (auto const& v : *PupInfo)
          {
             ntrueInt = v.getTrueNumInteractions();
             PU_eventWeight_nom  = PUjson_year->evaluate( {std::real(ntrueInt),"nominal"});
             PU_eventWeight_up  = PUjson_year->evaluate({std::real(ntrueInt),"up"});
             PU_eventWeight_down = PUjson_year->evaluate({std::real(ntrueInt),"down"}); 
+            /*std::cout << "Testing the PU SF evaluator" << std::endl;
+            for(int iii = 0;iii<100;iii++)
+            {
+               #std::cout << "iii/PU_eventWeight_down/PU_eventWeight_nom/PU_eventWeight_up:" << iii <<"/" <<PUjson_year->evaluate( {std::real(test_true_interactions[iii]),"up"}) << "/"<< PUjson_year->evaluate( {std::real(test_true_interactions[iii]),"nominal"})<< "/" <<PUjson_year->evaluate( {std::real(test_true_interactions[iii]),"down"}) << std::endl;
+            }*/
          }  
       }
 
@@ -1286,7 +1293,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          {
 
             //these are the bins of the eff histogram you need to draw from
-            // histogram size:  60, 0, 3000, 24, -2.4, 2.4)   
+            // histogram size:  60, 0, 3000, 24, -2.4, 2.4   
 
             int xbin = (int)(corrJet.pt()*60./3000.);
             int ybin = (int)((corrJet.eta()+2.4)*24/4.8);
@@ -1298,9 +1305,9 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             if(corrJet.hadronFlavour() == 0)   //light jets
             {
                bTag_eff_value = lightjet_eff->GetBinContent(xbin,ybin);
-               SF = cset_corrector_light->evaluate({"central", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
-               SF_up   = cset_corrector_light->evaluate({"up_correlated", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_light->evaluate({"down_correlated", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
+               SF = cset_corrector_light->evaluate({"central", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up   = cset_corrector_light->evaluate({"up_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down = cset_corrector_light->evaluate({"down_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
                if(deepJetScore > deepjet_wp_tight)
                {
@@ -1312,19 +1319,19 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                }
                else
                {
-                  MC_notTagged *= (1- bTag_eff_value);
-                  data_notTagged *= (1- SF*bTag_eff_value);
-                  data_notTagged_up *= (1- SF_up*bTag_eff_value);
-                  data_notTagged_down *= (1- SF_down*bTag_eff_value);
+                  MC_notTagged *= (1 - bTag_eff_value);
+                  data_notTagged *= (1 - SF*bTag_eff_value);
+                  data_notTagged_up *= (1 - SF_up*bTag_eff_value);
+                  data_notTagged_down *= (1 - SF_down*bTag_eff_value);
                   if(_verbose)std::cout << "untagged light jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
             }
             else if(corrJet.hadronFlavour() == 4) //charm jets
             {
                bTag_eff_value = truecjet_eff->GetBinContent(xbin,ybin);
-               SF = cset_corrector_bc->evaluate(   {"central", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
-               SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
+               SF = cset_corrector_bc->evaluate(   {"central", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
                if(deepJetScore > deepjet_wp_tight)
@@ -1339,10 +1346,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                }
                else
                {
-                  MC_notTagged *= (1- bTag_eff_value);
-                  data_notTagged *= (1- SF*bTag_eff_value);
-                  data_notTagged_up *= (1- SF_up*bTag_eff_value);
-                  data_notTagged_down *= (1- SF_down*bTag_eff_value);
+                  MC_notTagged *= (1 - bTag_eff_value);
+                  data_notTagged *= (1 - SF*bTag_eff_value);
+                  data_notTagged_up *= (1 - SF_up*bTag_eff_value);
+                  data_notTagged_down *= (1 - SF_down*bTag_eff_value);
                   if(_verbose)std::cout << "untagged c jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
 
                }
@@ -1350,9 +1357,9 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             else if(corrJet.hadronFlavour() == 5) // b jets
             {
                bTag_eff_value = truebjet_eff->GetBinContent(xbin,ybin);
-               SF = cset_corrector_bc->evaluate(   {"central", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
-               SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", corrJet.hadronFlavour(), std::abs(corrJet.eta()), corrJet.pt()});
+               SF = cset_corrector_bc->evaluate(   {"central", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
                if(deepJetScore > deepjet_wp_tight)
@@ -1365,11 +1372,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
                }
                else
-               {
-                  MC_notTagged *= (1-bTag_eff_value);
-                  data_notTagged *= (1-SF*bTag_eff_value);
-                  data_notTagged_up *= (1-SF_up*bTag_eff_value);
-                  data_notTagged_down  *= (1-SF_down*bTag_eff_value);
+               {  
+                  MC_notTagged *= (1 - bTag_eff_value);
+                  data_notTagged *= (1 - SF*bTag_eff_value);
+                  data_notTagged_up *= (1 - SF_up*bTag_eff_value);
+                  data_notTagged_down *= (1 - SF_down*bTag_eff_value);
                   if(_verbose)std::cout << "untagged b jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
 
                }
