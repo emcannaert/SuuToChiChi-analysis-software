@@ -1,3 +1,0 @@
-crab submit -c crab_CreateEfficiencyMapHists_TTToSemiLeptonicMC_2018_cfg.py
-crab submit -c crab_CreateEfficiencyMapHists_TTToLeptonicMC_2018_cfg.py
-crab submit -c crab_CreateEfficiencyMapHists_TTbarMC_2018_cfg.py

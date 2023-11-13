@@ -1,4 +1,0 @@
-crab resubmit -d crab_projects/crab_crab_CreateEfficiencyMapHists_QCDMC2000toInf_2018_000/
-crab resubmit -d crab_projects/crab_crab_CreateEfficiencyMapHists_QCDMC1500to2000_2018_000/
-crab resubmit -d crab_projects/crab_crab_CreateEfficiencyMapHists_QCDMC1000to1500_2018_000/
-crab resubmit -d crab_projects/crab_crab_CreateEfficiencyMapHists_TTbarMC_2018_000/
