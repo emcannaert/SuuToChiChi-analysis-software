@@ -1,7 +1,9 @@
 *.root
 *.h5
 data/
-allAltCrabCfgs/
+allaltCrabCfgs/*.pyc
+allaltCrabCfgs/crab_clusteringAnalyzer*.py
+allAltCrabCfgs/crab_projects/
 allCrabCfgs/
 allCfgs/
 btagging/
@@ -9,3 +11,4 @@ crab_projects/
 jsonpog-integration/
 lumimasks/
 *.log
+*.pyc

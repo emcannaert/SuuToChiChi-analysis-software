@@ -1,0 +1,3 @@
+source submitCrab_MC_2017_JEC.sh
+source submitCrab_MC_2017_JER.sh
+source submitCrab_MC_2017.sh

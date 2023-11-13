@@ -1,0 +1,1076 @@
+Error: crab_projects/rab_clustAlg_QCDMC1000to1500_2015_JEC_AltDatasets_000 is not a valid CRAB project directory.
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab.log
+Problems delegating My-proxy.
+Error trying to create credential:
+ Problems delegating My-proxy. Error executing export GT_PROXY_MODE=rfc ; myproxy-init -d -n -s myproxy.cern.ch -C ~/.globus/usercert.pem -y ~/.globus/userkey.pem -x -R '/DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod|dev)-tw(01|02|03).cern.ch|/DC=ch/DC=cern/OU=computers/CN=stefanov(m|m2).cern.ch|/DC=ch/DC=cern/OU=computers/CN=dciangot-tw.cern.ch' -x -Z '/DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod|dev)-tw(01|02|03).cern.ch|/DC=ch/DC=cern/OU=computers/CN=stefanov(m|m2).cern.ch|/DC=ch/DC=cern/OU=computers/CN=dciangot-tw.cern.ch' -l 5b27eae6c11d162e7aa8c42b1baf319cee8cc475 -t 168 -c 720:00:
+Your identity: /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=ecannaer/CN=832417/CN=Ethan Michael Cannaert
+
+Error: Couldn't read user key in /uscms/home/cannaert/.globus/userkey.pem.
+Use -debug for further information.
+grid-proxy-init failed
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2015_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2015__AltDatasets_000
+Task name:			231024_050108:ecannaer_crab_clustAlg_QCDMC1000to1500_2015__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0155.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_050108%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2015__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_050108%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2015__AltDatasets_000&from=1698120068000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (269/269)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 55MB min, 2968MB max, 2080MB ave
+ * Runtime: 0:02:34 min, 4:13:18 max, 0:12:10 ave
+ * CPU eff: 7% min, 84% max, 67% ave
+ * Waste: 7:06:11 (12% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2015__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2016_JEC_AltDatasets_000
+Task name:			231024_181915:ecannaer_crab_clustAlg_QCDMC1000to1500_2016_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0121.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_181915%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2016_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_181915%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2016_JEC_AltDatasets_000&from=1698167955000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    idle         		100.0% (280/280)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2016_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2016_JER_AltDatasets_000
+Task name:			231024_182632:ecannaer_crab_clustAlg_QCDMC1000to1500_2016_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0106.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_182632%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2016_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_182632%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2016_JER_AltDatasets_000&from=1698168392000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 98.2% (275/280)
+				idle         		  1.8% (  5/280)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2849MB max, 2037MB ave
+ * Runtime: 0:00:00 min, 0:15:23 max, 0:08:08 ave
+ * CPU eff: 36% min, 90% max, 82% ave
+ * Waste: 12:22:03 (25% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2016_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2016__AltDatasets_000
+Task name:			231024_050826:ecannaer_crab_clustAlg_QCDMC1000to1500_2016__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0155.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_050826%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2016__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_050826%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2016__AltDatasets_000&from=1698120506000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (280/280)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 26MB min, 3716MB max, 1955MB ave
+ * Runtime: 0:04:22 min, 0:17:20 max, 0:10:34 ave
+ * CPU eff: 24% min, 83% max, 73% ave
+ * Waste: 8:03:23 (14% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2016__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2017_JEC_AltDatasets_000
+Task name:			231024_183351:ecannaer_crab_clustAlg_QCDMC1000to1500_2017_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0194.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_183351%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2017_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_183351%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2017_JEC_AltDatasets_000&from=1698168831000&to=now
+Warning:			1 blocks will be skipped because are not completely replicated on DISK: ['/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM#f72987ca-e62a-473c-9570-dab6cb311ce6']
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 63.9% (322/504)
+				running      		  1.0% (  5/504)
+				transferring 		  3.2% ( 16/504)
+				unsubmitted  		 31.9% (161/504)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2228MB max, 1337MB ave
+ * Runtime: 0:00:00 min, 0:50:36 max, 0:08:52 ave
+ * CPU eff: 9% min, 88% max, 62% ave
+ * Waste: 10:57:50 (18% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2017_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2017_JER_AltDatasets_000
+Task name:			231024_184106:ecannaer_crab_clustAlg_QCDMC1000to1500_2017_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0198.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_184106%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2017_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_184106%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2017_JER_AltDatasets_000&from=1698169266000&to=now
+Warning:			1 blocks will be skipped because are not completely replicated on DISK: ['/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM#f72987ca-e62a-473c-9570-dab6cb311ce6']
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 46.6% (235/504)
+				idle         		 38.9% (196/504)
+				unsubmitted  		 14.5% ( 73/504)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Warning: the max jobs memory is less than 70% of the task requested value (3000 MB), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1814MB max, 1274MB ave
+ * Runtime: 0:00:00 min, 1:06:00 max, 0:08:32 ave
+ * CPU eff: 9% min, 89% max, 58% ave
+ * Waste: 5:00:44 (13% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2017_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2017__AltDatasets_000
+Task name:			231024_051545:ecannaer_crab_clustAlg_QCDMC1000to1500_2017__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0197.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_051545%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2017__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_051545%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2017__AltDatasets_000&from=1698120945000&to=now
+Warning:			1 blocks will be skipped because are not completely replicated on DISK: ['/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM#f72987ca-e62a-473c-9570-dab6cb311ce6']
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (504/504)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Warning: the max jobs memory is less than 70% of the task requested value (3000 MB), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 55MB min, 1766MB max, 1187MB ave
+ * Runtime: 0:01:57 min, 0:56:22 max, 0:08:31 ave
+ * CPU eff: 5% min, 81% max, 59% ave
+ * Waste: 20:52:37 (23% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2017__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2018_JEC_AltDatasets_000
+Task name:			231024_184845:ecannaer_crab_clustAlg_QCDMC1000to1500_2018_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0199.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_184845%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2018_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_184845%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2018_JEC_AltDatasets_000&from=1698169725000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 54.9% (286/521)
+				idle         		  6.1% ( 32/521)
+				unsubmitted  		 39.0% (203/521)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Warning: the max jobs memory is less than 70% of the task requested value (3000 MB), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2081MB max, 1364MB ave
+ * Runtime: 0:00:00 min, 1:08:03 max, 0:07:50 ave
+ * CPU eff: 11% min, 91% max, 65% ave
+ * Waste: 14:28:44 (28% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2018_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2018_JER_AltDatasets_000
+Task name:			231024_185604:ecannaer_crab_clustAlg_QCDMC1000to1500_2018_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0196.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_185604%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2018_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_185604%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2018_JER_AltDatasets_000&from=1698170164000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (521/521)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 44MB min, 2426MB max, 1388MB ave
+ * Runtime: 0:01:11 min, 0:30:31 max, 0:07:31 ave
+ * CPU eff: 7% min, 89% max, 69% ave
+ * Waste: 20:05:48 (24% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2018_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2018__AltDatasets_000
+Task name:			231024_052257:ecannaer_crab_clustAlg_QCDMC1000to1500_2018__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0199.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_052257%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2018__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_052257%3Aecannaer_crab_clustAlg_QCDMC1000to1500_2018__AltDatasets_000&from=1698121377000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (521/521)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 61MB min, 2400MB max, 1236MB ave
+ * Runtime: 0:01:09 min, 0:17:04 max, 0:07:30 ave
+ * CPU eff: 6% min, 82% max, 60% ave
+ * Waste: 17:48:17 (21% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1000to1500_2018__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2015_JEC_AltDatasets_000
+Task name:			231024_180819:ecannaer_crab_clustAlg_QCDMC1500to2000_2015_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0121.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_180819%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2015_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_180819%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2015_JEC_AltDatasets_000&from=1698167299000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 57.0% (170/298)
+				idle         		 40.9% (122/298)
+				running      		  0.7% (  2/298)
+				transferring 		  1.3% (  4/298)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2699MB max, 1786MB ave
+ * Runtime: 0:00:00 min, 0:37:30 max, 0:13:24 ave
+ * CPU eff: 21% min, 99% max, 77% ave
+ * Waste: 4:04:44 (9% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2015_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2015_JER_AltDatasets_000
+Task name:			231024_181535:ecannaer_crab_clustAlg_QCDMC1500to2000_2015_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0121.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_181535%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2015_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_181535%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2015_JER_AltDatasets_000&from=1698167735000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 42.6% (127/298)
+				idle         		 57.4% (171/298)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2709MB max, 1829MB ave
+ * Runtime: 0:00:00 min, 0:33:29 max, 0:10:11 ave
+ * CPU eff: 21% min, 105% max, 76% ave
+ * Waste: 5:55:31 (22% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2015_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2015__AltDatasets_000
+Task name:			231024_050443:ecannaer_crab_clustAlg_QCDMC1500to2000_2015__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0106.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_050443%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2015__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_050443%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2015__AltDatasets_000&from=1698120283000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (298/298)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 115MB min, 2630MB max, 1584MB ave
+ * Runtime: 0:02:03 min, 0:40:02 max, 0:08:41 ave
+ * CPU eff: 16% min, 85% max, 70% ave
+ * Waste: 8:43:42 (17% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2015__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2016_JEC_AltDatasets_000
+Task name:			231024_182254:ecannaer_crab_clustAlg_QCDMC1500to2000_2016_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0155.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_182254%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2016_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_182254%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2016_JEC_AltDatasets_000&from=1698168174000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (223/223)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 54MB min, 2719MB max, 1980MB ave
+ * Runtime: 0:01:35 min, 0:34:03 max, 0:12:28 ave
+ * CPU eff: 17% min, 128% max, 81% ave
+ * Waste: 11:12:40 (19% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2016_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2016_JER_AltDatasets_000
+Task name:			231024_183014:ecannaer_crab_clustAlg_QCDMC1500to2000_2016_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0144.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_183014%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2016_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_183014%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2016_JER_AltDatasets_000&from=1698168614000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 56.5% (126/223)
+				idle         		 43.5% ( 97/223)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 3484MB max, 1967MB ave
+ * Runtime: 0:00:00 min, 0:30:34 max, 0:12:50 ave
+ * CPU eff: 15% min, 90% max, 79% ave
+ * Waste: 6:55:22 (20% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2016_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2016__AltDatasets_000
+Task name:			231024_051208:ecannaer_crab_clustAlg_QCDMC1500to2000_2016__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0121.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_051208%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2016__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_051208%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2016__AltDatasets_000&from=1698120728000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (223/223)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 112MB min, 2725MB max, 1788MB ave
+ * Runtime: 0:01:04 min, 0:22:05 max, 0:09:26 ave
+ * CPU eff: 19% min, 82% max, 70% ave
+ * Waste: 7:28:37 (18% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2016__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2017_JEC_AltDatasets_000
+Task name:			231024_183729:ecannaer_crab_clustAlg_QCDMC1500to2000_2017_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0107.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_183729%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2017_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_183729%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2017_JEC_AltDatasets_000&from=1698169049000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 49.0% (218/445)
+				idle         		 43.8% (195/445)
+				unsubmitted  		  7.2% ( 32/445)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2795MB max, 1810MB ave
+ * Runtime: 0:00:00 min, 0:23:41 max, 0:10:25 ave
+ * CPU eff: 4% min, 89% max, 74% ave
+ * Waste: 9:54:16 (21% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2017_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2017_JER_AltDatasets_000
+Task name:			231024_184446:ecannaer_crab_clustAlg_QCDMC1500to2000_2017_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0121.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_184446%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2017_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_184446%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2017_JER_AltDatasets_000&from=1698169486000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 49.0% (218/445)
+				idle         		 24.0% (107/445)
+				unsubmitted  		 27.0% (120/445)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2790MB max, 1909MB ave
+ * Runtime: 0:00:00 min, 0:25:53 max, 0:10:51 ave
+ * CPU eff: 1% min, 89% max, 76% ave
+ * Waste: 7:16:43 (16% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2017_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2017__AltDatasets_000
+Task name:			231024_051922:ecannaer_crab_clustAlg_QCDMC1500to2000_2017__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0144.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_051922%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2017__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_051922%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2017__AltDatasets_000&from=1698121162000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (445/445)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 82MB min, 3437MB max, 1575MB ave
+ * Runtime: 0:02:18 min, 0:31:52 max, 0:08:05 ave
+ * CPU eff: 4% min, 85% max, 64% ave
+ * Waste: 17:48:14 (23% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2017__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2018_JEC_AltDatasets_000
+Task name:			231024_185225:ecannaer_crab_clustAlg_QCDMC1500to2000_2018_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0196.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_185225%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2018_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_185225%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2018_JEC_AltDatasets_000&from=1698169945000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 99.6% (526/528)
+				running      		  0.4% (  2/528)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 48MB min, 3239MB max, 1488MB ave
+ * Runtime: 0:01:15 min, 2:50:10 max, 0:09:09 ave
+ * CPU eff: 7% min, 91% max, 70% ave
+ * Waste: 27:21:52 (25% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2018_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2018_JER_AltDatasets_000
+Task name:			231024_185944:ecannaer_crab_clustAlg_QCDMC1500to2000_2018_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0198.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_185944%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2018_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_185944%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2018_JER_AltDatasets_000&from=1698170384000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (528/528)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 55MB min, 2587MB max, 1512MB ave
+ * Runtime: 0:01:24 min, 1:04:47 max, 0:08:34 ave
+ * CPU eff: 9% min, 91% max, 71% ave
+ * Waste: 28:55:26 (28% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2018_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2018__AltDatasets_000
+Task name:			231024_052633:ecannaer_crab_clustAlg_QCDMC1500to2000_2018__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0155.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_052633%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2018__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_052633%3Aecannaer_crab_clustAlg_QCDMC1500to2000_2018__AltDatasets_000&from=1698121593000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (528/528)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 11MB min, 2414MB max, 1173MB ave
+ * Runtime: 0:01:11 min, 0:17:54 max, 0:04:54 ave
+ * CPU eff: 1% min, 85% max, 63% ave
+ * Waste: 25:04:34 (37% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC1500to2000_2018__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2015_JEC_AltDatasets_000
+Task name:			231024_180630:ecannaer_crab_clustAlg_QCDMC2000toInf_2015_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0195.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_180630%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2015_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_180630%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2015_JEC_AltDatasets_000&from=1698167190000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (171/171)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 31MB min, 2647MB max, 1663MB ave
+ * Runtime: 0:02:24 min, 0:24:50 max, 0:09:56 ave
+ * CPU eff: 3% min, 95% max, 79% ave
+ * Waste: 8:59:39 (24% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2015_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2015_JER_AltDatasets_000
+Task name:			231024_181346:ecannaer_crab_clustAlg_QCDMC2000toInf_2015_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0197.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_181346%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2015_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_181346%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2015_JER_AltDatasets_000&from=1698167626000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    failed       		  0.6% (  1/171)
+				finished     		 48.5% ( 83/171)
+				idle         		 47.4% ( 81/171)
+				unsubmitted  		  3.5% (  6/171)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Error Summary: (use crab status --verboseErrors for details about the errors)
+
+  1 jobs failed with exit code 50660
+
+Have a look at https://twiki.cern.ch/twiki/bin/viewauth/CMSPublic/JobExitCodes for a description of the exit codes.
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 3599MB max, 1623MB ave
+ * Runtime: 0:00:00 min, 0:33:07 max, 0:09:27 ave
+ * CPU eff: 15% min, 93% max, 77% ave
+ * Waste: 2:30:14 (16% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2015_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2015__AltDatasets_000
+Task name:			231024_050256:ecannaer_crab_clustAlg_QCDMC2000toInf_2015__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0119.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_050256%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2015__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_050256%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2015__AltDatasets_000&from=1698120176000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (171/171)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 46MB min, 2738MB max, 1492MB ave
+ * Runtime: 0:02:40 min, 0:15:08 max, 0:08:30 ave
+ * CPU eff: 8% min, 81% max, 61% ave
+ * Waste: 9:56:08 (29% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2015__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2016_JEC_AltDatasets_000
+Task name:			231024_182104:ecannaer_crab_clustAlg_QCDMC2000toInf_2016_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0144.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_182104%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2016_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_182104%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2016_JEC_AltDatasets_000&from=1698168064000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 52.8% ( 86/163)
+				idle         		 47.2% ( 77/163)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2645MB max, 1635MB ave
+ * Runtime: 0:00:00 min, 0:27:23 max, 0:10:30 ave
+ * CPU eff: 11% min, 91% max, 79% ave
+ * Waste: 1:16:22 (8% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2016_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2016_JER_AltDatasets_000
+Task name:			231024_182822:ecannaer_crab_clustAlg_QCDMC2000toInf_2016_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0106.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_182822%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2016_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_182822%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2016_JER_AltDatasets_000&from=1698168502000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 57.7% ( 94/163)
+				idle         		 17.2% ( 28/163)
+				running      		  6.7% ( 11/163)
+				transferring 		 18.4% ( 30/163)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2732MB max, 1709MB ave
+ * Runtime: 0:00:00 min, 0:32:00 max, 0:11:03 ave
+ * CPU eff: 7% min, 93% max, 77% ave
+ * Waste: 6:48:47 (23% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2016_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2016__AltDatasets_000
+Task name:			231024_051020:ecannaer_crab_clustAlg_QCDMC2000toInf_2016__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0194.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_051020%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2016__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_051020%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2016__AltDatasets_000&from=1698120620000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (163/163)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 50MB min, 2514MB max, 1501MB ave
+ * Runtime: 0:01:07 min, 1:00:48 max, 0:07:54 ave
+ * CPU eff: 0% min, 85% max, 66% ave
+ * Waste: 5:27:33 (20% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2016__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2017_JEC_AltDatasets_000
+Task name:			231024_183540:ecannaer_crab_clustAlg_QCDMC2000toInf_2017_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0122.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_183540%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2017_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_183540%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2017_JEC_AltDatasets_000&from=1698168940000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (242/242)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 70MB min, 2738MB max, 1587MB ave
+ * Runtime: 0:01:57 min, 0:45:52 max, 0:11:48 ave
+ * CPU eff: 10% min, 89% max, 69% ave
+ * Waste: 12:53:17 (21% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2017_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2017_JER_AltDatasets_000
+Task name:			231024_184256:ecannaer_crab_clustAlg_QCDMC2000toInf_2017_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0199.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_184256%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2017_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_184256%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2017_JER_AltDatasets_000&from=1698169376000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 79.3% (192/242)
+				idle         		 10.3% ( 25/242)
+				running      		  2.1% (  5/242)
+				transferring 		  8.3% ( 20/242)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2619MB max, 1551MB ave
+ * Runtime: 0:00:00 min, 0:56:50 max, 0:10:42 ave
+ * CPU eff: 12% min, 101% max, 69% ave
+ * Waste: 9:23:58 (20% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2017_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2017__AltDatasets_000
+Task name:			231024_051734:ecannaer_crab_clustAlg_QCDMC2000toInf_2017__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0122.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_051734%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2017__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_051734%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2017__AltDatasets_000&from=1698121054000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (242/242)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 25MB min, 2478MB max, 1410MB ave
+ * Runtime: 0:01:12 min, 0:36:43 max, 0:07:45 ave
+ * CPU eff: 8% min, 80% max, 57% ave
+ * Waste: 12:41:09 (29% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2017__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2018_JEC_AltDatasets_000
+Task name:			231024_185035:ecannaer_crab_clustAlg_QCDMC2000toInf_2018_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0144.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_185035%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2018_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_185035%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2018_JEC_AltDatasets_000&from=1698169835000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 63.8% (183/287)
+				idle         		 36.2% (104/287)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2565MB max, 1661MB ave
+ * Runtime: 0:00:00 min, 0:38:41 max, 0:10:02 ave
+ * CPU eff: 6% min, 88% max, 70% ave
+ * Waste: 8:46:51 (22% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2018_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2018_JER_AltDatasets_000
+Task name:			231024_185756:ecannaer_crab_clustAlg_QCDMC2000toInf_2018_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0107.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_185756%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2018_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_185756%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2018_JER_AltDatasets_000&from=1698170276000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 63.8% (183/287)
+				idle         		 36.2% (104/287)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 2408MB max, 1606MB ave
+ * Runtime: 0:00:00 min, 0:29:49 max, 0:09:56 ave
+ * CPU eff: 9% min, 89% max, 71% ave
+ * Waste: 7:05:06 (19% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2018_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2018__AltDatasets_000
+Task name:			231024_052445:ecannaer_crab_clustAlg_QCDMC2000toInf_2018__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0194.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_052445%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2018__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_052445%3Aecannaer_crab_clustAlg_QCDMC2000toInf_2018__AltDatasets_000&from=1698121485000&to=now
+Warning:			Task requests 3000 MB of memory, but only 2500 MB are guaranteed to be available. Jobs may not find a site where to run and stay idle forever.
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (287/287)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 79MB min, 2386MB max, 1260MB ave
+ * Runtime: 0:01:24 min, 0:25:32 max, 0:06:07 ave
+ * CPU eff: 8% min, 78% max, 51% ave
+ * Waste: 15:30:31 (35% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_QCDMC2000toInf_2018__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2015_JEC_AltDatasets_000
+Task name:			231024_181008:ecannaer_crab_clustAlg_TTbarMC_2015_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0197.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_181008%3Aecannaer_crab_clustAlg_TTbarMC_2015_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_181008%3Aecannaer_crab_clustAlg_TTbarMC_2015_JEC_AltDatasets_000&from=1698167408000&to=now
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    failed       		  0.1% (   1/1458)
+				finished     		 75.5% (1101/1458)
+				idle         		 24.4% ( 356/1458)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Error Summary: (use crab status --verboseErrors for details about the errors)
+
+   1 jobs failed with exit code 5
+
+Have a look at https://twiki.cern.ch/twiki/bin/viewauth/CMSPublic/JobExitCodes for a description of the exit codes.
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1401MB max, 946MB ave
+ * Runtime: 0:00:00 min, 1:12:10 max, 0:12:28 ave
+ * CPU eff: 5% min, 117% max, 67% ave
+ * Waste: 43:53:36 (16% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2015_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2015_JER_AltDatasets_000
+Task name:			231024_181727:ecannaer_crab_clustAlg_TTbarMC_2015_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0198.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_181727%3Aecannaer_crab_clustAlg_TTbarMC_2015_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_181727%3Aecannaer_crab_clustAlg_TTbarMC_2015_JER_AltDatasets_000&from=1698167847000&to=now
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 57.8% ( 843/1458)
+				idle         		 42.2% ( 615/1458)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1607MB max, 962MB ave
+ * Runtime: 0:00:00 min, 1:10:33 max, 0:11:58 ave
+ * CPU eff: 12% min, 96% max, 67% ave
+ * Waste: 33:57:25 (17% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2015_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2015__AltDatasets_000
+Task name:			231024_050633:ecannaer_crab_clustAlg_TTbarMC_2015__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0120.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_050633%3Aecannaer_crab_clustAlg_TTbarMC_2015__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_050633%3Aecannaer_crab_clustAlg_TTbarMC_2015__AltDatasets_000&from=1698120393000&to=now
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (1458/1458)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 112MB min, 1447MB max, 861MB ave
+ * Runtime: 0:01:09 min, 1:14:14 max, 0:12:18 ave
+ * CPU eff: 7% min, 91% max, 72% ave
+ * Waste: 51:55:40 (15% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2015__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2016_JEC_AltDatasets_000
+Task name:			231024_182443:ecannaer_crab_clustAlg_TTbarMC_2016_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0107.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_182443%3Aecannaer_crab_clustAlg_TTbarMC_2016_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_182443%3Aecannaer_crab_clustAlg_TTbarMC_2016_JEC_AltDatasets_000&from=1698168283000&to=now
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 27.9% ( 679/2434)
+				idle         		 42.9% (1045/2434)
+				running      		  0.2% (   4/2434)
+				toRetry      		  0.0% (   1/2434)
+				transferring 		  0.6% (  14/2434)
+				unsubmitted  		 28.4% ( 691/2434)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1268MB max, 862MB ave
+ * Runtime: 0:00:00 min, 0:21:58 max, 0:08:11 ave
+ * CPU eff: 20% min, 83% max, 72% ave
+ * Waste: 28:16:46 (23% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2016_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2016_JER_AltDatasets_000
+Task name:			231024_183203:ecannaer_crab_clustAlg_TTbarMC_2016_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0198.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_183203%3Aecannaer_crab_clustAlg_TTbarMC_2016_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_183203%3Aecannaer_crab_clustAlg_TTbarMC_2016_JER_AltDatasets_000&from=1698168723000&to=now
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 23.0% ( 559/2434)
+				idle         		 36.0% ( 877/2434)
+				unsubmitted  		 41.0% ( 998/2434)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1482MB max, 870MB ave
+ * Runtime: 0:00:00 min, 0:27:37 max, 0:08:02 ave
+ * CPU eff: 11% min, 83% max, 70% ave
+ * Waste: 27:10:28 (27% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2016_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2016__AltDatasets_000
+Task name:			231024_051356:ecannaer_crab_clustAlg_TTbarMC_2016__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0120.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_051356%3Aecannaer_crab_clustAlg_TTbarMC_2016__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_051356%3Aecannaer_crab_clustAlg_TTbarMC_2016__AltDatasets_000&from=1698120837000&to=now
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (2434/2434)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 55MB min, 1404MB max, 792MB ave
+ * Runtime: 0:01:44 min, 0:39:41 max, 0:09:28 ave
+ * CPU eff: 10% min, 81% max, 67% ave
+ * Waste: 77:19:51 (17% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2016__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2017_JEC_AltDatasets_000
+Task name:			231024_183917:ecannaer_crab_clustAlg_TTbarMC_2017_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0137.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_183917%3Aecannaer_crab_clustAlg_TTbarMC_2017_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_183917%3Aecannaer_crab_clustAlg_TTbarMC_2017_JEC_AltDatasets_000&from=1698169157000&to=now
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 64.7% (1912/2953)
+				idle         		 32.3% ( 955/2953)
+				running      		  0.8% (  25/2953)
+				transferring 		  2.1% (  61/2953)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1583MB max, 958MB ave
+ * Runtime: 0:00:00 min, 1:34:09 max, 0:15:53 ave
+ * CPU eff: 5% min, 118% max, 69% ave
+ * Waste: 83:26:37 (14% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2017_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2017_JER_AltDatasets_000
+Task name:			231024_184657:ecannaer_crab_clustAlg_TTbarMC_2017_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0197.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_184657%3Aecannaer_crab_clustAlg_TTbarMC_2017_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_184657%3Aecannaer_crab_clustAlg_TTbarMC_2017_JER_AltDatasets_000&from=1698169617000&to=now
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 56.7% (1674/2953)
+				idle         		 35.7% (1054/2953)
+				toRetry      		  0.0% (   1/2953)
+				unsubmitted  		  7.6% ( 224/2953)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1588MB max, 959MB ave
+ * Runtime: 0:00:00 min, 1:23:10 max, 0:16:33 ave
+ * CPU eff: 5% min, 124% max, 66% ave
+ * Waste: 66:56:35 (13% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2017_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2017__AltDatasets_000
+Task name:			231024_052110:ecannaer_crab_clustAlg_TTbarMC_2017__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0144.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_052110%3Aecannaer_crab_clustAlg_TTbarMC_2017__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_052110%3Aecannaer_crab_clustAlg_TTbarMC_2017__AltDatasets_000&from=1698121270000&to=now
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (2953/2953)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 62MB min, 1449MB max, 840MB ave
+ * Runtime: 0:01:18 min, 1:14:08 max, 0:16:15 ave
+ * CPU eff: 9% min, 109% max, 62% ave
+ * Waste: 101:20:06 (11% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2017__AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2018_JEC_AltDatasets_000
+Task name:			231024_185416:ecannaer_crab_clustAlg_TTbarMC_2018_JEC_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0137.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_185416%3Aecannaer_crab_clustAlg_TTbarMC_2018_JEC_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_185416%3Aecannaer_crab_clustAlg_TTbarMC_2018_JEC_AltDatasets_000&from=1698170056000&to=now
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 24.4% (1758/7195)
+				idle         		 12.8% ( 922/7195)
+				unsubmitted  		 62.8% (4515/7195)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1337MB max, 970MB ave
+ * Runtime: 0:00:00 min, 0:34:04 max, 0:09:50 ave
+ * CPU eff: 14% min, 86% max, 72% ave
+ * Waste: 77:42:14 (21% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2018_JEC_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2018_JER_AltDatasets_000
+Task name:			231024_190134:ecannaer_crab_clustAlg_TTbarMC_2018_JER_AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0120.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_190134%3Aecannaer_crab_clustAlg_TTbarMC_2018_JER_AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_190134%3Aecannaer_crab_clustAlg_TTbarMC_2018_JER_AltDatasets_000&from=1698170494000&to=now
+Status on the scheduler:	SUBMITTED
+
+Jobs status:                    finished     		 26.4% (1902/7195)
+				idle         		 12.4% ( 894/7195)
+				running      		  0.1% (   7/7195)
+				transferring 		  0.6% (  44/7195)
+				unsubmitted  		 60.4% (4348/7195)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 0MB min, 1969MB max, 973MB ave
+ * Runtime: 0:00:00 min, 0:26:07 max, 0:09:07 ave
+ * CPU eff: 13% min, 85% max, 74% ave
+ * Waste: 70:34:45 (19% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2018_JER_AltDatasets_000/crab.log
+CRAB project directory:		/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2018__AltDatasets_000
+Task name:			231024_052820:ecannaer_crab_clustAlg_TTbarMC_2018__AltDatasets_000
+Grid scheduler - Task Worker:	crab3@vocms0106.cern.ch - crab-prod-tw01
+Status on the CRAB server:	SUBMITTED
+Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/231024_052820%3Aecannaer_crab_clustAlg_TTbarMC_2018__AltDatasets_000
+Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=ecannaer&var-task=231024_052820%3Aecannaer_crab_clustAlg_TTbarMC_2018__AltDatasets_000&from=1698121700000&to=now
+Status on the scheduler:	COMPLETED
+
+Jobs status:                    finished     		100.0% (7195/7195)
+
+No publication information (publication has been disabled in the CRAB configuration file)
+
+Warning: the max jobs runtime is less than 30% of the task requested value (1250 min), please consider to request a lower value for failed jobs (allowed through crab resubmit) and/or improve the jobs splitting (e.g. config.Data.splitting = 'Automatic') in a new task.
+
+Summary of run jobs:
+ * Memory: 41MB min, 1559MB max, 837MB ave
+ * Runtime: 0:01:23 min, 0:21:53 max, 0:09:19 ave
+ * CPU eff: 7% min, 142% max, 69% ave
+ * Waste: 281:03:02 (20% of total)
+
+Log file is /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/allAltCrabCfgs/crab_projects/crab_clustAlg_TTbarMC_2018__AltDatasets_000/crab.log
