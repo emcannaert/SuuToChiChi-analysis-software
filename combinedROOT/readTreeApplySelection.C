@@ -146,10 +146,6 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                {
                   nSJMass100Cut++;
                }
-               else
-               {
-                  std::cout << "no high mass SJs 100s" << std::endl;
-               }
             }
          }
          t2->Fill();
@@ -168,12 +164,12 @@ void readTreeApplySelection()
 {
 
    // you must change these ........
-   bool runData = false;
+   bool runData = true;
    bool includeTTBar = true;
    bool allHTBins    = true;
 
-   std::vector<std::string> years = {"2018"};    // for testing  "2015","2016","2017"
-   std::vector<std::string> systematics = {"JEC"};   // will eventually use this to skim the systematic files too
+   std::vector<std::string> years = {"2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
+   std::vector<std::string> systematics = {"nom"};//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
@@ -188,25 +184,26 @@ void readTreeApplySelection()
 
          if(*datayear == "2015")
          {
-            dataBlocks = {"JetHT_dataB-ver1","JetHT_dataB-ver2","JetHT_dataC-HIPM","JetHT_dataD-HIPM","JetHT_dataE-HIPM","JetHT_dataF-HIPM"};
+            dataBlocks = {"JetHT_dataB-ver2_","JetHT_dataC-HIPM_","JetHT_dataD-HIPM_","JetHT_dataE-HIPM_","JetHT_dataF-HIPM_"}; // JetHT_dataB-ver1 not present
          }
          else if(*datayear == "2016")
          {
-            dataBlocks = {"JetHT_dataF", "JetHT_dataG", "JetHT_dataH"};
+            dataBlocks = {"JetHT_dataF_", "JetHT_dataG_", "JetHT_dataH_"};
          }
          else if(*datayear == "2017")
          {
-            dataBlocks = {"JetHT_dataB","JetHT_dataC","JetHT_dataD","JetHT_dataE", "JetHT_dataF"};
+            dataBlocks = {"JetHT_dataB_","JetHT_dataC_","JetHT_dataD_","JetHT_dataE_", "JetHT_dataF_"};
          }
          else if(*datayear == "2018")
          {
-            dataBlocks = {"JetHT_dataA","JetHT_dataB","JetHT_dataC","JetHT_dataD"};
+            dataBlocks = {"JetHT_dataA_","JetHT_dataB_","JetHT_dataC_","JetHT_dataD_"};
          }
       }
       else
       {  
-        dataBlocks = {"QCDMC2000toInf_"}; 
-	//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronic_"};
+        //dataBlocks = {"TTToSemiLeptonic_"}; 
+         dataBlocks = {"ST_t-channel_antitop","ST_t-channel_top","ST_tW_antitop","ST_tW_top"};
+	     //dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronic_", "TTToSemiLeptonic_", "TTToLeptonic_"};
       }
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
       {

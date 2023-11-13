@@ -517,7 +517,7 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
          tree->Branch("SJ2_mass_genParts",&SJ2_mass_genParts,"SJ2_mass_genParts/D");
 
       }
-      else if ((runType.find("QCD") != std::string::npos) || (runType.find("TTbar") != std::string::npos) )  // BRMC
+      else if ((runType.find("QCD") != std::string::npos) || (runType.find("TTTo") != std::string::npos) )  // BRMC
       {
          tree->Branch("nGenBJets_AK4", nGenBJets_AK4, "nGenBJets_AK4[lab_nAK4]/I");
          tree->Branch("AK4_partonFlavour", AK4_partonFlavour  , "AK4_partonFlavour[lab_nAK4]/I");
@@ -1103,7 +1103,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-   if ( (runType.find("QCD") != std::string::npos) || (runType.find("TTbar") != std::string::npos) )
+   if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) )
    {
 
       if(_verbose)std::cout << "before pileup" << std::endl;
@@ -1368,7 +1368,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged *= SF*bTag_eff_value;
                   data_tagged_up *= SF_up*bTag_eff_value;
                   data_tagged_down *= SF_down*bTag_eff_value;
-                  if(_verbose)std::cout << "tagged c jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
+                  if(_verbose)std::cout << "tagged b jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
 
                }
                else
