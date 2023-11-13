@@ -25,16 +25,16 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 	newCfg.write("config.Data.inputDataset = '%s'\n"%dataset)
 	newCfg.write("config.Data.publication = False\n")
-	if "data" in sample:
-		newCfg.write("config.Data.splitting = 'Automatic'\n")
-	else:
-		newCfg.write("config.Data.splitting = 'FileBased'\n")
-		newCfg.write("config.Data.unitsPerJob = 1\n")
+	#if "data" in sample:
+		#newCfg.write("config.Data.splitting = 'Automatic'\n")
+	#else:
+	newCfg.write("config.Data.splitting = 'FileBased'\n")
+	newCfg.write("config.Data.unitsPerJob = 2\n")
 
 	if "QCD" in sample:
 		newCfg.write("config.JobType.maxMemoryMB = 3000 # might be necessary for some of the QCD jobs\n")
 	if "data" in sample:
-		newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
+		newCfg.write("config.JobType.maxMemoryMB = 5000 # might be necessary for some of the QCD jobs\n")
 	#### lumimask info: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2#2018
 	if "data" in sample:
 		if year=="2015":
@@ -72,7 +72,9 @@ def main():
 	datasets = {    '2015': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
    							  'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
    							  'QCDMC2000toInf':  '/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
-   							  'TTbarMC':'/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',  
+   							  'TTToHadronicMC':  '/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',  
+   							  'TTToSemiLeptonicMC': '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
+                          	  'TTToLeptonicMC': '/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
    							  'dataB-ver1': '/JetHT/Run2016B-ver1_HIPM_UL2016_MiniAODv2-v2/MINIAOD',
    							  'dataB-ver2': '/JetHT/Run2016B-ver2_HIPM_UL2016_MiniAODv2-v2/MINIAOD',
    							  'dataC-HIPM': '/JetHT/Run2016C-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
@@ -82,7 +84,9 @@ def main():
     				'2016': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
    							  'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
    							  'QCDMC2000toInf':  '/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
-   							  'TTbarMC':'/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',  
+   							  'TTToHadronicMC':'/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',  
+   							  'TTToSemiLeptonicMC':'/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
+                              'TTToLeptonicMC':'/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
    							  'dataF': '/JetHT/Run2016F-UL2016_MiniAODv2-v2/MINIAOD',
    							  'dataG': '/JetHT/Run2016G-UL2016_MiniAODv2-v2/MINIAOD',
    							  'dataH': '/JetHT/Run2016H-UL2016_MiniAODv2-v2/MINIAOD'},
@@ -90,7 +94,9 @@ def main():
 					   '2017': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM',
    							     'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM',
    							     'QCDMC2000toInf':  '/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM',
-   							     'TTbarMC':'/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM',  
+   							     'TTToHadronicMC':'/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM',  
+   							     'TTToSemiLeptonicMC': '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM',
+                          	 	 'TTToLeptonicMC':'/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM',
    							     'dataB': '/JetHT/Run2017B-UL2017_MiniAODv2-v1/MINIAOD',
    							     'dataC': '/JetHT/Run2017C-UL2017_MiniAODv2-v1/MINIAOD',
     							 'dataD': '/JetHT/Run2017D-UL2017_MiniAODv2-v1/MINIAOD',
@@ -99,7 +105,9 @@ def main():
                     '2018': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
    							  'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
    							  'QCDMC2000toInf':  '/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
-   							  'TTbarMC':'/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM',  
+   							  'TTToHadronicMC':'/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM',  
+   							  'TTToSemiLeptonicMC':'/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
+                          	  'TTToLeptonicMC':'/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM',
    							  'dataA': '/JetHT/Run2018A-UL2018_MiniAODv2_GT36-v1/MINIAOD',
    							  'dataB': '/JetHT/Run2018B-UL2018_MiniAODv2_GT36-v1/MINIAOD',
     						  'dataC': '/JetHT/Run2018C-UL2018_MiniAODv2_GT36-v1/MINIAOD',
@@ -108,69 +116,69 @@ def main():
    }
 	for year in years:
 		if year == "2015":
-			samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTbarMC",
-	"Suu8_chi3",
-	"Suu8_chi2",
-	"Suu8_chi1",
-	"Suu7_chi3",
-	"Suu7_chi2",
-	"Suu7_chi1",
-	"Suu6_chi2",
-	"Suu6_chi1p5",
-	"Suu6_chi1",
-	"Suu5_chi2",
-	"Suu5_chi1p5",
-	"Suu5_chi1",
-	"Suu4_chi1p5",
-	"Suu4_chi1" ]
+			samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC",
+   "Suu8_chi3",
+   "Suu8_chi2",
+   "Suu8_chi1",
+   "Suu7_chi3",
+   "Suu7_chi2",
+   "Suu7_chi1",
+   "Suu6_chi2",
+   "Suu6_chi1p5",
+   "Suu6_chi1",
+   "Suu5_chi2",
+   "Suu5_chi1p5",
+   "Suu5_chi1",
+   "Suu4_chi1p5",
+   "Suu4_chi1" ]
 		elif year == "2016":
-			samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTbarMC",
-	"Suu8_chi3",
-	"Suu8_chi2",
-	"Suu8_chi1",
-	"Suu7_chi3",
-	"Suu7_chi2",
-	"Suu7_chi1",
-	"Suu6_chi2",
-	"Suu6_chi1p5",
-	"Suu6_chi1",
-	"Suu5_chi2",
-	"Suu5_chi1p5",
-	"Suu5_chi1",
-	"Suu4_chi1p5",
-	"Suu4_chi1" ]
+			samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
+   "Suu8_chi3",
+   "Suu8_chi2",
+   "Suu8_chi1",
+   "Suu7_chi3",
+   "Suu7_chi2",
+   "Suu7_chi1",
+   "Suu6_chi2",
+   "Suu6_chi1p5",
+   "Suu6_chi1",
+   "Suu5_chi2",
+   "Suu5_chi1p5",
+   "Suu5_chi1",
+   "Suu4_chi1p5",
+   "Suu4_chi1" ]
 		elif year == "2017":
-			samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTbarMC",
-	"Suu8_chi3",
-	"Suu8_chi2",
-	"Suu8_chi1",
-	"Suu7_chi3",
-	"Suu7_chi2",
-	"Suu7_chi1",
-	"Suu6_chi2",
-	"Suu6_chi1p5",
-	"Suu6_chi1",
-	"Suu5_chi2",
-	"Suu5_chi1p5",
-	"Suu5_chi1",
-	"Suu4_chi1p5",
-	"Suu4_chi1" ]
+			samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
+   "Suu8_chi3",
+   "Suu8_chi2",
+   "Suu8_chi1",
+   "Suu7_chi3",
+   "Suu7_chi2",
+   "Suu7_chi1",
+   "Suu6_chi2",
+   "Suu6_chi1p5",
+   "Suu6_chi1",
+   "Suu5_chi2",
+   "Suu5_chi1p5",
+   "Suu5_chi1",
+   "Suu4_chi1p5",
+   "Suu4_chi1" ]
 		elif year == "2018":
-			samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTbarMC",
-	"Suu8_chi3",
-	"Suu8_chi2",
-	"Suu8_chi1",
-	"Suu7_chi3",
-	"Suu7_chi2",
-	"Suu7_chi1",
-	"Suu6_chi2",
-	"Suu6_chi1p5",
-	"Suu6_chi1",
-	"Suu5_chi2",
-	"Suu5_chi1p5",
-	"Suu5_chi1",
-	"Suu4_chi1p5",
-	"Suu4_chi1" ]
+			samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
+   "Suu8_chi3",
+   "Suu8_chi2",
+   "Suu8_chi1",
+   "Suu7_chi3",
+   "Suu7_chi2",
+   "Suu7_chi1",
+   "Suu6_chi2",
+   "Suu6_chi1p5",
+   "Suu6_chi1",
+   "Suu5_chi2",
+   "Suu5_chi1p5",
+   "Suu5_chi1",
+   "Suu4_chi1p5",
+   "Suu4_chi1" ]
 
 		for iii, sample in enumerate(samples):
 			for systematic in systematics:

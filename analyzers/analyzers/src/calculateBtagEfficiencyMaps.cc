@@ -231,7 +231,7 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
       double AK4_JER_corr_factor = 1.0; // this won't be touched for data
-      if((runType == "SigMC") || (runType == "BRMC") ) 
+      if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) ) 
       {
 
          double sJER     = -9999.;    //JER scale factor
