@@ -1648,7 +1648,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
 
-   if (nfatjets < 2)return;
+   if ((nfatjets < 2)|| (nfatjet_pre < 1) )return;
 
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    ////////////////////////////////////////////////////////////_Clustering_///////////////////////////////////////////////////////////////////
@@ -1688,10 +1688,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    std::vector<fastjet::PseudoJet> jetsFJ_jet0 = fastjet::sorted_by_E(cs_jet0.inclusive_jets(10.));
    double MPP_COM2_px = 0,MPP_COM2_py=0,MPP_COM2_pz =0,MPP_COM2_E = 0;
    int counter = 0;
-
+   int nReclustered_CA8 = 0;
    std::vector<TLorentzVector> candsBoostedTLV;   
    for (auto iJet=jetsFJ_jet0.begin(); iJet<jetsFJ_jet0.end(); iJet++)                             
    {   
+      if(iJet->E() > 250.) nReclustered_CA8++;
       if (iJet->constituents().size() > 0)
       {
          for(auto iDaughter = iJet->constituents().begin(); iDaughter != iJet->constituents().end(); iDaughter++)
@@ -1705,6 +1706,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
       MPP_COM2_px+= iJet->px(); MPP_COM2_py+= iJet->py(); MPP_COM2_pz+=iJet->pz() ; MPP_COM2_E+=iJet->E() ;
    }
+   if(_verbose)std::cout << "In this event, there were " << nfatjets << " lab frame AK8 jets selected, and " << nReclustered_CA8 << " reclustered MPP frame CA jets w/ E> 250 GeV" << std::endl;
     TVector3 MPP_COM2 = TVector3(MPP_COM2_px/MPP_COM2_E,MPP_COM2_py/MPP_COM2_E ,MPP_COM2_pz/MPP_COM2_E);
     std::vector<reco::LeafCandidate> candsBoosted_MPPCOM2;   
 
@@ -1742,19 +1744,25 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    nCombinations = 0;
    if(_verbose)std::cout << "enter sort jets" << std::endl;
 
-    std::vector<TLorentzVector> negSuperJet;
-    std::vector<TLorentzVector> posSuperJet;
+   std::vector<TLorentzVector> negSuperJet;
+   std::vector<TLorentzVector> posSuperJet;
+
+   if(_verbose)std::cout << "In this event there are " << posSuperJet_preSort.size() << "/" << negSuperJet_preSort.size() << "/" << miscJets.size() << "pos/neg/misc jets" << std::endl;
 
    if(( miscJets.size() > 0) )
    {   
       sortJets testing(negSuperJet_preSort,posSuperJet_preSort,miscJets);
       negSuperJet = testing.finalSuperJet1;
       posSuperJet = testing.finalSuperJet2;
-
    }
-
-   if( (negSuperJet.size() < 1 ) || (posSuperJet.size()<1)   ) 
+   else
    {
+      negSuperJet = negSuperJet_preSort;
+      posSuperJet = posSuperJet_preSort;
+   }
+   if( ((negSuperJet.size() < 1 ) || (posSuperJet.size()<1) )  ) 
+   {
+      if(_verbose)std::cout << "Superjet with size < 1: superjet1 size is " << posSuperJet.size() << ", superjet 2 size is "<< negSuperJet.size()  <<"| EXITING ----------------" <<std::endl;
       return;
    }
    TLorentzVector SJ1(0,0,0,0);
