@@ -333,7 +333,7 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       nBtaggedAK4++;
    }
 
-   if ((totHT < 1200.)) 
+   if ((totHT < 1400.)) 
    {
       return false;  //btagged jet cuts
    }

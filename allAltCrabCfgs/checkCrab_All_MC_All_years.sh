@@ -1,4 +1,4 @@
-crab status -d crab_projects/rab_clustAlg_QCDMC1000to1500_2015_JEC_AltDatasets_000
+crab status -d crab_projects/crab_clustAlg_QCDMC1000to1500_2015_JEC_AltDatasets_000
 crab status -d crab_projects/crab_clustAlg_QCDMC1000to1500_2015_JER_AltDatasets_000
 crab status -d crab_projects/crab_clustAlg_QCDMC1000to1500_2015__AltDatasets_000
 crab status -d crab_projects/crab_clustAlg_QCDMC1000to1500_2016_JEC_AltDatasets_000

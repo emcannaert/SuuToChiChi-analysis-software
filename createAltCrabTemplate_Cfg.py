@@ -29,12 +29,14 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 		#newCfg.write("config.Data.splitting = 'Automatic'\n")
 	#else:
 	newCfg.write("config.Data.splitting = 'FileBased'\n")
-	newCfg.write("config.Data.unitsPerJob = 2\n")
-
+	if "Leptonic" in sample:
+		newCfg.write("config.Data.unitsPerJob = 2\n")
+	else:
+		newCfg.write("config.Data.unitsPerJob = 1\n")
 	if "QCD" in sample:
 		newCfg.write("config.JobType.maxMemoryMB = 3000 # might be necessary for some of the QCD jobs\n")
 	if "data" in sample:
-		newCfg.write("config.JobType.maxMemoryMB = 5000 # might be necessary for some of the QCD jobs\n")
+		newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
 	#### lumimask info: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2#2018
 	if "data" in sample:
 		if year=="2015":
@@ -62,7 +64,7 @@ def main():
 	current_time = datetime.now()
 	dateTimeString = "%s%s%s_%s%s%s"%(current_time.year,current_time.month,current_time.day,current_time.hour,current_time.minute,current_time.second )
 	lastCrabSubmission.write("/store/user/ecannaer/SuuToChiChi_AltDatasets_%s\n"%dateTimeString)
- 	years   = ["2015","2016","2017","2018"]
+	years   = ["2015","2016","2017","2018"]
 
 	systematics = ["JEC", "JER",
 
