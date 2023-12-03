@@ -13,5 +13,5 @@ config.Data.unitsPerJob = 1
 config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs
 config.Data.lumiMask = '../lumimasks/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'
 config.Data.outputDatasetTag = 'clustAlg_dataB_2018_'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_20231122_165353'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_20231127_23944'
 config.Site.storageSite = 'T3_US_FNALLPC'
