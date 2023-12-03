@@ -11,5 +11,5 @@ config.Data.publication = False
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.Data.outputDatasetTag = 'clustAlg_TTToHadronicMC_2017_JER'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_20231122_165353'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_20231127_23944'
 config.Site.storageSite = 'T3_US_FNALLPC'

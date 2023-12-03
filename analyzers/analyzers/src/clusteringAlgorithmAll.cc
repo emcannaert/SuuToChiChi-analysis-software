@@ -152,36 +152,25 @@ private:
    bool doPUSF   = false;
    int SJ_nAK4_50[100],SJ_nAK4_70[100],SJ_nAK4_100[100],SJ_nAK4_125[100],SJ_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_300[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
    double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
-   double jet_beta[100], beta_T[100], AK4_mass_20[100],AK4_mass_30[100],AK4_mass_50[100],AK4_mass_70[100],AK4_mass_100[100],AK4_mass_150[100];
    double SJ_mass_50[100], SJ_mass_70[100],SJ_mass_100[100],superJet_mass[100],SJ_AK4_50_mass[100],SJ_AK4_70_mass[100];
    double SJ_mass_125[100], SJ_mass_150[100], SJ_mass_200[100],SJ_mass_300[100],SJ_mass_400[100],SJ_mass_600[100],SJ_mass_800[100],SJ_mass_1000[100];   
-   double tot_jet_mass,decay_inv_mass, chi_inv_mass;
-   double AK4_mass[100], AK4_E[500], leadAK8_mass[100];
+   double AK4_mass[100], AK4_E[500], leadAK8_mass[10];
    double event_reco_pt;
    double diSuperJet_mass,diSuperJet_mass_100;
-   double chi_dr,topPart_dr,higgs_dr,SuuW_dr,HiggsTop_dr,SuuWb_dr;
-   double topAK8_dr, WSuuAK8_dr,bSuuAK8_dr,higgsAK8_dr,topWAK8_dr,topbAK8_dr;
-   double topAK4_dr, WSuuAK4_dr,bSuuAK4_dr,higgsAK4_dr,topWAK4_dr,topbAK4_dr;
-   double recoCOM_eta,recoCOM_phi;
+
    double eventBetaCOM   = -999.;
-   int nGoodEvents = 0;
    double totHT = 0;
    double dijetMassOne, dijetMassTwo;
    int nfatjet_pre = 0;
    int nSuperJets = 0;
-   int nhadevents = 0;
    double AK4_bdisc[100], AK4_DeepJet_disc[100];
-   int nBadClusters =0;
-   int correctlySortedChi1, correctlySortedChi2;
    int jet_ndaughters[100], jet_nAK4[100],jet_nAK4_20[100],jet_nAK4_30[100],jet_nAK4_50[100],jet_nAK4_70[100],jet_nAK4_100[100],jet_nAK4_150[100];
    double totMET;
    int lab_nAK4 = 0;
    double lab_AK4_pt[100];
-   double daughter_mass_comb[100];
    double btag_score_uncut[100];
    int nAK4_uncut = 0;
    int nGenBJets_AK4[100],AK4_hadronFlavour[100], AK4_partonFlavour[100];
-   double genSuperJetMass[100];
    int nCategories = 4;
    double AK4_ptot[100], AK4_eta[100], AK4_phi[100];
    int SJ1_decision,SJ2_decision;
@@ -201,19 +190,24 @@ private:
    int eventTTbarCRFlag = 0;
 
    //MP superjet AK4 jet momenta and energies, tedious,but means we can do some SJ calculations locally, these will also become BEST variables
-   double SJ1_AK4_px[100], SJ1_AK4_py[100], SJ1_AK4_pz[100], SJ1_AK4_E[100];
-   double SJ2_AK4_px[100], SJ2_AK4_py[100], SJ2_AK4_pz, SJ2_AK4_E[100];
+   double SJ1_AK4_px[20], SJ1_AK4_py[20], SJ1_AK4_pz[20], SJ1_AK4_E[20];
+   double SJ2_AK4_px[20], SJ2_AK4_py[20], SJ2_AK4_pz, SJ2_AK4_E[20];
 
-   double SJ1_SortCombinations_alt[100],SJ2_SortCombinations_alt[100];
+   double jet_phi[100];
    double SJ1_mass_genParts,SJ2_mass_genParts;
    int nCombinations;
    int ntrueInt;
    double diAK8Jet_mass[100];
    double fourAK8JetMass;
    int nAK8diJets = 2;
-   bool isQCD = false,isTTbar =false;
+
    double PU_eventWeight_up, PU_eventWeight_nom, PU_eventWeight_down;
    double deepJet_wp_loose, deepJet_wp_med, deepjet_wp_tight;
+
+   double jet_JEC_up[25], jet_JEC_down[25], jet_JER_nom[25],jet_JER_up[25],jet_JER_down[25];
+   double AK4_JEC_up[25], AK4_JEC_down[25], AK4_JER_nom[25],AK4_JER_up[25],AK4_JER_down[25];
+
+
 
    TH2F *truebjet_eff,*truecjet_eff, *lightjet_eff;
 
@@ -302,7 +296,7 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    {
       //deepJet_wp_loose = 0.0480;
       //deepJet_wp_med   = 0.2489;
-      deepjet_wp_tight = 0.8767;
+      deepjet_wp_tight = 0.6377;
       lumiTag = "Collisions16_UltraLegacy_goldenJSON";
    }
    else if(year == "2015")
@@ -361,6 +355,12 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    
    tree->Branch("jet_pt", jet_pt, "jet_pt[nfatjets]/D");
    tree->Branch("jet_eta", jet_eta, "jet_eta[nfatjets]/D");
+   tree->Branch("jet_phi", jet_phi, "jet_phi[nfatjets]/D");
+   tree->Branch("jet_JEC_up", jet_JEC_up, "jet_JEC_up[nfatjets]/D");
+   tree->Branch("jet_JEC_down", jet_JEC_down, "jet_JEC_down[nfatjets]/D");
+
+
+
    tree->Branch("jet_mass", jet_mass, "jet_mass[nfatjets]/D");
    tree->Branch("AK4_mass", AK4_mass, "AK4_mass[nAK4]/D");
 
@@ -400,11 +400,6 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree->Branch("leadAK8_mass",leadAK8_mass, "leadAK8_mass[nfatjets]/D");
    tree->Branch("event_reco_pt", &event_reco_pt, "event_reco_pt/D");
 
-   tree->Branch("recoCOM_phi", &recoCOM_phi, "recoCOM_phi/D");
-   tree->Branch("recoCOM_eta", &recoCOM_eta, "recoCOM_eta/D");
-
-   tree->Branch("daughter_mass_comb", daughter_mass_comb, "daughter_mass_comb[nSuperJets]/D");
-   
    tree->Branch("lab_nAK4", &lab_nAK4, "lab_nAK4/I");
    tree->Branch("lab_AK4_pt", lab_AK4_pt, "lab_AK4_pt[lab_nAK4]/D");
 
@@ -476,14 +471,13 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree->Branch("AK4_eta", AK4_eta  , "AK4_eta[lab_nAK4]/D");
    tree->Branch("AK4_phi", AK4_phi  , "AK4_phi[lab_nAK4]/D");
 
+   tree->Branch("AK4_JEC_up", AK4_JEC_up  , "AK4_JEC_up[lab_nAK4]/D");
+   tree->Branch("AK4_JEC_down", AK4_JEC_down  , "AK4_JEC_down[lab_nAK4]/D");
+
    tree->Branch("ntrueInt", &ntrueInt  , "ntrueInt/I");
    tree->Branch("eventTTbarCRFlag", &eventTTbarCRFlag  , "eventTTbarCRFlag/I");
 
-   tree->Branch("AK4_phi", AK4_phi  , "AK4_phi[lab_nAK4]/D");
-
    tree->Branch("nCombinations", &nCombinations  , "nCombinations/I");
-   tree->Branch("SJ1_SortCombinations_alt", SJ1_SortCombinations_alt  , "SJ1_SortCombinations_alt[nCombinations]/D");
-   tree->Branch("SJ2_SortCombinations_alt", SJ2_SortCombinations_alt  , "SJ2_SortCombinations_alt[nCombinations]/D");
 
    tree->Branch("nAK8diJets", &nAK8diJets  , "nAK8diJets/I");
 
@@ -504,6 +498,19 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       genPartToken_ = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genPartCollection"));
       puSummaryToken_    = consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupCollection"));
 
+
+      tree->Branch("nGenBJets_AK4", nGenBJets_AK4, "nGenBJets_AK4[lab_nAK4]/I");
+      tree->Branch("AK4_partonFlavour", AK4_partonFlavour  , "AK4_partonFlavour[lab_nAK4]/I");
+      tree->Branch("AK4_hadronFlavour", AK4_hadronFlavour  , "AK4_hadronFlavour[lab_nAK4]/I");
+
+      tree->Branch("jet_JER_nom", jet_JER_nom  , "jet_JER_nom[nfatjets]/D");
+      tree->Branch("jet_JER_up", jet_JER_up  , "jet_JER_up[nfatjets]/D");
+      tree->Branch("jet_JER_down", jet_JER_down  , "jet_JER_down[nfatjets]/D");
+
+      tree->Branch("AK4_JER_nom", AK4_JER_nom  , "AK4_JER_nom[lab_nAK4]/D");
+      tree->Branch("AK4_JER_up", AK4_JER_up  , "AK4_JER_up[lab_nAK4]/D");
+      tree->Branch("AK4_JER_down", AK4_JER_down  , "AK4_JER_down[lab_nAK4]/D");
+
       if(runType.find("Suu") != std::string::npos)   //sig MC 
       {
          tree->Branch("_htWb", &_htWb, "_htWb/O");
@@ -517,16 +524,7 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
          tree->Branch("SJ2_mass_genParts",&SJ2_mass_genParts,"SJ2_mass_genParts/D");
 
       }
-      else if ((runType.find("QCD") != std::string::npos) || (runType.find("TTTo") != std::string::npos) )  // BRMC
-      {
-         tree->Branch("nGenBJets_AK4", nGenBJets_AK4, "nGenBJets_AK4[lab_nAK4]/I");
-         tree->Branch("AK4_partonFlavour", AK4_partonFlavour  , "AK4_partonFlavour[lab_nAK4]/I");
-         tree->Branch("AK4_hadronFlavour", AK4_hadronFlavour  , "AK4_hadronFlavour[lab_nAK4]/I");
-      }
-      else
-      {
-         std::cout <<"Running as data ..." << std::endl;
-      }
+
 
    }
    else if(runType == "Data")
@@ -1063,7 +1061,7 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    {
       if (  (i->second  != i->second ) || ( isinf(i->second   )  ) )
       {
-            return false;
+            return false; // RETURN cut - event variables are NaN or inf
       }
       else if ( abs( i->second+999.99 ) < 1.0e-10 ) return false;
    }
@@ -1102,7 +1100,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
 
-
    if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) )
    {
 
@@ -1132,6 +1129,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             PU_eventWeight_nom  = PUjson_year->evaluate( {std::real(ntrueInt),"nominal"});
             PU_eventWeight_up  = PUjson_year->evaluate({std::real(ntrueInt),"up"});
             PU_eventWeight_down = PUjson_year->evaluate({std::real(ntrueInt),"down"}); 
+
+            if ((PU_eventWeight_nom != PU_eventWeight_nom) || (std::isinf(PU_eventWeight_nom)))
+            {
+               std::cout << "Found bad PUSF: val/ntrueInt = " << PU_eventWeight_nom << "/" << ntrueInt <<std::endl;
+            }
             /*std::cout << "Testing the PU SF evaluator" << std::endl;
             for(int iii = 0;iii<100;iii++)
             {
@@ -1177,6 +1179,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    {
 
       double AK4_sf_total = 1.0;
+      double AK4_JEC_up_   = 0.0;
+      double AK4_JEC_down_ = 0.0;
 
       if( (iJet->pt() < 15. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;   //don't even bother with these jets, lost causes
 
@@ -1201,6 +1205,9 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             AK4_JEC_corr_factor = 1 - AK4_JEC_uncertainty;
          }   
          AK4_sf_total*= AK4_JEC_corr_factor;
+         AK4_JEC_up_ = 1 + AK4_JEC_uncertainty;
+         AK4_JEC_down_ = 1 - AK4_JEC_uncertainty;
+
       }
 
 
@@ -1277,10 +1284,39 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
       
 
+
+      /// return to here
+      AK4_JEC_up[nfatjets] =  AK4_JEC_up_;
+      AK4_JEC_down[nfatjets] = AK4_JEC_down_;
+
       double deepJetScore = corrJet.bDiscriminator("pfDeepFlavourJetTags:probb") + corrJet.bDiscriminator("pfDeepFlavourJetTags:probbb")+ corrJet.bDiscriminator("pfDeepFlavourJetTags:problepb");
 
       if(_verbose)std::cout << "the year is " << year << " with working point value of " << deepjet_wp_tight << ". The hadronFlavour is " << corrJet.hadronFlavour() <<  " and deepjet score " << deepJetScore<< std::endl;
       
+
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////// b tagging study stuff /////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) )
+      {
+         edm::Handle< std::vector<reco::GenParticle> > genPartCollection;
+         iEvent.getByToken(genPartToken_, genPartCollection);
+         // jet is assumed to be not tagged 
+         nGenBJets_AK4[nAK4] = 0;
+         AK4_partonFlavour[nAK4] = corrJet.partonFlavour();
+         AK4_hadronFlavour[nAK4] = corrJet.hadronFlavour();
+
+         for (auto iG = genPartCollection->begin(); iG != genPartCollection->end(); iG++) 
+         {
+            if( (abs(iG->pdgId()) != 5) || (iG->pt() < 10.)|| (!(iG->isLastCopy())) ) continue;  //only b jets that are the last copy
+            if(  sqrt(pow(corrJet.phi()-iG->phi(),2)+ pow(corrJet.eta()-iG->eta(),2))   < 0.4     )
+            {
+               nGenBJets_AK4[nAK4]++;
+            } 
+
+         }
+
+      }
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////
       ////////////////////////////////////// b tagging event weight stuff //////////////////////////////////////////
@@ -1301,7 +1337,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             double SF, SF_up, SF_down;
 
             double bTag_eff_value;
-
             if(corrJet.hadronFlavour() == 0)   //light jets
             {
                bTag_eff_value = lightjet_eff->GetBinContent(xbin,ybin);
@@ -1381,6 +1416,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
                }
             }
+            double epsilon = 1e-12;
+            if ( (abs(MC_tagged)<epsilon )||(abs(MC_tagged)<epsilon )||(abs(MC_tagged)<epsilon )||(abs(MC_tagged)<epsilon ))
+            {
+                  std::cout << "bTag_eff_value/SF/MC_tagged/MC_notTagged/data_tagged/data_notTagged: " << bTag_eff_value<< " / " << SF<< " / " << MC_tagged<< " / " << MC_notTagged << " / " <<data_tagged << " / " << data_notTagged << std::endl;
+            }
          }
       }
 
@@ -1403,14 +1443,22 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    ///////////////////// calculate b tag event weights //////////////////////
    if(doBtagSF)
    {
+
+
+
       bTag_eventWeight_nom =  (data_tagged*data_notTagged) / (MC_tagged*MC_notTagged);
       bTag_eventWeight_up  =  (data_tagged_up*data_notTagged_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
-      bTag_eventWeight_down = (data_tagged_down*data_notTagged_down) / (MC_tagged*MC_notTagged);    
+      bTag_eventWeight_down = (data_tagged_down*data_notTagged_down) / (MC_tagged*MC_notTagged);   
+
+      if ((bTag_eventWeight_nom != bTag_eventWeight_nom) || (std::isinf(bTag_eventWeight_nom)))
+      {
+         std::cout << "data_tagged_up/data_notTagged_up/MC_tagged/MC_notTagged: " <<data_tagged << "/" <<data_notTagged << "/" << MC_notTagged<< "/" << MC_notTagged<<  std::endl;
+      } 
    }
 
    lab_nAK4 = nAK4;
 
-   if(nAK4 <4)return;
+   if(nAK4 <4)return;   // RETURN cut
 
 
    // calculate the candidate dijet delta R values
@@ -1597,6 +1645,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 300.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets)) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
       if(nfatjets < 2) leadAK8_mass[nfatjets] = corrJet.userFloat("ak8PFJetsPuppiSoftDropMass");
       jet_pt[nfatjets] = corrJet.pt();
+      jet_phi[nfatjets] = corrJet.phi();
       jet_eta[nfatjets] = corrJet.eta();
       jet_mass[nfatjets] = corrJet.mass();
       for (unsigned int iii=0; iii<iJet->numberOfDaughters();iii++)   // get all jet particles
@@ -1648,7 +1697,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
 
-   if ((nfatjets < 2)|| (nfatjet_pre < 1) )return;
+   if ((nfatjets < 2)|| (nfatjet_pre < 1) )return; // RETURN cut
 
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    ////////////////////////////////////////////////////////////_Clustering_///////////////////////////////////////////////////////////////////
@@ -1701,7 +1750,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             counter++;
             candsBoosted.push_back(reco::LeafCandidate(+1, reco::Candidate::LorentzVector(iDaughter->px(), iDaughter->py(), iDaughter->pz(), iDaughter->E())));
             candsBoostedTLV.push_back(TLorentzVector( iDaughter->px(), iDaughter->py(), iDaughter->pz(), iDaughter->E()    ));
-            if(counter > 300)return;
+            if(counter > 300)return; // RETURN cut, event is bad because of fastjet/root bug
          }
       }
       MPP_COM2_px+= iJet->px(); MPP_COM2_py+= iJet->py(); MPP_COM2_pz+=iJet->pz() ; MPP_COM2_E+=iJet->E() ;
@@ -1763,7 +1812,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    if( ((negSuperJet.size() < 1 ) || (posSuperJet.size()<1) )  ) 
    {
       if(_verbose)std::cout << "Superjet with size < 1: superjet1 size is " << posSuperJet.size() << ", superjet 2 size is "<< negSuperJet.size()  <<"| EXITING ----------------" <<std::endl;
-      return;
+      return; // RETURN cut - event is bad because of one superjet has 0 jets
    }
    TLorentzVector SJ1(0,0,0,0);
    TLorentzVector SJ2(0,0,0,0);
@@ -1847,7 +1896,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       std::vector<float> BESTScores;
       if (!fillSJVars(BESTmap, *iSJ,nSuperJets))    //if this fails somehow, event is skipped
       {
-         return;
+         return;   // RETURN cut - tree was filled incorrectly
       }
       BESTScores = BEST_->getPrediction(BESTmap);
       ///store BEST scores in tree

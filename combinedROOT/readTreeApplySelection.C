@@ -4,13 +4,15 @@
 
 using namespace std;
 
-void doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::string systematic)
+void doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::string systematic, std::string dataBlock)
 {
 
    double totHT, dijetMassOne, dijetMassTwo;
    int nfatjets, nfatjet_pre,nAK4;
    double SJ_mass_100[100], AK4_pt[100],AK4_DeepJet_disc[100];
    int SJ_nAK4_300[100];
+   double PU_eventWeight_nom, bTag_eventWeight_nom;
+
    const char *_inFilename = inFileName.c_str();
 
    std::cout << "Reading file: " << _inFilename << std::endl;
@@ -32,7 +34,9 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    for(auto systematic_suffix = systematic_suffices.begin(); systematic_suffix < systematic_suffices.end();systematic_suffix++)
    {
 
-      int nEvents =0,nHTcut =0 ,nAK8JetCut =0,nHeavyAK8Cut=0,nBtagCut=0,nSJEnergyCut=0, nSJMass100Cut=0;
+      double nEvents =0,nHTcut =0 ,nAK8JetCut =0,nHeavyAK8Cut=0,nBtagCut=0,nSJEnergyCut=0, nSJMass100Cut=0;
+      double nZeroBtag = 0, nZeroBtagnSJEnergyCut = 0, nZeroBtagnSJMass100Cut = 0;
+      double nCR_antitag = 0, nSR_antitag = 0;
       std::cout << "Looking at the " << *systematic_suffix << " tree" << std::endl;
 
 
@@ -91,6 +95,9 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
       t1->SetBranchAddress("SJ_nAK4_300", SJ_nAK4_300);
       t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
 
+      t1->SetBranchAddress("bTag_eventWeight_nom", &bTag_eventWeight_nom); 
+      t1->SetBranchAddress("PU_eventWeight_nom", &PU_eventWeight_nom); 
+
       double looseDeepCSV_DeepJet;
       double medDeepCSV_DeepJet;
       double tightDeepCSV_DeepJet;
@@ -119,16 +126,30 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          medDeepCSV_DeepJet   = 0.2783;
          tightDeepCSV_DeepJet = 0.7100;
       }
+      double eventWeight = 1.0;
       for (Int_t i=0;i<nentries;i++) 
       {  
-         nEvents++;
+
+
+         if ((bTag_eventWeight_nom != bTag_eventWeight_nom) || (std::isinf(bTag_eventWeight_nom)))
+         {
+            bTag_eventWeight_nom = 0;
+         }
+         if ((PU_eventWeight_nom != PU_eventWeight_nom) || (std::isinf(PU_eventWeight_nom)))
+         {
+            PU_eventWeight_nom = 0;
+         }
+         eventWeight = bTag_eventWeight_nom*PU_eventWeight_nom;
+
+         //std::cout <<"Count is "<<nEvents  << ", " << bTag_eventWeight_nom << " " << PU_eventWeight_nom<< std::endl;
+         nEvents+=eventWeight;
          t1->GetEntry(i);
          if (totHT < 1500.) continue; 
-         nHTcut++;
+         nHTcut+=eventWeight;
          if( (nfatjets < 3)   ) continue;
-         nAK8JetCut++;
+         nAK8JetCut+=eventWeight;
          if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))continue;
-         nHeavyAK8Cut++;
+         nHeavyAK8Cut+=eventWeight;
 
          int nTightBTags = 0;
          for(int iii = 0;iii< nAK4; iii++)
@@ -138,20 +159,34 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          }
          if ( (nTightBTags > 0)  )
          {
-            nBtagCut++;
+            nBtagCut+=eventWeight;
             if((SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
             {
-               nSJEnergyCut++;
+               nSJEnergyCut+=eventWeight;
                if((SJ_mass_100[0]>=400.) && (SJ_mass_100[1]>400.)   )
                {
-                  nSJMass100Cut++;
+                  nSJMass100Cut+=eventWeight;
                }
             }
+         }
+         else
+         {
+            nZeroBtag+=eventWeight;
+            if((SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
+            {
+               nZeroBtagnSJEnergyCut+=eventWeight;
+               if((SJ_mass_100[0]>=400.) && (SJ_mass_100[1]>400.)   )
+               {
+                  nZeroBtagnSJMass100Cut+=eventWeight;
+               }
+            }
+            
          }
          t2->Fill();
       }
       outFile.Write();
-      std::cout << "For " << year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut/nSJMass100Cut:" <<nEvents << " " << nHTcut << " " << nAK8JetCut<< " " << nHeavyAK8Cut<< " " << nBtagCut << " " << nSJEnergyCut << " " << nSJMass100Cut << std::endl;
+      std::cout << "Signal Region for " << dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut/nSJMass100Cut:" <<nEvents << " " << nHTcut << " " << nAK8JetCut<< " " << nHeavyAK8Cut<< " " << nBtagCut << " " << nSJEnergyCut << " " << nSJMass100Cut << std::endl;
+      std::cout << "Control Region for " << dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nZeroBtagnSJEnergyCut/nZeroBtagnSJMass100Cut:" <<nEvents << " " << nHTcut << " " << nAK8JetCut<< " " << nHeavyAK8Cut<< " " << nZeroBtag << " " << nZeroBtagnSJEnergyCut << " " << nZeroBtagnSJMass100Cut << std::endl;
 
 
    }
@@ -164,11 +199,11 @@ void readTreeApplySelection()
 {
 
    // you must change these ........
-   bool runData = true;
+   bool runData = false;
    bool includeTTBar = true;
    bool allHTBins    = true;
 
-   std::vector<std::string> years = {"2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
+   std::vector<std::string> years = {"2015"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
    std::vector<std::string> systematics = {"nom"};//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
    //need to have the event scale factors calculated for each year and dataset
@@ -201,9 +236,11 @@ void readTreeApplySelection()
       }
       else
       {  
-        //dataBlocks = {"TTToSemiLeptonic_"}; 
-         dataBlocks = {"ST_t-channel_antitop","ST_t-channel_top","ST_tW_antitop","ST_tW_top"};
-	     //dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronic_", "TTToSemiLeptonic_", "TTToLeptonic_"};
+        //dataBlocks = {"QCDMC2000toInf_"}; 
+        // dataBlocks = {"ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"};
+	     dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         //dataBlocks = {"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
       }
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
       {
@@ -217,7 +254,7 @@ void readTreeApplySelection()
             std::string inFileName = (*dataBlock+year +  "_"+ systematic_str+ "_combined.root").c_str();
             std::string outFileName = (*dataBlock+year +  "_"+ systematic_str+ "_SKIMMED.root").c_str();
 
-            doThings(inFileName,outFileName,eventScaleFactor,year, *systematic);
+            doThings(inFileName,outFileName,eventScaleFactor,year, *systematic,*dataBlock);
 
             std::cout << "Finished with "<< inFileName << std::endl;
 
