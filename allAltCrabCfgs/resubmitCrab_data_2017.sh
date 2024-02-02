@@ -1,0 +1,5 @@
+crab resubmit -d crab_projects/crab_clustAlg_dataB_2017__AltDatasets_000
+crab resubmit -d crab_projects/crab_clustAlg_dataC_2017__AltDatasets_000
+crab resubmit -d crab_projects/crab_clustAlg_dataD_2017__AltDatasets_000
+crab resubmit -d crab_projects/crab_clustAlg_dataE_2017__AltDatasets_000
+crab resubmit -d crab_projects/crab_clustAlg_dataF_2017__AltDatasets_000

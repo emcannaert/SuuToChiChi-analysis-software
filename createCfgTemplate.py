@@ -6,6 +6,7 @@ import os
 ### this can be updated to create the different cfgs for each systematic
 def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
+   apply_pu_ID = True
 
    # need to change trigger for yhears
    trigger = ""
@@ -14,12 +15,17 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    elif year == "2015" or year == "2016":
       trigger = "HLT_PFHT900_v"
 
-   if systematic == "":
-      newCfg = open("allCfgs/clusteringAnalyzer_%s_%s_%scfg.py"%(sample,year, systematic),"w")
+   output_dir = ""
+   if "Suu" in sample:
+      output_dir = "signalCfgs"
    else:
-      newCfg = open("allCfgs/clusteringAnalyzer_%s_%s_%s_cfg.py"%(sample,year,systematic),"w")
+      output_dir = "allCfgs"
+   if systematic == "":
+      newCfg = open("%s/clusteringAnalyzer_%s_%s_%scfg.py"%(output_dir,sample,year, systematic),"w")
+   else:
+      newCfg = open("%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic),"w")
    
-
+   newCfg.write("from PhysicsTools.PatAlgos.tools.helpers  import getPatAlgosToolsTask\n")
    newCfg.write("import FWCore.ParameterSet.Config as cms\n")
 
    newCfg.write('process = cms.Process("analysis")\n')
@@ -34,6 +40,7 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write('process.load("JetMETCorrections.Configuration.JetCorrectionServicesAllAlgos_cff")\n')
 
 
+   newCfg.write('from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection\n')
    """
     Data: 106X_dataRun2_v37
     MC 2016APV: 106X_mcRun2_asymptotic_v17
@@ -68,8 +75,11 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
    newCfg.write("from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD\n")
 
-   newCfg.write("################# JEC ################\n")
 
+
+
+   
+   newCfg.write("################# JEC ################\n")
    newCfg.write("corrLabels = ['L1FastJet','L2Relative','L3Absolute']\n")
    newCfg.write("if isData:\n")
    newCfg.write("	corrLabels.append('L2L3Residual')\n")
@@ -91,8 +101,43 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write("   postfix = 'UpdatedJEC',\n")
    newCfg.write("   printWarning = False\n")
    newCfg.write(")  \n")
-   newCfg.write('process.content = cms.EDAnalyzer("EventContentAnalyzer")\n')
 
+
+
+   if apply_pu_ID:
+      newCfg.write("################# Jet PU ID ################\n")
+      newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import pileupJetId\n')
+      if year == "2016":
+         newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_106X_UL16     #     (or _chsalgos_106X_UL16APV for APV samples)\n')
+      elif year == "2017":
+         newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_106X_UL17\n')
+      elif year == "2018":
+         newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_106X_UL18\n')
+      newCfg.write('process.load("RecoJets.JetProducers.PileupJetID_cfi")\n')
+      newCfg.write('process.pileupJetIdUpdated = process.pileupJetId.clone( \n')
+      newCfg.write('jets=cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),      #should be the name of the post-JEC jet collection\n')
+      newCfg.write('inputIsCorrected=True,\n')
+      newCfg.write('applyJec=False,\n')
+      newCfg.write('vertexes=cms.InputTag("offlineSlimmedPrimaryVertices"),\n')
+      if year == "2016":
+         newCfg.write('algos = cms.VPSet(_chsalgos_106X_UL16),\n')
+      elif year == "2017":
+         newCfg.write('algos = cms.VPSet(_chsalgos_106X_UL17),\n')
+      elif year == "2018":
+         newCfg.write('algos = cms.VPSet(_chsalgos_106X_UL18),\n')
+      newCfg.write(')\n')
+
+
+      newCfg.write('process.patAlgosToolsTask.add(process.pileupJetIdUpdated)\n')
+
+      newCfg.write('updateJetCollection(     # running in unscheduled mode, need to manually update collection\n')
+      newCfg.write('   process,\n')
+      newCfg.write('   labelName = "PileupJetID",\n')
+      newCfg.write('   jetSource = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+      newCfg.write(')\n')
+      newCfg.write('process.updatedPatJetsPileupJetID.userData.userInts.src = ["pileupJetIdUpdated:fullId"]\n')
+
+   newCfg.write('process.content = cms.EDAnalyzer("EventContentAnalyzer")\n')
 
    newCfg.write("##############################################################################\n")
    newCfg.write('process.leptonVeto = cms.EDFilter("leptonVeto",\n')
@@ -107,12 +152,18 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
    newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
    newCfg.write('   metCollection = cms.InputTag("slimmedMETs"),\n')
-   newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+   if apply_pu_ID:
+      newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
+   else:
+      newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
    newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
    newCfg.write('   triggers = cms.string("%s"),\n'%trigger)
    newCfg.write('   systematicType = cms.string("%s"),\n'%systematic)
    newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
-
+   if apply_pu_ID:
+      newCfg.write('   doPUID = cms.bool(True),\n')
+   else:
+      newCfg.write('   doPUID = cms.bool(False),\n')
    newCfg.write('   runType = cms.string("%s")   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTToHadronicMC, TTToSemiLeptonic, TTToLeptonic, DataA, etc. , Suu8_chi3, etc.\n'%sample)
    newCfg.write(")\n")
 
@@ -142,7 +193,8 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
          print("something failed with writing runType.", sample ) 
       """
       newCfg.write('   runType = cms.string("%s"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n'%sample)
-      newCfg.write('   genPartCollection = cms.InputTag("prunedGenParticles"),\n')
+      if "MC" in sample or "Suu" in sample:
+         newCfg.write('   genPartCollection = cms.InputTag("prunedGenParticles"),\n')
       newCfg.write("   name = cms.string('BESTGraph'),   path = cms.FileInPath('data/constantgraph.pb'),\n")
       newCfg.write("   means = cms.FileInPath('data/ScalerParameters_maxAbs_train.txt'),\n")
       if year == "2015":
@@ -154,13 +206,28 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
       elif year == "2018":
          newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2018_UL/puWeights.json'),\n")
 
+      ""
       #should this be for data and MC?
-      if "MC" in sample:
+      if "MC" in sample or "Suu" in sample:
+         """
          if "TTTo" in sample or "ST_" in sample:
-            use_sample = sample[:-2]
+            bTagSF_sample = sample[:-2]
+         elif "Suu" in sample:
+            bTagSF_sample = "QCDMC2000toInf"  # for now use the QCD2000toInf efficiency maps in the b-tag SF calculation, don't have these yet for signal
          else:
-            use_sample = sample
-         newCfg.write("   bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_%s.root'),\n"%(use_sample,year))
+            bTagSF_sample = sample
+         """
+         if "QCDMC" in sample:
+            bTagSF_sample = "QCDMC_combined"
+         elif "TTTo" in sample:
+            bTagSF_sample = "TTbarMC_combined"
+         elif "ST_" in sample:
+            bTagSF_sample = "STMC_combined"
+         else:
+            print("ERROR: b tagging SF sample is not found. Sample = %s"%sample)
+            return
+
+         newCfg.write("   bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_%s.root'),\n"%(bTagSF_sample,year))
          if year == "2015":
             newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
          elif year == "2016":
@@ -174,7 +241,10 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
       newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
 
       newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
-      newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+      if apply_pu_ID:
+         newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
+      else:
+         newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
       newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
       newCfg.write('   muonCollection= cms.InputTag("slimmedMuons"),\n')
       newCfg.write('   electronCollection = cms.InputTag("slimmedElectrons"),\n')
@@ -182,7 +252,11 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
       newCfg.write('   tauCollection = cms.InputTag("slimmedTaus"),\n')
       newCfg.write('   pileupCollection = cms.InputTag("slimmedAddPileupInfo"),\n')
       newCfg.write('   systematicType = cms.string("%s%s"),\n'%(systematic,suffix) )
-      newCfg.write('   year = cms.string("%s")   #types: 2015,2016,2017,2018\n'%year)
+      newCfg.write('   year = cms.string("%s"),   #types: 2015,2016,2017,2018\n'%year)
+      if apply_pu_ID:
+         newCfg.write('   doPUID = cms.bool(True)\n')
+      else:
+         newCfg.write('   doPUID = cms.bool(False)\n')
       newCfg.write(")\n")
 
    newCfg.write('process.source = cms.Source("PoolSource",\n')
@@ -191,7 +265,16 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write('fileNames = cms.untracked.vstring("%s"\n'%datafile)
    newCfg.write(")\n")
    newCfg.write(")\n")
-   newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("clusteringAnalyzer_%s_%s_%s_output.root")\n'%(sample,year,systematic))
+   use_syst = systematic
+   if systematic == "":
+      use_syst = "nom"
+   if "Suu" in sample:
+
+      newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("../combinedROOT/%s_%s_%s_combined.root")\n'%(sample,year,use_syst))
+   else:
+
+      newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("clusteringAnalyzer_%s_%s_%s_output.root")\n'%(sample,year,use_syst))
+
    newCfg.write(")\n")
 
    newCfg.write("process.options = cms.untracked.PSet(\n")
@@ -203,8 +286,11 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
 
 
-   newCfg.write("process.p = cms.Path( process.leptonVeto * process.hadronFilter\n")
-
+   newCfg.write("process.p = cms.Path(  ")
+   if apply_pu_ID:
+      newCfg.write("process.pileupJetIdUpdated * ")
+   newCfg.write("process.leptonVeto * process.hadronFilter\n")
+            ########if you need to check the collections, add this to the path:  process.content
    for iii, suffix in enumerate(systematicSuffices):
       if systematic == "":
          if(iii>0):
@@ -213,7 +299,6 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
             suffix = ""
       newCfg.write(" * process.clusteringAnalyzerAll_%s%s\n"%(systematic, suffix) )
    newCfg.write(")\n")
-   newCfg.write("from PhysicsTools.PatAlgos.tools.helpers  import getPatAlgosToolsTask\n")
    newCfg.write("process.patAlgosToolsTask = getPatAlgosToolsTask(process)\n")
    newCfg.write("process.pathRunPatAlgos = cms.Path(process.patAlgosToolsTask)\n")
 
@@ -235,6 +320,21 @@ def main():
 
 
    ""]  # last one here is for the fully nominal cfg file
+   """datafile = [ 
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi1TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi3TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi2TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi1TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi2TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1p5TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi2TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
+      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"]"""
 
    datafiles = { '2015': { 'QCDMC1000to1500': '/store/mc/RunIISummer20UL16MiniAODAPVv2/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/3EE54B65-C726-1B48-BF34-8F36D2D2DE71.root',
                           'QCDMC1500to2000': '/store/mc/RunIISummer20UL16MiniAODAPVv2/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/0F22A9F0-4875-F645-9A1B-3D801E983B18.root',
@@ -253,7 +353,21 @@ def main():
                           'dataC-HIPM': '/store/data/Run2016C/JetHT/MINIAOD/HIPM_UL2016_MiniAODv2-v2/120000/2BABA846-C55B-8742-90D8-4D971A93AE3E.root',
                           'dataD-HIPM': '/store/data/Run2016D/JetHT/MINIAOD/HIPM_UL2016_MiniAODv2-v2/120000/0B4800A5-2C27-4E4D-BC5A-913D639CC310.root',
                           'dataE-HIPM': '/store/data/Run2016E/JetHT/MINIAOD/HIPM_UL2016_MiniAODv2-v2/120000/0AF225D2-70D0-EE44-943A-7647DCF53526.root',
-                          'dataF-HIPM': '/store/data/Run2016F/JetHT/MINIAOD/HIPM_UL2016_MiniAODv2-v2/130000/441955FA-E87A-664F-99D2-5C6631797F3D.root'},
+                          'dataF-HIPM': '/store/data/Run2016F/JetHT/MINIAOD/HIPM_UL2016_MiniAODv2-v2/130000/441955FA-E87A-664F-99D2-5C6631797F3D.root',
+                           "Suu8_chi3": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
+                           "Suu8_chi2":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu8_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu7_chi3": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi3TeV_UL-ALLDECAY.root",
+                           "Suu7_chi2": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu7_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu6_chi2": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu6_chi1p5":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu6_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu5_chi2":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu5_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu5_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu4_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root" },
 
                '2016': { 'QCDMC1000to1500': '/store/mc/RunIISummer20UL16MiniAODv2/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/110000/17418062-EBE8-C947-8950-E797EC69F62B.root',
                           'QCDMC1500to2000': '/store/mc/RunIISummer20UL16MiniAODv2/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/110000/2DF4DD91-8FF2-AE45-AE33-40048C9E3E75.root',
@@ -269,7 +383,21 @@ def main():
                            'ST_tW-top_inclMC':'/TTToHadronicMC_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
                           'dataF': '/store/data/Run2016F/JetHT/MINIAOD/UL2016_MiniAODv2-v2/140000/17267C16-E284-0D44-B0BB-D996C0CEBEB7.root',
                           'dataG': '/store/data/Run2016G/JetHT/MINIAOD/UL2016_MiniAODv2-v2/140000/003C0002-F991-6E48-8E96-2C4FD9EA8E3B.root',
-                          'dataH': '/store/data/Run2016H/JetHT/MINIAOD/UL2016_MiniAODv2-v2/130000/8D2050E5-0F24-544B-A0E3-B187539117D6.root'},
+                          'dataH': '/store/data/Run2016H/JetHT/MINIAOD/UL2016_MiniAODv2-v2/130000/8D2050E5-0F24-544B-A0E3-B187539117D6.root',
+                          "Suu8_chi3": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
+                           "Suu8_chi2":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu8_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu7_chi3": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi3TeV_UL-ALLDECAY.root",
+                           "Suu7_chi2": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu7_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu6_chi2": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu6_chi1p5":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu6_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu5_chi2":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu5_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu5_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu4_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"},
 
    '2017': { 'QCDMC1000to1500': '/store/mc/RunIISummer20UL17MiniAODv2/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2520000/01272D1D-0108-7247-9F21-B2EB4EA22964.root',
                           'QCDMC1500to2000': '/store/mc/RunIISummer20UL17MiniAODv2/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2530000/0BC4C1BF-56C8-2C42-B288-9DE3DD3DB312.root',
@@ -287,13 +415,27 @@ def main():
                           'dataC': '/store/data/Run2017C/JetHT/MINIAOD/UL2017_MiniAODv2-v1/260000/0925457A-3C64-BD4D-BDE4-6545610FB41C.root',
                           'dataD': '/store/data/Run2017D/JetHT/MINIAOD/UL2017_MiniAODv2-v1/260000/05C72CA9-9353-C74B-AA06-337BB5B25383.root',
                           'dataE': '/store/data/Run2017E/JetHT/MINIAOD/UL2017_MiniAODv2-v1/270000/027C7BEA-A5D2-3240-A4D0-37756BFAC7DD.root',
-                          'dataF': '/store/data/Run2017F/JetHT/MINIAOD/UL2017_MiniAODv2-v1/260000/06019E27-BEE3-3A4C-8EA0-1E2914ED513A.root'},
+                          'dataF': '/store/data/Run2017F/JetHT/MINIAOD/UL2017_MiniAODv2-v1/260000/06019E27-BEE3-3A4C-8EA0-1E2914ED513A.root',
+                          "Suu8_chi3": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
+                           "Suu8_chi2":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu8_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu7_chi3": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi3TeV_UL-ALLDECAY.root",
+                           "Suu7_chi2": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu7_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu6_chi2": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu6_chi1p5":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu6_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu5_chi2":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu5_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu5_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu4_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"},
    '2018': { 'QCDMC1000to1500': '/store/mc/RunIISummer20UL18MiniAODv2/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2430000/0E582A57-8443-1D42-BBAB-85FF439FF1B3.root',
                           'QCDMC1500to2000': '/store/mc/RunIISummer20UL18MiniAODv2/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2820000/00BB6737-E608-494F-89BB-FE3D868AEDE3.root',
                           'QCDMC2000toInf':  '/store/mc/RunIISummer20UL18MiniAODv2/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2520000/081EFA0A-32E5-0040-B527-F3D5C40EB561.root',
                           'TTToHadronicMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',  
-                          'TTToSemiLeptonicMC':'/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
-                          'TTToLeptonicMC':'/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM',
+                          'TTToSemiLeptonicMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
+                          'TTToLeptonicMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
                           'ST_t-channel-top_inclMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
                            'ST_t-channel-antitop_inclMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
                            'ST_s-channel-hadronsMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
@@ -303,7 +445,21 @@ def main():
                           'dataA': '/store/data/Run2018A/JetHT/MINIAOD/UL2018_MiniAODv2-v1/260000/00B87525-94D1-C741-9B03-00528106D15A.root',
                           'dataB': '/store/data/Run2018B/JetHT/MINIAOD/UL2018_MiniAODv2-v1/260000/01CD6E06-A979-7448-AEAE-C2A1C862DE66.root',
                           'dataC': '/store/data/Run2018C/JetHT/MINIAOD/UL2018_MiniAODv2-v1/260000/091A1C55-0CB8-5440-B925-706D92C02FE1.root',
-                          'dataD': '/store/data/Run2018D/JetHT/MINIAOD/UL2018_MiniAODv2-v1/250000/DAB917DB-036A-324D-88CA-6DD8AA4FEC0F.root'}
+                          'dataD': '/store/data/Run2018D/JetHT/MINIAOD/UL2018_MiniAODv2-v1/250000/DAB917DB-036A-324D-88CA-6DD8AA4FEC0F.root',
+                          "Suu8_chi3": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
+                           "Suu8_chi2":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu8_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu7_chi3": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi3TeV_UL-ALLDECAY.root",
+                           "Suu7_chi2": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu7_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu6_chi2": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu6_chi1p5":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu6_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu5_chi2":  "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi2TeV_UL-ALLDECAY.root",
+                           "Suu5_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu5_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
+                           "Suu4_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
+                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"}
 
    }
 
@@ -325,7 +481,23 @@ def main():
                        'dataC-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
                        'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
                        'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt',
-                       'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt'},
+                       'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi3": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi2": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi3": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi2": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi2": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi1p5": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi2": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi1p5": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu4_chi1p5": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu4_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt'
+
+                       },
             '2016': { 'QCDMC1000to1500': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC1500to2000': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC2000toInf':  'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
@@ -340,7 +512,21 @@ def main():
                         'ST_tW-top_inclMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                        'dataF': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
                        'dataG': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
-                       'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt'},
+                       'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi3": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi2": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi3": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi2": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi2": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi2": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu4_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu4_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt'},
 
 '2017': { 'QCDMC1000to1500': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC1500to2000': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -359,7 +545,21 @@ def main():
                        'dataC': 'data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
                        'dataD': 'data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
                        'dataE': 'data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK4PFchs.txt',
-                       'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK4PFchs.txt'},
+                       'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi3": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu8_chi2": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu8_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu7_chi3": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu7_chi2": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu7_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu6_chi2": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu6_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu6_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu5_chi2": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu5_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu5_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu4_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "Suu4_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt'},
 '2018': { 'QCDMC1000to1500': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -375,7 +575,21 @@ def main():
                        'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK4PFPuppi.txt',
                        'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
                        'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
-                       'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK4PFchs.txt'}
+                       'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi3": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi2": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu8_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi3": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi2": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu7_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi2": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu6_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi2": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu5_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu4_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "Suu4_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt'}
 
 }
 
@@ -396,7 +610,24 @@ def main():
                        'dataC-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-                       'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt'},
+                       'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+
+                        "Suu8_chi3": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu8_chi2": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu8_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi3": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi2": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi2": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi1p5": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi2": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi1p5": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu4_chi1p5": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu4_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt'},
+
+
             '2016': { 'QCDMC1000to1500': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC1500to2000': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC2000toInf':  'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
@@ -411,7 +642,21 @@ def main():
                         'ST_tW-top_inclMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt', 
                        'dataF': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataG': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-                       'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt'},
+                       'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+                        "Suu8_chi3": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu8_chi2": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu8_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi3": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi2": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi2": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi2": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu4_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu4_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt'},
 
 '2017': { 'QCDMC1000to1500': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC1500to2000': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
@@ -429,7 +674,21 @@ def main():
                        'dataC': 'data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataD': 'data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataE': 'data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                       'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK8PFPuppi.txt'},
+                       'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                        "Suu8_chi3": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu8_chi2": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu8_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi3": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi2": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu7_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi2": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu6_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi2": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu5_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu4_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "Suu4_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt'},
 '2018': { 'QCDMC1000to1500': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
@@ -445,24 +704,24 @@ def main():
                        'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                       'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt'}
+                       'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                          "Suu8_chi3": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu8_chi2": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu8_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu7_chi3": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu7_chi2": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu7_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu6_chi2": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu6_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu6_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu5_chi2": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu5_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu5_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu4_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "Suu4_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt'}
 
 }
-   """datafile = [ 
-      "signalCfgs/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu8TeV_chi1TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu7TeV_chi3TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu7TeV_chi2TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu7TeV_chi1TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu6TeV_chi2TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu6TeV_chi1p5TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu6TeV_chi1TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu5TeV_chi2TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
-      "signalCfgs/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"]"""
+
    for year in years:
       if year == "2015":
          samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC",
