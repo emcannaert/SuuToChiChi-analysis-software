@@ -19,7 +19,13 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  }  }, 
+					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataB-ver1":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataB-ver2":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataC-HIPM":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataD-HIPM":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataE-HIPM":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataF-HIPM":{ 'JEC':0,'JER':0,'nom':0  }  }, 
 					 "2016": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1500to2000":{ 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC':0,'JER':0,'nom':0  },
@@ -31,7 +37,10 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  }  } ,
+					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataF":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataG":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataH":{ 'JEC':0,'JER':0,'nom':0  } } ,
 					 "2017": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1500to2000":{ 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC':0,'JER':0,'nom':0  },
@@ -43,7 +52,12 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  }  } ,
+					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataB":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataD":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataE":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataF":{ 'JEC':0,'JER':0,'nom':0  }  } ,
 					 "2018": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1500to2000":{ 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC':0,'JER':0,'nom':0  },
@@ -55,7 +69,12 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  }   } }
+					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataA":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataB":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataD":{ 'JEC':0,'JER':0,'nom':0  } }
+					}
 	all_files_made	= {  "2015": { "QCDMC2000toInf": { 'JEC':[],'JER':[],'nom':[]  },     #nCommands[year][sample][systematic]
 					 "QCDMC1500to2000":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -67,7 +86,14 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }  }, 
+					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataB-ver1":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataB-ver2":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataC-HIPM":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataD-HIPM":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataE-HIPM":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataF-HIPM":{ 'JEC':[],'JER':[],'nom':[]  }
+					   }, 
 					 "2016": { "QCDMC2000toInf": { 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1500to2000":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -79,7 +105,10 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }   } ,
+					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataF":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataG":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataH":{ 'JEC':[],'JER':[],'nom':[]  }   } ,
 					 "2017": { "QCDMC2000toInf": { 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1500to2000":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -91,7 +120,12 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }    } ,
+					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataB":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataC":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataD":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataE":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataF":{ 'JEC':[],'JER':[],'nom':[]  }   } ,
 					 "2018": { "QCDMC2000toInf": { 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1500to2000":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -103,12 +137,33 @@ if __name__=="__main__":
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }   } }
+					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataA":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataB":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataC":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataD":{ 'JEC':[],'JER':[],'nom':[]  }   } }
 
 
 	samples = ["QCDMC2000toInf","QCDMC1500to2000","QCDMC1000to1500","TTToHadronicMC", "TTToLeptonicMC", "TTToSemiLeptonicMC","ST_t-channel-antitop_inclMC", "ST_t-channel-top_inclMC", "ST_tW-antiTop_inclMC","ST_tW-top_inclMC",
 	"ST_s-channel-hadronsMC",
-	"ST_s-channel-leptonsMC"
+	"ST_s-channel-leptonsMC",
+	"dataA",   #2018
+	"dataB",
+	"dataC",
+	"dataD",
+	"dataB-ver1", #2015
+	"dataB-ver2",
+	"dataC-HIPM",
+	"dataD-HIPM",
+	"dataE-HIPM",
+	"dataF",   #2016
+	"dataG",
+	"dataH",
+	"dataB", #2017
+	"dataC",
+	"dataD",
+	"dataE",
+	"dataF"
 	]
 	years = ["2015","2016","2017","2018"]
 	eos_path = open(sys.argv[1], "r")

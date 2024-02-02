@@ -119,13 +119,16 @@ private:
 
    TTree * tree;
 
-   TH2F *h_nLightJets = new TH2F("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta", 60,0, 3000, 24, -2.4, 2.4);
-   TH2F *h_nTruebJets = new TH2F("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
-   TH2F *h_nTruecJets = new TH2F("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta", 60,0, 3000, 24, -2.4, 2.4);
+   TH2F *h_nLightJets = new TH2F("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta", 30,0, 3000, 18, -2.4, 2.4);
+   TH2F *h_nTruebJets = new TH2F("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   TH2F *h_nTruecJets = new TH2F("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta", 30,0, 3000, 18, -2.4, 2.4);
 
-   TH2F *h_nLightJets_btagged = new TH2F("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", 60,0, 3000, 24, -2.4, 2.4);
-   TH2F *h_nTruebJets_btagged = new TH2F("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
-   TH2F *h_nTruecJets_btagged = new TH2F("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
+   TH2F *h_nLightJets_btagged = new TH2F("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", 30,0, 3000, 18, -2.4, 2.4);
+   TH2F *h_nTruebJets_btagged = new TH2F("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   TH2F *h_nTruecJets_btagged = new TH2F("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+
+   TRandom3 *randomNum = new TRandom3(); // for JERs
+
 
 };
 
@@ -143,13 +146,13 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
    edm::Service<TFileService> fs;      
 
-   h_nLightJets = fs->make<TH2F>("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
-   h_nTruebJets = fs->make<TH2F>("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
-   h_nTruecJets = fs->make<TH2F>("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
+   h_nLightJets = fs->make<TH2F>("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   h_nTruebJets = fs->make<TH2F>("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   h_nTruecJets = fs->make<TH2F>("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
 
-   h_nLightJets_btagged = fs->make<TH2F>("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
-   h_nTruebJets_btagged = fs->make<TH2F>("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
-   h_nTruecJets_btagged = fs->make<TH2F>("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  60,0, 3000, 24, -2.4, 2.4);
+   h_nLightJets_btagged = fs->make<TH2F>("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   h_nTruebJets_btagged = fs->make<TH2F>("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   h_nTruecJets_btagged = fs->make<TH2F>("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
 }
 
 
@@ -229,7 +232,7 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+      /*
       double AK4_JER_corr_factor = 1.0; // this won't be touched for data
       if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) ) 
       {
@@ -263,6 +266,49 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
             AK4_JER_corr_factor = max(0., 1 + JERrand*sqrt(max(pow(sJER,2)-1,0.)));   //want to make sure this is truncated at 0
          }
       }
+      */
+
+      double AK4_JER_corr_factor = 1.0; // this won't be touched for data
+
+      if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) )
+      {
+         double AK4_JER_corr_factor = 1.0; // this won't be touched for data
+
+         double sJER     = -9999.;    //JER scale factor
+         double sigmaJER = -9999.;    //this is the "resolution" you get from the scale factors 
+         
+         //these are for getting the JER scale factors
+         //JME::JetParameters parameters = {{JME::Binning::JetEta, AK8_JEC_corr_factor*iJet->eta()}, {JME::Binning::Rho, rho}};
+
+         JME::JetParameters parameters_1;
+         parameters_1.setJetPt(iJet->pt());
+         parameters_1.setJetEta(iJet->eta());
+         parameters_1.setRho(*rho);
+         sigmaJER = resolution_AK4.getResolution(parameters_1);   //pT resolution
+
+         //JME::JetParameters
+         JME::JetParameters parameters;
+         parameters.setJetPt(iJet->pt());
+         parameters.setJetEta(iJet->eta());
+         sJER =  resolution_sf_AK4.getScaleFactor(parameters  );  //{{JME::Binning::JetEta, iJet->eta()}});
+
+         const reco::GenJet *genJet = iJet->genJet();
+         if( genJet)   // try the first technique
+         {
+            AK4_JER_corr_factor = 1 + (sJER - 1)*(iJet->pt()-genJet->pt())/iJet->pt();
+         }
+         else   // if no gen jet is matched, try the second technique
+         {
+            randomNum->SetSeed( abs(static_cast<int>(iJet->phi()*1e4)) );
+            double JERrand = randomNum->Gaus(0.0, sigmaJER);
+            //double JERrand = 1.0 + sigmaJER;
+            AK4_JER_corr_factor = max(0., 1 + JERrand*sqrt(max(pow(sJER,2)-1,0.)));   //want to make sure this is truncated at 0
+         }
+         AK4_sf_total*= AK4_JER_corr_factor;
+
+      }
+
+
       AK4_sf_total*= AK4_JER_corr_factor;
 
       // create scaled jet object that will be used for cuts 

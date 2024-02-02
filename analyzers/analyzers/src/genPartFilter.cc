@@ -181,7 +181,7 @@ genPartFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    int nhGlu = 0;
    int nhWq = 0;
    int nhZq = 0;
-
+   int nSuu_W = 0;
    std::vector<TLorentzVector> genChiZt;
    std::vector<TLorentzVector> genChiHt;
    std::vector<TLorentzVector> genChiWb;
@@ -214,7 +214,7 @@ genPartFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
             }
          }
 
-         nW++;
+         nSuu_W++;
       }
       else if ( (abs(iG->pdgId()) == 5) && (abs(iG->mother()->pdgId()) == chi_pdgid)  )
       {
@@ -349,17 +349,17 @@ genPartFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       _ZtZt = true;
       nZtZt++;
    } 
-   else if ((nH == 0) && (nSuub == 2) && (nTopb >= 0) && ( (nhq+nhGlu+nhWq+nhZq) == 0) && (nWq == 4) && (nZq == 0) && (ntop == 0) && (nW == 2)  && (nZ == 0))
+   else if ((nH == 0) && (nSuub == 2) && (nTopb >= 0) && ( (nhq+nhGlu+nhWq+nhZq) == 0) && (nWq == 4) && (nZq == 0) && (ntop == 0) && (nSuu_W == 2)  && (nZ == 0))
    {
       _WbWb = true;
       nWbWb++;
    } 
-   else if ((nH == 1) && (nSuub == 1) && (nTopb >= 1) && ( (nhq+nhGlu+nhWq+nhZq) == 2) && (nWq == 4) && (nZq == 0) && (ntop == 1) && (nW == 2)  && (nZ == 0))
+   else if ((nH == 1) && (nSuub == 1) && (nTopb >= 1) && ( (nhq+nhGlu+nhWq+nhZq) == 2) && (nWq == 4) && (nZq == 0) && (ntop == 1) && (nW == 1) && (nSuu_W == 1)  && (nZ == 0))
    {
       _htWb = true;
       nWbHt++;
    }
-   else if ((nH == 0) && (nSuub == 1) && (nTopb >= 1) && ( (nhq+nhGlu+nhWq+nhZq) == 0) && (nWq == 4) && (nZq == 2) && (ntop == 1) && (nW == 2)  && (nZ == 1))
+   else if ((nH == 0) && (nSuub == 1) && (nTopb >= 1) && ( (nhq+nhGlu+nhWq+nhZq) == 0) && (nWq == 4) && (nZq == 2) && (ntop == 1) && (nW == 1) && (nSuu_W == 1)  && (nZ == 1))
    {
       _ZtWb = true;
       nWbZt++;
