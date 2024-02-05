@@ -7,7 +7,9 @@ import os
 def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
    apply_pu_ID = True
-
+   doTopPtReweight = True
+   if "data" in sample:
+      doTopPtReweight = False
    # need to change trigger for yhears
    trigger = ""
    if year == "2018" or year == "2017":
@@ -38,7 +40,9 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write("process.load('JetMETCorrections.Configuration.CorrectedJetProducersDefault_cff')\n")
    newCfg.write('process.load("JetMETCorrections.Configuration.JetCorrectionServices_cff")\n')
    newCfg.write('process.load("JetMETCorrections.Configuration.JetCorrectionServicesAllAlgos_cff")\n')
-
+   if doTopPtReweight:
+      newCfg.write('#top pt reweighting\n')
+      newCfg.write('process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")\n')
 
    newCfg.write('from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection\n')
    """
@@ -195,6 +199,10 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
       newCfg.write('   runType = cms.string("%s"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n'%sample)
       if "MC" in sample or "Suu" in sample:
          newCfg.write('   genPartCollection = cms.InputTag("prunedGenParticles"),\n')
+         newCfg.write('      genParticles = cms.InputTag("genParticles"),\n')
+         newCfg.write('      packedGenParticles = cms.InputTag("packedGenParticles"),\n')
+
+
       newCfg.write("   name = cms.string('BESTGraph'),   path = cms.FileInPath('data/constantgraph.pb'),\n")
       newCfg.write("   means = cms.FileInPath('data/ScalerParameters_maxAbs_train.txt'),\n")
       if year == "2015":
@@ -253,11 +261,20 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
       newCfg.write('   pileupCollection = cms.InputTag("slimmedAddPileupInfo"),\n')
       newCfg.write('   systematicType = cms.string("%s%s"),\n'%(systematic,suffix) )
       newCfg.write('   year = cms.string("%s"),   #types: 2015,2016,2017,2018\n'%year)
+      newCfg.write('   genEventInfoTag=cms.InputTag("generator"),\n')
+      newCfg.write('   lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
       if apply_pu_ID:
          newCfg.write('   doPUID = cms.bool(True)\n')
       else:
          newCfg.write('   doPUID = cms.bool(False)\n')
       newCfg.write(")\n")
+
+      if doTopPtReweight:
+         newCfg.write('# top pt reweighting stuff\n')
+         newCfg.write('process.decaySubset.fillMode = cms.string("kME")\n')
+         newCfg.write('process.clusteringAnalyzerAll_%s%s.ttGenEvent = cms.InputTag("genEvt")\n'%(systematic, suffix))
+
+
 
    newCfg.write('process.source = cms.Source("PoolSource",\n')
 
@@ -289,6 +306,9 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write("process.p = cms.Path(  ")
    if apply_pu_ID:
       newCfg.write("process.pileupJetIdUpdated * ")
+   if doTopPtReweight:
+      newCfg.write("process.makeGenEvt* ")
+      
    newCfg.write("process.leptonVeto * process.hadronFilter\n")
             ########if you need to check the collections, add this to the path:  process.content
    for iii, suffix in enumerate(systematicSuffices):

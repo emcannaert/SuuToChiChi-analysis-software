@@ -89,6 +89,9 @@
 #include "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_29/src/CacheHandler.h"
 //#include "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_29/src/analyzers/analyzers/src/CacheHandler.cc"
 #include "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_29/src/BESTEvaluation.h"
+
+#include "AnalysisDataFormats/TopObjects/interface/TtGenEvent.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 using namespace reco;
 using namespace correction;
 typedef math::XYZTLorentzVector LorentzVector;
@@ -107,13 +110,16 @@ private:
    bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, bool jetPUid, const float iJet_pt);
    bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets);
    bool isHEM(const float jet_eta, const float jet_phi);
-
+   double top_pt_SF(double top_pt);
    const reco::Candidate* parse_chain(const reco::Candidate* cand);
    
 
    //init all inpaths, tokens, instrings
    edm::EDGetTokenT<std::vector<pat::Jet>> fatJetToken_;
+   edm::EDGetTokenT<std::vector<reco::GenParticle>> genParticleToken_; 
    edm::EDGetTokenT<std::vector<reco::GenParticle>> genPartToken_; 
+   edm::EDGetTokenT<std::vector<reco::GenParticle>> packedGenParticleToken_; 
+
    edm::EDGetTokenT<std::vector<pat::Jet>> jetToken_;
    edm::EDGetTokenT<std::vector<pat::MET>> metToken_;
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puSummaryToken_;
@@ -121,7 +127,12 @@ private:
    edm::EDGetTokenT<std::vector<pat::Muon>> muonToken_;
    edm::EDGetTokenT<std::vector<pat::Electron>> electronToken_;
    edm::EDGetTokenT<std::vector<pat::Tau>> tauToken_;
+
+   edm::EDGetTokenT<GenEventInfoProduct> GeneratorToken_;
+
    edm::EDGetTokenT<double> m_rho_token;
+
+   edm::EDGetTokenT<TtGenEvent> genEvtToken_;
 
    TTree * tree;
    BESTEvaluation* BEST_;
@@ -131,6 +142,7 @@ private:
    edm::FileInPath bTagEff_path;
    edm::FileInPath JECUncert_AK8_path;
    edm::FileInPath JECUncert_AK4_path;
+   edm::InputTag genParticleTag;
 
    edm::FileInPath PUfile_path;
    std::string runType;
@@ -153,6 +165,8 @@ private:
    bool doJER = false;
    bool doBtagSF = false;
    bool doPUSF   = false;
+   bool doPtReWeight = false;
+   bool doPDFWeights = false;
    int SJ_nAK4_50[100],SJ_nAK4_70[100],SJ_nAK4_100[100],SJ_nAK4_125[100],SJ_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_300[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
    double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
    double SJ_mass_50[100], SJ_mass_70[100],SJ_mass_100[100],superJet_mass[100],SJ_AK4_50_mass[100],SJ_AK4_70_mass[100];
@@ -160,7 +174,7 @@ private:
    double AK4_mass[100], AK4_E[500], leadAK8_mass[10];
    double event_reco_pt;
    double diSuperJet_mass,diSuperJet_mass_100;
-
+   double top_pt_weight;
    double eventBetaCOM   = -999.;
    double totHT = 0;
    double dijetMassOne, dijetMassTwo;
@@ -211,6 +225,8 @@ private:
    double AK4_JEC_up[25], AK4_JEC_down[25], AK4_JER_nom[25],AK4_JER_up[25],AK4_JER_down[25];
 
 
+   double Generator_x1,Generator_x2,q2;
+   int Generator_id1,Generator_id2;
 
    TH2F *truebjet_eff,*truecjet_eff, *lightjet_eff;
 
@@ -249,8 +265,21 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
 
    if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
    {
+
+
+      // these will only be done for MC
+      doBtagSF = true;
+      doJER    = true;
+      doPUSF   = true;
+      doPtReWeight = true;  /// MUST BE CHANGED TO TRUE ONCE THIS IS WORKING
+      doPDFWeights = true;
+
       bTagSF_path    = iConfig.getParameter<edm::FileInPath>("bTagSF_path");
       bTagEff_path   = iConfig.getParameter<edm::FileInPath>("bTagEff_path");
+
+      if(doPtReWeight) genEvtToken_    = consumes<TtGenEvent>( iConfig.getParameter<edm::InputTag>("ttGenEvent") ); //  = genEvt, other method:   edm::InputTag("genEvt") 
+      if(doPDFWeights) GeneratorToken_ = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
+      
    }
    PUfile_path    = iConfig.getParameter<edm::FileInPath>("PUfile_path");
    JECUncert_AK8_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK8_path");
@@ -269,6 +298,11 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    jetToken_    = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetCollection"));
 
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
+
+   
+
+
+
    edm::Service<TFileService> fs;      
 
    //tokens no longer used
@@ -316,13 +350,8 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       std::cout << "Incorrect year: " << year << std::endl;
       return;
    }
-
    if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
    {
-      // these will only be done for MC
-      doBtagSF = true;
-      doJER    = true;
-      doPUSF   = true;
 
       bTagEff_file = new TFile( bTagEff_path.fullPath().c_str() );   //this path might need to be updated
       truebjet_eff = (TH2F*)bTagEff_file->Get("h_effbJets");
@@ -500,9 +529,12 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
    {
 
-      genPartToken_ = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genPartCollection"));
-      puSummaryToken_    = consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupCollection"));
+      genPartToken_           = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genPartCollection"));
+      packedGenParticleToken_ = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("packedGenParticles"));
+      genParticleToken_       = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticles"));
+      puSummaryToken_         = consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupCollection"));
 
+      tree->Branch("top_pt_weight", &top_pt_weight, "top_pt_weight/D");
 
       tree->Branch("nGenBJets_AK4", nGenBJets_AK4, "nGenBJets_AK4[lab_nAK4]/I");
       tree->Branch("AK4_partonFlavour", AK4_partonFlavour  , "AK4_partonFlavour[lab_nAK4]/I");
@@ -515,6 +547,18 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       tree->Branch("AK4_JER_nom", AK4_JER_nom  , "AK4_JER_nom[lab_nAK4]/D");
       tree->Branch("AK4_JER_up", AK4_JER_up  , "AK4_JER_up[lab_nAK4]/D");
       tree->Branch("AK4_JER_down", AK4_JER_down  , "AK4_JER_down[lab_nAK4]/D");
+
+      // generator/pdf variables
+      if(doPDFWeights)
+      {
+         tree->Branch("Generator_id1", &Generator_id1, "Generator_id1/I");
+         tree->Branch("Generator_id2", &Generator_id2, "Generator_id2/I");
+         tree->Branch("Generator_x1", &Generator_x1, "Generator_x1/D");
+         tree->Branch("Generator_x2", &Generator_x2, "Generator_x2/D");
+         tree->Branch("q2", &q2, "q2/D");         
+      }
+
+
 
       if(runType.find("Suu") != std::string::npos)   //sig MC 
       {
@@ -609,6 +653,15 @@ double clusteringAnalyzerAll::calcMPP(TLorentzVector superJetTLV )
 }
 
 
+// returns the top pt scale factor as detailed here - https://twiki.cern.ch/twiki/bin/view/CMS/TopPtReweighting#Run_1_strategy_Obsolete
+double clusteringAnalyzerAll::top_pt_SF(double top_pt)
+{
+
+   if (top_pt > 500.) top_pt = 500.;
+   //$SF(p_T)=e^{0.0615-0.0005\cdot p_T}$ for data/POWHEG+Pythia8
+   //return 0.103*exp(-0.0118*top_pt) -0.000134*top_pt+ 0.973;
+   return exp(0.0615-0.0005*top_pt);  // this is the scale factor based on data aka data-NLO and data-NNLO weights
+}
 // tells you if a TLorentzVector is associated with a candidate jet (via delta R matching)
 bool clusteringAnalyzerAll::isMatchedtoSJ(std::vector<TLorentzVector> superJetTLVs, TLorentzVector candJet)
 {
@@ -1783,6 +1836,57 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    if ((nfatjets < 2) || (nfatjet_pre < 1) )return; // RETURN cut
 
+
+
+
+   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))
+   {
+   ////////////////////////////////////////////////////////////
+   /////////////// calculate _top pt weights //////////////////   
+   ////////////////////////////////////////////////////////////
+
+
+
+      if( (doPtReWeight))
+      {
+         if(_verbose)std::cout << "Calculating Top PT Weight";
+
+         /*
+         edm::Handle< std::vector<reco::GenParticle> > genParticles;
+         iEvent.getByToken(genParticleToken_, genParticles);
+         
+
+         edm::Handle< std::vector<reco::GenParticle> > packedGenParticles;
+         iEvent.getByToken(packedGenParticleToken_, packedGenParticles);
+         */
+         edm::Handle<TtGenEvent> genEvt;
+         iEvent.getByToken(genEvtToken_, genEvt);
+
+         double topPtLepTrue=genEvt->leptonicDecayTop()->pt();
+         double topPtHadTrue=genEvt->hadronicDecayTop()->pt();
+         std::cout << topPtLepTrue <<  "  " << topPtHadTrue << std::endl;
+         top_pt_weight=sqrt(top_pt_SF(topPtLepTrue)*top_pt_SF(topPtHadTrue));
+         
+      }
+
+   /////////////////////////////////////////////////////////////
+   /////////////// calculate _pdf weights //////////////////////
+   /////////////////////////////////////////////////////////////
+      if(doPDFWeights)
+      {
+         if(_verbose)std::cout << "Setting PDF variables";
+         edm::Handle<GenEventInfoProduct> evt_info;
+         iEvent.getByToken(GeneratorToken_, evt_info);
+         q2 = std::pow(evt_info->pdf()->scalePDF,2); //scalePDF seems to return scale q
+         Generator_id1 = evt_info->pdf()->id.first; //particle 1 id 
+         Generator_id2 = evt_info->pdf()->id.second; //particle 2 id
+         Generator_x1 = evt_info->pdf()->x.first;
+         Generator_x2 = evt_info->pdf()->x.second;
+      }
+   //edm::Handle<GenEventInfoProduct> evt_info;
+
+
+   }
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    ////////////////////////////////////////////////////////////_Clustering_///////////////////////////////////////////////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
