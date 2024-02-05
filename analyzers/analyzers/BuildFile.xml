@@ -15,7 +15,9 @@
 <use name="CondFormats/JetMETObjects"/>
 <use name="PhysicsTools/TensorFlow"/>
 <use name="ROOT"/>
+<use name="AnalysisDataFormats/TopObjects"/>
 <use name="clhep"/>
+<use name="SimDataFormats/GeneratorProducts"/>
 <use name="correctionlib"/>
 <use name="fastjet"/>
 <Flags LDFLAGS="`correction config --cflags --ldflags --rpath`"/>

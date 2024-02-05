@@ -253,10 +253,11 @@ void readTreeApplySelection()
 {
 
    // you must change these ........
-   bool runData = false;
-   bool runSignal = false;
+   bool runAll = true;
+   bool runData = true;
+   bool runSignal = true;
    std::vector<std::string> years = {"2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
-   std::vector<std::string> systematics = {"nom"};//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
+   std::vector<std::string> systematics = {"nom", "JEC"};//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
@@ -266,22 +267,46 @@ void readTreeApplySelection()
       std::vector<std::string> dataBlocks; 
       std::string skimmedFilePaths;
 
-      if(runData)
+      if (runAll)
       {
+         if(*dataYear == "2015")
+         {
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
+         }
+         else if(*dataYear == "2016")
+         {
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         }
+         else if(*dataYear == "2017")
+         {
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         }
+         else if(*dataYear == "2018")
+         {
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_","Suu5_chi1_","Suu8_chi3_","Suu5_chi2_"};
+         }    
+      }
+      else if(runData)
+      {
+         systematics = {"nom"};  //TESTING
 
-         if(*datayear == "2015")
+         if(*dataYear == "2015")
          {
             dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_"}; // dataB-ver1 not present
          }
-         else if(*datayear == "2016")
+         else if(*dataYear == "2016")
          {
             dataBlocks = {"dataF_", "dataG_", "dataH_"};
          }
-         else if(*datayear == "2017")
+         else if(*dataYear == "2017")
          {
             dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_"};
          }
-         else if(*datayear == "2018")
+         else if(*dataYear == "2018")
          {
             dataBlocks = {"dataA_","dataB_","dataC_","dataD_"};
          }
@@ -292,11 +317,9 @@ void readTreeApplySelection()
       }
       else
       {  
-        //dataBlocks = {"QCDMC2000toInf_"}; 
-        // dataBlocks = {"ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"};
-	     dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+        //dataBlocks = {"TTToSemiLeptonic_"}; 
+        dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
-         //dataBlocks = {"QCDMC2000toInf_"};
       }
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
       {
