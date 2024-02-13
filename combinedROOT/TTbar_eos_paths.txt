@@ -1,0 +1,3 @@
+/store/user/ecannaer/SuuToChiChi_202426_233436/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTToLeptonicMC_2015_/240208_073607/0000
+/store/user/ecannaer/SuuToChiChi_202426_233436/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTToHadronicMC_2015_/240208_073757/0000
+/store/user/ecannaer/SuuToChiChi_202426_233436/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/clustAlg_TTToSemiLeptonicMC_2015_/240208_073949/0000
