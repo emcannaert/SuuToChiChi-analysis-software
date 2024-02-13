@@ -16,20 +16,26 @@ else
 
 	python create_eos_copy_commands.py TTbar_eos_paths.txt
 	source eos_copy_commands.sh
+	rm TTTo*_combined_*.root
 
 	echo "Copying QCD Files"
 	python create_eos_copy_commands.py QCD_eos_paths.txt
 	source eos_copy_commands.sh
+	rm QCD*_combined_*.root
 
 	echo "Copying Single Top Files"
 	python create_eos_copy_commands.py ST_eos_paths.txt
 	source eos_copy_commands.sh
+	rm ST_*_combined_*.root
 
 	python create_eos_copy_commands.py data_eos_paths.txt
-	#source eos_copy_commands.sh
+	source eos_copy_commands.sh
+	rm data*_combined_*.root
 
-	python create_eos_copy_commands.py signal_eos_paths.txt
+	#python create_eos_copy_commands.py signal_eos_paths.txt
 	#source eos_copy_commands.sh
+	
+	#rm *Suu*_combined_*.root
 
 	## to merge
 		# get the file paths
@@ -38,6 +44,7 @@ else
 		# rm old eos paths
 		# copy new files to eos
 		# remove files from combinedROOT
+
 
 	echo "Removing old eos file paths."
 	eosrm /store/user/ecannaer/combinedROOT/*$2*combined.root
@@ -52,8 +59,7 @@ else
 	rm data_eos_paths.txt
 	rm signal_eos_paths.txt
 	echo "Finished."
-
-	echo "WARNING: data and signal files are set to not be copied. Change this in the script if you want these."
+	echo "WARNING: data files are set to not be copied. Change this in the script if you want these."
 
 fi
 
