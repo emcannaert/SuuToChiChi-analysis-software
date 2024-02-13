@@ -135,7 +135,7 @@ if __name__=="__main__":
 
 	years = ["2015","2016","2017","2018"]
 	eos_path = open(sys.argv[1], "r")
-	command_path = open("eos_copy_commands.sh", "w")
+	command_path = open("eos_copy_commands_btagging.sh", "w")
 	for line in eos_path:
 		if line.split() == "[]" or line == "\n" or line == "":
 			continue
@@ -166,14 +166,14 @@ if __name__=="__main__":
 		if "Suu" in sample_str:
 			num_str = "%s"%(signal_nCommands[year_str][sample_str][sys_str])
 			#print("num/year/sys/sample = %s/%s/%s/%s"%(num_str,year_str,sys_str,sample_str))
-			signal_files_made[year_str][sample_str][sys_str].append("btagging_efficiencyMap_%s_%s_%s_combined_%s_.root"%(sample_str, year_str, sys_str, num_str))
+			signal_files_made[year_str][sample_str][sys_str].append("btagging_efficiencyMap_%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
 			signal_nCommands[year_str][sample_str][sys_str]+=1
 		else:
 			num_str = "%s"%(nCommands[year_str][sample_str][sys_str])
-			all_files_made[year_str][sample_str][sys_str].append("btagging_efficiencyMap_%s_%s_%s_combined_%s_.root"%(sample_str, year_str, sys_str, num_str))
+			all_files_made[year_str][sample_str][sys_str].append("btagging_efficiencyMap_%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
 			nCommands[year_str][sample_str][sys_str]+=1
 		pipe = '|'
-		command_path.write(r'hadd  btagging_efficiencyMap_%s_%s_%s_combined.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
+		command_path.write(r'hadd  btagging_efficiencyMap_%s_%s_%s_combined_%s.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
 
 	#print(all_files_made)
 	### now add to this .sh script a section that combines all files together into a single "_combined.root", renames files to this if they don't need to be added together

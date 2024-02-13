@@ -20,7 +20,12 @@ if __name__=="__main__":
 					 "ST_t-channel-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  }  }, 
+					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataB-ver2":{'JEC':0,'JER':0,'nom':0 } ,
+					 "dataC-HIPM":{ 'JEC':0,'JER':0,'nom':0 } ,
+					 "dataD-HIPM":{'JEC':0,'JER':0,'nom':0 } ,
+					 "dataF-HIPM":{'JEC':0,'JER':0,'nom':0 }  }, 
+					 "dataE-HIPM":{ 'JEC':0,'JER':0,'nom':0  } , 
 					 "2016": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1500to2000":{ 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC':0,'JER':0,'nom':0  },
@@ -32,7 +37,10 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  }  } ,
+					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					  "dataF":{ 'JEC':0,'JER':0,'nom':0  } ,
+					 "dataG":{ 'JEC':0,'JER':0,'nom':0  } ,
+					 "dataH":{ 'JEC':0,'JER':0,'nom':0  }  } ,
 					 "2017": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1500to2000":{ 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC':0,'JER':0,'nom':0  },
@@ -44,7 +52,12 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  }  } ,
+					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "dataB":{ 'JEC':0,'JER':0,'nom':0  } ,
+					 "dataC":{ 'JEC':0,'JER':0,'nom':0   } ,
+					 "dataD":{ 'JEC':0,'JER':0,'nom':0  } ,
+					 "dataE":{ 'JEC':0,'JER':0,'nom':0  } , 
+					 "dataF":{ 'JEC':0,'JER':0,'nom':0  }  } ,
 					 "2018": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1500to2000":{ 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC':0,'JER':0,'nom':0  },
@@ -56,7 +69,11 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  }   } }
+					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					  "dataA":{ 'JEC':0,'JER':0,'nom':0  }   ,
+					 "dataB":{ 'JEC':0,'JER':0,'nom':0  } ,
+					 "dataC":{ 'JEC':0,'JER':0,'nom':0  } ,
+					 "dataD":{'JEC':0,'JER':0,'nom':0  }  } }
 	all_files_made	= {  "2015": { "QCDMC2000toInf": { 'JEC':[],'JER':[],'nom':[]  },     #nCommands[year][sample][systematic]
 					 "QCDMC1500to2000":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -68,7 +85,12 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }  }, 
+					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataB-ver2":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataC-HIPM":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataD-HIPM":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataE-HIPM":{ 'JEC':[],'JER':[],'nom':[]  } , 
+					 "dataF-HIPM":{ 'JEC':[],'JER':[],'nom':[]  }  }, 
 					 "2016": { "QCDMC2000toInf": { 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1500to2000":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -80,7 +102,10 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }   } ,
+					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataF":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataG":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataH":{ 'JEC':[],'JER':[],'nom':[]  } } ,
 					 "2017": { "QCDMC2000toInf": { 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1500to2000":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -92,7 +117,13 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }    } ,
+					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "dataB":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataC":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataD":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataE":{ 'JEC':[],'JER':[],'nom':[]  } , 
+					 "dataF":{ 'JEC':[],'JER':[],'nom':[]  } } ,
+
 					 "2018": { "QCDMC2000toInf": { 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1500to2000":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -104,12 +135,16 @@ if __name__=="__main__":
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }   } }
+					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }  , 
+					 "dataA":{ 'JEC':[],'JER':[],'nom':[]  }   ,
+					 "dataB":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataC":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					 "dataD":{ 'JEC':[],'JER':[],'nom':[]  } }}
 
 
 	samples = ["QCDMC2000toInf","QCDMC1500to2000","QCDMC1000to1500","TTToHadronicMC", "TTToLeptonicMC", "TTToSemiLeptonicMC","ST_t-channel-antitop_inclMC", "ST_t-channel-top_inclMC", "ST_tW-antiTop_inclMC","ST_tW-top_inclMC",
 	"ST_s-channel-hadronsMC",
-	"ST_s-channel-leptonsMC"
+	"ST_s-channel-leptonsMC", "dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM","dataF-HIPM", "dataF", "dataG", "dataH","dataB","dataC","dataD","dataE", "dataF", "dataA"
 	]
 
 	signal_samples_pkl = open('../signal_samples.pkl', 'r')
@@ -149,10 +184,13 @@ if __name__=="__main__":
 		for sample in signal_samples:
 			if sample in line:
 				sample_str = sample
+		
 		if "JEC" in line:
 			sys_str = "JEC"
 		elif "JER" in line:
-					sys_str = "JER"
+			sys_str = "JER"
+		elif "data" in line and "__" in line:
+			sys_str = "nom"
 		else:   #nominal systematic calculations
 			sys_str = "nom"
 		for year in years:
@@ -173,14 +211,14 @@ if __name__=="__main__":
 			all_files_made[year_str][sample_str][sys_str].append("%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
 			nCommands[year_str][sample_str][sys_str]+=1
 		pipe = '|'
-		command_path.write(r'hadd  %s_%s_%s_combined_%s.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
+		command_path.write(r'hadd -f %s_%s_%s_combined_%s.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
 
 	#print(all_files_made)
 	### now add to this .sh script a section that combines all files together into a single "_combined.root", renames files to this if they don't need to be added together
 	for year,year_dict in all_files_made.items():
 		for sample, sample_dict in year_dict.items():
 			for syst,syst_dict in sample_dict.items():
-				combined_file_name = "%s_%s_%s_combined.root"%(sample, year_str, sys_str)
+				combined_file_name = "%s_%s_%s_combined.root"%(sample, year, syst)
 				if len(syst_dict) > 1:    # if there are actually files in this 
 					command_path.write('hadd -f %s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
@@ -195,7 +233,7 @@ if __name__=="__main__":
 	for year,year_dict in signal_files_made.items():
 		for sample, sample_dict in year_dict.items():
 			for syst,syst_dict in sample_dict.items():
-				combined_file_name = "%s_%s_%s_combined.root"%(sample, year_str, sys_str)
+				combined_file_name = "%s_%s_%s_combined.root"%(sample, year, syst)
 				if len(syst_dict) > 1:    # if there are actually files in this 
 					command_path.write('hadd -f %s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
