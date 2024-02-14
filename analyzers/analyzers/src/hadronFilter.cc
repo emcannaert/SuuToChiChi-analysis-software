@@ -117,7 +117,7 @@ class hadronFilter : public edm::stream::EDFilter<> {
       std::string systematicType;
       std::string runType;
       std::string triggers;
-
+      
       edm::FileInPath JECUncert_AK4_path;
       //JetCorrectionUncertainty *jecUnc_AK4;
 

@@ -1,0 +1,6 @@
+source submitCrab_HTHT_2017.sh
+source submitCrab_ZTZT_2017.sh
+source submitCrab_WBWB_2017.sh
+source submitCrab_WBHT_2017.sh
+source submitCrab_WBZT_2017.sh
+source submitCrab_HTZT_2017.sh

@@ -36,6 +36,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/Utilities/interface/StreamID.h"
 #include "FWCore/ParameterSet/interface/FileInPath.h"
+#include "FWCore/Common/interface/TriggerNames.h"
 
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
@@ -123,12 +124,18 @@ private:
    edm::EDGetTokenT<std::vector<pat::Jet>> jetToken_;
    edm::EDGetTokenT<std::vector<pat::MET>> metToken_;
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puSummaryToken_;
-   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
    edm::EDGetTokenT<std::vector<pat::Muon>> muonToken_;
    edm::EDGetTokenT<std::vector<pat::Electron>> electronToken_;
    edm::EDGetTokenT<std::vector<pat::Tau>> tauToken_;
 
    edm::EDGetTokenT<GenEventInfoProduct> GeneratorToken_;
+
+   edm::EDGetTokenT<std::vector<float>> pdfWeightToken_;
+   edm::EDGetTokenT<std::vector<float>> scaleWeightToken_;
+
+   std::string triggers;
+   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+   
 
    edm::EDGetTokenT<double> m_rho_token;
 
@@ -223,8 +230,12 @@ private:
 
    double jet_JEC_up[25], jet_JEC_down[25], jet_JER_nom[25],jet_JER_up[25],jet_JER_down[25];
    double AK4_JEC_up[25], AK4_JEC_down[25], AK4_JER_nom[25],AK4_JER_up[25],AK4_JER_down[25];
+   double jet_JER[25];
+   double weightFacUp,weightFacDn,weightRenUp,weightRenUpxweightFacUp,weightRenUpxweightFacDn;
+   double weightRenDn,weightRenDnxweightFacUp,weightRenDnxweightFacDn;
 
-
+   double pdf_weights[200];
+   int nPDFWeights = 0;
    double Generator_x1,Generator_x2,q2;
    int Generator_id1,Generator_id2;
 
@@ -263,6 +274,9 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    systematicType = iConfig.getParameter<std::string>("systematicType");
    year           = iConfig.getParameter<std::string>("year");
 
+   triggers     = iConfig.getParameter<std::string>("triggers");
+   triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"));
+
    if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
    {
 
@@ -271,14 +285,23 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       doBtagSF = true;
       doJER    = true;
       doPUSF   = true;
-      doPtReWeight = true;  /// MUST BE CHANGED TO TRUE ONCE THIS IS WORKING
-      doPDFWeights = true;
+      if ((runType.find("TTTo") != std::string::npos)) doPtReWeight = true;  
+      doPDFWeights = false;
 
       bTagSF_path    = iConfig.getParameter<edm::FileInPath>("bTagSF_path");
       bTagEff_path   = iConfig.getParameter<edm::FileInPath>("bTagEff_path");
 
-      if(doPtReWeight) genEvtToken_    = consumes<TtGenEvent>( iConfig.getParameter<edm::InputTag>("ttGenEvent") ); //  = genEvt, other method:   edm::InputTag("genEvt") 
-      if(doPDFWeights) GeneratorToken_ = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
+      //if(doPtReWeight) genEvtToken_    = consumes<TtGenEvent>( iConfig.getParameter<edm::InputTag>("ttGenEvent") ); //  = genEvt, other method:   edm::InputTag("genEvt") 
+      if(doPDFWeights)
+      {
+
+         std::cout << "getting the PDF weight tokens" << std::endl;
+         pdfWeightToken_ = consumes<std::vector<float>>(edm::InputTag("PDFweights")); // calculated with PDFRecalculator
+         scaleWeightToken_ = consumes<std::vector<float>>(edm::InputTag("ScaleWeights")); // calculated with PDFRecalculator
+         GeneratorToken_ = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
+         std::cout << "GOT the PDF weight tokens" << std::endl;
+
+      }
       
    }
    PUfile_path    = iConfig.getParameter<edm::FileInPath>("PUfile_path");
@@ -372,14 +395,14 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree->Branch("nfatjets", &nfatjets, "nfatjets/I");
 
    tree->Branch("nAK4", &nAK4, "nAK4/I");
-   tree->Branch("AK4_bdisc", AK4_bdisc, "AK4_bdisc[nAK4]/D");
+   //tree->Branch("AK4_bdisc", AK4_bdisc, "AK4_bdisc[nAK4]/D");
    tree->Branch("AK4_DeepJet_disc", AK4_DeepJet_disc, "AK4_DeepJet_disc[nAK4]/D");
 
-   tree->Branch("tot_mpp_AK4", &tot_mpp_AK4, "tot_mpp_AK4/I");
+   //tree->Branch("tot_mpp_AK4", &tot_mpp_AK4, "tot_mpp_AK4/I");
    tree->Branch("nSuperJets", &nSuperJets, "nSuperJets/I");
    tree->Branch("tot_nAK4_50", &tot_nAK4_50, "tot_nAK4_50/I");             //total #AK4 jets (E>50 GeV) for BOTH superjets
    tree->Branch("tot_nAK4_70", &tot_nAK4_70, "tot_nAK4_70/I");
-   tree->Branch("eventBetaCOM",&eventBetaCOM, "eventBetaCOM/D");
+   //tree->Branch("eventBetaCOM",&eventBetaCOM, "eventBetaCOM/D");
    tree->Branch("diSuperJet_mass",&diSuperJet_mass, "diSuperJet_mass/D");
    tree->Branch("diSuperJet_mass_100",&diSuperJet_mass_100, "diSuperJet_mass_100/D");
    tree->Branch("nfatjet_pre",&nfatjet_pre, "nfatjet_pre/I");
@@ -390,8 +413,8 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree->Branch("jet_pt", jet_pt, "jet_pt[nfatjets]/D");
    tree->Branch("jet_eta", jet_eta, "jet_eta[nfatjets]/D");
    tree->Branch("jet_phi", jet_phi, "jet_phi[nfatjets]/D");
-   tree->Branch("jet_JEC_up", jet_JEC_up, "jet_JEC_up[nfatjets]/D");
-   tree->Branch("jet_JEC_down", jet_JEC_down, "jet_JEC_down[nfatjets]/D");
+   //tree->Branch("jet_JEC_up", jet_JEC_up, "jet_JEC_up[nfatjets]/D");
+   //tree->Branch("jet_JEC_down", jet_JEC_down, "jet_JEC_down[nfatjets]/D");
 
 
 
@@ -540,6 +563,10 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       tree->Branch("AK4_partonFlavour", AK4_partonFlavour  , "AK4_partonFlavour[lab_nAK4]/I");
       tree->Branch("AK4_hadronFlavour", AK4_hadronFlavour  , "AK4_hadronFlavour[lab_nAK4]/I");
 
+      
+      tree->Branch("jet_JER", jet_JER  , "jet_JER[nfatjets]/D");
+
+      /*
       tree->Branch("jet_JER_nom", jet_JER_nom  , "jet_JER_nom[nfatjets]/D");
       tree->Branch("jet_JER_up", jet_JER_up  , "jet_JER_up[nfatjets]/D");
       tree->Branch("jet_JER_down", jet_JER_down  , "jet_JER_down[nfatjets]/D");
@@ -547,15 +574,34 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       tree->Branch("AK4_JER_nom", AK4_JER_nom  , "AK4_JER_nom[lab_nAK4]/D");
       tree->Branch("AK4_JER_up", AK4_JER_up  , "AK4_JER_up[lab_nAK4]/D");
       tree->Branch("AK4_JER_down", AK4_JER_down  , "AK4_JER_down[lab_nAK4]/D");
-
+      */
       // generator/pdf variables
       if(doPDFWeights)
       {
+
+         // generator stuff
          tree->Branch("Generator_id1", &Generator_id1, "Generator_id1/I");
          tree->Branch("Generator_id2", &Generator_id2, "Generator_id2/I");
          tree->Branch("Generator_x1", &Generator_x1, "Generator_x1/D");
          tree->Branch("Generator_x2", &Generator_x2, "Generator_x2/D");
-         tree->Branch("q2", &q2, "q2/D");         
+         tree->Branch("q2", &q2, "q2/D");   
+
+
+         // scale weight stuff
+         tree->Branch("weightFacUp", &weightFacUp, "weightFacUp/D");
+         tree->Branch("weightFacDn", &weightFacDn, "weightFacDn/D");
+         tree->Branch("weightRenUp", &weightRenUp, "weightRenUp/D");
+         tree->Branch("weightRenUpxweightFacUp", &weightRenUpxweightFacUp, "weightRenUpxweightFacUp/D");
+         tree->Branch("weightRenUpxweightFacDn", &weightRenUpxweightFacDn, "weightRenUpxweightFacDn/D");
+         tree->Branch("weightRenDn", &weightRenDn, "weightRenDn/D");
+         tree->Branch("weightRenDnxweightFacUp", &weightRenDnxweightFacUp, "weightRenDnxweightFacUp/D");
+         tree->Branch("weightRenDnxweightFacDn", &weightRenDnxweightFacDn, "weightRenDnxweightFacDn/D");
+
+         // pdf weight stuff: [mur=1, muf=1], [mur=1, muf=2], [mur=1, muf=0.5], [mur=2, muf=1], [mur=2, muf=2], [mur=2, muf=0.5], [mur=0.5, muf=1], [mur=0.5, muf=2], [mur=0.5, muf=0.5]
+         
+         tree->Branch("nPDFWeights", &nPDFWeights, "nPDFWeights/I");
+         tree->Branch("pdf_weights", pdf_weights, "pdf_weights[nPDFWeights]/D");
+
       }
 
 
@@ -596,6 +642,8 @@ const reco::Candidate* clusteringAnalyzerAll::parse_chain(const reco::Candidate*
 // checks jet (tight) ID
 bool clusteringAnalyzerAll::isHEM(const float jet_eta, const float jet_phi)
 {
+
+   if(year != "2018")return false; // HEM is only relevant for 2018
    if( (jet_phi >  -1.57)&&( jet_phi < -0.87) )
    {
       if( (jet_eta > -3.0)&&(jet_eta < -1.3))return true;
@@ -1148,6 +1196,28 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    if(_verbose)std::cout << " -----------------Starting Event -----------------" << std::endl;
    eventnum++;
 
+   edm::Handle< std::vector<reco::GenParticle> > genPartCollection; // this will be used several times throughout the code
+
+   if( (runType.find("Suu")!=std::string::npos ))
+   {
+
+      edm::Handle<edm::TriggerResults> triggerBits;
+      iEvent.getByToken(triggerBits_, triggerBits);
+      const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+      bool pass = false;
+      std::string trigname= triggers;
+      for (unsigned int i = 0; i < triggerBits->size(); ++i) 
+      {
+         const std::string name = names.triggerName(i);
+         const bool accept = triggerBits->accept(i);
+         if ((name.find(trigname) != std::string::npos) &&(accept)) pass =true;
+      }
+
+      if(!pass)
+      {  
+          return;
+      }
+   }
    if(_verbose)std::cout << "In analyze" << std::endl;
 
 
@@ -1171,7 +1241,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
 
-   if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) )
+   if ((runType.find("MC") != std::string::npos) || (runType.find("Suu")!=std::string::npos ) )
    {
 
       if(_verbose)std::cout << "before pileup" << std::endl;
@@ -1288,7 +1358,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       if(doJER)
       {
-         if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") ) )
+         if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos) )
          {
             double AK4_JER_corr_factor = 1.0; // this won't be touched for data
 
@@ -1358,7 +1428,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          PUID = bool(corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1));
       }
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),PUID, corrJet.pt() )) ) continue;
-      //if( isHEM(corrJet.eta(), corrJet.phi()))continue;
+      if( isHEM(corrJet.eta(), corrJet.phi()))continue;
 
 
       /// return to here
@@ -1370,13 +1440,14 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if(_verbose)std::cout << "the year is " << year << " with working point value of " << deepjet_wp_tight << ". The hadronFlavour is " << corrJet.hadronFlavour() <<  " and deepjet score " << deepJetScore<< std::endl;
       
 
+
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////
       ////////////////////////////////////// b tagging study stuff /////////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////
       if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos) )
       {
 
-         edm::Handle< std::vector<reco::GenParticle> > genPartCollection;
+         
          iEvent.getByToken(genPartToken_, genPartCollection);
          // jet is assumed to be not tagged 
          nGenBJets_AK4[nAK4] = 0;
@@ -1402,7 +1473,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if(doBtagSF)
       {
          // calculate the b-tag scale factor for the event using the efficiency maps that were loaded in the constructor and correctionlib
-         if ( ( runType.find("MC") != std::string::npos  ) || (runType.find("Suu")) )    //only run this on MC (we won't have the hadron flavor stuff for data )
+         if ( ( runType.find("MC") != std::string::npos  ) || (runType.find("Suu")!= std::string::npos ) )    //only run this on MC (we won't have the hadron flavor stuff for data )
          {
 
             //these are the bins of the eff histogram you need to draw from
@@ -1546,7 +1617,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   PUID = bool(iJet->userInt("pileupJetIdUpdated:fullId") & (1 << 1));
                }
                if( (iJet->pt()  <30.) || (!(iJet->isPFJet())) || (!isgoodjet(iJet->eta(),iJet->neutralHadronEnergyFraction(),iJet->neutralEmEnergyFraction(),iJet->numberOfDaughters(),iJet->chargedHadronEnergyFraction(),iJet->chargedMultiplicity(),iJet->muonEnergyFraction(),iJet->chargedEmEnergyFraction(),PUID, iJet->pt() )) ) continue;
-               //if( isHEM(iJet->eta(), iJet->phi()))return;
+               if( isHEM(iJet->eta(), iJet->phi()))return;
 
 
                int xbin = (int)(iJet->pt()*30./3000.) + 1;
@@ -1587,7 +1658,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    }
 
    lab_nAK4 = nAK4;
-
+   if (totHT < 1400) return;
    if(nAK4 <4)return;   // RETURN cut
 
 
@@ -1710,7 +1781,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       {
          double AK8_JER_corr_factor = 1.0; // this won't be touched for data
          
-         if( (runType.find("MC") != std::string::npos)|| (runType.find("Suu") ) ) //if((runType == "SigMC") || (runType == "QCDMC") || (runType == "TTbarMC") ) 
+         if( (runType.find("MC") != std::string::npos)|| (runType.find("Suu")!= std::string::npos ) ) //if((runType == "SigMC") || (runType == "QCDMC") || (runType == "TTbarMC") ) 
          {
             if(_verbose)std::cout << "doing JER" << std::endl;
 
@@ -1749,6 +1820,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                //double JERrand = 1.0 + sigmaJER;
                AK8_JER_corr_factor = max(0., 1 + JERrand*sqrt(max(pow(sJER,2)-1,0.)));   //want to make sure this is truncated at 0
             }
+            jet_JER[nfatjets] = AK8_JER_corr_factor;
+
             if(_verbose)std::cout << "finished with JER" << std::endl;
          }
          AK8_sf_total*= AK8_JER_corr_factor;
@@ -1773,11 +1846,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 45.)) 
       {
-         //if(!isHEM(corrJet.eta(),corrJet.phi()))nfatjet_pre++;
-         nfatjet_pre++;
+         if(!isHEM(corrJet.eta(),corrJet.phi()))nfatjet_pre++;
       }
       if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 300.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
-      //if(isHEM(corrJet.eta(),corrJet.phi()))continue;
+      if(isHEM(corrJet.eta(),corrJet.phi()))continue;
 
       if(nfatjets < 2) leadAK8_mass[nfatjets] = corrJet.userFloat("ak8PFJetsPuppiSoftDropMass");
       jet_pt[nfatjets] = corrJet.pt();
@@ -1839,54 +1911,108 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
 
-   if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))
+
+////////////////////////////////////////////////////////////
+/////////////// calculate _top pt weights //////////////////   
+////////////////////////////////////////////////////////////
+
+
+
+   if( doPtReWeight)
    {
-   ////////////////////////////////////////////////////////////
-   /////////////// calculate _top pt weights //////////////////   
-   ////////////////////////////////////////////////////////////
 
 
+      // old stuff that is deprecated, I decided to do it myself
+      /*
+      edm::Handle< std::vector<reco::GenParticle> > genParticles;
+      iEvent.getByToken(genParticleToken_, genParticles);
+      
 
-      if( (doPtReWeight))
+      edm::Handle< std::vector<reco::GenParticle> > packedGenParticles;
+      iEvent.getByToken(packedGenParticleToken_, packedGenParticles);
+      */
+      //edm::Handle<TtGenEvent> genEvt;
+      //iEvent.getByToken(genEvtToken_, genEvt);
+
+   ////////////////////// Calculate top pt weight /////////////////
+      iEvent.getByToken(genPartToken_, genPartCollection);
+      reco::GenParticle * top_one = nullptr;
+      reco::GenParticle * top_two = nullptr;
+      int top_pdgid = 6;
+      for( auto iG = genPartCollection->begin(); iG != genPartCollection->end(); iG++)
       {
-         if(_verbose)std::cout << "Calculating Top PT Weight";
 
-         /*
-         edm::Handle< std::vector<reco::GenParticle> > genParticles;
-         iEvent.getByToken(genParticleToken_, genParticles);
-         
+         if( ( abs(iG->pdgId()) == top_pdgid ) && (  iG->isLastCopy() ))
+         {
+            if(top_one == NULL) top_one = iG->clone();
+            else if (top_two == NULL) top_two = iG->clone();
+            else
+            {
+               std::cout << "ERROR: There are somehow 3 tops in the event ..." << std::endl;
+               return;
+            }
 
-         edm::Handle< std::vector<reco::GenParticle> > packedGenParticles;
-         iEvent.getByToken(packedGenParticleToken_, packedGenParticles);
-         */
-         edm::Handle<TtGenEvent> genEvt;
-         iEvent.getByToken(genEvtToken_, genEvt);
-
-         double topPtLepTrue=genEvt->leptonicDecayTop()->pt();
-         double topPtHadTrue=genEvt->hadronicDecayTop()->pt();
-         std::cout << topPtLepTrue <<  "  " << topPtHadTrue << std::endl;
-         top_pt_weight=sqrt(top_pt_SF(topPtLepTrue)*top_pt_SF(topPtHadTrue));
-         
+         }
+      }
+      if ((top_one == NULL) || (top_two == NULL))
+      {
+         std::cout << "ERROR: Fewer than 2 tops found." << std::endl;
+         return;
       }
 
-   /////////////////////////////////////////////////////////////
-   /////////////// calculate _pdf weights //////////////////////
-   /////////////////////////////////////////////////////////////
-      if(doPDFWeights)
-      {
-         if(_verbose)std::cout << "Setting PDF variables";
-         edm::Handle<GenEventInfoProduct> evt_info;
-         iEvent.getByToken(GeneratorToken_, evt_info);
-         q2 = std::pow(evt_info->pdf()->scalePDF,2); //scalePDF seems to return scale q
-         Generator_id1 = evt_info->pdf()->id.first; //particle 1 id 
-         Generator_id2 = evt_info->pdf()->id.second; //particle 2 id
-         Generator_x1 = evt_info->pdf()->x.first;
-         Generator_x2 = evt_info->pdf()->x.second;
-      }
-   //edm::Handle<GenEventInfoProduct> evt_info;
-
+      double genTopQuarkOne_pt=top_one->pt();
+      double genTopQuarkTwo_pt=top_two->pt();
+      top_pt_weight=sqrt(top_pt_SF(genTopQuarkOne_pt)*top_pt_SF(genTopQuarkTwo_pt));
 
    }
+
+/////////////////////////////////////////////////////////////
+/////////////// calculate _pdf weights //////////////////////
+/////////////////////////////////////////////////////////////
+   if(doPDFWeights)
+   {
+      if(_verbose)std::cout << "Setting PDF variables";
+      edm::Handle<GenEventInfoProduct> evt_info;
+      iEvent.getByToken(GeneratorToken_, evt_info);
+      q2 = std::pow(evt_info->pdf()->scalePDF,2); //scalePDF seems to return scale q
+      Generator_id1 = evt_info->pdf()->id.first; //particle 1 id 
+      Generator_id2 = evt_info->pdf()->id.second; //particle 2 id
+      Generator_x1 = evt_info->pdf()->x.first;
+      Generator_x2 = evt_info->pdf()->x.second;
+
+      edm::Handle<std::vector<float>> PDFweights;
+      iEvent.getByToken(pdfWeightToken_, PDFweights);
+      int scale_var_counter = 0;
+      for(auto iii = PDFweights->begin(); iii != PDFweights->end(); iii++ )
+      {
+         if(scale_var_counter == 1)weightFacUp = *iii;
+         else if(scale_var_counter == 2)weightFacDn =*iii;
+         else if(scale_var_counter == 3)weightRenUp = *iii;
+         else if(scale_var_counter == 4)weightRenUpxweightFacUp = *iii;
+         else if(scale_var_counter == 5)weightRenUpxweightFacDn = *iii;
+         else if(scale_var_counter == 6)weightRenDn = *iii;
+         else if(scale_var_counter == 7)weightRenDnxweightFacUp = *iii;
+         else if(scale_var_counter == 8)weightRenDnxweightFacDn = *iii;
+         scale_var_counter++;
+      }
+
+
+      edm::Handle<std::vector<float>> ScaleWeights;
+      iEvent.getByToken(scaleWeightToken_, ScaleWeights);
+      
+      nPDFWeights = 0;
+      for(auto iii = ScaleWeights->begin();iii!= ScaleWeights->end();iii++)
+      {
+         pdf_weights[nPDFWeights] = *iii;
+         std::cout << *iii << std::endl;
+         nPDFWeights++;
+      }
+      std::cout << "There were " << nPDFWeights << " pdf weights." << std::endl;
+   }
+//edm::Handle<GenEventInfoProduct> evt_info;
+
+
+   
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    ////////////////////////////////////////////////////////////_Clustering_///////////////////////////////////////////////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

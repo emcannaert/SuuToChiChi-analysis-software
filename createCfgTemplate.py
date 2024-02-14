@@ -2,14 +2,22 @@
 
 import sys
 import os
-
+import pickle
 ### this can be updated to create the different cfgs for each systematic
-def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
+def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, all_systematics):
+
+   isSignal = False
+   if "Suu" in sample:
+      isSignal = True
+   systematic_ = [systematic__]
+   if "Suu" in sample:
+      systematic_ = all_systematics
+
 
    apply_pu_ID = True
-   doTopPtReweight = True
-   if "data" in sample:
-      doTopPtReweight = False
+   doTopPtReweight = False
+   if "TTTo" in sample:
+      doTopPtReweight = True
    # need to change trigger for yhears
    trigger = ""
    if year == "2018" or year == "2017":
@@ -19,13 +27,15 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
 
    output_dir = ""
    if "Suu" in sample:
-      output_dir = "signalCfgs"
+      output_dir = "allCfgs/signalCfgs"
    else:
       output_dir = "allCfgs"
-   if systematic == "":
-      newCfg = open("%s/clusteringAnalyzer_%s_%s_%scfg.py"%(output_dir,sample,year, systematic),"w")
+   if isSignal:
+      newCfg = open("%s/clusteringAnalyzer_%s_%s_cfg.py"%(output_dir,sample,year),"w")
+   elif systematic_[0] == "":
+      newCfg = open("%s/clusteringAnalyzer_%s_%s_%scfg.py"%(output_dir,sample,year, systematic_[0]),"w")
    else:
-      newCfg = open("%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic),"w")
+      newCfg = open("%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic_[0]),"w")
    
    newCfg.write("from PhysicsTools.PatAlgos.tools.helpers  import getPatAlgosToolsTask\n")
    newCfg.write("import FWCore.ParameterSet.Config as cms\n")
@@ -40,9 +50,9 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write("process.load('JetMETCorrections.Configuration.CorrectedJetProducersDefault_cff')\n")
    newCfg.write('process.load("JetMETCorrections.Configuration.JetCorrectionServices_cff")\n')
    newCfg.write('process.load("JetMETCorrections.Configuration.JetCorrectionServicesAllAlgos_cff")\n')
-   if doTopPtReweight:
-      newCfg.write('#top pt reweighting\n')
-      newCfg.write('process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")\n')
+   #if doTopPtReweight:
+   #   newCfg.write('#top pt reweighting\n')
+   #   newCfg.write('process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")\n')
 
    newCfg.write('from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection\n')
    """
@@ -53,8 +63,7 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
     MC 2018: 106X_upgrade2018_realistic_v16_L1v1 
    """
 
-   ##### updated 28 August 2023
-   #OLD: global tags found here https://twiki.cern.ch/twiki/bin/view/CMSPublic/GTsAfter2019#Global_tag_for_2020_UL_MC_p_AN34 for Summer20 UL campaigns
+   # global tags
    #NEW and what is in use: https://twiki.cern.ch/twiki/bin/view/CMS/PdmVRun2LegacyAnalysis
    if not "data" in sample: 
       if year == "2018":
@@ -151,128 +160,138 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write('   tauCollection = cms.InputTag("slimmedTaus")\n')
    newCfg.write(")\n")
 
-   newCfg.write('process.hadronFilter = cms.EDFilter("hadronFilter",\n')
-   newCfg.write('   year = cms.string("%s"),\n'%year)
-
-   newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
-   newCfg.write('   metCollection = cms.InputTag("slimmedMETs"),\n')
-   if apply_pu_ID:
-      newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
-   else:
-      newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
-   newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
-   newCfg.write('   triggers = cms.string("%s"),\n'%trigger)
-   newCfg.write('   systematicType = cms.string("%s"),\n'%systematic)
-   newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
-   if apply_pu_ID:
-      newCfg.write('   doPUID = cms.bool(True),\n')
-   else:
-      newCfg.write('   doPUID = cms.bool(False),\n')
-   newCfg.write('   runType = cms.string("%s")   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTToHadronicMC, TTToSemiLeptonic, TTToLeptonic, DataA, etc. , Suu8_chi3, etc.\n'%sample)
-   newCfg.write(")\n")
 
 
-
-   systematicSuffices = ["_up", "_down"]
-   for iii, suffix in enumerate(systematicSuffices):
-
-      if systematic == "":  # want to have only one round of the analyzer run with no suffix to represent the case of all systematics being nominal
-         if(iii>0):
-            continue
-         elif iii == 0:
-            suffix = ""
-
-
-      newCfg.write('process.clusteringAnalyzerAll_%s%s = cms.EDAnalyzer("clusteringAnalyzerAll",\n'%(systematic, suffix) )
+   for systematic in systematic_:
       """
-      if "QCD" in sample:
-         newCfg.write('   runType = cms.string("QCDMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
-      elif "TTbar" in sample:
-         newCfg.write('   runType = cms.string("TTbarMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
-      elif "Suu" in sample:
-         newCfg.write('   runType = cms.string("SigMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
-      elif "data" in sample:
-         newCfg.write('   runType = cms.string("Data"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
-      else:
-         print("something failed with writing runType.", sample ) 
+      # NO LONGER DOING HADRON FILTER, this messes with systematics 
+      if not isSignal:  # do NOT run the hadron filter for signal, this messes with systematic stuff
+         newCfg.write('process.hadronFilter_%s = cms.EDFilter("hadronFilter",\n'%systematic)
+         newCfg.write('   year = cms.string("%s"),\n'%year)
+
+         newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
+         newCfg.write('   metCollection = cms.InputTag("slimmedMETs"),\n')
+         if apply_pu_ID:
+            newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
+         else:
+            newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+         newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
+         newCfg.write('   triggers = cms.string("%s"),\n'%trigger)
+         newCfg.write('   systematicType = cms.string("%s"),\n'%systematic)
+         newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
+         if apply_pu_ID:
+            newCfg.write('   doPUID = cms.bool(True),\n')
+         else:
+            newCfg.write('   doPUID = cms.bool(False),\n')
+         newCfg.write('   runType = cms.string("%s")   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTToHadronicMC, TTToSemiLeptonic, TTToLeptonic, DataA, etc. , Suu8_chi3, etc.\n'%sample)
+         newCfg.write(")\n")
+
       """
-      newCfg.write('   runType = cms.string("%s"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n'%sample)
-      if "MC" in sample or "Suu" in sample:
-         newCfg.write('   genPartCollection = cms.InputTag("prunedGenParticles"),\n')
-         newCfg.write('      genParticles = cms.InputTag("genParticles"),\n')
-         newCfg.write('      packedGenParticles = cms.InputTag("packedGenParticles"),\n')
+      systematicSuffices = ["_up", "_down"]
+      for iii, suffix in enumerate(systematicSuffices):
+
+         if systematic == "nom":  # want to have only one round of the analyzer run with no suffix to represent the case of all systematics being nominal
+            if(iii>0):
+               continue
+            elif iii == 0:
+               suffix = ""
 
 
-      newCfg.write("   name = cms.string('BESTGraph'),   path = cms.FileInPath('data/constantgraph.pb'),\n")
-      newCfg.write("   means = cms.FileInPath('data/ScalerParameters_maxAbs_train.txt'),\n")
-      if year == "2015":
-         newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2016preVFP_UL/puWeights.json'),\n")
-      elif year == "2016":
-         newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2016postVFP_UL/puWeights.json'),\n")
-      elif year == "2017":
-         newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2017_UL/puWeights.json'),\n")
-      elif year == "2018":
-         newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2018_UL/puWeights.json'),\n")
-
-      ""
-      #should this be for data and MC?
-      if "MC" in sample or "Suu" in sample:
+         newCfg.write('process.clusteringAnalyzerAll_%s%s = cms.EDAnalyzer("clusteringAnalyzerAll",\n'%(systematic, suffix) )
          """
-         if "TTTo" in sample or "ST_" in sample:
-            bTagSF_sample = sample[:-2]
+         if "QCD" in sample:
+            newCfg.write('   runType = cms.string("QCDMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
+         elif "TTbar" in sample:
+            newCfg.write('   runType = cms.string("TTbarMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
          elif "Suu" in sample:
-            bTagSF_sample = "QCDMC2000toInf"  # for now use the QCD2000toInf efficiency maps in the b-tag SF calculation, don't have these yet for signal
+            newCfg.write('   runType = cms.string("SigMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
+         elif "data" in sample:
+            newCfg.write('   runType = cms.string("Data"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
          else:
-            bTagSF_sample = sample
+            print("something failed with writing runType.", sample ) 
          """
-         if "QCDMC" in sample:
-            bTagSF_sample = "QCDMC_combined"
-         elif "TTTo" in sample:
-            bTagSF_sample = "TTbarMC_combined"
-         elif "ST_" in sample:
-            bTagSF_sample = "STMC_combined"
-         else:
-            print("ERROR: b tagging SF sample is not found. Sample = %s"%sample)
-            return
+         newCfg.write('   runType = cms.string("%s"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n'%sample)
+         if "MC" in sample or "Suu" in sample:
+            newCfg.write('   genPartCollection = cms.InputTag("prunedGenParticles"),\n')
+            newCfg.write('      genParticles = cms.InputTag("genParticles"),\n')
+            newCfg.write('      packedGenParticles = cms.InputTag("packedGenParticles"),\n')
 
-         newCfg.write("   bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_%s.root'),\n"%(bTagSF_sample,year))
+
+         newCfg.write("   name = cms.string('BESTGraph'),   path = cms.FileInPath('data/constantgraph.pb'),\n")
+         newCfg.write("   means = cms.FileInPath('data/ScalerParameters_maxAbs_train.txt'),\n")
          if year == "2015":
-            newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
+            newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2016preVFP_UL/puWeights.json'),\n")
          elif year == "2016":
-            newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016postVFP_UL/btagging.json'),\n")
+            newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2016postVFP_UL/puWeights.json'),\n")
          elif year == "2017":
-            newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2017_UL/btagging.json'),\n")
+            newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2017_UL/puWeights.json'),\n")
          elif year == "2018":
-            newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2018_UL/btagging.json'),\n")
+            newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2018_UL/puWeights.json'),\n")
 
-      newCfg.write('   JECUncert_AK8_path = cms.FileInPath("%s"),\n'%jec_file_AK8)
-      newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
+         ""
+         #should this be for data and MC?
+         if "MC" in sample or "Suu" in sample:
+            """
+            if "TTTo" in sample or "ST_" in sample:
+               bTagSF_sample = sample[:-2]
+            elif "Suu" in sample:
+               bTagSF_sample = "QCDMC2000toInf"  # for now use the QCD2000toInf efficiency maps in the b-tag SF calculation, don't have these yet for signal
+            else:
+               bTagSF_sample = sample
+            """
+            if "QCDMC" in sample:
+               bTagSF_sample = "QCDMC_combined"
+            elif "TTTo" in sample:
+               bTagSF_sample = "TTbarMC_combined"
+            elif "ST_" in sample:
+               bTagSF_sample = "STMC_combined"
+            elif "Suu" in sample:
+               bTagSF_sample = "SuuToChiChi"
+            else:
+               print("ERROR: b tagging SF sample is not found. Sample = %s"%sample)
+               return
 
-      newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
-      if apply_pu_ID:
-         newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
-      else:
-         newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
-      newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
-      newCfg.write('   muonCollection= cms.InputTag("slimmedMuons"),\n')
-      newCfg.write('   electronCollection = cms.InputTag("slimmedElectrons"),\n')
-      newCfg.write('   metCollection = cms.InputTag("slimmedMETs"),\n')
-      newCfg.write('   tauCollection = cms.InputTag("slimmedTaus"),\n')
-      newCfg.write('   pileupCollection = cms.InputTag("slimmedAddPileupInfo"),\n')
-      newCfg.write('   systematicType = cms.string("%s%s"),\n'%(systematic,suffix) )
-      newCfg.write('   year = cms.string("%s"),   #types: 2015,2016,2017,2018\n'%year)
-      newCfg.write('   genEventInfoTag=cms.InputTag("generator"),\n')
-      newCfg.write('   lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
-      if apply_pu_ID:
-         newCfg.write('   doPUID = cms.bool(True)\n')
-      else:
-         newCfg.write('   doPUID = cms.bool(False)\n')
-      newCfg.write(")\n")
+            newCfg.write("   bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_%s.root'),\n"%(bTagSF_sample,year))
+            if year == "2015":
+               newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
+            elif year == "2016":
+               newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016postVFP_UL/btagging.json'),\n")
+            elif year == "2017":
+               newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2017_UL/btagging.json'),\n")
+            elif year == "2018":
+               newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2018_UL/btagging.json'),\n")
 
-      if doTopPtReweight:
-         newCfg.write('# top pt reweighting stuff\n')
-         newCfg.write('process.decaySubset.fillMode = cms.string("kME")\n')
-         newCfg.write('process.clusteringAnalyzerAll_%s%s.ttGenEvent = cms.InputTag("genEvt")\n'%(systematic, suffix))
+         newCfg.write('   JECUncert_AK8_path = cms.FileInPath("%s"),\n'%jec_file_AK8)
+         newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
+
+         newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
+         if apply_pu_ID:
+            newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
+         else:
+            newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+         newCfg.write('   muonCollection= cms.InputTag("slimmedMuons"),\n')
+         newCfg.write('   electronCollection = cms.InputTag("slimmedElectrons"),\n')
+         newCfg.write('   metCollection = cms.InputTag("slimmedMETs"),\n')
+         newCfg.write('   tauCollection = cms.InputTag("slimmedTaus"),\n')
+         newCfg.write('   pileupCollection = cms.InputTag("slimmedAddPileupInfo"),\n')
+         newCfg.write('   systematicType = cms.string("%s%s"),\n'%(systematic,suffix) )
+         newCfg.write('   year = cms.string("%s"),   #types: 2015,2016,2017,2018\n'%year)
+         newCfg.write('   genEventInfoTag=cms.InputTag("generator"),\n')
+         newCfg.write('   lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
+
+         newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
+         newCfg.write('   triggers = cms.string("%s"),\n'%trigger)
+         if apply_pu_ID:
+            newCfg.write('   doPUID = cms.bool(True)\n')
+         else:
+            newCfg.write('   doPUID = cms.bool(False)\n')
+         newCfg.write(")\n")
+
+         # this didn't work, so unneeded
+         #if doTopPtReweight:
+         #   newCfg.write('# top pt reweighting stuff\n')
+         #   newCfg.write('process.decaySubset.fillMode = cms.string("kME")\n')
+         #   newCfg.write('process.clusteringAnalyzerAll_%s%s.ttGenEvent = cms.InputTag("genEvt")\n'%(systematic, suffix))
 
 
 
@@ -282,14 +301,19 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write('fileNames = cms.untracked.vstring("%s"\n'%datafile)
    newCfg.write(")\n")
    newCfg.write(")\n")
-   use_syst = systematic
-   if systematic == "":
-      use_syst = "nom"
+
+
+
+   use_syst = systematic_[0]
+
    if "Suu" in sample:
-
-      newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("../combinedROOT/%s_%s_%s_combined.root")\n'%(sample,year,use_syst))
+      use_syst = ""
+      if systematic == "nom":
+         use_syst = "nom"
+      newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("%s_%s_combined.root")\n'%(sample,year))
    else:
-
+      if systematic_[0] == "nom":
+         use_syst = "nom"
       newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("clusteringAnalyzer_%s_%s_%s_output.root")\n'%(sample,year,use_syst))
 
    newCfg.write(")\n")
@@ -306,18 +330,24 @@ def makeACfg(sample, year, systematic, datafile, jec_file_AK4, jec_file_AK8):
    newCfg.write("process.p = cms.Path(  ")
    if apply_pu_ID:
       newCfg.write("process.pileupJetIdUpdated * ")
-   if doTopPtReweight:
-      newCfg.write("process.makeGenEvt* ")
+   #if doTopPtReweight:
+   #   newCfg.write("process.makeGenEvt* ")
       
-   newCfg.write("process.leptonVeto * process.hadronFilter\n")
+   newCfg.write("process.leptonVeto  ")
             ########if you need to check the collections, add this to the path:  process.content
-   for iii, suffix in enumerate(systematicSuffices):
-      if systematic == "":
-         if(iii>0):
-            continue
-         elif iii == 0:
-            suffix = ""
-      newCfg.write(" * process.clusteringAnalyzerAll_%s%s\n"%(systematic, suffix) )
+      
+   for systematic in systematic_:
+
+      for iii, suffix in enumerate(systematicSuffices):
+         if systematic == "nom":
+            if(iii>0):
+               continue
+            elif iii == 0:
+               suffix = ""
+
+         #if not isSignal:
+         #   newCfg.write("process.hadronFilter * \n ")
+         newCfg.write(" * process.clusteringAnalyzerAll_%s%s\n"%(systematic, suffix) )
    newCfg.write(")\n")
    newCfg.write("process.patAlgosToolsTask = getPatAlgosToolsTask(process)\n")
    newCfg.write("process.pathRunPatAlgos = cms.Path(process.patAlgosToolsTask)\n")
@@ -331,7 +361,7 @@ def main():
 
    years   = ["2015","2016","2017","2018"]
 
-   systematics = ["JEC", "JER",
+   systematics = ["JEC", "JER","nom"]
    # "bTagWeight",    //event weights
    # "PUweight",
 
@@ -339,7 +369,7 @@ def main():
 
 
 
-   ""]  # last one here is for the fully nominal cfg file
+     # last one here is for the fully nominal cfg file
    """datafile = [ 
       "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
       "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
@@ -515,7 +545,8 @@ def main():
                         "Suu5_chi1p5": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
                         "Suu5_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1p5": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
-                        "Suu4_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt'
+                        "Suu4_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                        "signal": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt'
 
                        },
             '2016': { 'QCDMC1000to1500': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
@@ -546,7 +577,8 @@ def main():
                         "Suu5_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                         "Suu5_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
-                        "Suu4_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt'},
+                        "Suu4_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                        "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt'},
 
 '2017': { 'QCDMC1000to1500': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC1500to2000': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -579,7 +611,10 @@ def main():
                      "Suu5_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                      "Suu5_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                      "Suu4_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
-                     "Suu4_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt'},
+                     "Suu4_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt'
+
+                     },
 '2018': { 'QCDMC1000to1500': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -609,7 +644,8 @@ def main():
                         "Suu5_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                         "Suu5_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
-                        "Suu4_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt'}
+                        "Suu4_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt'}
 
 }
 
@@ -645,7 +681,8 @@ def main():
                         "Suu5_chi1p5": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu5_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1p5": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
-                        "Suu4_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt'},
+                        "Suu4_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "signal": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt'},
 
 
             '2016': { 'QCDMC1000to1500': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
@@ -676,7 +713,8 @@ def main():
                         "Suu5_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu5_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
-                        "Suu4_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt'},
+                        "Suu4_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt'},
 
 '2017': { 'QCDMC1000to1500': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC1500to2000': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
@@ -708,7 +746,8 @@ def main():
                         "Suu5_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu5_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
-                        "Suu4_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt'},
+                        "Suu4_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt'},
 '2018': { 'QCDMC1000to1500': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
@@ -738,85 +777,50 @@ def main():
                      "Suu5_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                      "Suu5_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                      "Suu4_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
-                     "Suu4_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt'}
+                     "Suu4_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt'}
 
 }
 
+   # signal_files.pkl
+   signal_samples_pkl = open('signal_samples.pkl', 'r')
+   signal_samples     = pickle.load(signal_samples_pkl)
+
+   signal_files_pkl = open('signal_files.pkl', 'r')
+   signal_files     = pickle.load(signal_files_pkl)
+
+   num_files =0
    for year in years:
       if year == "2015":
          samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC",
-      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC",
-   "Suu8_chi3",
-   "Suu8_chi2",
-   "Suu8_chi1",
-   "Suu7_chi3",
-   "Suu7_chi2",
-   "Suu7_chi1",
-   "Suu6_chi2",
-   "Suu6_chi1p5",
-   "Suu6_chi1",
-   "Suu5_chi2",
-   "Suu5_chi1p5",
-   "Suu5_chi1",
-   "Suu4_chi1p5",
-   "Suu4_chi1" ]
+      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"]
       elif year == "2016":
          samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
-      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC",
-   "Suu8_chi3",
-   "Suu8_chi2",
-   "Suu8_chi1",
-   "Suu7_chi3",
-   "Suu7_chi2",
-   "Suu7_chi1",
-   "Suu6_chi2",
-   "Suu6_chi1p5",
-   "Suu6_chi1",
-   "Suu5_chi2",
-   "Suu5_chi1p5",
-   "Suu5_chi1",
-   "Suu4_chi1p5",
-   "Suu4_chi1" ]
+      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"]
       elif year == "2017":
          samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
-      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC",
-   "Suu8_chi3",
-   "Suu8_chi2",
-   "Suu8_chi1",
-   "Suu7_chi3",
-   "Suu7_chi2",
-   "Suu7_chi1",
-   "Suu6_chi2",
-   "Suu6_chi1p5",
-   "Suu6_chi1",
-   "Suu5_chi2",
-   "Suu5_chi1p5",
-   "Suu5_chi1",
-   "Suu4_chi1p5",
-   "Suu4_chi1" ]
+      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC" ]
       elif year == "2018":
          samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
-   "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC",
-   "Suu8_chi3",
-   "Suu8_chi2",
-   "Suu8_chi1",
-   "Suu7_chi3",
-   "Suu7_chi2",
-   "Suu7_chi1",
-   "Suu6_chi2",
-   "Suu6_chi1p5",
-   "Suu6_chi1",
-   "Suu5_chi2",
-   "Suu5_chi1p5",
-   "Suu5_chi1",
-   "Suu4_chi1p5",
-   "Suu4_chi1" ]
-
+   "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC" ]
+      samples.extend(signal_samples)
       for iii, sample in enumerate(samples):
          for systematic in systematics:
             if "Suu" in sample:
-               continue
-            makeACfg(sample, year, systematic, datafiles[year][sample], jec_file_AK4[year][sample],jec_file_AK8[year][sample])   # change input to write systematic type
+               try:
+
+                  JEC_sample = sample
+                  if "Suu" in sample:
+                     JEC_sample = "signal"
+                  makeACfg(sample, year, systematic, signal_files[year][sample], jec_file_AK4[year][JEC_sample],jec_file_AK8[year][JEC_sample], systematics)   # change input to write systematic type
+                  num_files+=1
+               except:
+                  
+                  print("Failed on sample/year/systematic: %s/%s/%s"%(sample,year,systematic))
+            else:
+               makeACfg(sample, year, systematic, datafiles[year][sample], jec_file_AK4[year][sample],jec_file_AK8[year][sample], systematics)   # change input to write systematic type
+               num_files+=1 
+   print("Finished with %i files."%num_files )
    return
 
 

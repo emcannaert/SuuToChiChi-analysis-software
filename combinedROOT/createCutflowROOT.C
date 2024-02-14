@@ -50,7 +50,7 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
       std::vector<std::string> systematic_suffices;
 
       if(systematic == "nom") systematic_suffices = {""};
-
+      else if(systematic == "") systematic_suffices = {""};
       else { systematic_suffices = {"up", "down"};}
 
 
@@ -102,6 +102,11 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             tree_string = "nom";
             new_tree_string = "nom";
          } 
+         else if (systematic == "")
+         {
+            tree_string = "";
+            new_tree_string = "";
+         }
          else
          { 
             tree_string = ( systematic+ "_" + *systematic_suffix   ).c_str();
@@ -380,8 +385,8 @@ void createCutflowROOT()
    // you must change these ........
    bool runData   = false;
    bool runSignal = false;
-   bool runBR     = false;
-   bool runAll = true;
+   bool runBR     = true;
+   bool runAll = false;
    std::vector<std::string> years = {"2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
    std::vector<std::string> systematics = {"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
@@ -462,7 +467,7 @@ void createCutflowROOT()
             } 
             else
             { 
-               inFileName= (*dataBlock+year + "_combined.root").c_str();
+               inFileName= (eos_path + *dataBlock + year + "_"+ systematic_str +"_combined.root").c_str();
                use_systematics = {*systematic};
                outFileName= (*dataBlock+year +  "_"+ systematic_str+ "_CUTFLOW.root").c_str();
             }
@@ -473,8 +478,17 @@ void createCutflowROOT()
             }
             catch(...)
             {
-               std::cout << "ERROR: Failed with sample: "<< *dataBlock<< "/" << year << "/" << systematic_str<< std::endl; 
-               return;
+               try
+               {
+                  use_systematics = {""};
+                  doThings(inFileName,outFileName,eventScaleFactor,year, use_systematics,*dataBlock);
+               }
+               catch(...)
+               {
+                  std::cout << "ERROR: Failed with sample: "<< *dataBlock<< "/" << year << "/" << systematic_str<< std::endl; 
+                  return;
+               }
+               
 
             }
 

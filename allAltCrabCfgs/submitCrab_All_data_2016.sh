@@ -1,3 +1,2 @@
 source submitCrab_data_2016_JEC.sh
-source submitCrab_data_2016_JER.sh
 source submitCrab_data_2016_nom.sh

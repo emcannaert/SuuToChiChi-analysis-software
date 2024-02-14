@@ -16,10 +16,12 @@
 <use name="PhysicsTools/TensorFlow"/>
 <use name="ROOT"/>
 <use name="AnalysisDataFormats/TopObjects"/>
+<use name="ElectroWeakAnalysis/Utilities"/>
 <use name="clhep"/>
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="correctionlib"/>
 <use name="fastjet"/>
+<use name="pythia8"/>
 <Flags LDFLAGS="`correction config --cflags --ldflags --rpath`"/>
 <flags EDM_PLUGIN="1"/>
 
