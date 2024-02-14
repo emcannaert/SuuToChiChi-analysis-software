@@ -12,5 +12,5 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.JobType.maxMemoryMB = 2500 # might be necessary for some of the QCD jobs
 config.Data.outputDatasetTag = 'clustAlg_QCDMC1500to2000_2018_'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024129_131131'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_202426_233436'
 config.Site.storageSite = 'T3_US_FNALLPC'

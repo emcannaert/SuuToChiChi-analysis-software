@@ -114,8 +114,9 @@ private:
    edm::EDGetTokenT<std::vector<pat::Muon>> muonToken_;
    edm::EDGetTokenT<std::vector<pat::Electron>> electronToken_;
    edm::EDGetTokenT<std::vector<pat::Tau>> tauToken_;
-
    edm::EDGetTokenT<double> m_rho_token;
+
+   bool doPUID;
 
    TTree * tree;
 
@@ -140,8 +141,9 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
    runType        = iConfig.getParameter<std::string>("runType");
    year           = iConfig.getParameter<std::string>("year");
 
+   doPUID = iConfig.getParameter<bool>("doPUID");
    edm::InputTag fixedGridRhoAllTag_ = edm::InputTag("fixedGridRhoAll", "", "RECO");   
-   fatJetToken_ =    consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
+   fatJetToken_ = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
    jetToken_    = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetCollection"));
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
    edm::Service<TFileService> fs;      
@@ -199,7 +201,7 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
    if(year == "2018")
    {
       //deepJet_wp_loose = 0.0490;
-      //deepJet_wp_med   = 0.2783;
+      //deepJet_wp_med   = 0.2783;    
       deepjet_wp_tight = 0.7100;
    }
    else if(year == "2017")
@@ -316,6 +318,12 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
       LorentzVector corrJetP4(AK4_sf_total*iJet->px(),AK4_sf_total*iJet->py(),AK4_sf_total*iJet->pz(),AK4_sf_total*iJet->energy());
       corrJet.setP4(corrJetP4);
 
+      bool PUID = true;
+      if(doPUID)
+      {
+         PUID = bool(corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1));
+      }
+      if( (corrJet.pt()  < 50.) && (!PUID)) continue; //if particle 
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
 
 

@@ -28,14 +28,14 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
    TFile outFile(_outFilename,"RECREATE");
    
-   std::vector<std::string> systematic_suffices;
+   std::vector<std::string> systematic_suffices = {""};
 
 
    for(auto systematic_ = systematics.begin();systematic_ < systematics.end();systematic_++)
    {
       std::string systematic = *systematic_; 
       if(systematic == "nom") systematic_suffices = {""};
-
+      else if(systematic == "") systematic_suffices = {""};
       else { systematic_suffices = {"up", "down"};}
 
 
@@ -59,6 +59,11 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             tree_string = "nom";
             new_tree_string = "nom";
          } 
+         else if( systematic == "") 
+         {
+            tree_string = "";
+            new_tree_string = "";
+         }
          else
          { 
             tree_string = ( systematic+ "_" + *systematic_suffix   ).c_str();
@@ -286,8 +291,8 @@ void readTreeApplySelection()
    // you must change these ........
    bool runAll = false;
    bool runData = false;
-   bool runSignal = true;
-   std::vector<std::string> years = {"2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
+   bool runSignal = false;
+   std::vector<std::string> years = {"2017","2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
    std::vector<std::string> systematics = {"nom", "JEC", "JER"};//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
    //need to have the event scale factors calculated for each year and dataset
@@ -383,7 +388,7 @@ void readTreeApplySelection()
 
             }
             else
-            {
+            {  
                use_systematics = {*systematic};
                inFileName  = (eos_path + *dataBlock + year +  "_" + systematic_str + "_combined.root").c_str();
                outFileName= (*dataBlock + year + "_"+ systematic_str + "_SKIMMED.root").c_str();
@@ -399,8 +404,20 @@ void readTreeApplySelection()
             }
             catch(...)
             {
-               std::cout << "-------- ERROR: Failed sample/year/systematic: " << year <<"/" << *dataBlock << "/" << systematic_str <<" --------" << std::endl;
-               continue;
+               std::cout << "sample/year/systematic: " << year <<"/" << *dataBlock << "/" << systematic_str << " failed. Trying again with nom == ''" << std::endl;
+               try
+               {
+                  use_systematics = {""};
+                  doThings(inFileName,outFileName,eventScaleFactor,year, use_systematics,*dataBlock);
+               }
+
+               catch(...)
+               {
+                  std::cout << "-------- ERROR: Failed sample/year/systematic: " << year <<"/" << *dataBlock << "/" << systematic_str <<" --------" << std::endl;
+
+                  continue;
+               }
+               
             }
 
             std::cout << "Finished with "<< inFileName << std::endl;
