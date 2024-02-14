@@ -6,9 +6,10 @@ allaltCrabCfgs/crab_clusteringAnalyzer*.py
 allAltCrabCfgs/crab_projects/
 allCrabCfgs/
 allCfgs/
-btagging/
+btagging/cfgs
 crab_projects/
 jsonpog-integration/
 lumimasks/
 *.log
 *.pyc
+*.txt
