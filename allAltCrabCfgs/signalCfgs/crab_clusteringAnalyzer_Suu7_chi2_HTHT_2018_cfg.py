@@ -1,6 +1,6 @@
 from CRABClient.UserUtilities import config
 config = config()
-config.General.requestName = 'clustAlg_Suu7_chi2_HTHT_2018__AltDatasets_000'
+config.General.requestName = 'clustAlg_Suu7_chi2_HTHT_2018_nom_AltDatasets_000'
 config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.JobType.allowUndistributedCMSSW = True
@@ -10,6 +10,6 @@ config.Data.inputDataset = '/SuuToChiChiToHTHTToJets_MSuu-7000_MChi-2000_TuneCP5
 config.Data.publication = False
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
-config.Data.outputDatasetTag = 'clustAlg_Suu7_chi2_HTHT_2018_'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_202426_233436'
+config.Data.outputDatasetTag = 'clustAlg_Suu7_chi2_HTHT_2018_nom'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024219_25455'
 config.Site.storageSite = 'T3_US_FNALLPC'

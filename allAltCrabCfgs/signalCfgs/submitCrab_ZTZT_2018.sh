@@ -1,6 +1,7 @@
 crab submit -c crab_clusteringAnalyzer_Suu4_chi1_ZTZT_2018_cfg.py
 crab submit -c crab_clusteringAnalyzer_Suu4_chi1p5_ZTZT_2018_cfg.py
 crab submit -c crab_clusteringAnalyzer_Suu5_chi1_ZTZT_2018_cfg.py
+crab submit -c crab_clusteringAnalyzer_Suu5_chi2_ZTZT_2018_cfg.py
 crab submit -c crab_clusteringAnalyzer_Suu6_chi1_ZTZT_2018_cfg.py
 crab submit -c crab_clusteringAnalyzer_Suu6_chi1p5_ZTZT_2018_cfg.py
 crab submit -c crab_clusteringAnalyzer_Suu6_chi2p5_ZTZT_2018_cfg.py

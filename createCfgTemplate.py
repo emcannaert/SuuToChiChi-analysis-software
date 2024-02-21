@@ -34,6 +34,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       newCfg = open("%s/clusteringAnalyzer_%s_%s_cfg.py"%(output_dir,sample,year),"w")
    elif systematic_[0] == "":
       newCfg = open("%s/clusteringAnalyzer_%s_%s_%scfg.py"%(output_dir,sample,year, systematic_[0]),"w")
+   elif systematic_[0] == "nom":
+      newCfg = open("%s/clusteringAnalyzer_%s_%s_cfg.py"%(output_dir,sample,year),"w")
    else:
       newCfg = open("%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic_[0]),"w")
    
@@ -228,7 +230,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          elif year == "2018":
             newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2018_UL/puWeights.json'),\n")
 
-         ""
+         
          #should this be for data and MC?
          if "MC" in sample or "Suu" in sample:
             """

@@ -148,13 +148,13 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
    edm::Service<TFileService> fs;      
 
-   h_nLightJets = fs->make<TH2F>("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
-   h_nTruebJets = fs->make<TH2F>("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
-   h_nTruecJets = fs->make<TH2F>("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   h_nLightJets = fs->make<TH2F>("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
+   h_nTruebJets = fs->make<TH2F>("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
+   h_nTruecJets = fs->make<TH2F>("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
 
-   h_nLightJets_btagged = fs->make<TH2F>("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
-   h_nTruebJets_btagged = fs->make<TH2F>("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
-   h_nTruecJets_btagged = fs->make<TH2F>("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   h_nLightJets_btagged = fs->make<TH2F>("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
+   h_nTruebJets_btagged = fs->make<TH2F>("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
+   h_nTruecJets_btagged = fs->make<TH2F>("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
 }
 
 

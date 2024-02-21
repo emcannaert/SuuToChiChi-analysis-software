@@ -21,6 +21,32 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    double AK8_phi[100], AK8_eta[100], AK8_pt[100], AK8_mass[100];
    double AK4_phi[100], AK4_eta[100], AK4_pt[100], AK4_mass[100];
 
+   std::map<std::string, std::map<std::string, double> > scale_factors = 
+   {
+      {"QCDMC1000to1500_",     { {"2015", 1.578683216},{"2016",1.482632755},{"2017",3.126481451},{"2018",4.407417122} }  },
+      {"QCDMC1500to2000_",     { {"2015", 0.2119142341},{"2016",0.195224041} ,{"2017", 0.3197450474},{"2018",0.5425809983} } },
+      {"QCDMC2000toInf_",      { {"2015",0.08568186031},{"2016",0.07572795371},{"2017",0.14306915},{"2018",0.2277769275} } },
+      {"TTToHadronicMC_",      { {"2015",0.075592},{"2016",0.05808655696},{"2017",0.06651018525},{"2018",0.06588049107}  } },
+      {"TTToSemiLeptonicMC_",  { {"2015",0.05395328118},{"2016",0.05808655696},{"2017",0.04264829286},{"2018",0.04563489275}  } },
+      {"TTToLeptonicMC_",      { {"2015",0.0459517611},{"2016",0.03401684391},{"2017",0.03431532926},{"2018",0.03617828025}  } },
+
+      {"ST_t-channel-top_inclMC_",    { {"2015",0.0409963154}, {"2016",0.03607115071},{"2017",0.03494669125},{"2018",0.03859114659}  } } ,
+      {"ST_t-channel-antitop_inclMC_", { {"2015",0.05673857623},{"2016",0.04102705994},{"2017",0.04238814865},{"2018",0.03606630944}  } },
+      {"ST_s-channel-hadronsMC_",     { {"2015",0.04668187234},{"2016",0.03564988679},{"2017",0.03985938616},{"2018",0.04102795437}  } },
+      {"ST_s-channel-leptonsMC_",     { {"2015",0.01323030083},{"2016",0.01149139097},{"2017",0.01117527734},{"2018",0.01155448784}  } },
+      {"ST_tW-antiTop_inclMC_",       { {"2015",0.2967888696}, {"2016",0.2301666797},{"2017",0.2556495594},{"2018",0.2700032391}  } },
+      {"ST_tW-top_inclMC_",           { {"2015",0.2962796522}, {"2016",0.2355829386},{"2017",0.2563403788},{"2018",0.2625270613} } }
+   };
+
+   // get the MC scale factor for each sample. Don't have these for signal yet, so don't scale signal 
+   double event_SF;
+   if ( ( (dataBlock.find("Suu") != std::string::npos) ) || (dataBlock.find("data") != std::string::npos)) event_SF = 1.0;
+   else { event_SF = scale_factors[dataBlock][year];}
+
+
+
+   std::cout << "The event SF is " << event_SF <<  " for sample "<< dataBlock <<std::endl;
+
 
 
    const char *_inFilename = inFileName.c_str();
@@ -224,6 +250,7 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                average_PUSF  += PU_eventWeight_nom;
                if(eventWeight < 1e-5)std::cout << "ERROR: bad event weight." << std::endl;
             }
+            eventWeight *= event_SF; 
             //std::cout <<"Count is "<<nEvents  << ", " << bTag_eventWeight_nom << "-" << PU_eventWeight_nom<< std::endl;
             h_btagEventWeight->Fill(eventWeight);
             nEvents+=eventWeight;
@@ -234,18 +261,18 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
             for(int iii = 0; iii< nAK4; iii++)
             {
-               h_AK4_pt->Fill(AK4_pt[iii]);
-               h_AK4_eta->Fill(AK4_eta[iii]);
-               h_AK4_phi->Fill(AK4_phi[iii]);
-               h_AK4_mass->Fill(AK4_mass[iii]);
+               h_AK4_pt->Fill(AK4_pt[iii],eventWeight);
+               h_AK4_eta->Fill(AK4_eta[iii],eventWeight);
+               h_AK4_phi->Fill(AK4_phi[iii],eventWeight);
+               h_AK4_mass->Fill(AK4_mass[iii],eventWeight);
             }
 
             for(int iii = 0; iii < nfatjets; iii++)
             {
-               h_AK8_pt->Fill(AK8_pt[iii]);
-               h_AK8_eta->Fill(AK8_eta[iii]);
-               h_AK8_phi->Fill(AK8_phi[iii]);
-               h_AK8_mass->Fill(AK8_mass[iii]);
+               h_AK8_pt->Fill(AK8_pt[iii],eventWeight);
+               h_AK8_eta->Fill(AK8_eta[iii],eventWeight);
+               h_AK8_phi->Fill(AK8_phi[iii],eventWeight);
+               h_AK8_mass->Fill(AK8_mass[iii],eventWeight);
             }
 
 
@@ -382,12 +409,14 @@ void createCutflowROOT()
 
 
 
+
    // you must change these ........
    bool runData   = false;
    bool runSignal = false;
    bool runBR     = true;
    bool runAll = false;
-   std::vector<std::string> years = {"2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
+   bool runDataBR = true;
+   std::vector<std::string> years = {"2018","2017","2016","2015"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
    std::vector<std::string> systematics = {"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
    //need to have the event scale factors calculated for each year and dataset
@@ -429,6 +458,12 @@ void createCutflowROOT()
          dataBlocks.insert( dataBlocks.end(), data_samples.begin(), data_samples.end() );
 
       }
+      else if (runDataBR)
+      {
+         dataBlocks.reserve( background_samples.size() +data_samples.size() ); // preallocate memory
+         dataBlocks.insert( dataBlocks.end(), background_samples.begin(), background_samples.end() );
+         dataBlocks.insert( dataBlocks.end(), data_samples.begin(), data_samples.end() );
+      }
       else if(runData)
       {
          dataBlocks = data_samples;
@@ -462,14 +497,18 @@ void createCutflowROOT()
             {
                if(*systematic != "nom") continue; // only need to run once for signal
                inFileName  = (eos_path + *dataBlock + year + "_combined.root").c_str();
-               outFileName = (*dataBlock+year + "_CUTFLOW.root").c_str();
+               outFileName = ("cutflowFiles/"+*dataBlock+year + "_CUTFLOW.root").c_str();
                use_systematics = systematics;
             } 
+            if ((dataBlock->find("data") != std::string::npos) && (*systematic == "JER"))
+            {
+               continue; // JER is for MC only
+            }
             else
             { 
                inFileName= (eos_path + *dataBlock + year + "_"+ systematic_str +"_combined.root").c_str();
                use_systematics = {*systematic};
-               outFileName= (*dataBlock+year +  "_"+ systematic_str+ "_CUTFLOW.root").c_str();
+               outFileName= ("cutflowFiles/"+*dataBlock+year +  "_"+ systematic_str+ "_CUTFLOW.root").c_str();
             }
              
             try
@@ -486,7 +525,7 @@ void createCutflowROOT()
                catch(...)
                {
                   std::cout << "ERROR: Failed with sample: "<< *dataBlock<< "/" << year << "/" << systematic_str<< std::endl; 
-                  return;
+                  continue;
                }
                
 

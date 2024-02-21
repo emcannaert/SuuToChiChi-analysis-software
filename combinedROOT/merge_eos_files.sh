@@ -27,15 +27,15 @@ else
 	python create_eos_copy_commands.py ST_eos_paths.txt
 	source eos_copy_commands.sh
 	rm ST_*_combined_*.root
-
+	echo "Copying data files"
 	python create_eos_copy_commands.py data_eos_paths.txt
 	source eos_copy_commands.sh
 	rm data*_combined_*.root
-
-	#python create_eos_copy_commands.py signal_eos_paths.txt
-	#source eos_copy_commands.sh
+	echo "Copying signal files"
+	python create_eos_copy_commands.py signal_eos_paths.txt
+	source eos_copy_commands.sh
 	
-	#rm *Suu*_combined_*.root
+	rm *Suu*_combined_*.root
 
 	## to merge
 		# get the file paths

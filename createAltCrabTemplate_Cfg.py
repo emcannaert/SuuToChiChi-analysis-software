@@ -14,8 +14,8 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	if "Suu" in sample:
 		file_base = "signalCfgs/"
 		path_backtrack = "../"
-	if systematic == "":
-		newCfg = open("allAltCrabCfgs/%scrab_clusteringAnalyzer_%s_%s_%scfg.py"%(file_base,sample,year, systematic),"w")
+	if systematic == "nom":
+		newCfg = open("allAltCrabCfgs/%scrab_clusteringAnalyzer_%s_%s_cfg.py"%(file_base,sample,year),"w")
 	else:
 		newCfg = open("allAltCrabCfgs/%scrab_clusteringAnalyzer_%s_%s_%s_cfg.py"%(file_base,sample,year, systematic),"w")
    
@@ -26,8 +26,8 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	newCfg.write("config.General.transferOutputs = True\n")
 	newCfg.write("config.JobType.allowUndistributedCMSSW = True\n")
 	newCfg.write("config.JobType.pluginName = 'Analysis'\n")
-	if systematic == "": 
-		newCfg.write("config.JobType.psetName = '%s../allCfgs/%sclusteringAnalyzer_%s_%s_%scfg.py'\n"%(path_backtrack, file_base,sample,year, systematic))
+	if systematic == "nom": 
+		newCfg.write("config.JobType.psetName = '%s../allCfgs/%sclusteringAnalyzer_%s_%s_cfg.py'\n"%(path_backtrack, file_base,sample,year))
 	else:
 		newCfg.write("config.JobType.psetName = '%s../allCfgs/%sclusteringAnalyzer_%s_%s_%s_cfg.py'\n"%(path_backtrack, file_base,sample,year, systematic))
 
@@ -76,11 +76,9 @@ def main():
 	lastCrabSubmission.write("/store/user/ecannaer/SuuToChiChi_AltDatasets_%s\n"%dateTimeString)
 	years   = ["2015","2016","2017","2018"]
 
-	systematics = ["JEC", "JER",
+	systematics = ["JEC", "JER","nom"]  # last one here is for the fully nominal cfg file
 
 
-
-   ""]  # last one here is for the fully nominal cfg file
 	datasets = {    '2015': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
 							  'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
 							  'QCDMC2000toInf':  '/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
@@ -200,7 +198,7 @@ def main():
 				num_files_created+=1
 				if "Suu" in sample:
 					try:
-						makeAltCrabCfg(sample, year, "", datasets_signal[year][sample],dateTimeString)   # need a different dataset for signal mass points, only make a single signal cfg file to
+						makeAltCrabCfg(sample, year, "nom", datasets_signal[year][sample],dateTimeString)   # need a different dataset for signal mass points, only make a single signal cfg file to
 					except:
 						print("Failed for sample %s."%sample)
 				else:

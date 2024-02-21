@@ -3,9 +3,9 @@
 #include "TLorentzVector.h"
 
 using namespace std;
+{
 
 void doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::vector<std::string> systematics, std::string dataBlock)
-{
 
    double totHT, dijetMassOne, dijetMassTwo;
    int nfatjets, nfatjet_pre,nAK4;
@@ -17,6 +17,12 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    double average_bTagSF = 0;
    double average_PUSF   = 0;
    double total_events_unscaled = 0;
+
+   int AK4_hadronFlavour[100],AK8_partonFlavour[100];
+
+   int AK8_SJ_assignment[100],AK4_SJ_assignment[100];
+   bool AK8_is_near_highE_CA4[100],AK4_is_near_highE_CA4[100];
+   
    const char *_inFilename = inFileName.c_str();
    int total_btags =0;
    std::cout << "Reading file: " << _inFilename << std::endl;
@@ -30,6 +36,9 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    
    std::vector<std::string> systematic_suffices = {""};
 
+
+   // rate at which AK8 jets of different hadronFlavours are associated within tagged superjets
+   // rate at which AK8 jets line up with high-energy SJ reclustered CA4 jets
 
    for(auto systematic_ = systematics.begin();systematic_ < systematics.end();systematic_++)
    {
@@ -61,19 +70,31 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          } 
          else if( systematic == "") 
          {
-            tree_string = "";
-            new_tree_string = "";
+            tree_string = "nom";
+            new_tree_string = "nom";
          }
          else
          { 
             tree_string = ( systematic+ "_" + *systematic_suffix   ).c_str();
-            new_tree_string = (systematic + "_").c_str();
+            new_tree_string = (systematic + "_" + *systematic_suffix).c_str();
          }
 
 
          std::string oldTreeName = ("clusteringAnalyzerAll_" + tree_string + "/tree_"+ tree_string).c_str();
-         std::string newTreeName = ("skimmedTree_"+ new_tree_string + *systematic_suffix).c_str();
+         std::string newTreeName = ("skimmedTree_"+ new_tree_string ).c_str();
+         std::string newTreeDirectory;
 
+         if(( systematic == "nom") || (systematic == ""))
+         {
+           newTreeDirectory = "nom";
+         }
+         else
+         {
+            newTreeDirectory = systematic + "_" + *systematic_suffix; // Ex. JER + _ + up
+         }
+
+
+         
          std::cout << "looking for tree name: " << oldTreeName<< std::endl;
          std::cout << "naming new tree " << newTreeName << std::endl;
          std::cout << "getting tree " << ("clusteringAnalyzerAll_" + tree_string + "/tree_"+ tree_string).c_str() << std::endl;
@@ -81,12 +102,12 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
          outFile.cd();   // return to outer directory
          //gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
-         gDirectory->mkdir( newTreeName.c_str()  );   //create directory for this systematic
-         outFile.cd( newTreeName.c_str() );   // go inside the systematic directory 
+         gDirectory->mkdir( newTreeDirectory.c_str()  );   //create directory for this systematic
+         outFile.cd( newTreeDirectory.c_str() );   // go inside the systematic directory 
 
          auto *t2 = t1->CloneTree(0);
 
-         t2->SetName(   ("skimmedTree_"+ new_tree_string + *systematic_suffix).c_str()  );
+         t2->SetName(   newTreeName.c_str() );
 
          const Int_t nentries = t1->GetEntries();
 
@@ -116,7 +137,21 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("diSuperJet_mass", &diSuperJet_mass); 
          t1->SetBranchAddress("lab_AK4_pt", AK4_pt); 
 
+         t1->SetBranchAddress("AK8_SJ_assignment", AK8_SJ_assignment); 
+         t1->SetBranchAddress("AK4_SJ_assignment", AK4_SJ_assignment); 
+         t1->SetBranchAddress("AK8_is_near_highE_CA4", AK8_is_near_highE_CA4); 
+         t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
+
+         t1->SetBranchAddress("AK4_hadronFlavour", AK4_hadronFlavour); 
+         t1->SetBranchAddress("AK8_partonFlavour", AK8_partonFlavour); 
+
          
+      
+
+         
+
+
+
 
          double looseDeepCSV_DeepJet;
          double medDeepCSV_DeepJet;
@@ -147,17 +182,35 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             tightDeepCSV_DeepJet = 0.7100;
          }
          double eventWeight = 1.0;
+
+         int nAK4FoundNearHighECA4_light = 0, nAK4FoundNearHighECA4_c = 0, nAK4FoundNearHighECA4_b = 0;
+         int nAK8FoundNearHighECA4_light = 0, nAK8FoundNearHighECA4_c = 0, nAK8FoundNearHighECA4_b = 0;
+
+         int nAK4FoundInTaggedSJ_light = 0, nAK4FoundInTaggedSJ_c = 0, nAK4FoundInTaggedSJ_b = 0;
+         int nAK8FoundInTaggedSJ_light = 0, nAK8FoundInTaggedSJ_c = 0, nAK8FoundInTaggedSJ_b = 0;
+
+         int tot_nAK4_light = 0,  tot_nAK4_c = 0, tot_nAK4_b = 0;
+         /*
+         AK8_SJ_assignment
+         AK4_SJ_assignment
+         AK8_is_near_highE_CA4
+         AK4_is_near_highE_CA4
+         AK4_hadronFlavour
+         AK8_partonFlavour
+
+         */
+
          for (Int_t i=0;i<nentries;i++) 
          {  
 
             t1->GetEntry(i);
 
             //// Keep only 10% of signal MC 
-            int keep_var = (int)(1e8*AK4_DeepJet_disc[0]);         
+            /*int keep_var = (int)(1e8*AK4_DeepJet_disc[0]);         
             if ((dataBlock.find("Suu") != std::string::npos))
             {
                if( (keep_var % 10 !=1))continue;
-            }
+            }*/
             eventWeight = 1.0;
             total_events_unscaled+=1;
             if ((dataBlock.find("MC") != std::string::npos) || (dataBlock.find("Suu") != std::string::npos))
@@ -187,6 +240,8 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))continue;
             nHeavyAK8Cut+=eventWeight;
 
+
+
             int nTightBTags = 0;
             for(int iii = 0;iii< nAK4; iii++)
             {
@@ -195,6 +250,37 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                   total_btags++;
                   nTightBTags++;
                } 
+               if(AK4_hadronFlavour[iii] == 0)
+               {
+                  tot_nAK4_light++;
+                  if(AK4_is_near_highE_CA4[iii])nAK4FoundNearHighECA4_light++;
+               }
+               else if(AK4_hadronFlavour[iii] == 4)
+               {
+                  tot_nAK4_c++;
+                  if(AK4_is_near_highE_CA4[iii])nAK4FoundNearHighECA4_c++;
+               }
+               else if(AK4_hadronFlavour[iii] == 5)
+               {
+                  tot_nAK4_b++;
+                  if(AK4_is_near_highE_CA4[iii])nAK4FoundNearHighECA4_b++;
+               }
+
+               if((SJ_nAK4_300[0] > 1) &&(AK4_SJ_assignment[iii] == 0))
+               {
+                  if(AK4_hadronFlavour[iii] == 0)nAK4FoundInTaggedSJ_light++;
+                  else if(AK4_hadronFlavour[iii] == 4)nAK4FoundInTaggedSJ_c++;
+                  else if(AK4_hadronFlavour[iii] == 5)nAK4FoundInTaggedSJ_b++;
+                  
+                     
+               }
+               if((SJ_nAK4_300[1] > 1) && (AK4_SJ_assignment[iii] == 1))
+               {
+                  if(AK4_hadronFlavour[iii] == 0)nAK4FoundInTaggedSJ_light++;
+                  else if(AK4_hadronFlavour[iii] == 4)nAK4FoundInTaggedSJ_c++;
+                  else if(AK4_hadronFlavour[iii] == 5)nAK4FoundInTaggedSJ_b++;
+               }
+
             }
             if ( (nTightBTags > 0)  )
             {
@@ -204,6 +290,11 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                if((SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
                {
                   //signal region
+
+
+
+
+
                   nSJEnergyCut+=eventWeight;
                   if((SJ_mass_100[0]>=400.) && (SJ_mass_100[1]>400.)   )
                   {
@@ -258,6 +349,11 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          std::cout << "There were a total of " << total_btags << " tight b-tagged jets in this sample." << std::endl; 
          std::cout << "The average bTagSF was " << average_bTagSF/total_events_unscaled << ", the average PUSF was " << average_PUSF/total_events_unscaled << std::endl; 
          std::cout << "WARNING: The btag SF is set to 1. Change this when not testing "  << std::endl;
+
+         std::cout << "------------- b tagging flavour stuff ------------"
+         std::cout << "rate at which light/c/b AK4 jets are found near high-energy reclustered CA4 jets: " << (1.0*nAK4FoundNearHighECA4_light)/tot_nAK4_light<< "/" << (1.0*nAK4FoundNearHighECA4_c)/tot_nAK4_c<< "/" << (1.0*nAK4FoundNearHighECA4_b)/tot_nAK4_b<< std::endl;
+         std::cout << "rate at which light/c/b AK4 jets are inside tagged superjets: " << ( 1.0*nAK4FoundInTaggedSJ_light)/tot_nAK4_light << "/" << ( 1.0*nAK4FoundInTaggedSJ_c)/tot_nAK4_c << "/" << (1.0*nAK4FoundInTaggedSJ_b)/tot_nAK4_b<< std::endl;
+
       }
 
    }
@@ -292,7 +388,8 @@ void readTreeApplySelection()
    bool runAll = false;
    bool runData = false;
    bool runSignal = false;
-   std::vector<std::string> years = {"2017","2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
+   bool runDataBR = true;
+   std::vector<std::string> years = {"2015","2016","2017","2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
    std::vector<std::string> systematics = {"nom", "JEC", "JER"};//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
    //need to have the event scale factors calculated for each year and dataset
@@ -302,7 +399,6 @@ void readTreeApplySelection()
       std::vector<std::string> dataBlocks_non_sig; 
       std::vector<std::string> dataBlocks; 
       std::string skimmedFilePaths;
-
       if (runAll)
       {
          if(*datayear == "2015")
@@ -357,20 +453,41 @@ void readTreeApplySelection()
       {
          dataBlocks = signal_samples;
       }
+      else if (runDataBR)
+      {
+         std::cout << "Running data & BR MC." << std::endl;
+         if(*datayear == "2015")
+         {
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
+         }
+         else if(*datayear == "2016")
+         {
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         }
+         else if(*datayear == "2017")
+         {
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         }
+         else if(*datayear == "2018")
+         {
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         }   
+         else{std::cout << "ERROR: incorrect year. "; return;} 
+      }
       else
       {  
-        //dataBlocks = {"TTToSemiLeptonic_"}; 
         dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
       }
-
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
       {
-
          std::vector<std::string> use_systematics;
          for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
          {
-
             std::string year           = *datayear;
             std::string systematic_str = *systematic;
             std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
@@ -381,6 +498,7 @@ void readTreeApplySelection()
             std::string outFileName;
             if (dataBlock->find("Suu") != std::string::npos)  // all signal systematics are in a single file
             {
+               std::cout << "Running as signal." << std::endl;
                if(*systematic != "nom") continue; // only need to run once for signal
                use_systematics = systematics;
                inFileName  = (eos_path + *dataBlock + year + "_combined.root").c_str();
@@ -389,9 +507,10 @@ void readTreeApplySelection()
             }
             else
             {  
+               std::string output_dir = "test/";
                use_systematics = {*systematic};
                inFileName  = (eos_path + *dataBlock + year +  "_" + systematic_str + "_combined.root").c_str();
-               outFileName= (*dataBlock + year + "_"+ systematic_str + "_SKIMMED.root").c_str();
+               outFileName= (output_dir+ *dataBlock + year + "_"+ systematic_str + "_SKIMMED.root").c_str();
             }
 
             if ((dataBlock->find("data") != std::string::npos) && (systematic_str == "JER")) continue;

@@ -1,6 +1,6 @@
 from CRABClient.UserUtilities import config
 config = config()
-config.General.requestName = 'clustAlg_TTToLeptonicMC_2018__AltDatasets_000'
+config.General.requestName = 'clustAlg_TTToLeptonicMC_2018_nom_AltDatasets_000'
 config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.JobType.allowUndistributedCMSSW = True
@@ -10,6 +10,6 @@ config.Data.inputDataset = '/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer2
 config.Data.publication = False
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 10
-config.Data.outputDatasetTag = 'clustAlg_TTToLeptonicMC_2018_'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_202426_233436'
+config.Data.outputDatasetTag = 'clustAlg_TTToLeptonicMC_2018_nom'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024219_25455'
 config.Site.storageSite = 'T3_US_FNALLPC'
