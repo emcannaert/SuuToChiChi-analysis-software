@@ -24,8 +24,8 @@ if __name__=="__main__":
 					 "dataB-ver2":{'JEC':0,'JER':0,'nom':0 } ,
 					 "dataC-HIPM":{ 'JEC':0,'JER':0,'nom':0 } ,
 					 "dataD-HIPM":{'JEC':0,'JER':0,'nom':0 } ,
-					 "dataF-HIPM":{'JEC':0,'JER':0,'nom':0 }  }, 
-					 "dataE-HIPM":{ 'JEC':0,'JER':0,'nom':0  } , 
+					 "dataF-HIPM":{'JEC':0,'JER':0,'nom':0 } , 
+					 "dataE-HIPM":{ 'JEC':0,'JER':0,'nom':0  }} , 
 					 "2016": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1500to2000":{ 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC':0,'JER':0,'nom':0  },
@@ -179,10 +179,10 @@ if __name__=="__main__":
 		sys_str = ""
 		sample_str = ""
 		for sample in samples:
-			if sample in line:
+			if sample in line and sample_str == "":
 				sample_str = sample
 		for sample in signal_samples:
-			if sample in line:
+			if sample in line  and sample_str == "":
 				sample_str = sample
 		
 		if "JEC" in line:
@@ -194,19 +194,20 @@ if __name__=="__main__":
 		else:   #nominal systematic calculations
 			sys_str = "nom"
 		for year in years:
-			if year in line:
+			if "_%s_"%year in line:
 				year_str = year		
 		if sample_str == "" or year_str == "":
 			print("Can't figure out what type of file this is (QCD,TTbar,etc.) or what the year is: ")
 			print(line.strip())
 			continue
-
+		#print("num/year/sys/sample = %s/%s/%s/%s"%(num_str,year_str,sys_str,sample_str))
 		if "Suu" in sample_str:
 			num_str = "%s"%(signal_nCommands[year_str][sample_str][sys_str])
 			#print("num/year/sys/sample = %s/%s/%s/%s"%(num_str,year_str,sys_str,sample_str))
 			signal_files_made[year_str][sample_str][sys_str].append("%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
 			signal_nCommands[year_str][sample_str][sys_str]+=1
 		else:
+
 			num_str = "%s"%(nCommands[year_str][sample_str][sys_str])
 			all_files_made[year_str][sample_str][sys_str].append("%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
 			nCommands[year_str][sample_str][sys_str]+=1

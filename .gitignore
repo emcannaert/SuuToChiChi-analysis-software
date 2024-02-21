@@ -13,3 +13,7 @@ lumimasks/
 *.log
 *.pyc
 *.txt
+*.json
+*.tar
+*.tar.gz
+*.gz

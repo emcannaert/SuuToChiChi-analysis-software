@@ -62,10 +62,9 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       systematic_suffices = {"up","down"};
    }
 
-   std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
 
 
-   const char *_inFilename = (eos_path+inFileName).c_str();
+   const char *_inFilename = inFileName.c_str();
    const char *_outFilename = outFileName.c_str();
 
    std::cout << "Reading file: " << _inFilename << std::endl;
@@ -88,10 +87,12 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
       std::string tree_name;
       std::string folder_name;
+      std::string systematic_use = systematic;
       if(( systematic == "nom") || (systematic == "bTagSF")|| (systematic == "PUSF"))
       {
          tree_name = "nom";
          folder_name = "nom_";
+         systematic_use = "";
       }
       else
       {
@@ -99,10 +100,32 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
          folder_name = tree_name;
       }
 
-      std::cout << "Looking for tree " << (folder_name+ "/skimmedTree_"+ tree_name ).c_str() << std::endl;
+      std::cout << "Looking for tree " << ( tree_name  + "/skimmedTree_"+ tree_name ).c_str() << std::endl;
+      TTree *t1;
+      Int_t nentries;
+      try
+      {
+         t1 = (TTree*)f->Get(   ( tree_name  + "/skimmedTree_"+ tree_name ).c_str()    );
+         nentries = t1->GetEntries();
+      }
+      
+      catch(...)
+      {
+         std::string alternate_tree_name = ("skimmedTree_" + systematic_use +  "/skimmedTree_" + systematic_use).c_str();
+         std::cout << "Normal tree naming scheme not found. Trying alternate scheme: " << alternate_tree_name <<std::endl;
+         try
+         {
+             t1 = (TTree*)f->Get(  ( alternate_tree_name).c_str()    );
+             nentries = t1->GetEntries();
+         }
+         catch(...)
+         {
 
-      TTree *t1 = (TTree*)f->Get(   (folder_name+ "/skimmedTree_"+ tree_name ).c_str()    );
-      const Int_t nentries = t1->GetEntries();
+            std::cout << "Still failed. Skipping sample. "<<inFileName <<std::endl;
+            return;
+         }
+      }
+      std::cout << "Successfully got tree." << std::endl;
       
       TH1F* h_totHT  = new TH1F("h_totHT","Total Event HT;H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
       TH1F* h_disuperjet_mass  = new TH1F("h_disuperjet_mass","diSuperJet Mass;Mass [GeV]; Events / 200 GeV",50,0.,10000);
@@ -615,30 +638,50 @@ void readTree()
    bool includeTTBar = true;
    bool allHTBins    = true;
    bool runData      = false;
-   bool runSignal = true;
-   bool runAll = false;
+   bool runSignal = false;
+   bool runAll = true;
    bool runBR = false;
+
+   //std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/skimmedFiles/";
+
    //std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
    //std::vector<std::string> systematics = {"nom","JEC","JER", "bTagSF", "PUSF"};  
-   std::vector<std::string> dataYears = {"2018"};
+   std::vector<std::string> dataYears = {"2018","2017","2016","2015"};
    std::vector<std::string> systematics = {"bTagSF","nom", "PUSF", "JEC", "JER"};  //TESTING
    // delete root files in the /Users/ethan/Documents/rootFiles/processedRootFiles folder
-   std::cout << "Deleting old ROOT files in /Users/ethan/Documents/rootFiles/processedRootFiles ." << std::endl;
-   int delete_result = system("rm /Users/ethan/Documents/rootFiles/processedRootFiles/*.root");
 
-   if (delete_result == 0) 
+
+   std::vector<std::string> signalFilePaths;
+   std::vector<std::string> decays = {"WBWB","HTHT","ZTZT","WBHT","WBZT","HTZT"};
+   std::vector<std::string> mass_points = {"Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5", "Suu6_chi2",
+   "Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"};
+
+   for(auto decay = decays.begin(); decay!= decays.end();decay++)
    {
-      std::cout << "Deleted old ROOT files." << std::endl;
+      for(auto mass_point = mass_points.begin();mass_point!= mass_points.end();mass_point++)
+      {
+         signalFilePaths.push_back((*mass_point+ "_"+ *decay + "_").c_str());
+      }
    }
-   else 
-   {
-      std::cerr << "Error deleting old ROOT files ...." << std::endl;
-      return;
-   }
+ 
    for(auto dataYear = dataYears.begin(); dataYear < dataYears.end();dataYear++ )
    {
 
       std::cout << "----------- Looking at year " << *dataYear << " ------------" << std::endl;
+
+      std::cout << ("Deleting old " + *dataYear + " ROOT files in /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/processedFiles/ .").c_str() << std::endl;
+      int delete_result = system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/processedFiles/*" + *dataYear+ "*.root").c_str() ) ;
+
+      if (delete_result == 0) 
+      {
+         std::cout << "Deleted old ROOT files." << std::endl;
+      }
+      else 
+      {
+         std::cout << "Error deleting old ROOT files ...." << std::endl;
+         std::cout << "There might have been no root files present there." << std::endl;
+      }
+
 
       std::vector<std::string> dataBlocks; 
       std::string skimmedFilePaths;
@@ -647,23 +690,24 @@ void readTree()
          if(*dataYear == "2015")
          {
             dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_","Suu4_chi1p5_WBWB_"}; // dataB-ver1 not present
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
          }
          else if(*dataYear == "2016")
          {
             dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_","Suu4_chi1p5_WBWB_"};
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*dataYear == "2017")
          {
             dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_","Suu4_chi1p5_WBWB_"};
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_",};
          }
          else if(*dataYear == "2018")
          {
             dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_","Suu7_chi2_ZTZT_"};
-         }    
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         }   
+         dataBlocks.insert(dataBlocks.end(), signalFilePaths.begin(), signalFilePaths.end());
       }
       else if(runData)
       {
@@ -687,7 +731,7 @@ void readTree()
       }
       else if (runSignal)
       {
-         dataBlocks = {"Suu7_chi2_ZTZT_"};
+         dataBlocks = signalFilePaths;
       }
       else if(runBR)
       {  
@@ -737,14 +781,21 @@ void readTree()
                systematic_str = *systematic;
             }
             
-            std::string inFileName = (*dataBlock+  year +  "_"+ systematic_str+ "_SKIMMED.root").c_str();
-            if (inFileName.find("Suu") != std::string::npos) inFileName = (*dataBlock+  year + "_SKIMMED.root").c_str();
+            std::string inFileName = ("skimmedFiles/"+ *dataBlock+  year +  "_"+ systematic_str+ "_SKIMMED.root").c_str();
+            if (inFileName.find("Suu") != std::string::npos) inFileName = ("skimmedFiles/"+*dataBlock+  year + "_SKIMMED.root").c_str();
             //std::string outFileName = ("/Users/ethan/Documents/rootFiles/processedRootFiles/"+ *dataBlock+year +  "_"+ *systematic+ "_processed.root").c_str();
             std::string outFileName = ("processedFiles/"+ *dataBlock+year + "_processed.root").c_str();
             std::cout << "Reading File " << inFileName << " for year,sample,systematic" << year << "/" <<*dataBlock << "/" << *systematic<< std::endl;
-            doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag,nDoubleTaggedCRNN, eventScaleFactor,nZeroBtagAntiTag, nOneBtagAntiTag, *dataYear,*systematic );
-            
-
+            //try
+            //{
+               doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag,nDoubleTaggedCRNN, eventScaleFactor,nZeroBtagAntiTag, nOneBtagAntiTag, *dataYear,*systematic );
+            //}
+            /*
+            catch(...)
+            {
+               std::cout << "ERROR: Failed for year/sample/systematic" << year<< "/" << *dataBlock << "/" << *systematic << std::endl;
+               continue;
+            }*/
             if(_verbose)
             {
                std::cout << "----------------------------------- Starting " << *dataBlock << "-----------------------------------"<< std::endl;

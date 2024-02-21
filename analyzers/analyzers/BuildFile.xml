@@ -22,6 +22,12 @@
 <use name="correctionlib"/>
 <use name="fastjet"/>
 <use name="pythia8"/>
+<use name="PhysicsTools/Heppy"/>
+<use name="lhapdf"/>
+<use name="rootmath"/>
+<use name="TreeMaker/Reflex"/>
+<use   name="RecoParticleFlow/PFProducer"/>
+<use name="SimDataFormats/GeneratorProducts"/>
 <Flags LDFLAGS="`correction config --cflags --ldflags --rpath`"/>
 <flags EDM_PLUGIN="1"/>
 

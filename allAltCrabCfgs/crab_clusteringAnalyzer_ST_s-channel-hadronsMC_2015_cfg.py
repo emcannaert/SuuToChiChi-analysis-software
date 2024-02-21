@@ -1,6 +1,6 @@
 from CRABClient.UserUtilities import config
 config = config()
-config.General.requestName = 'clustAlg_ST_s-channel-hadronsMC_2015__AltDatasets_000'
+config.General.requestName = 'clustAlg_ST_s-channel-hadronsMC_2015_nom_AltDatasets_000'
 config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.JobType.allowUndistributedCMSSW = True
@@ -10,6 +10,6 @@ config.Data.inputDataset = '/ST_s-channel_4f_hadronicDecays_TuneCP5_13TeV-amcatn
 config.Data.publication = False
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 10
-config.Data.outputDatasetTag = 'clustAlg_ST_s-channel-hadronsMC_2015_'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_202426_233436'
+config.Data.outputDatasetTag = 'clustAlg_ST_s-channel-hadronsMC_2015_nom'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024219_25455'
 config.Site.storageSite = 'T3_US_FNALLPC'
