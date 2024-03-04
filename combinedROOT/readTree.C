@@ -6,7 +6,7 @@
 
 
 using namespace std;
-void doThings(std::string inFileName, std::string outFileName, double& nEvents, double& nHTcut, double& nAK8JetCut,double& nHeavyAK8Cut, double& nBtagCut, double& nDoubleTagged,double& nNoBjets, double& nDoubleTaggedCR, double& NNDoubleTag, double& nDoubleTaggedCRNN,double eventScaleFactor, double& nZeroBtagAntiTag, double & nOneBtagAntiTag, std::string dataYear,std::string systematic)
+bool doThings(std::string inFileName, std::string outFileName, double& nEvents, double& nHTcut, double& nAK8JetCut,double& nHeavyAK8Cut, double& nBtagCut, double& nDoubleTagged,double& nNoBjets, double& nDoubleTaggedCR, double& NNDoubleTag, double& nDoubleTaggedCRNN,double eventScaleFactor, double& nZeroBtagAntiTag, double & nOneBtagAntiTag, std::string dataYear,std::string systematic)
 {
 
 
@@ -49,13 +49,21 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
    double fourAK8JetMass;
    double AK4_eta[100];
    double bTag_eventWeight,PU_eventWeight;
+
+   double prefiringWeight, scale_weight,renormWeight, factWeight, topPtWeight, pdf_weight;
+
    std::vector<std::string> systematic_suffices;
+
 
    if(systematic == "nom")
    {
       // want to run only once with the 
       systematic_suffices = {""};
 
+   }
+   else if( systematic == "topPt")
+   {
+       systematic_suffices = {"up"};
    }
    else
    {
@@ -73,6 +81,11 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
    TFile *f = TFile::Open(_inFilename);
 
+   if ((f == nullptr)||(f->IsZombie()) )
+   {
+      std::cout << "ERROR: File " << _inFilename << " not found - skipping !!" << std::endl;
+      return false;
+   }
    TFile outFile(_outFilename,"UPDATE");
 
    for(auto systematic_suffix = systematic_suffices.begin(); systematic_suffix < systematic_suffices.end();systematic_suffix++)
@@ -88,7 +101,7 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       std::string tree_name;
       std::string folder_name;
       std::string systematic_use = systematic;
-      if(( systematic == "nom") || (systematic == "bTagSF")|| (systematic == "PUSF"))
+      if((systematic == "nom" ) || (systematic == "bTagSF" ) || (systematic == "PUSF" ) || (systematic == "L1Prefiring") || (systematic == "pdf") || (systematic == "topPt")|| (systematic == "scale"))
       {
          tree_name = "nom";
          folder_name = "nom_";
@@ -103,13 +116,13 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       std::cout << "Looking for tree " << ( tree_name  + "/skimmedTree_"+ tree_name ).c_str() << std::endl;
       TTree *t1;
       Int_t nentries;
-      try
-      {
+      //try
+      //{
          t1 = (TTree*)f->Get(   ( tree_name  + "/skimmedTree_"+ tree_name ).c_str()    );
          nentries = t1->GetEntries();
-      }
+      //}
       
-      catch(...)
+      /*catch(...)
       {
          std::string alternate_tree_name = ("skimmedTree_" + systematic_use +  "/skimmedTree_" + systematic_use).c_str();
          std::cout << "Normal tree naming scheme not found. Trying alternate scheme: " << alternate_tree_name <<std::endl;
@@ -123,8 +136,8 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
             std::cout << "Still failed. Skipping sample. "<<inFileName <<std::endl;
             return;
-         }
-      }
+         } 
+      }*/
       std::cout << "Successfully got tree." << std::endl;
       
       TH1F* h_totHT  = new TH1F("h_totHT","Total Event HT;H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
@@ -185,11 +198,6 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       TH1F* h_GenBtagged_pT = new TH1F("h_GenBtagged_pT","p_{T} of AK4 jets tagged by genParts;p_{T}; Events/100 GeV",25,0.0,2500.0);
       TH1F* h_RECOBtagged_pT = new TH1F("h_RECOBtagged_pT","p_{T} of AK4 jets tagged post RECO;p_{T}; Events/100 GeV",25,0.0,2500.0);
 
-      TH1F* h_totHT_All  = new TH1F("h_totHT_All","Event H_{T} (All Events from EDAnalyzer);H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
-      TH1F* h_totHT_All1  = new TH1F("h_totHT_All1","Event H_{T} (All Events from EDAnalyzer 1);H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
-      TH1F* h_totHT_All2  = new TH1F("h_totHT_All2","Event H_{T} (All Events from EDAnalyzer 2 );H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
-      TH1F* h_totHT_All3  = new TH1F("h_totHT_All3","Event H_{T} (All Events from EDAnalyzer 3);H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
-
       TH1F* h_AK4_DeepJet_disc  = new TH1F("h_AK4_DeepJet_disc","AK4 DeepFlavour bdisc scores;bdisc",25,0.,1.25);
       TH1F* h_AK4_DeepJet_disc_all  = new TH1F("h_AK4_DeepJet_disc_all","AK4 DeepFlavour bdisc scores;bdisc",25,0.,1.25);
 
@@ -206,17 +214,17 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       TH1I* h_nAK4_all_endcap  = new TH1I("h_nAK4_all_endcap","Number of Lab AK4 Jets (all events in endcaps);nAK4 Jets; Events",20,-0.5,19.5);
 
      /// CR anti-tag region stuff
-      TH2F *h_MSJ_mass_vs_MdSJ_antiTagCR = new TH2F("h_MSJ_mass_vs_MdSJ_antiTagCR","Tagged Superjet 2 mass vs diSuperjet mass (Anti-tagged Control Region); diSuperjet mass [GeV];superjet mass", 22,1250., 9500, 20, 500, 3500);  /// 375 * 125
-      TH1F* h_SJ_mass_antiTagCR  = new TH1F("h_SJ_mass_antiTagCR","SuperJet Mass (Anti-tagged Control Region) ;Mass [GeV]; Events / 100 GeV",40,0.,5000);
-      TH1F* h_disuperjet_mass_antiTagCR  = new TH1F("h_disuperjet_mass_antiTagCR","diSuperJet Mass (Anti-tagged Control Region);Mass [GeV]; Events / / 400 GeV",25,0.,10000);
-      TH1I* h_nAK4_0b_antiTag  = new TH1I("h_nAK4_0b_antiTag","Number of Lab AK4 Jets (0b anti-tag region);nAK4 Jets; Events",25,-0.5,24.5);
+      TH2F *h_MSJ_mass_vs_MdSJ_AT0b = new TH2F("h_MSJ_mass_vs_MdSJ_AT0b","Tagged Superjet 2 mass vs diSuperjet mass (Anti-tagged Control Region); diSuperjet mass [GeV];superjet mass", 22,1250., 9500, 20, 500, 3500);  /// 375 * 125
+      TH1F* h_SJ_mass_AT0b  = new TH1F("h_SJ_mass_AT0b","SuperJet Mass (Anti-tagged Control Region) ;Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_AT0b  = new TH1F("h_disuperjet_mass_AT0b","diSuperJet Mass (Anti-tagged Control Region);Mass [GeV]; Events / / 400 GeV",25,0.,10000);
+      TH1I* h_nAK4_AT0b  = new TH1I("h_nAK4_AT0b","Number of Lab AK4 Jets (0b anti-tag region);nAK4 Jets; Events",25,-0.5,24.5);
 
       // 1-btag anti-tag region stuff
-      TH2F *h_MSJ_mass_vs_MdSJ_antiTag_1b = new TH2F("h_MSJ_mass_vs_MdSJ_antiTag_1b","Tagged Superjet 2 mass vs diSuperjet mass (1+ b jet Anti-tagged); diSuperjet mass [GeV];superjet mass", 22,1250., 9500, 20, 500, 3500);  /// 375 * 125
-      TH1F* h_SJ_mass_antiTag_1b  = new TH1F("h_SJ_mass_antiTag_1b","SuperJet Mass (1+ b jet Anti-tagged) ;Mass [GeV]; Events / 100 GeV",40,0.,5000);
-      TH1F* h_disuperjet_mass_antiTag_1b  = new TH1F("h_disuperjet_mass_antiTag_1b","diSuperJet Mass (1+ b jet Anti-tagged);Mass [GeV]; Events / / 400 GeV",25,0.,10000);
-      TH1I* h_nAK4_1b_antiTag  = new TH1I("h_nAK4_1b_antiTag","Number of Lab AK4 Jets (1b anti-tag region);nAK4 Jets; Events",25,-0.5,24.5);
-      TH1I* h_nTightbTags_antiTag_1b  = new TH1I("h_nTightbTags_antiTag_1b","Number of tight b-tagged Lab AK4 Jets (1b anti-tag region);n b tags; Events",8,-0.5,7.5);
+      TH2F *h_MSJ_mass_vs_MdSJ_AT1b = new TH2F("h_MSJ_mass_vs_MdSJ_AT1b","Tagged Superjet 2 mass vs diSuperjet mass (1+ b jet Anti-tagged); diSuperjet mass [GeV];superjet mass", 22,1250., 9500, 20, 500, 3500);  /// 375 * 125
+      TH1F* h_SJ_mass_AT1b  = new TH1F("h_SJ_mass_AT1b","SuperJet Mass (1+ b jet Anti-tagged) ;Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_AT1b  = new TH1F("h_disuperjet_mass_AT1b","diSuperJet Mass (1+ b jet Anti-tagged);Mass [GeV]; Events / / 400 GeV",25,0.,10000);
+      TH1I* h_nAK4_AT1b  = new TH1I("h_nAK4_AT1b","Number of Lab AK4 Jets (1b anti-tag region);nAK4 Jets; Events",25,-0.5,24.5);
+      TH1I* h_nTightbTags_AT1b  = new TH1I("h_nTightbTags_AT1b","Number of tight b-tagged Lab AK4 Jets (1b anti-tag region);n b tags; Events",8,-0.5,7.5);
 
 
       TH2I* h_nAK4_wHEM  = new TH2I("h_nAK4_wHEM","Number of AK4 jets (HEM region included); eta; phi",60, -3, 3, 64,-3.2,3.2 );
@@ -224,6 +232,7 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       TH1F* h_AK4_phi_noHEM  = new TH1F("h_AK4_phi_noHEM","AK4 phi (HEM NOT included);eta; Events",64,-3.2,3.2);
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
       t1->SetBranchAddress("nfatjets", &nfatjets);   
       t1->SetBranchAddress("nSuperJets", &nSuperJets);   
       t1->SetBranchAddress("tot_nAK4_50", &tot_nAK4_50);               //total #AK4 jets (E>50 GeV) for BOTH superjets
@@ -241,11 +250,11 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       t1->SetBranchAddress("SJ_mass_150", SJ_mass_150);
       t1->SetBranchAddress("totHT", &totHT);
       t1->SetBranchAddress("SJ_nAK4_300", SJ_nAK4_300);
-      t1->SetBranchAddress("SJ_mass_300", SJ_mass_300);
+      //t1->SetBranchAddress("SJ_mass_300", SJ_mass_300);
       t1->SetBranchAddress("SJ_mass_50", SJ_mass_50);
-      t1->SetBranchAddress("SJ_mass_600", SJ_mass_600);
-      t1->SetBranchAddress("SJ_mass_800", SJ_mass_800);
-      t1->SetBranchAddress("SJ_mass_1000", SJ_mass_1000);
+      //t1->SetBranchAddress("SJ_mass_600", SJ_mass_600);
+      //t1->SetBranchAddress("SJ_mass_800", SJ_mass_800);
+      //t1->SetBranchAddress("SJ_mass_1000", SJ_mass_1000);
       t1->SetBranchAddress("superJet_mass", superJet_mass);   
       t1->SetBranchAddress("SJ_AK4_50_mass", SJ_AK4_50_mass);   //mass of individual reclustered AK4 jets
       t1->SetBranchAddress("SJ_AK4_70_mass", SJ_AK4_70_mass); 
@@ -253,15 +262,15 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       t1->SetBranchAddress("SJ_nAK4_200", SJ_nAK4_200);  
       t1->SetBranchAddress("SJ_nAK4_300", SJ_nAK4_300);     
       t1->SetBranchAddress("SJ_nAK4_400", SJ_nAK4_400);   
-      t1->SetBranchAddress("SJ_nAK4_600", SJ_nAK4_600);   
-      t1->SetBranchAddress("SJ_nAK4_800", SJ_nAK4_800);   
-      t1->SetBranchAddress("SJ_nAK4_1000", SJ_nAK4_1000);   
+      //t1->SetBranchAddress("SJ_nAK4_600", SJ_nAK4_600);   
+      //t1->SetBranchAddress("SJ_nAK4_800", SJ_nAK4_800);   
+      //t1->SetBranchAddress("SJ_nAK4_1000", SJ_nAK4_1000);   
       t1->SetBranchAddress("nAK4" , &nAK4); 
       t1->SetBranchAddress("SJ_mass_100", SJ_mass_100);   
       t1->SetBranchAddress("SJ_nAK4_100", SJ_nAK4_100);   
-      t1->SetBranchAddress("AK4_E", AK4_E);  
-      t1->SetBranchAddress("totMET", &totMET); 
-      t1->SetBranchAddress("AK4_bdisc", AK4_bdisc); 
+      //t1->SetBranchAddress("AK4_E", AK4_E);  
+      //t1->SetBranchAddress("totMET", &totMET); 
+      //t1->SetBranchAddress("AK4_bdisc", AK4_bdisc); 
       t1->SetBranchAddress("AK4_eta", AK4_eta); 
       t1->SetBranchAddress("AK4_phi", AK4_phi); 
 
@@ -282,20 +291,64 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       t1->SetBranchAddress("AK4_hadronFlavour", AK4_HadronFlavour); 
       t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
 
-      t1->SetBranchAddress("eventTTbarCRFlag", &eventTTbarCRFlag); 
+      //t1->SetBranchAddress("eventTTbarCRFlag", &eventTTbarCRFlag); 
 
       t1->SetBranchAddress("fourAK8JetMass", &fourAK8JetMass); 
       t1->SetBranchAddress("diAK8Jet_mass", &diAK8Jet_mass); 
 
+
+      //////// btag systematic 
       if( (systematic == "bTagSF") && (*systematic_suffix == "up")) t1->SetBranchAddress("bTag_eventWeight_up", &bTag_eventWeight);
       else if((systematic == "bTagSF") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_down", &bTag_eventWeight);
       else{t1->SetBranchAddress("bTag_eventWeight_nom", &bTag_eventWeight); }
       
-
+      //////// pileup systematic 
       if((systematic == "PUSF") && (*systematic_suffix == "up")) t1->SetBranchAddress("PU_eventWeight_up", &PU_eventWeight);
       else if((systematic == "PUSF") && (*systematic_suffix == "down")) t1->SetBranchAddress("PU_eventWeight_down", &PU_eventWeight);
       else{t1->SetBranchAddress("PU_eventWeight_nom", &PU_eventWeight); }
       
+      //////// prefiring systematic 
+      if((systematic == "L1Prefiring") && (*systematic_suffix == "up")) t1->SetBranchAddress("prefiringWeight_up", &prefiringWeight);
+      else if((systematic == "PUSF") && (*systematic_suffix == "down")) t1->SetBranchAddress("prefiringWeight_down", &prefiringWeight);
+      else{t1->SetBranchAddress("prefiringWeight_nom", &prefiringWeight); }
+      
+      //////// pdf weight systematic 
+      if((systematic == "pdf") && (*systematic_suffix == "up")) t1->SetBranchAddress("PDFWeightUp_BEST", &pdf_weight);
+      else if((systematic == "PUSF") && (*systematic_suffix == "down")) t1->SetBranchAddress("PDFWeightDown_BEST", &pdf_weight);
+      else{pdf_weight = 1.0; }
+
+      //////// renormalization and factorization scale systematic 
+      if((systematic == "scale") && (*systematic_suffix == "up"))
+      {
+
+         t1->SetBranchAddress("PDFWeights_renormWeight_up", &renormWeight);
+         t1->SetBranchAddress("PDFWeights_factWeightsRMS_up", &factWeight);
+
+         scale_weight = renormWeight*factWeight;
+      } 
+      else if((systematic == "scale") && (*systematic_suffix == "down"))
+      {
+         t1->SetBranchAddress("PDFWeights_renormWeight_down", &renormWeight);
+         t1->SetBranchAddress("PDFWeights_factWeightsRMS_down", &factWeight);
+         scale_weight = renormWeight*factWeight;
+      } 
+      else{scale_weight = 1.0; }
+
+
+      //////// top pt systematic 
+      if (inFileName.find("TTJets") != std::string::npos)
+      {
+         if((systematic == "topPt") && (*systematic_suffix == "up")) t1->SetBranchAddress("top_pt_weight", &topPtWeight);
+         else{topPtWeight = 1.0;}
+      }
+      else
+      {
+          topPtWeight = 1.0;
+      }
+      
+      
+
+      // need to do this for all the corresponding trees (*systematic == "nom" ) || (*systematic == "bTagSF" ) || (*systematic == "PUSF" ) || (*systematic == "pdf") || (*systematic == "L1Prefiring") || (*systematic == "pdf") || (*systematic == "topPt")|| (*systematic == "scale")
 
       int totalEvents = 0;
       int nPreselected = 0;
@@ -342,7 +395,7 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       double sum_PUSF_1b_antiTag = 0.0, sum_PUSF_0b_antiTag = 0, sum_PUSF_SR = 0.0, sum_PUSF_CR = 0.0;
 
       double nEvents_unscaled_1b_antiTag = 0.0,nEvents_unscaled_0b_antiTag = 0,nEvents_unscaled_SR =0, nEvents_unscaled_CR =0;
-      int num_bad_btagSF = 0, num_bad_PUSF = 0;
+      int num_bad_btagSF = 0, num_bad_PUSF = 0, num_bad_topPt = 0, num_bad_scale = 0, num_bad_pdf = 0, num_bad_prefiring = 0;
       for (Int_t i=0;i<nentries;i++) 
       {  
 
@@ -384,6 +437,8 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
          eventScaleFactor = 1.0;
          if ((inFileName.find("MC") != std::string::npos))
          {
+
+            ////// check MC systematics
             if ((bTag_eventWeight != bTag_eventWeight) || (std::isinf(bTag_eventWeight)))
             {
                bTag_eventWeight = 1.0;
@@ -394,8 +449,35 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
                PU_eventWeight = 1.0;
                num_bad_PUSF++;
             }
-            eventScaleFactor = bTag_eventWeight*PU_eventWeight;
+            if ((scale_weight != scale_weight) || (std::isinf(scale_weight)))
+            {
+               scale_weight = 1.0;
+               num_bad_scale++;
+            }
+            if ((topPtWeight != topPtWeight) || (std::isinf(topPtWeight)))
+            {
+               topPtWeight = 1.0;
+               num_bad_topPt++;
+            }
+            if ((pdf_weight != pdf_weight) || (std::isinf(pdf_weight)))
+            {
+               pdf_weight = 1.0;
+               num_bad_pdf++;
+            }
+
+ 
+            eventScaleFactor = bTag_eventWeight*PU_eventWeight*scale_weight*pdf_weight*topPtWeight;   /// these are all MC-only systematics
          }  
+
+         ////// check data systematics
+         if ((prefiringWeight != prefiringWeight) || (std::isinf(prefiringWeight)))
+         {
+            pdf_weight = 1.0;
+            num_bad_prefiring++;
+         }
+         eventScaleFactor*= prefiringWeight;   // these are the non-MC-only systematics
+
+
          //if (eventScaleFactor>0) eventScaleFactor = 1.0/eventScaleFactor;
          nEvents+=eventScaleFactor;
          if ( (totHT < 1500.)    ) continue;
@@ -524,12 +606,12 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
                   {
 
                      nZeroBtagAntiTag+=eventScaleFactor;
-                     h_MSJ_mass_vs_MdSJ_antiTagCR->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse);
-                     h_disuperjet_mass_antiTagCR->Fill(diSuperJet_mass,eventWeightToUse);
-                     h_SJ_mass_antiTagCR->Fill(superJet_mass[1],eventWeightToUse);
+                     h_MSJ_mass_vs_MdSJ_AT0b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse);
+                     h_disuperjet_mass_AT0b->Fill(diSuperJet_mass,eventWeightToUse);
+                     h_SJ_mass_AT0b->Fill(superJet_mass[1],eventWeightToUse);
                      sum_eventSF_0b_antiTag+=eventScaleFactor;
                      nEvents_unscaled_0b_antiTag+=1;
-                     h_nAK4_0b_antiTag->Fill(nAK4_recount,eventWeightToUse);
+                     h_nAK4_AT0b->Fill(nAK4_recount,eventWeightToUse);
 
                   }  
 
@@ -605,13 +687,13 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
                if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
                {
                   nOneBtagAntiTag+=eventWeightToUse;
-                  h_MSJ_mass_vs_MdSJ_antiTag_1b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse);
-                  h_SJ_mass_antiTag_1b->Fill(superJet_mass[1],eventWeightToUse);
-                  h_disuperjet_mass_antiTag_1b->Fill(diSuperJet_mass,eventWeightToUse);
+                  h_MSJ_mass_vs_MdSJ_AT1b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse);
+                  h_SJ_mass_AT1b->Fill(superJet_mass[1],eventWeightToUse);
+                  h_disuperjet_mass_AT1b->Fill(diSuperJet_mass,eventWeightToUse);
                   sum_eventSF_1b_antiTag+= eventWeightToUse;
                   nEvents_unscaled_1b_antiTag+=1;
-                  h_nAK4_1b_antiTag->Fill(nAK4_recount);
-                  h_nTightbTags_antiTag_1b->Fill(nTightBTags);
+                  h_nAK4_AT1b->Fill(nAK4_recount);
+                  h_nTightbTags_AT1b->Fill(nTightBTags);
                }
 
             }
@@ -628,26 +710,28 @@ void doThings(std::string inFileName, std::string outFileName, double& nEvents, 
    }
 
    outFile.Close();
+   return true;
 }
 
 
 void readTree()
 {  
 
-   bool _verbose = false;
+   bool _verbose     = false;
    bool includeTTBar = true;
    bool allHTBins    = true;
    bool runData      = false;
-   bool runSignal = false;
-   bool runAll = true;
-   bool runBR = false;
-
+   bool runSignal    = false;
+   bool runBR        = false;
+   bool runAll       = false;
+   bool runDataBR    = true;
+   int nFailedFiles = 0;
    //std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/skimmedFiles/";
 
    //std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
    //std::vector<std::string> systematics = {"nom","JEC","JER", "bTagSF", "PUSF"};  
    std::vector<std::string> dataYears = {"2018","2017","2016","2015"};
-   std::vector<std::string> systematics = {"bTagSF","nom", "PUSF", "JEC", "JER"};  //TESTING
+   std::vector<std::string> systematics = {"bTagSF","nom", "PUSF", "JEC", "JER", "topPt", "L1Prefiring", "pdf", "scale"};  //TESTING
    // delete root files in the /Users/ethan/Documents/rootFiles/processedRootFiles folder
 
 
@@ -687,24 +771,25 @@ void readTree()
       std::string skimmedFilePaths;
       if (runAll)
       {
+
          if(*dataYear == "2015")
          {
-            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
          }
          else if(*dataYear == "2016")
          {
-            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*dataYear == "2017")
          {
-            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_",};
          }
          else if(*dataYear == "2018")
          {
-            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }   
          dataBlocks.insert(dataBlocks.end(), signalFilePaths.begin(), signalFilePaths.end());
@@ -735,9 +820,31 @@ void readTree()
       }
       else if(runBR)
       {  
-        //dataBlocks = {"TTToSemiLeptonic_"}; 
-        dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+        dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+      }
+      else if(runDataBR)
+      {
+         if(*dataYear == "2015")
+         {
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
+         }
+         else if(*dataYear == "2016")
+         {
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         }
+         else if(*dataYear == "2017")
+         {
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_",};
+         }
+         else if(*dataYear == "2018")
+         {
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+         }   
       }
       else
       {
@@ -756,8 +863,9 @@ void readTree()
 
 
             if ((*dataBlock).find("data")!= std::string::npos)
-            {
-               if ((*systematic == "bTagSF") || (*systematic == "PUSF") || (*systematic == "JER")) continue;
+            {  
+               // these are MC-only systematics 
+               if ((*systematic == "bTagSF") || (*systematic == "PUSF") || (*systematic == "JER")  || (*systematic == "topPt") || (*systematic == "pdf") || (*systematic == "scale") ) continue;
             }
             
             double nEvents = 0;
@@ -774,8 +882,9 @@ void readTree()
             double nOneBtagAntiTag = 0;
 
             std::string year = *dataYear;
-            std::string systematic_str;
-            if ((*systematic == "nom" ) || (*systematic == "bTagSF" ) || (*systematic == "PUSF" )  ) systematic_str = "nom";
+            std::string systematic_str;  
+            // event weight systematics (below)
+            if ((*systematic == "nom" ) || (*systematic == "bTagSF" ) || (*systematic == "PUSF" ) || (*systematic == "pdf") || (*systematic == "L1Prefiring") || (*systematic == "pdf") || (*systematic == "topPt")|| (*systematic == "scale") ) systematic_str = "nom";
             else
             {
                systematic_str = *systematic;
@@ -784,18 +893,18 @@ void readTree()
             std::string inFileName = ("skimmedFiles/"+ *dataBlock+  year +  "_"+ systematic_str+ "_SKIMMED.root").c_str();
             if (inFileName.find("Suu") != std::string::npos) inFileName = ("skimmedFiles/"+*dataBlock+  year + "_SKIMMED.root").c_str();
             //std::string outFileName = ("/Users/ethan/Documents/rootFiles/processedRootFiles/"+ *dataBlock+year +  "_"+ *systematic+ "_processed.root").c_str();
-            std::string outFileName = ("processedFiles/"+ *dataBlock+year + "_processed.root").c_str();
+            std::string outFileName = ("processedFiles/"+ *dataBlock+ year + "_processed.root").c_str();
             std::cout << "Reading File " << inFileName << " for year,sample,systematic" << year << "/" <<*dataBlock << "/" << *systematic<< std::endl;
-            //try
-            //{
-               doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag,nDoubleTaggedCRNN, eventScaleFactor,nZeroBtagAntiTag, nOneBtagAntiTag, *dataYear,*systematic );
-            //}
-            /*
+            try
+            {
+               if (!doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag,nDoubleTaggedCRNN, eventScaleFactor,nZeroBtagAntiTag, nOneBtagAntiTag, *dataYear,*systematic ))nFailedFiles++;
+            }
             catch(...)
             {
                std::cout << "ERROR: Failed for year/sample/systematic" << year<< "/" << *dataBlock << "/" << *systematic << std::endl;
                continue;
-            }*/
+            }
+            std::cout << " @@@@@@@@ There have been " << nFailedFiles << " failed jobs files @@@@@@@@" << std::endl;
             if(_verbose)
             {
                std::cout << "----------------------------------- Starting " << *dataBlock << "-----------------------------------"<< std::endl;

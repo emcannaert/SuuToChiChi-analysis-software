@@ -2,11 +2,8 @@
 #include <string>
 #include "TLorentzVector.h"
 
-using namespace std;
+bool doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::vector<std::string> systematics, std::string dataBlock)
 {
-
-void doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::vector<std::string> systematics, std::string dataBlock)
-
    double totHT, dijetMassOne, dijetMassTwo;
    int nfatjets, nfatjet_pre,nAK4;
    double SJ_mass_100[100], AK4_pt[100],AK4_DeepJet_disc[100];
@@ -18,16 +15,23 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    double average_PUSF   = 0;
    double total_events_unscaled = 0;
 
-   int AK4_hadronFlavour[100],AK8_partonFlavour[100];
-
+   double AK8_partonFlavour[100];
+   int AK4_hadronFlavour[100];
+   int eventNumber;
    int AK8_SJ_assignment[100],AK4_SJ_assignment[100];
    bool AK8_is_near_highE_CA4[100],AK4_is_near_highE_CA4[100];
    
    const char *_inFilename = inFileName.c_str();
    int total_btags =0;
-   std::cout << "Reading file: " << _inFilename << std::endl;
+   std::cout << "Opening file: " << _inFilename << std::endl;
 
    TFile *f = TFile::Open(_inFilename);   //import filename and open file
+
+   if( (f == nullptr) || (f->IsZombie()) )
+   {
+      std::cout << "ERROR: Can't find file " << _inFilename << std::endl;
+      return false;
+   }
    const char *_outFilename = outFileName.c_str();    //create the output file where the skimmed tree will be 
 
    std::cout << "The output file name is : " << _outFilename << std::endl;
@@ -93,22 +97,40 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             newTreeDirectory = systematic + "_" + *systematic_suffix; // Ex. JER + _ + up
          }
 
-
+         //root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/Suu8_chi1p5_ZTZT_2016_nom_combined.root
          
          std::cout << "looking for tree name: " << oldTreeName<< std::endl;
          std::cout << "naming new tree " << newTreeName << std::endl;
-         std::cout << "getting tree " << ("clusteringAnalyzerAll_" + tree_string + "/tree_"+ tree_string).c_str() << std::endl;
-         TTree *t1 = (TTree*)f->Get( ("clusteringAnalyzerAll_" + tree_string + "/tree_"+ tree_string).c_str()   ); 
+         TTree *t1;
+         TTree *t2;
+         //try 
+         //{
+            t1 = (TTree*)f->Get( oldTreeName.c_str()   ); 
+            if(t1 == nullptr)
+            {
+               std::cout << "ERROR: Tree " <<oldTreeName << " not found - skipping!!!. " << std::endl;
+               return false;
+            } 
+            t2 = t1->CloneTree(0);
+            std::cout << "Successfully found tree "<< oldTreeName << std::endl;
 
-         outFile.cd();   // return to outer directory
-         //gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
-         gDirectory->mkdir( newTreeDirectory.c_str()  );   //create directory for this systematic
-         outFile.cd( newTreeDirectory.c_str() );   // go inside the systematic directory 
+            outFile.cd();   // return to outer directory
+            //gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
+            gDirectory->mkdir( newTreeDirectory.c_str()  );   //create directory for this systematic
+            outFile.cd( newTreeDirectory.c_str() );   // go inside the systematic directory 
 
-         auto *t2 = t1->CloneTree(0);
+         /*}
+         catch(...)
+         {
+            std::cout << "Failed finding tree " << oldTreeName<< std::endl;
+            return;
+         } */
 
+         //auto *t2 = t1->CloneTree(0);
+         std::cout << "Setting branch addresses." << std::endl;
          t2->SetName(   newTreeName.c_str() );
 
+         std::cout << "Getting total number of entries." << std::endl;
          const Int_t nentries = t1->GetEntries();
 
 
@@ -129,8 +151,14 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
          t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
 
-         t1->SetBranchAddress("bTag_eventWeight_nom", &bTag_eventWeight_nom); 
-         t1->SetBranchAddress("PU_eventWeight_nom", &PU_eventWeight_nom); 
+
+         if( !(inFileName.find("data") != std::string::npos))
+         {
+            t1->SetBranchAddress("bTag_eventWeight_nom", &bTag_eventWeight_nom); 
+            t1->SetBranchAddress("PU_eventWeight_nom", &PU_eventWeight_nom); 
+            t1->SetBranchAddress("AK4_hadronFlavour", AK4_hadronFlavour); 
+            t1->SetBranchAddress("AK8_partonFlavour", AK8_partonFlavour); 
+         }
 
 
          t1->SetBranchAddress("superJet_mass", superJet_mass); 
@@ -142,16 +170,8 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("AK8_is_near_highE_CA4", AK8_is_near_highE_CA4); 
          t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
 
-         t1->SetBranchAddress("AK4_hadronFlavour", AK4_hadronFlavour); 
-         t1->SetBranchAddress("AK8_partonFlavour", AK8_partonFlavour); 
 
-         
-      
-
-         
-
-
-
+         t1->SetBranchAddress("eventNumber", &eventNumber); 
 
          double looseDeepCSV_DeepJet;
          double medDeepCSV_DeepJet;
@@ -190,27 +210,15 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          int nAK8FoundInTaggedSJ_light = 0, nAK8FoundInTaggedSJ_c = 0, nAK8FoundInTaggedSJ_b = 0;
 
          int tot_nAK4_light = 0,  tot_nAK4_c = 0, tot_nAK4_b = 0;
-         /*
-         AK8_SJ_assignment
-         AK4_SJ_assignment
-         AK8_is_near_highE_CA4
-         AK4_is_near_highE_CA4
-         AK4_hadronFlavour
-         AK8_partonFlavour
 
-         */
-
+         std::cout << "Looping over events." << std::endl;
          for (Int_t i=0;i<nentries;i++) 
          {  
 
             t1->GetEntry(i);
 
-            //// Keep only 10% of signal MC 
-            /*int keep_var = (int)(1e8*AK4_DeepJet_disc[0]);         
-            if ((dataBlock.find("Suu") != std::string::npos))
-            {
-               if( (keep_var % 10 !=1))continue;
-            }*/
+            if( eventNumber%10 > 2) continue;
+
             eventWeight = 1.0;
             total_events_unscaled+=1;
             if ((dataBlock.find("MC") != std::string::npos) || (dataBlock.find("Suu") != std::string::npos))
@@ -228,10 +236,10 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                eventWeight = PU_eventWeight_nom*bTag_eventWeight_nom;
                average_bTagSF+= bTag_eventWeight_nom;
                average_PUSF  += PU_eventWeight_nom;
-               if(eventWeight < 1e-5)std::cout << "ERROR: bad event weight." << std::endl;
+               //if(eventWeight < 1e-5)std::cout << "ERROR: bad event weight." << std::endl;
             }
             //std::cout <<"Count is "<<nEvents  << ", " << bTag_eventWeight_nom << "-" << PU_eventWeight_nom<< std::endl;
-            eventWeight = 1;
+            //eventWeight = 1;
             nEvents+=eventWeight;
             if (totHT < 1500.) continue; 
             nHTcut+=eventWeight;
@@ -239,8 +247,6 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             nAK8JetCut+=eventWeight;
             if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))continue;
             nHeavyAK8Cut+=eventWeight;
-
-
 
             int nTightBTags = 0;
             for(int iii = 0;iii< nAK4; iii++)
@@ -250,17 +256,17 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                   total_btags++;
                   nTightBTags++;
                } 
-               if(AK4_hadronFlavour[iii] == 0)
+               if( AK4_hadronFlavour[iii] == 0  )
                {
                   tot_nAK4_light++;
                   if(AK4_is_near_highE_CA4[iii])nAK4FoundNearHighECA4_light++;
                }
-               else if(AK4_hadronFlavour[iii] == 4)
+               else if( AK4_hadronFlavour[iii] == 4  )
                {
                   tot_nAK4_c++;
                   if(AK4_is_near_highE_CA4[iii])nAK4FoundNearHighECA4_c++;
                }
-               else if(AK4_hadronFlavour[iii] == 5)
+               else if(  AK4_hadronFlavour[iii] == 5)
                {
                   tot_nAK4_b++;
                   if(AK4_is_near_highE_CA4[iii])nAK4FoundNearHighECA4_b++;
@@ -339,7 +345,7 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             t2->Fill();
          }
          outFile.Write();
-         std::cout << "-------------   new systematic -------------" << std::endl;
+         std::cout << "--------------------------------------   new systematic --------------------------------------" << std::endl;
 
          std::cout << "Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nSJEnergyCut << std::endl;
          std::cout << "Control Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT0b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nZeroBtagnSJEnergyCut << std::endl;
@@ -348,18 +354,18 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
          std::cout << "There were a total of " << total_btags << " tight b-tagged jets in this sample." << std::endl; 
          std::cout << "The average bTagSF was " << average_bTagSF/total_events_unscaled << ", the average PUSF was " << average_PUSF/total_events_unscaled << std::endl; 
-         std::cout << "WARNING: The btag SF is set to 1. Change this when not testing "  << std::endl;
+         //std::cout << "WARNING: The btag SF is set to 1. Change this when not testing "  << std::endl;
 
-         std::cout << "------------- b tagging flavour stuff ------------"
+         std::cout << "------------- b tagging flavour stuff ------------" << std::endl;
          std::cout << "rate at which light/c/b AK4 jets are found near high-energy reclustered CA4 jets: " << (1.0*nAK4FoundNearHighECA4_light)/tot_nAK4_light<< "/" << (1.0*nAK4FoundNearHighECA4_c)/tot_nAK4_c<< "/" << (1.0*nAK4FoundNearHighECA4_b)/tot_nAK4_b<< std::endl;
          std::cout << "rate at which light/c/b AK4 jets are inside tagged superjets: " << ( 1.0*nAK4FoundInTaggedSJ_light)/tot_nAK4_light << "/" << ( 1.0*nAK4FoundInTaggedSJ_c)/tot_nAK4_c << "/" << (1.0*nAK4FoundInTaggedSJ_b)/tot_nAK4_b<< std::endl;
 
       }
 
    }
-   std::cout << "-------------   new sample -------------" << std::endl;
 
    outFile.Close();
+   return true;
 
 }
 
@@ -388,10 +394,14 @@ void readTreeApplySelection()
    bool runAll = false;
    bool runData = false;
    bool runSignal = false;
-   bool runDataBR = true;
+   bool runDataBR = false;
+   bool runTTbar  = false;
+   bool runSelection = true;
    std::vector<std::string> years = {"2015","2016","2017","2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
    std::vector<std::string> systematics = {"nom", "JEC", "JER"};//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
+   int nFailedFiles = 0;
+   std::string failedFiles = "";
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
    for(auto datayear = years.begin();datayear<years.end();datayear++)
@@ -403,22 +413,22 @@ void readTreeApplySelection()
       {
          if(*datayear == "2015")
          {
-            dataBlocks_non_sig = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks_non_sig = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
          }
          else if(*datayear == "2016")
          {
-            dataBlocks_non_sig = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks_non_sig = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*datayear == "2017")
          {
-            dataBlocks_non_sig = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks_non_sig = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*datayear == "2018")
          {
-            dataBlocks_non_sig = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks_non_sig = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }    
 
@@ -430,7 +440,6 @@ void readTreeApplySelection()
       else if(runData)
       {
          //systematics = { "JEC"};  //TESTING
-
          if(*datayear == "2015")
          {
             dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_"}; // dataB-ver1 not present
@@ -447,7 +456,6 @@ void readTreeApplySelection()
          {
             dataBlocks = {"dataA_","dataB_","dataC_","dataD_"};
          }
-
       }
       else if (runSignal)
       {
@@ -458,29 +466,41 @@ void readTreeApplySelection()
          std::cout << "Running data & BR MC." << std::endl;
          if(*datayear == "2015")
          {
-            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
          }
          else if(*datayear == "2016")
          {
-            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*datayear == "2017")
          {
-            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*datayear == "2018")
          {
-            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }   
          else{std::cout << "ERROR: incorrect year. "; return;} 
       }
+      else if(runTTbar)
+      {
+         dataBlocks = {"TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"};
+      }
+      else if(runSelection)
+      {
+         std::cout << "Running a selection of samples" << std::endl;
+         dataBlocks = {"Suu6_chi2_WBZT_","Suu6_chi2p5_WBZT_","Suu7_chi1_WBZT_","Suu7_chi1p5_WBZT_","Suu7_chi2_WBZT_","Suu7_chi2p5_WBZT_","Suu7_chi3_WBZT_","Suu8_chi1_WBZT_","Suu8_chi1p5_WBZT_",
+"Suu8_chi2_WBZT_","Suu8_chi2p5_WBZT_","Suu8_chi3_WBZT_","Suu4_chi1_ZTZT_","Suu4_chi1p5_ZTZT_","Suu5_chi1_ZTZT_","Suu5_chi1p5_ZTZT_","Suu5_chi2_ZTZT_","Suu6_chi1_ZTZT_",
+"Suu6_chi1p5_ZTZT_","Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
+"Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_"};  
+      }
       else
       {  
-        dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+        dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
       }
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
@@ -491,23 +511,23 @@ void readTreeApplySelection()
             std::string year           = *datayear;
             std::string systematic_str = *systematic;
             std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
-            
-            std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
 
             std::string inFileName;
             std::string outFileName;
             if (dataBlock->find("Suu") != std::string::npos)  // all signal systematics are in a single file
             {
-               std::cout << "Running as signal." << std::endl;
                if(*systematic != "nom") continue; // only need to run once for signal
+               std::cout << "Running as signal." << std::endl;
+               std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
                use_systematics = systematics;
-               inFileName  = (eos_path + *dataBlock + year + "_combined.root").c_str();
+               inFileName  = (eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
                outFileName= (*dataBlock + year + "_SKIMMED.root").c_str();
 
             }
             else
             {  
-               std::string output_dir = "test/";
+               std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
+               std::string output_dir = "";
                use_systematics = {*systematic};
                inFileName  = (eos_path + *dataBlock + year +  "_" + systematic_str + "_combined.root").c_str();
                outFileName= (output_dir+ *dataBlock + year + "_"+ systematic_str + "_SKIMMED.root").c_str();
@@ -516,30 +536,27 @@ void readTreeApplySelection()
             if ((dataBlock->find("data") != std::string::npos) && (systematic_str == "JER")) continue;
             //if (runSignal) inFileName  = (eos_path+*dataBlock+  year +  "_" + systematic_str+ "_combined.root").c_str();
 
-            std::cout << "Looking at file " << inFileName << "." << std::endl;
-            try
+            std::cout << "======================================================================================================================= " << std::endl;
+            std::cout << "======================================================================================================================= " << std::endl;
+            std::cout << "             Reading file " << inFileName << "." << std::endl;
+            std::cout << "======================================================================================================================= " << std::endl;
+            std::cout << "======================================================================================================================= " << std::endl;
+
+            if (!doThings(inFileName, outFileName, eventScaleFactor, year, use_systematics, *dataBlock))
             {
-               doThings(inFileName,outFileName,eventScaleFactor,year, use_systematics,*dataBlock);
+               failedFiles+= (", "+ *dataBlock "/" + year +"/"  + systematic_str ).c_str()
+               nFailedFiles++;
             }
-            catch(...)
-            {
-               std::cout << "sample/year/systematic: " << year <<"/" << *dataBlock << "/" << systematic_str << " failed. Trying again with nom == ''" << std::endl;
-               try
-               {
-                  use_systematics = {""};
-                  doThings(inFileName,outFileName,eventScaleFactor,year, use_systematics,*dataBlock);
-               }
-
-               catch(...)
-               {
-                  std::cout << "-------- ERROR: Failed sample/year/systematic: " << year <<"/" << *dataBlock << "/" << systematic_str <<" --------" << std::endl;
-
-                  continue;
-               }
-               
-            }
-
+            
             std::cout << "Finished with "<< inFileName << std::endl;
+            std:: cout << std::endl;
+            std:: cout << std::endl;
+            std:: cout << std::endl;
+            std:: cout << std::endl;
+
+            std::cout << " @@@@@@@@ There have been " << nFailedFiles << " failed jobs files @@@@@@@@" << std::endl;
+            std::cout << "Failed files: " << failedFiles << std::endl;
+
 
             yearNum++;
          }
