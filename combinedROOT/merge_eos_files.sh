@@ -4,7 +4,7 @@
 
 EOSBASE="/store/user/ecannaer/" 
 
-if [ $1 -q ""];
+if [ -z "$1" ];
 then 
 	echo "Invalid crab submission folder. Please provide the most recent crab submission folder on eos (Ex. SuuToChiChi_123421234)."
 	echo "The second option should be the year to process."
@@ -58,6 +58,9 @@ else
 	rm ST_eos_paths.txt
 	rm data_eos_paths.txt
 	rm signal_eos_paths.txt
+
+	echo "The eos folder $1 was merged on $(date)" >> last_merge.txt
+
 	echo "Finished."
 	echo "WARNING: data files are set to not be copied. Change this in the script if you want these."
 
