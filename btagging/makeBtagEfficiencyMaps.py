@@ -20,10 +20,11 @@ import ROOT
 
 def makeBtagEffMap(year,sample):
 
-   inFileName  = "../data/btaggingEffMapsRAW/btagging_efficiencyMap_%s_%s_output.root"%(sample,year)
+   #systematic = "nom"
+   inFileName  = "../data/btaggingEffMapsRAW/btagging_efficiencyMap_RAW_%s_combined_%s.root"%(sample,year)
    print("Attempting to open file %s"%(inFileName))
 
-   outFileName = "../data/btaggingEffMaps/btag_efficiency_map_%s_%s.root"%(sample,year)
+   outFileName = "../data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root"%(sample,year)
    print("Reading btagging efficiency map info from ",inFileName, "and writing the actual maps to " ,outFileName)
    inFile = ROOT.TFile.Open(inFileName, "READ")
    outHistFile = ROOT.TFile.Open(outFileName,"RECREATE")
@@ -74,7 +75,7 @@ if __name__ == "__main__":
       years = ["2018","2017","2016","2015"]
       #samples = ["QCDMC2000toInf","QCDMC1500to2000","QCDMC1000to1500","TTToHadronicMC", "TTToLeptonicMC", "TTToSemiLeptonicMC","ST_t-channel-antitop_inclMC", "ST_t-channel-top_inclMC", "ST_tW-antiTop_inclMC","ST_tW-top_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC"]
       #samples = ["TTToHadronic", "TTToLeptonic", "TTToSemiLeptonic","ST_t-channel-antitop_incl", "ST_t-channel-top_incl", "ST_tW-antiTop_incl","ST_tW-top_incl","ST_s-channel-hadrons","ST_s-channel-leptons"]
-      samples = ["QCDMC_combined", "TTbarMC_combined", "STMC_combined", "SuuToChiChi"]
+      samples = ["QCDMC", "TTbarMC", "STMC", "SuuToChiChi"]
       for year in years:
          for sample in samples:
             makeBtagEffMap(year, sample)

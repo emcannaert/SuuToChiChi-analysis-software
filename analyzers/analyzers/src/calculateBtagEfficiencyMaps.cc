@@ -120,13 +120,14 @@ private:
 
    TTree * tree;
 
-   TH2F *h_nLightJets = new TH2F("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta", 30,0, 3000, 18, -2.4, 2.4);
-   TH2F *h_nTruebJets = new TH2F("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
-   TH2F *h_nTruecJets = new TH2F("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta", 30,0, 3000, 18, -2.4, 2.4);
 
-   TH2F *h_nLightJets_btagged = new TH2F("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", 30,0, 3000, 18, -2.4, 2.4);
-   TH2F *h_nTruebJets_btagged = new TH2F("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
-   TH2F *h_nTruecJets_btagged = new TH2F("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 3000, 18, -2.4, 2.4);
+   TH2F *h_nLightJets;
+   TH2F *h_nTruebJets;
+   TH2F *h_nTruecJets; 
+
+   TH2F *h_nLightJets_btagged; 
+   TH2F *h_nTruebJets_btagged; 
+   TH2F *h_nTruecJets_btagged; 
 
    TRandom3 *randomNum = new TRandom3(); // for JERs
 
@@ -141,6 +142,29 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
    runType        = iConfig.getParameter<std::string>("runType");
    year           = iConfig.getParameter<std::string>("year");
 
+   int NBINSX;
+   double PTMAX;
+   if(runType.find("Suu") != std::string::npos)
+   {
+      NBINSX = 40;
+      PTMAX  = 6000.;  // best to keep bin sizes the same between these
+   }
+   else
+   {
+      NBINSX = 40;
+      PTMAX  = 6000.;  // best to keep bin sizes the same between these
+   }
+
+   h_nLightJets = new TH2F("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets = new TH2F("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  NBINSX,0, 6000, 18, -2.4, 2.4);
+   h_nTruecJets = new TH2F("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+
+   h_nLightJets_btagged = new TH2F("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_btagged = new TH2F("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets_btagged = new TH2F("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+
+
+
    doPUID = iConfig.getParameter<bool>("doPUID");
    edm::InputTag fixedGridRhoAllTag_ = edm::InputTag("fixedGridRhoAll", "", "RECO");   
    fatJetToken_ = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
@@ -148,13 +172,13 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
    edm::Service<TFileService> fs;      
 
-   h_nLightJets = fs->make<TH2F>("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
-   h_nTruebJets = fs->make<TH2F>("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
-   h_nTruecJets = fs->make<TH2F>("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
+   h_nLightJets = fs->make<TH2F>("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets = fs->make<TH2F>("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets = fs->make<TH2F>("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 
-   h_nLightJets_btagged = fs->make<TH2F>("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
-   h_nTruebJets_btagged = fs->make<TH2F>("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
-   h_nTruecJets_btagged = fs->make<TH2F>("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",  30,0, 4000, 18, -2.4, 2.4);
+   h_nLightJets_btagged = fs->make<TH2F>("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_btagged = fs->make<TH2F>("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets_btagged = fs->make<TH2F>("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 }
 
 
@@ -323,7 +347,7 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
       {
          PUID = bool(corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1));
       }
-      if( (corrJet.pt()  < 50.) && (!PUID)) continue; //if particle 
+      if( (corrJet.pt()  < 50.) && (!PUID)) continue; //if particle doesn't pass the PUID
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
 
 

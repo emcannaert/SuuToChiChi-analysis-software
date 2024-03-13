@@ -44,3 +44,9 @@
 /store/user/ecannaer/SuuToChiChi_AltDatasets_2024218_235312
 /store/user/ecannaer/SuuToChiChi_AltDatasets_2024219_23822
 /store/user/ecannaer/SuuToChiChi_AltDatasets_2024219_25455
+/store/user/ecannaer/SuuToChiChi_AltDatasets_2024224_20418
+/store/user/ecannaer/SuuToChiChi_AltDatasets_2024226_132734
+/store/user/ecannaer/SuuToChiChi_202431_24450
+/store/user/ecannaer/SuuToChiChi_AltDatasets_202431_24513
+/store/user/ecannaer/SuuToChiChi_202435_42843
+/store/user/ecannaer/SuuToChiChi_AltDatasets_202436_202044

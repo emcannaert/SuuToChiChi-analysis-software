@@ -21,6 +21,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    int AK8_SJ_assignment[100],AK4_SJ_assignment[100];
    bool AK8_is_near_highE_CA4[100],AK4_is_near_highE_CA4[100];
    
+
    const char *_inFilename = inFileName.c_str();
    int total_btags =0;
    std::cout << "Opening file: " << _inFilename << std::endl;
@@ -101,23 +102,27 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          
          std::cout << "looking for tree name: " << oldTreeName<< std::endl;
          std::cout << "naming new tree " << newTreeName << std::endl;
+
+
+
+
+         outFile.cd();   // return to outer directory
+         //gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
+         gDirectory->mkdir( newTreeDirectory.c_str()  );   //create directory for this systematic
+         outFile.cd( newTreeDirectory.c_str() );   // go inside the systematic directory 
+
          TTree *t1;
          TTree *t2;
          //try 
          //{
-            t1 = (TTree*)f->Get( oldTreeName.c_str()   ); 
-            if(t1 == nullptr)
-            {
-               std::cout << "ERROR: Tree " <<oldTreeName << " not found - skipping!!!. " << std::endl;
-               return false;
-            } 
-            t2 = t1->CloneTree(0);
-            std::cout << "Successfully found tree "<< oldTreeName << std::endl;
-
-            outFile.cd();   // return to outer directory
-            //gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
-            gDirectory->mkdir( newTreeDirectory.c_str()  );   //create directory for this systematic
-            outFile.cd( newTreeDirectory.c_str() );   // go inside the systematic directory 
+         t1 = (TTree*)f->Get( oldTreeName.c_str()   ); 
+         if(t1 == nullptr)
+         {
+            std::cout << "ERROR: Tree " <<oldTreeName << " not found - skipping!!!. " << std::endl;
+            return false;
+         } 
+         t2 = t1->CloneTree(0);
+         std::cout << "Successfully found tree "<< oldTreeName << std::endl;
 
          /*}
          catch(...)
@@ -217,8 +222,10 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
             t1->GetEntry(i);
 
-            if( eventNumber%10 > 2) continue;
-
+            if ((dataBlock.find("Suu") != std::string::npos))
+            {
+               if( eventNumber%10 > 2) continue; // should only be for signal
+            }
             eventWeight = 1.0;
             total_events_unscaled+=1;
             if ((dataBlock.find("MC") != std::string::npos) || (dataBlock.find("Suu") != std::string::npos))
@@ -345,6 +352,9 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             t2->Fill();
          }
          outFile.Write();
+         //delete t1;
+         //delete t2;
+
          std::cout << "--------------------------------------   new systematic --------------------------------------" << std::endl;
 
          std::cout << "Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nSJEnergyCut << std::endl;
@@ -363,8 +373,9 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
       }
 
    }
-
+   f->Close();
    outFile.Close();
+   //delete f;
    return true;
 
 }
@@ -413,22 +424,22 @@ void readTreeApplySelection()
       {
          if(*datayear == "2015")
          {
-            dataBlocks_non_sig = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+            dataBlocks_non_sig = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
          }
          else if(*datayear == "2016")
          {
-            dataBlocks_non_sig = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+            dataBlocks_non_sig = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*datayear == "2017")
          {
-            dataBlocks_non_sig = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+            dataBlocks_non_sig = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*datayear == "2018")
          {
-            dataBlocks_non_sig = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+            dataBlocks_non_sig = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }    
 
@@ -466,41 +477,38 @@ void readTreeApplySelection()
          std::cout << "Running data & BR MC." << std::endl;
          if(*datayear == "2015")
          {
-            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"}; // dataB-ver1 not present
          }
          else if(*datayear == "2016")
          {
-            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*datayear == "2017")
          {
-            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }
          else if(*datayear == "2018")
          {
-            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
          }   
          else{std::cout << "ERROR: incorrect year. "; return;} 
       }
       else if(runTTbar)
       {
-         dataBlocks = {"TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"};
+         dataBlocks = {"TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToLeptonicMC_"};
       }
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"Suu6_chi2_WBZT_","Suu6_chi2p5_WBZT_","Suu7_chi1_WBZT_","Suu7_chi1p5_WBZT_","Suu7_chi2_WBZT_","Suu7_chi2p5_WBZT_","Suu7_chi3_WBZT_","Suu8_chi1_WBZT_","Suu8_chi1p5_WBZT_",
-"Suu8_chi2_WBZT_","Suu8_chi2p5_WBZT_","Suu8_chi3_WBZT_","Suu4_chi1_ZTZT_","Suu4_chi1p5_ZTZT_","Suu5_chi1_ZTZT_","Suu5_chi1p5_ZTZT_","Suu5_chi2_ZTZT_","Suu6_chi1_ZTZT_",
-"Suu6_chi1p5_ZTZT_","Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
-"Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_"};  
+         dataBlocks = {"Suu4_chi1p5_HTHT_","Suu8_chi2_WBHT_"};  
       }
       else
       {  
-        dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",
+        dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
       }
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
@@ -544,7 +552,7 @@ void readTreeApplySelection()
 
             if (!doThings(inFileName, outFileName, eventScaleFactor, year, use_systematics, *dataBlock))
             {
-               failedFiles+= (", "+ *dataBlock "/" + year +"/"  + systematic_str ).c_str()
+               failedFiles+= (", "+ *dataBlock +"/" + year +"/"  + systematic_str ).c_str();
                nFailedFiles++;
             }
             

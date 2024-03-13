@@ -10,3 +10,5 @@ crab submit -c crab_clusteringAnalyzer_TTJetsMCHT2500toInf_2017_JER_cfg.py
 crab submit -c crab_clusteringAnalyzer_QCDMC1000to1500_2017_JER_cfg.py
 crab submit -c crab_clusteringAnalyzer_QCDMC2000toInf_2017_JER_cfg.py
 crab submit -c crab_clusteringAnalyzer_QCDMC1500to2000_2017_JER_cfg.py
+crab submit -c crab_clusteringAnalyzer_TTToLeptonicMC_2017_JER.py
+crab submit -c crab_clusteringAnalyzer_TTToSemiLeptonicMC_2017_JER_cfg.py

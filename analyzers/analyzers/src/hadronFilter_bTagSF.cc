@@ -116,15 +116,17 @@ class hadronFilter_bTagSF : public edm::stream::EDFilter<> {
       edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
       std::string systematicType;
       std::string runType;
-      std::string triggers;
-
+      std::vector<std::string> triggers;
       edm::FileInPath JECUncert_AK4_path;
       //JetCorrectionUncertainty *jecUnc_AK4;
+      std::string year;
 
       edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl_AK4;//c-r
 
       bool doJEC = false;
       bool doJER = true;
+      bool _verbose = false;
+      bool debug = false;
       edm::EDGetTokenT<double> m_rho_token;
       TRandom3 *randomNum = new TRandom3();
       //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
@@ -154,13 +156,31 @@ hadronFilter_bTagSF::hadronFilter_bTagSF(const edm::ParameterSet& iConfig)
    triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"));
    jetToken_    = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetCollection"));
    systematicType = iConfig.getParameter<std::string>("systematicType");
-   triggers     = iConfig.getParameter<std::string>("triggers");
+   //triggers     = iConfig.getParameter<std::string>("triggers");
    runType = iConfig.getParameter<std::string>("runType");
 
 
    //JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
    edm::InputTag fixedGridRhoAllTag_ = edm::InputTag("fixedGridRhoAll", "", "RECO");   
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
+   year = iConfig.getParameter<std::string>("year");
+
+   if(year == "2018")
+   {
+      triggers = {"HLT_PFJet500_v", "HLT_PFHT1050_v"};
+   }
+   else if(year == "2017")
+   {
+      triggers = {"HLT_PFJet500_v", "HLT_PFHT1050_v"};
+   }
+   else if(year == "2016")
+   {
+      triggers  = {"HLT_PFHT900_v", "HLT_PFJet450_v"};
+   }
+   else if(year == "2015")
+   {
+      triggers  = {"HLT_PFHT900_v", "HLT_PFJet450_v"};
+   }
 
    //jecUnc_AK4 = new JetCorrectionUncertainty(JECUncert_AK4_path.fullPath().c_str());
 
@@ -198,20 +218,32 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
 
    edm::Handle<edm::TriggerResults> triggerBits;
    iEvent.getByToken(triggerBits_, triggerBits);
+
    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-   bool pass = false;
-   std::string trigname= triggers;
-   for (unsigned int i = 0; i < triggerBits->size(); ++i) 
+   
+   for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
    {
-      const std::string name = names.triggerName(i);
-      const bool accept = triggerBits->accept(i);
-      if ((name.find(trigname) != std::string::npos) &&(accept)) pass =true;
+      std::string trigname = *iT;
+      if(debug)std::cout << "Looking for the " << trigname << " trigger." << std::endl;
+
+      bool pass = false;
+      for (unsigned int i = 0; i < triggerBits->size(); ++i) 
+      {
+
+         const std::string name = names.triggerName(i);
+         const bool accept = triggerBits->accept(i);
+         if ((name.find(trigname) != std::string::npos) &&(accept))
+         {
+            if(debug)std::cout << "Found the " << *iT << " trigger." << std::endl;
+            pass =true;
+         }
+      } 
+      if(!pass)
+      {  
+          return false; // if any of the triggers aren't found, skip event
+      }
    }
 
-   if(!pass)
-   {  
-       return false;
-   }
    //std::cout << "Pases trigger" << std::endl;
    //calculate HT -> make HT > 1250. GeV
 
@@ -240,6 +272,8 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
    edm::Handle<std::vector<pat::Jet> > smallJets;
    iEvent.getByToken(jetToken_, smallJets);
    int nBtaggedAK4 = 0;
+   if(_verbose) std::cout << "Looking at AK4 jets." << std::endl;
+
    for(auto iJet = smallJets->begin(); iJet != smallJets->end(); iJet++) 
    {  
 
@@ -335,6 +369,7 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
 
    if ((totHT < 1200.)) 
    {
+      if(_verbose) std::cout << "Failed tot HT" << std::endl;
       return false;  //btagged jet cuts
    }
    else{return true;}

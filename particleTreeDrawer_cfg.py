@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("analysis")
 
 process.source = cms.Source("PoolSource",
-   fileNames = cms.untracked.vstring("file:B2G-RunIISummer20UL18MiniAODv2-00123.root")
+   fileNames = cms.untracked.vstring("/store/mc/RunIISummer20UL18MiniAODv2/TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2430000/0237BF1C-8B33-F149-A182-564D3602B2D8.root")
 )
 
 process.maxEvents = cms.untracked.PSet(
