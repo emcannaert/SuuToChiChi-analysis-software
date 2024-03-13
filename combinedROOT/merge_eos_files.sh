@@ -47,10 +47,10 @@ else
 
 
 	echo "Removing old eos file paths."
-	eosrm /store/user/ecannaer/combinedROOT/*$2*combined.root
+	#eosrm /store/user/ecannaer/combinedROOT/*$2*combined.root
 
 	echo "Copying new eos files to root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT"
-	xrdcp *$2*combined.root root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT/
+	xrdcp -f *$2*combined.root root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT/
 	echo "Deleting eos files here to save space."
 	rm *$2*combined.root
 	rm TTbar_eos_paths.txt

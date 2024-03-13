@@ -89,6 +89,9 @@
 //#include "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_29/src/analyzers/analyzers/src/CacheHandler.cc"
 #include "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_29/src/BESTEvaluation.h"
 
+#include "LHAPDF/LHAPDF.h"
+#include "LHAPDF/Reweighting.h"
+
 //#include "AnalysisDataFormats/TopObjects/interface/TtGenEvent.h"
 //#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 using namespace reco;
@@ -96,7 +99,7 @@ using namespace correction;
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZVector Vector;
 using correction::CorrectionSet;
-
+using namespace LHAPDF;
 class clusteringAnalyzerAll : public edm::EDAnalyzer 
 {
 public:
@@ -110,6 +113,9 @@ private:
    bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets);
    bool isHEM(const float jet_eta, const float jet_phi);
    double top_pt_SF(double top_pt);
+   double calcAlphas(double q2);
+   double calcRenormWeight(double q2, int up_or_dn, int nQCD);
+   double calcFactorizWeight(LHAPDF::PDF* pdf, double id1, double id2, double x1, double x2, double q2, int up_or_dn);
    const reco::Candidate* parse_chain(const reco::Candidate* cand);
    
 
@@ -118,7 +124,7 @@ private:
    edm::EDGetTokenT<std::vector<reco::GenParticle>> genParticleToken_; 
    edm::EDGetTokenT<std::vector<reco::GenParticle>> genPartToken_; 
    edm::EDGetTokenT<std::vector<reco::GenParticle>> packedGenParticleToken_; 
-
+   edm::EDGetTokenT<LHEEventProduct> lheEventProductToken_;
    edm::EDGetTokenT<std::vector<pat::Jet>> jetToken_;
    edm::EDGetTokenT<std::vector<pat::MET>> metToken_;
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puSummaryToken_;
@@ -128,7 +134,10 @@ private:
    edm::EDGetTokenT<std::vector<float>> pdfWeightToken_;
    edm::EDGetTokenT<std::vector<float>> scaleWeightToken_;
 
-   std::string triggers;
+   edm::EDGetTokenT< double > prefweight_token;
+   edm::EDGetTokenT< double > prefweightup_token;
+   edm::EDGetTokenT< double > prefweightdown_token;
+
    edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
    
    edm::EDGetTokenT<double> m_rho_token;
@@ -147,6 +156,12 @@ private:
    std::string systematicType;
    std::string year;
    std::string lumiTag;
+
+   std::string jetVetoMapName;
+   edm::FileInPath jetVetoMapFile;
+
+   std::vector<std::string> triggers;
+
    bool doPUID;
    int eventnum = 0;
    int nAK4 = 0;
@@ -165,8 +180,12 @@ private:
    bool doPUSF             = false;
    bool doTopPtReweight    = false;
    bool doPDFWeights       = false;
-   bool includeAllBranches = false; // don't include some branches that are not often used
-   bool slimmedSelection   = false; // apply a more strict selection to save space
+   bool doPrefiringWeight  = true;
+   bool includeAllBranches = false;  // don't include some branches that are not often used
+   bool slimmedSelection   = false;  // apply a more strict selection to save space
+   bool _verbose           = false; // do printouts of each section for debugging
+   bool debug              = false; // print out some other debug stuff
+
    int SJ_nAK4_50[100],SJ_nAK4_70[100],SJ_nAK4_100[100],SJ_nAK4_125[100],SJ_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_300[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
    double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
    double SJ_mass_50[100], SJ_mass_70[100],SJ_mass_100[100],superJet_mass[100],SJ_AK4_50_mass[100],SJ_AK4_70_mass[100];
@@ -228,16 +247,44 @@ private:
    double jet_bTagSF_b[100], jet_bTagSF_c[100], jet_bTagSF_light[100];
    int nTrue_b_AK4, nTrue_c_AK4, nTrue_light_AK4;
    double pdf_weights[200];
-   int nPDFWeights = 0;
-   double Generator_x1,Generator_x2,q2;
-   int Generator_id1,Generator_id2;
+   double x1,x2,q2;
+   int id1,id2;
    int eventNumber;
 
    int lab_AK4_AK8_parent[100]; // the nfatjet index of of the AK8 jet in which selected AK4 jets reside
    bool AK8_is_near_highE_CA4[100], AK4_is_near_highE_CA4[100];
+
    bool jet_isHEM[100], jet_pre_isHEM[100];
    TH2F *truebjet_eff,*truecjet_eff, *lightjet_eff;
+   TH2F * jetVetoMap;
+   double prefiringWeight_nom, prefiringWeight_up, prefiringWeight_down;
 
+   double bTagEffMap_PtRange, bTagEffMap_Eta_high, bTagEffMap_Eta_low;
+   int bTagEffMap_nPtBins, bTagEffMap_nEtaBins;
+
+   bool AK8_fails_veto_map[100], AK4_fails_veto_map[100];
+   // PDF weight stuff
+   int nPDFWeights, nScaleWeights;
+   float pdfWeights[200], scaleWeights[200];
+   double PDFWeights_alphas, PDFWeights_varWeightsRMS,PDFWeights_varWeightsErr;
+   double PDFWeights_renormWeights[2],PDFWeights_factWeightsRMSs[2];
+   int PDFWeights_nVars;
+   double alphas;
+   int nVars = 102; 
+   double factWeightsRMSs[2]; // Up, down
+   double varWeightsRMS;
+   double varWeightsErr;
+   double renormWeights[2]; //Up, down
+
+   double scale_envelope[10];
+   const int LHAPDF_NOM = 325300;
+   const int LHAPDF_VAR_LOW = 325301;
+   const int LHAPDF_VAR_HIGH = 325402;
+   PDF* nomPDF;
+   PDF* varPDFs[102];
+   double PDFWeights_factWeightsRMS_up, PDFWeights_factWeightsRMS_down;
+   double PDFWeights_renormWeight_up, PDFWeights_renormWeight_down;
+   double PDFWeightUp, PDFWeightDown;  // BEST-style PDF weights
    TRandom3 *randomNum = new TRandom3(); // for JERs
 
    // btag scale factor stuff
@@ -245,12 +292,21 @@ private:
    Correction::Ref cset_corrector_bc;
    Correction::Ref cset_corrector_light; 
 
-
    // Jet correction uncertainty classes
    JetCorrectionUncertainty *jecUnc_AK4;
    JetCorrectionUncertainty *jecUnc_AK8;
    std::unique_ptr<CorrectionSet> PUjson;
    Correction::Ref PUjson_year;
+
+   // jet veto map stuff
+   double jetVetoMap_XRange, jetVetoMap_YRange, jetVetoMap_Xmin, jetVetoMap_Ymin;
+   int jetVetoMap_nBinsX, jetVetoMap_nBinsY;
+
+   double QCDFactorization_up_BEST, QCDFactorization_down_BEST, QCDRenormalization_up_BEST, QCDRenormalization_down_BEST;
+
+
+
+
 };
 
 //_constructor_
@@ -258,8 +314,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 path_ (iConfig.getParameter<edm::FileInPath>("path"))
 
 {
-
-
    // import parameters from cfg, set variables needed to analyze the event
    
    // necessary for importing NN file
@@ -271,33 +325,42 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    systematicType = iConfig.getParameter<std::string>("systematicType");
    year           = iConfig.getParameter<std::string>("year");
 
-   triggers     = iConfig.getParameter<std::string>("triggers");
+   includeAllBranches = iConfig.getParameter<bool>("includeAllBranches");
+   slimmedSelection   = iConfig.getParameter<bool>("slimmedSelection");
+   _verbose           = iConfig.getParameter<bool>("verbose");
+
+   jetVetoMapName = iConfig.getParameter<std::string>("jetVetoMapName");
+   jetVetoMapFile = iConfig.getParameter<edm::FileInPath>("jetVetoMapFile");
+
+
+   // "pdfWeights" "NNPDF31"
+
+   //triggers     = iConfig.getParameter<std::string>("triggers"); // not currently set up: am setting triggers manually in this file
    triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("bits"));
 
    if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
    {
-
-
       // these will only be done for MC
       doBtagSF = true;
       doJER    = true;
       doPUSF   = true;
-      doPDFWeights = false; // not ready yet
+      doPDFWeights = true; 
 
-      if ((runType.find("TTTo") != std::string::npos)) doTopPtReweight = true;  
+      if ((runType.find("TTTo") != std::string::npos) || (runType.find("TTJets") != std::string::npos)) doTopPtReweight = true;  
 
       bTagSF_path    = iConfig.getParameter<edm::FileInPath>("bTagSF_path");
       bTagEff_path   = iConfig.getParameter<edm::FileInPath>("bTagEff_path");
 
       if(doPDFWeights)
       {
-
-         std::cout << "Getting the PDF weight tokens." << std::endl;
-         pdfWeightToken_ = consumes<std::vector<float>>(edm::InputTag("PDFweights")); // calculated with PDFRecalculator
-         scaleWeightToken_ = consumes<std::vector<float>>(edm::InputTag("ScaleWeights")); // calculated with PDFRecalculator
          GeneratorToken_ = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
-         std::cout << "Got the PDF weight tokens." << std::endl;
-
+         lheEventProductToken_ = consumes<LHEEventProduct> (edm::InputTag("externalLHEProducer", "", "GEN"));
+         //std::cout << "Getting the PDF weight tokens." << std::endl;
+         //pdfWeightToken_ = consumes<std::vector<float>>(edm::InputTag("PDFweights")); // calculated with PDFRecalculator
+         //scaleWeightToken_ = consumes<std::vector<float>>(edm::InputTag("ScaleWeights")); // calculated with PDFRecalculator
+         //std::cout << "Got the PDF weight tokens." << std::endl;
+         //pdfWeightToken_ = consumes<std::vector<float>>(edm::InputTag("PDFRecalculator:PDFweights"));
+         //scaleWeightToken_ = consumes<std::vector<float>>(edm::InputTag("PDFRecalculator:ScaleWeights"));
       }
       
    }
@@ -305,6 +368,10 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    JECUncert_AK8_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK8_path");
    JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
 
+   // prefiring weights
+   prefweight_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProb"));
+   prefweightup_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
+   prefweightdown_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbDown"));
 
    doPUID = iConfig.getParameter<bool>("doPUID");
 
@@ -312,19 +379,14 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
 
    jecUnc_AK4 = new JetCorrectionUncertainty(JECUncert_AK4_path.fullPath().c_str());
    jecUnc_AK8 = new JetCorrectionUncertainty(JECUncert_AK8_path.fullPath().c_str());
-
-   edm::InputTag fixedGridRhoAllTag_ = edm::InputTag("fixedGridRhoAll", "", "RECO");   
-   fatJetToken_ =    consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
+   fatJetToken_ = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
    jetToken_    = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetCollection"));
 
-   m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
-
+   m_rho_token  = consumes<double>(edm::InputTag("fixedGridRhoAll", "", "RECO"));
    edm::Service<TFileService> fs;      
-
    tree = fs->make<TTree>(  ("tree_"+systematicType).c_str(), ("tree_"+systematicType).c_str());
    TFile *bTagEff_file;
-
-
+   TFile *jetVetoMap_file;
 
    if(year == "2018")
    {
@@ -332,6 +394,7 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       //deepJet_wp_med   = 0.2783;
       deepjet_wp_tight = 0.7100;
       lumiTag = "Collisions18_UltraLegacy_goldenJSON";
+      triggers = {"HLT_PFJet500_v", "HLT_PFHT1050_v"};
    }
    else if(year == "2017")
    {
@@ -339,6 +402,7 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       //deepJet_wp_med   = 0.3040;
       deepjet_wp_tight = 0.7476;
       lumiTag = "Collisions17_UltraLegacy_goldenJSON";
+      triggers = {"HLT_PFJet500_v", "HLT_PFHT1050_v"};
    }
    else if(year == "2016")
    {
@@ -346,6 +410,7 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       //deepJet_wp_med   = 0.2489;
       deepjet_wp_tight = 0.6377;
       lumiTag = "Collisions16_UltraLegacy_goldenJSON";
+      triggers  = {"HLT_PFHT900_v", "HLT_PFJet450_v"};
    }
    else if(year == "2015")
    {
@@ -353,19 +418,28 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       //deepJet_wp_med   = 0.2598;
       deepjet_wp_tight = 0.6502;
       lumiTag = "Collisions16_UltraLegacy_goldenJSON";
+      triggers = {"HLT_PFHT900_v", "HLT_PFJet450_v"};
    }
    else
    {
       std::cout << "Incorrect year: " << year << std::endl;
-      return;
+      return; // return cut
    }
    if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
    {
 
       bTagEff_file = new TFile( bTagEff_path.fullPath().c_str() );   //this path might need to be updated
+
       truebjet_eff = (TH2F*)bTagEff_file->Get("h_effbJets");
       truecjet_eff = (TH2F*)bTagEff_file->Get("h_effcJets");
       lightjet_eff = (TH2F*)bTagEff_file->Get("h_effLightJets");
+
+      bTagEffMap_PtRange = lightjet_eff->GetXaxis()->GetXmax();
+      bTagEffMap_Eta_high = lightjet_eff->GetYaxis()->GetXmax();
+      bTagEffMap_Eta_low  = lightjet_eff->GetYaxis()->GetXmin();
+
+      bTagEffMap_nPtBins = lightjet_eff->GetNbinsX();
+      bTagEffMap_nEtaBins = lightjet_eff->GetNbinsY();
 
       cset = CorrectionSet::from_file(bTagSF_path.fullPath());
       cset_corrector_bc = cset->at("deepJet_mujets");   //deepJet_comb, 
@@ -375,6 +449,21 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       PUjson = CorrectionSet::from_file(PUfile_path.fullPath());
       PUjson_year = PUjson->at(lumiTag);
    }
+
+   // Jet veto map stuff
+   jetVetoMap_file = new TFile( jetVetoMapFile.fullPath().c_str() ); 
+   jetVetoMap = (TH2F*)jetVetoMap_file->Get(jetVetoMapName.c_str());
+   jetVetoMap_XRange = jetVetoMap->GetXaxis()->GetXmax() - jetVetoMap->GetXaxis()->GetXmin();
+   jetVetoMap_YRange = jetVetoMap->GetYaxis()->GetXmax() - jetVetoMap->GetYaxis()->GetXmin();
+
+
+
+
+   jetVetoMap_Xmin = jetVetoMap->GetXaxis()->GetXmin();
+   jetVetoMap_Ymin = jetVetoMap->GetYaxis()->GetXmin();
+   jetVetoMap_nBinsX = jetVetoMap->GetNbinsX();
+   jetVetoMap_nBinsY = jetVetoMap->GetNbinsY();
+
 
 
    // init tree branches
@@ -395,16 +484,17 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree->Branch("jet_pt", jet_pt, "jet_pt[nfatjets]/D");
    tree->Branch("jet_eta", jet_eta, "jet_eta[nfatjets]/D");
    tree->Branch("jet_phi", jet_phi, "jet_phi[nfatjets]/D");
-
+   tree->Branch("AK8_fails_veto_map", AK8_fails_veto_map, "AK8_fails_veto_map[nfatjets]/O");
 
    tree->Branch("jet_isHEM", jet_isHEM, "jet_isHEM[nfatjets]/O");
    tree->Branch("jet_pre_isHEM", jet_pre_isHEM, "jet_pre_isHEM[nfatjet_pre]/O");
-
 
    tree->Branch("lab_nAK4", &lab_nAK4, "lab_nAK4/I");
    tree->Branch("lab_AK4_pt", lab_AK4_pt, "lab_AK4_pt[lab_nAK4]/D");
    tree->Branch("AK4_eta", AK4_eta  , "AK4_eta[lab_nAK4]/D");
    tree->Branch("AK4_phi", AK4_phi  , "AK4_phi[lab_nAK4]/D");
+   tree->Branch("AK4_fails_veto_map", AK4_fails_veto_map  , "AK4_fails_veto_map[lab_nAK4]/O");
+
 
    tree->Branch("jet_mass", jet_mass, "jet_mass[nfatjets]/D");
    tree->Branch("AK4_mass", AK4_mass, "AK4_mass[nAK4]/D");
@@ -420,7 +510,6 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree->Branch("SJ_nAK4_200", SJ_nAK4_200, "SJ_nAK4_200[nSuperJets]/I");
    tree->Branch("SJ_nAK4_300", SJ_nAK4_300, "SJ_nAK4_300[nSuperJets]/I");
    tree->Branch("SJ_nAK4_400", SJ_nAK4_400, "SJ_nAK4_400[nSuperJets]/I");
-   
 
    tree->Branch("AK8_SJ_assignment", AK8_SJ_assignment  , "AK8_SJ_assignment[nfatjets]/I");   // which superjet (1 or 0) was an AK8 jet assigned to
    tree->Branch("AK4_SJ_assignment", AK4_SJ_assignment  , "AK4_SJ_assignment[nAK4]/I");   // which superjet (1 or 0) was an AK4 jet assigned to (based off the AK8 jet it was inside)
@@ -429,9 +518,7 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree->Branch("lab_AK4_AK8_parent", lab_AK4_AK8_parent  , "lab_AK4_AK8_parent[nAK4]/I");       //  the nfatjet index of of the AK8 jet in which selected AK4 jets reside
    tree->Branch("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4  , "AK4_is_near_highE_CA4[nAK4]/O");   // which superjet (1 or 0) was an AK8 jet assigned to
 
-
-
-
+   tree->Branch("prefiringWeight_nom",  &prefiringWeight_nom, "prefiringWeight_nom/D");
 
  
    if(includeAllBranches)
@@ -531,18 +618,6 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
    tree->Branch("SJ1_decision", &SJ1_decision, "SJ1_decision/I");
    tree->Branch("SJ2_decision", &SJ2_decision, "SJ2_decision/I");
 
-   ///////// systematic uncertainty stuff
-
-   tree->Branch("AK8_JEC", AK8_JEC  , "AK8_JEC[nfatjets]/D");
-
-   tree->Branch("bTag_eventWeight_up", &bTag_eventWeight_up  , "bTag_eventWeight_up/D");
-   tree->Branch("bTag_eventWeight_nom", &bTag_eventWeight_nom  , "bTag_eventWeight_nom/D");
-   tree->Branch("bTag_eventWeight_down", &bTag_eventWeight_down  , "bTag_eventWeight_down/D");
-
-   tree->Branch("PU_eventWeight_up", &PU_eventWeight_up, "PU_eventWeight_up/D");
-   tree->Branch("PU_eventWeight_nom", &PU_eventWeight_nom, "PU_eventWeight_nom/D");
-   tree->Branch("PU_eventWeight_down", &PU_eventWeight_down, "PU_eventWeight_down/D");
-
    ////////// standard technique plots
    tree->Branch("nAK8diJets", &nAK8diJets  , "nAK8diJets/I");
    tree->Branch("diAK8Jet_mass", diAK8Jet_mass  , "diAK8Jet_mass[nAK8diJets]/D");
@@ -572,12 +647,64 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       tree->Branch("jet_bTagSF_light", jet_bTagSF_light  , "jet_bTagSF_light[nTrue_light_AK4]/D");
 
 
+      if(doPUSF)  tree->Branch("PU_eventWeight_nom", &PU_eventWeight_nom, "PU_eventWeight_nom/D");
+      if(doBtagSF)tree->Branch("bTag_eventWeight_nom", &bTag_eventWeight_nom  , "bTag_eventWeight_nom/D");
 
+
+      if (systematicType == "nom") // don't need these saved for other systematic types
+      {
+         if(doPUSF)
+         {
+            tree->Branch("PU_eventWeight_up", &PU_eventWeight_up, "PU_eventWeight_up/D");
+            tree->Branch("PU_eventWeight_down", &PU_eventWeight_down, "PU_eventWeight_down/D");
+
+         }
+         if(doBtagSF)
+         {
+            tree->Branch("bTag_eventWeight_up", &bTag_eventWeight_up  , "bTag_eventWeight_up/D");
+            tree->Branch("bTag_eventWeight_down", &bTag_eventWeight_down  , "bTag_eventWeight_down/D");
+         }
+         if(doPDFWeights)
+         {
+            tree->Branch("PDFWeights_renormWeight_up",     &PDFWeights_renormWeight_up, "PDFWeights_renormWeight_up/D");
+            tree->Branch("PDFWeights_renormWeight_down",   &PDFWeights_renormWeight_down, "PDFWeights_renormWeight_down/D");
+            tree->Branch("PDFWeights_factWeightsRMS_up",   &PDFWeights_factWeightsRMS_up, "PDFWeights_factWeightsRMS_up/D");
+            tree->Branch("PDFWeights_factWeightsRMS_down", &PDFWeights_factWeightsRMS_down, "PDFWeights_factWeightsRMS_down/D");
+            
+            tree->Branch("PDFWeightUp_BEST", &PDFWeightUp, "PDFWeightUp_BEST/D");
+            tree->Branch("PDFWeightDown_BEST", &PDFWeightDown, "PDFWeightDown_BEST/D");
+
+
+            // alternative calculations as BEST does them
+            tree->Branch("QCDFactorization_up_BEST", &QCDFactorization_up_BEST, "QCDFactorization_up_BEST/D");
+            tree->Branch("QCDFactorization_down_BEST", &QCDFactorization_down_BEST, "QCDFactorization_down_BEST/D");
+            tree->Branch("QCDRenormalization_up_BEST", &QCDRenormalization_up_BEST, "QCDRenormalization_up_BEST/D");
+            tree->Branch("QCDRenormalization_down_BEST", &QCDRenormalization_down_BEST, "QCDRenormalization_down_BEST/D");
+
+            tree->Branch("scale_envelope", scale_envelope, "scale_envelope[10]/D");
+            // above: scale_envelope = all the envelope variations from the pdf as written in https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Factorization_and_renormalizatio
+            // index 0: muF = 2.0, muR = 1.0
+            // index 1: muF = 0.5, muR = 1.0
+            // index 2: muF = 2.0, muR = 2.0
+            // index 3: muF = 1.0, muR = 2.0
+            // index 4: muF = 0.5, muR = 0.5
+            // index 5: muF = 1.0, muR = 0.5
+            // index 6: muF = 2.0, muR = 0.5 // this shouldn't be needed
+            // index 7: muF = 0.5, muR = 2.0 // this shouldn't be needed
+            // index 8: muF = 1.0, muR = 1.0 // this might be needed for normalization
+            // index 9: nominal pdf weight
+         }
+
+         if(doPrefiringWeight)
+         {
+            tree->Branch("prefiringWeight_up",   &prefiringWeight_up, "prefiringWeight_up/D");
+            tree->Branch("prefiringWeight_down", &prefiringWeight_down, "prefiringWeight_down/D");
+         }
+      }
 
       tree->Branch("nGenBJets_AK4", nGenBJets_AK4, "nGenBJets_AK4[lab_nAK4]/I");
       tree->Branch("AK4_partonFlavour", AK4_partonFlavour, "AK4_partonFlavour[lab_nAK4]/I");
       tree->Branch("AK4_hadronFlavour", AK4_hadronFlavour, "AK4_hadronFlavour[lab_nAK4]/I");
-
 
       tree->Branch("AK8_hadronFlavour", AK8_hadronFlavour, "AK8_hadronFlavour[nfatjets]/D");
       tree->Branch("AK8_partonFlavour", AK8_partonFlavour, "AK8_partonFlavour[nfatjets]/D");
@@ -587,29 +714,23 @@ path_ (iConfig.getParameter<edm::FileInPath>("path"))
       // generator/pdf variables
       if(doPDFWeights)
       {
-
-         // generator stuff
-         tree->Branch("Generator_id1", &Generator_id1, "Generator_id1/I");
-         tree->Branch("Generator_id2", &Generator_id2, "Generator_id2/I");
-         tree->Branch("Generator_x1", &Generator_x1, "Generator_x1/D");
-         tree->Branch("Generator_x2", &Generator_x2, "Generator_x2/D");
+         nomPDF = LHAPDF::mkPDF(LHAPDF_NOM); //Nominal PDF
+         // get PDF weights
+         for (int i = 0; i< nVars; i++)
+         {
+            varPDFs[i] = LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
+         } 
+         
+         tree->Branch("id1", &id1, "id1/I");
+         tree->Branch("id2", &id2, "id2/I");
+         tree->Branch("x1", &x1, "x1/D");
+         tree->Branch("x2", &x2, "x2/D");
          tree->Branch("q2", &q2, "q2/D");   
 
-
-         // scale weight stuff
-         tree->Branch("weightFacUp", &weightFacUp, "weightFacUp/D");
-         tree->Branch("weightFacDn", &weightFacDn, "weightFacDn/D");
-         tree->Branch("weightRenUp", &weightRenUp, "weightRenUp/D");
-         tree->Branch("weightRenUpxweightFacUp", &weightRenUpxweightFacUp, "weightRenUpxweightFacUp/D");
-         tree->Branch("weightRenUpxweightFacDn", &weightRenUpxweightFacDn, "weightRenUpxweightFacDn/D");
-         tree->Branch("weightRenDn", &weightRenDn, "weightRenDn/D");
-         tree->Branch("weightRenDnxweightFacUp", &weightRenDnxweightFacUp, "weightRenDnxweightFacUp/D");
-         tree->Branch("weightRenDnxweightFacDn", &weightRenDnxweightFacDn, "weightRenDnxweightFacDn/D");
-
-         // pdf weight stuff: [mur=1, muf=1], [mur=1, muf=2], [mur=1, muf=0.5], [mur=2, muf=1], [mur=2, muf=2], [mur=2, muf=0.5], [mur=0.5, muf=1], [mur=0.5, muf=2], [mur=0.5, muf=0.5]
-         
-         tree->Branch("nPDFWeights", &nPDFWeights, "nPDFWeights/I");
-         tree->Branch("pdf_weights", pdf_weights, "pdf_weights[nPDFWeights]/D");
+         tree->Branch("PDFWeights_alphas", &alphas, "PDFWeights_alphas/D");
+         tree->Branch("PDFWeights_nVars", &nVars, "PDFWeights_nVars/i");
+         tree->Branch("PDFWeights_varWeightsRMS", &varWeightsRMS, "PDFWeights_varWeightsRMS/D");
+         tree->Branch("PDFWeights_varWeightsErr", &varWeightsErr, "PDFWeights_varWeightsErr/D");
 
       }
 
@@ -714,10 +835,62 @@ bool clusteringAnalyzerAll::isMatchedtoSJ(std::vector<TLorentzVector> superJetTL
    
    return false;
 }
+double clusteringAnalyzerAll::calcAlphas(double q2) 
+{ 
+    double mZ = 91.2; //Z boson mass in the NNPDF31_nnlo_as_0118 docs (http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118/NNPDF31_nnlo_as_0118.info )
+    double alphas_mZ = 0.118; //alpha_s evaluated at Z boson mass, based on the NNPDF31_nnlo_as_0118 docs (http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118/NNPDF31_nnlo_as_0118.info )
+    int nFlavors = 5; //effective number of flavors
+    double b0 = (33 - 2.0 * nFlavors) / (12 * M_PI); 
+    return alphas_mZ / (1 + alphas_mZ * b0 * std::log(q2 / std::pow(mZ,2))); // alphas evolution
+}
+
+double clusteringAnalyzerAll::calcFactorizWeight(LHAPDF::PDF* pdf, double id1, double id2, double x1, double x2, double q2, int up_or_dn) 
+{
+    double k2;
+    if ( up_or_dn ==  1 )
+        k2 = 4; // 2*q ==> 4*q2
+    else if ( up_or_dn == -1 )
+        k2 = 0.25; // 0.5*q ==> 0.25*q2
+    else {
+        throw std::invalid_argument("up_or_dn must be -1 or 1");
+    }
+
+    double pdf1old = pdf->xfxQ2(id1,x1,q2);
+    double pdf2old = pdf->xfxQ2(id2,x2,q2);
+    double pdf1new = pdf->xfxQ2(id1,x1,k2*q2);
+    double pdf2new = pdf->xfxQ2(id2,x2,k2*q2);
+    double weight = (pdf1new * pdf2new) / (pdf1old * pdf2old);
+
+    return weight;
+}
+
+double clusteringAnalyzerAll::calcRenormWeight(double q2, int up_or_dn, int nQCD) 
+{ 
+    if (nQCD == 0) //Time saving check since we will exponentiate by nQCD as the last step
+        return 1;
+
+    double k2;
+    if ( up_or_dn ==  1 )
+        k2 = 4; // 2*q ==> 4*q2
+    else if ( up_or_dn == -1 )
+        k2 = 0.25; // 0.5*q ==> 0.25*q2
+    else {
+      throw std::invalid_argument("up_or_dn must be -1 or 1");
+    }
+    
+    double alphas_old = calcAlphas(q2);
+    double alphas_new = calcAlphas(k2*q2);
+ 
+    return std::pow(alphas_new / alphas_old, nQCD);
+}
 
 // does filling of the superjet variables to give the NN
 bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, std::vector<fastjet::PseudoJet> iSJ, int nSuperJets )
 {
+
+
+   bool testNewVars = true; // include new SJ vars to give to NN
+
    double superJetpx=0,superJetpy=0,superJetpz=0,superJetE=0;
    for(auto iP = iSJ.begin();iP != iSJ.end();iP++)
    {
@@ -763,13 +936,21 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
 
    double SJ_25_px = 0, SJ_25_py=0,SJ_25_pz=0,SJ_25_E=0;
    double SJ_50_px = 0, SJ_50_py=0,SJ_50_pz=0,SJ_50_E=0;
+   double SJ_75_px = 0, SJ_75_py=0,SJ_75_pz=0,SJ_75_E=0;
    double SJ_100_px = 0, SJ_100_py=0,SJ_100_pz=0,SJ_100_E=0;
    double SJ_150_px = 0, SJ_150_py=0,SJ_150_pz=0,SJ_150_E=0;
    double SJ_200_px = 0, SJ_200_py=0,SJ_200_pz=0,SJ_200_E=0;
    double SJ_300_px = 0, SJ_300_py=0,SJ_300_pz=0,SJ_300_E=0;
+   double SJ_400_px = 0, SJ_400_py=0,SJ_400_pz=0,SJ_400_E=0;
+   double SJ_500_px = 0, SJ_500_py=0,SJ_500_pz=0,SJ_500_E=0;
+   double SJ_800_px = 0, SJ_800_py=0,SJ_800_pz=0,SJ_800_E=0;
+   double SJ_1000_px = 0, SJ_1000_py=0,SJ_1000_pz=0,SJ_1000_E=0;
 
+   int SJ_nAK4_1 = 0, SJ_nAK4_5 = 0, SJ_nAK4_10_ = 0;
    int SJ_nAK4_25_ = 0;
-   int SJ_nAK4_50_ = 0,SJ_nAK4_100_ = 0,SJ_nAK4_150_ = 0,SJ_nAK4_200_ = 0,SJ_nAK4_300_ = 0;
+   int SJ_nAK4_50_ = 0, SJ_nAK4_75_ = 0, SJ_nAK4_100_ = 0,SJ_nAK4_150_ = 0,SJ_nAK4_200_ = 0,SJ_nAK4_300_ = 0;
+   int SJ_nAK4_400_ = 0,SJ_nAK4_500_ = 0,SJ_nAK4_800_ = 0,SJ_nAK4_1000_ = 0;
+
 
    std::vector<TLorentzVector> AK41_parts;
    std::vector<TLorentzVector> AK42_parts;
@@ -784,7 +965,7 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    if (jetsFJ_jet.size() < 4)
    {
       std::cout << "A pseudojet vector has a size smaller than 4 - not reclustering many jets from whole pool of particles - " << jetsFJ_jet.size() << std::endl;
-      return false;
+      return false;  // RETURN cut
    }
    int pseudoJetNum = 0;
    for (auto iPJ=jetsFJ_jet.begin(); iPJ<jetsFJ_jet.end(); iPJ++)                             
@@ -844,26 +1025,47 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
          }
 
       }
+
+      if(iPJ->E()>1.)
+      {
+         SJ_nAK4_1++;   // this is just used for a fraction calculation
+      }
+      if(iPJ->E()>5.)
+      {
+         SJ_nAK4_5++;   // this is just used for a fraction calculation
+      }
+      if(iPJ->E()>10.)
+      {
+         SJ_nAK4_10_++;
+      }
       if(iPJ->E()>25.)
       {
          SJ_25_px+=iPJ->px();SJ_25_py+=iPJ->py();SJ_25_pz+=iPJ->pz();SJ_25_E+=iPJ->E();
          SJ_nAK4_25_++;
       }
+
       if(iPJ->E()>50.)
       {
          SJ_50_px+=iPJ->px();SJ_50_py+=iPJ->py();SJ_50_pz+=iPJ->pz();SJ_50_E+=iPJ->E();
          SJ_nAK4_50_++;
+      }
+      if(iPJ->E()>75.)
+      {
+         SJ_75_px+=iPJ->px();SJ_75_py+=iPJ->py();SJ_75_pz+=iPJ->pz();SJ_75_E+=iPJ->E();
+         SJ_nAK4_75_++;
       }
       if(iPJ->E()>100)
       {
          SJ_100_px+=iPJ->px();SJ_100_py+=iPJ->py();SJ_100_pz+=iPJ->pz();SJ_100_E+=iPJ->E();
          SJ_nAK4_100_++; 
       }
+
       if(iPJ->E()>150)
       {
          SJ_150_px+=iPJ->px();SJ_150_py+=iPJ->py();SJ_150_pz+=iPJ->pz();SJ_150_E+=iPJ->E();
          SJ_nAK4_150_++; 
       }
+
       if(iPJ->E()>200)
       {
          SJ_200_px+=iPJ->px();SJ_200_py+=iPJ->py();SJ_200_pz+=iPJ->pz();SJ_200_E+=iPJ->E();
@@ -873,6 +1075,26 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
       {
          SJ_300_px+=iPJ->px();SJ_300_py+=iPJ->py();SJ_300_pz+=iPJ->pz();SJ_300_E+=iPJ->E();
          SJ_nAK4_300_++; 
+      }
+      if(iPJ->E()>400)
+      {
+         SJ_400_px+=iPJ->px();SJ_400_py+=iPJ->py();SJ_400_pz+=iPJ->pz();SJ_400_E+=iPJ->E();
+         SJ_nAK4_400_++; 
+      }
+      if(iPJ->E()>500)
+      {
+         SJ_500_px+=iPJ->px();SJ_500_py+=iPJ->py();SJ_500_pz+=iPJ->pz();SJ_500_E+=iPJ->E();
+         SJ_nAK4_500_++; 
+      }
+      if(iPJ->E()>800)
+      {
+         SJ_800_px+=iPJ->px();SJ_800_py+=iPJ->py();SJ_800_pz+=iPJ->pz();SJ_800_E+=iPJ->E();
+         SJ_nAK4_800_++; 
+      }
+      if(iPJ->E()>1000)
+      {
+         SJ_1000_px+=iPJ->px();SJ_1000_py+=iPJ->py();SJ_1000_pz+=iPJ->pz();SJ_1000_E+=iPJ->E();
+         SJ_nAK4_1000_++; 
       }
       pseudoJetNum++;
    }
@@ -904,13 +1126,82 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
 
    double sumPz_AK41 =0,sumPz_AK42 = 0,sumPz_AK43 = 0,sumPz_AK44 = 0;
    double sumP_AK41 = 0,sumP_AK42 = 0,sumP_AK43 = 0, sumP_AK44 = 0;
+
+   int n_AK41_parts_1 = 0, n_AK41_parts_5 = 0, n_AK41_parts_10 =0; // n_AK41_parts_20=0, n_AK41_parts_40=0, n_AK41_parts_50=0, n_AK41_parts_75=0, n_AK41_parts_100=0;
+   int n_AK41_parts_0p1 = 0, n_AK41_parts_0p5 = 0, n_AK41_parts_2 =0, n_AK41_parts_7p5=0, n_AK41_parts_15=0;
+   int n_AK42_parts_1 = 0, n_AK42_parts_5 = 0, n_AK42_parts_10 =0; 
+   int n_AK42_parts_0p1 = 0, n_AK42_parts_0p5 = 0, n_AK42_parts_2 =0, n_AK42_parts_7p5=0, n_AK42_parts_15=0;
+   int n_AK43_parts_1 = 0, n_AK43_parts_5 = 0, n_AK43_parts_10 =0; 
+   int n_AK43_parts_0p1 = 0, n_AK43_parts_0p5 = 0, n_AK43_parts_2 =0, n_AK43_parts_7p5=0, n_AK43_parts_15=0;
+   int n_AK44_parts_1 = 0, n_AK44_parts_5 = 0, n_AK44_parts_10 =0; 
+   int n_AK44_parts_0p1 = 0, n_AK44_parts_0p5 = 0, n_AK44_parts_2 =0, n_AK44_parts_7p5=0, n_AK44_parts_15=0;
+
+
+   TLorentzVector AK41_0p1(0,0,0,0); TLorentzVector AK41_0p5(0,0,0,0); TLorentzVector AK41_1(0,0,0,0); 
+   TLorentzVector AK41_2(0,0,0,0); TLorentzVector AK41_5(0,0,0,0); TLorentzVector AK41_7p5(0,0,0,0);
+   TLorentzVector AK41_10(0,0,0,0); TLorentzVector AK41_15(0,0,0,0);
+   TLorentzVector AK41_20(0,0,0,0); //TLorentzVector AK41_40(0,0,0,0);
+   //TLorentzVector AK41_50(0,0,0,0); TLorentzVector AK41_75(0,0,0,0); TLorentzVector AK41_100(0,0,0,0);
+   TLorentzVector AK42_0p1(0,0,0,0); TLorentzVector AK42_0p5(0,0,0,0); TLorentzVector AK42_1(0,0,0,0); 
+   TLorentzVector AK42_2(0,0,0,0); TLorentzVector AK42_5(0,0,0,0); TLorentzVector AK42_7p5(0,0,0,0);
+   TLorentzVector AK42_10(0,0,0,0); TLorentzVector AK42_15(0,0,0,0);
+   TLorentzVector AK42_20(0,0,0,0); 
+   TLorentzVector AK43_0p1(0,0,0,0); TLorentzVector AK43_0p5(0,0,0,0); TLorentzVector AK43_1(0,0,0,0); 
+   TLorentzVector AK43_2(0,0,0,0); TLorentzVector AK43_5(0,0,0,0); TLorentzVector AK43_7p5(0,0,0,0);
+   TLorentzVector AK43_10(0,0,0,0); TLorentzVector AK43_15(0,0,0,0);
+   TLorentzVector AK43_20(0,0,0,0); 
+   TLorentzVector AK44_0p1(0,0,0,0); TLorentzVector AK44_0p5(0,0,0,0); TLorentzVector AK44_1(0,0,0,0); 
+   TLorentzVector AK44_2(0,0,0,0); TLorentzVector AK44_5(0,0,0,0); TLorentzVector AK44_7p5(0,0,0,0);
+   TLorentzVector AK44_10(0,0,0,0); TLorentzVector AK44_15(0,0,0,0);
+   TLorentzVector AK44_20(0,0,0,0); 
+
    for(auto iP = AK41_parts.begin(); iP != AK41_parts.end(); iP++)
    {
       iP->Boost(-AK41_boost.X(),-AK41_boost.Y(), -AK41_boost.Z());
       boostedAK41_Part_TLV.push_back(TLorentzVector(iP->Px(),iP->Py(),iP->Pz(),iP->E()));
       boostedAK41_Part_LC.push_back(reco::LeafCandidate(+1, reco::Candidate::LorentzVector(iP->Px(),iP->Py(),iP->Pz(),iP->E())));
       boostedAK41_Part_XYZ.push_back(math::XYZVector( iP->Px(),iP->Py(),iP->Pz() ));
-      sumPz_AK41+=iP->Pz(); sumP_AK41+= abs(iP->P());
+      if(iP->E() > 0.1)
+      {
+         AK41_0p1+= *iP;
+         n_AK41_parts_0p1++;
+      }
+      if(iP->E() > 0.5)
+      {
+         AK41_0p5+= *iP;
+         n_AK41_parts_0p5++;
+      }
+      if(iP->E() > 1)
+      {
+         AK41_1+= *iP;
+         n_AK41_parts_1++;
+      }
+      if(iP->E() > 2)
+      {
+         AK41_2+= *iP;
+         n_AK41_parts_2++;
+      }
+      if(iP->E() > 5)
+      {
+         AK41_5+= *iP;
+         n_AK41_parts_5++;
+      }
+      if(iP->E() > 7.5)
+      {
+         AK41_7p5+= *iP;
+         n_AK41_parts_7p5++;
+      }
+      if(iP->E() > 10)
+      {
+         AK41_10+= *iP;
+         n_AK41_parts_10++;
+      }
+      if(iP->E() > 15)
+      {
+         AK41_15+= *iP;
+         n_AK41_parts_15++;
+      }
+      sumPz_AK41+= abs(iP->Pz()); sumP_AK41+= abs(iP->P());
    }
    for(auto iP = AK42_parts.begin(); iP != AK42_parts.end(); iP++)
    {
@@ -918,7 +1209,47 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
       boostedAK42_Part_TLV.push_back(TLorentzVector(iP->Px(),iP->Py(),iP->Pz(),iP->E()));
       boostedAK42_Part_LC.push_back(reco::LeafCandidate(+1, reco::Candidate::LorentzVector(iP->Px(),iP->Py(),iP->Pz(),iP->E())));
       boostedAK42_Part_XYZ.push_back(math::XYZVector( iP->Px(),iP->Py(),iP->Pz() ));  
-      sumPz_AK42+=iP->Pz(); sumP_AK42+= abs(iP->P());
+      if(iP->E() > 0.1)
+      {
+         AK42_0p1+= *iP;
+         n_AK42_parts_0p1++;
+      }
+      if(iP->E() > 0.5)
+      {
+         AK42_0p5+= *iP;
+         n_AK42_parts_0p5++;
+      }
+      if(iP->E() > 1)
+      {
+         AK42_1+= *iP;
+         n_AK42_parts_1++;
+      }
+      if(iP->E() > 2)
+      {
+         AK42_2+= *iP;
+         n_AK42_parts_2++;
+      }
+      if(iP->E() > 5)
+      {
+         AK42_5+= *iP;
+         n_AK42_parts_5++;
+      }
+      if(iP->E() > 7.5)
+      {
+         AK42_7p5+= *iP;
+         n_AK42_parts_7p5++;
+      }
+      if(iP->E() > 10)
+      {
+         AK42_10+= *iP;
+         n_AK42_parts_10++;
+      }
+      if(iP->E() > 15)
+      {
+         AK42_15+= *iP;
+         n_AK42_parts_15++;
+      }
+      sumPz_AK42+= abs(iP->Pz()); sumP_AK42+= abs(iP->P());
    }
    for(auto iP = AK43_parts.begin(); iP != AK43_parts.end(); iP++)
    {
@@ -926,7 +1257,47 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
       boostedAK43_Part_TLV.push_back(TLorentzVector(iP->Px(),iP->Py(),iP->Pz(),iP->E()));
       boostedAK43_Part_LC.push_back(reco::LeafCandidate(+1, reco::Candidate::LorentzVector(iP->Px(),iP->Py(),iP->Pz(),iP->E())));
       boostedAK43_Part_XYZ.push_back(math::XYZVector( iP->Px(),iP->Py(),iP->Pz() )); 
-      sumPz_AK43 += iP->Pz(); sumP_AK43 += abs(iP->P());   
+      if(iP->E() > 0.1)
+      {
+         AK43_0p1+= *iP;
+         n_AK43_parts_0p1++;
+      }
+      if(iP->E() > 0.5)
+      {
+         AK43_0p5+= *iP;
+         n_AK43_parts_0p5++;
+      }
+      if(iP->E() > 1)
+      {
+         AK43_1+= *iP;
+         n_AK43_parts_1++;
+      }
+      if(iP->E() > 2)
+      {
+         AK43_2+= *iP;
+         n_AK43_parts_2++;
+      }
+      if(iP->E() > 5)
+      {
+         AK43_5+= *iP;
+         n_AK43_parts_5++;
+      }
+      if(iP->E() > 7.5)
+      {
+         AK43_7p5+= *iP;
+         n_AK43_parts_7p5++;
+      }
+      if(iP->E() > 10)
+      {
+         AK43_10+= *iP;
+         n_AK43_parts_10++;
+      }
+      if(iP->E() > 15)
+      {
+         AK43_15+= *iP;
+         n_AK43_parts_15++;
+      }
+      sumPz_AK43 += abs(iP->Pz()); sumP_AK43 += abs(iP->P());   
    }
    for(auto iP = AK44_parts.begin(); iP != AK44_parts.end(); iP++)
    {
@@ -934,7 +1305,47 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
       boostedAK44_Part_TLV.push_back(TLorentzVector(iP->Px(),iP->Py(),iP->Pz(),iP->E()));
       boostedAK44_Part_LC.push_back(reco::LeafCandidate(+1, reco::Candidate::LorentzVector(iP->Px(),iP->Py(),iP->Pz(),iP->E())));
       boostedAK44_Part_XYZ.push_back(math::XYZVector( iP->Px(),iP->Py(),iP->Pz() )); 
-      sumPz_AK44 += iP->Pz(); sumP_AK44 += abs(iP->P());   
+      if(iP->E() > 0.1)
+      {
+         AK44_0p1+= *iP;
+         n_AK44_parts_0p1++;
+      }
+      if(iP->E() > 0.5)
+      {
+         AK44_0p5+= *iP;
+         n_AK44_parts_0p5++;
+      }
+      if(iP->E() > 1)
+      {
+         AK44_1+= *iP;
+         n_AK44_parts_1++;
+      }
+      if(iP->E() > 2)
+      {
+         AK44_2+= *iP;
+         n_AK44_parts_2++;
+      }
+      if(iP->E() > 5)
+      {
+         AK44_5+= *iP;
+         n_AK44_parts_5++;
+      }
+      if(iP->E() > 7.5)
+      {
+         AK44_7p5+= *iP;
+         n_AK44_parts_7p5++;
+      }
+      if(iP->E() > 10)
+      {
+         AK44_10+= *iP;
+         n_AK44_parts_10++;
+      }
+      if(iP->E() > 15)
+      {
+         AK44_15+= *iP;
+         n_AK44_parts_15++;
+      }
+      sumPz_AK44 += abs(iP->Pz()); sumP_AK44 += abs(iP->P());   
    }
 
    ////vectors to get angles
@@ -945,7 +1356,12 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    TVector3 AK4_jet4(jetsFJ_jet[3].px(),jetsFJ_jet[3].py(),jetsFJ_jet[3].pz());
 
    //fill superjet variables here ...
+
+   
+
+
    //SJ mass variables
+
    treeVars["SJ_mass"]    = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2)); 
    treeVars["SJ_mass_25"] = sqrt(pow(SJ_25_E,2)-pow(SJ_25_px,2)-pow(SJ_25_py,2)-pow(SJ_25_pz,2)); 
    treeVars["SJ_mass_50"] = sqrt(pow(SJ_50_E,2)-pow(SJ_50_px,2)-pow(SJ_50_py,2)-pow(SJ_50_pz,2)); 
@@ -954,141 +1370,31 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    treeVars["SJ_mass_200"] = sqrt(pow(SJ_200_E,2)-pow(SJ_200_px,2)-pow(SJ_200_py,2)-pow(SJ_200_pz,2)); 
    treeVars["SJ_mass_300"] = sqrt(pow(SJ_300_E,2)-pow(SJ_300_px,2)-pow(SJ_300_py,2)-pow(SJ_300_pz,2)); 
 
+   treeVars["SJ_mass_400"] = sqrt(pow(SJ_400_E,2)-pow(SJ_400_px,2)-pow(SJ_400_py,2)-pow(SJ_400_pz,2)); 
+   treeVars["SJ_mass_500"] = sqrt(pow(SJ_500_E,2)-pow(SJ_500_px,2)-pow(SJ_500_py,2)-pow(SJ_500_pz,2)); 
+   treeVars["SJ_mass_800"] = sqrt(pow(SJ_800_E,2)-pow(SJ_800_px,2)-pow(SJ_800_py,2)-pow(SJ_800_pz,2)); 
+   treeVars["SJ_mass_1000"] = sqrt(pow(SJ_1000_E,2)-pow(SJ_1000_px,2)-pow(SJ_1000_py,2)-pow(SJ_1000_pz,2)); 
+
+   double offsetInts = 0.5;
 
    //SJ nAK4 variables
-   treeVars["SJ_nAK4_25"] = SJ_nAK4_25_; 
-   treeVars["SJ_nAK4_50"] = SJ_nAK4_50_; 
-   treeVars["SJ_nAK4_100"] = SJ_nAK4_100_; 
-   treeVars["SJ_nAK4_150"] = SJ_nAK4_150_; 
-   treeVars["SJ_nAK4_200"] = SJ_nAK4_200_; 
-   treeVars["SJ_nAK4_300"] = SJ_nAK4_300_; 
-
-   //softdrop mass???
-   //bjet particle percentages
-
-   //AK4 jet mass combinations
-   treeVars["AK4_m1"] = jetsFJ_jet[0].m();   
-   treeVars["AK4_m2"] = jetsFJ_jet[1].m(); 
-   treeVars["AK4_m3"] = jetsFJ_jet[2].m(); 
-   treeVars["AK4_m4"] = jetsFJ_jet[3].m(); 
-
-   treeVars["AK41_E"] = jetsFJ_jet[0].E(); 
-   treeVars["AK42_E"] = jetsFJ_jet[1].E(); 
-   treeVars["AK43_E"] = jetsFJ_jet[2].E(); 
-   treeVars["AK44_E"] = jetsFJ_jet[3].E(); 
+   treeVars["SJ_nAK4_25"] = SJ_nAK4_25_ + offsetInts; 
+   treeVars["SJ_nAK4_50"] = SJ_nAK4_50_ + offsetInts; 
+   treeVars["SJ_nAK4_100"] = SJ_nAK4_100_ + offsetInts; 
+   treeVars["SJ_nAK4_150"] = SJ_nAK4_150_ + offsetInts; 
+   treeVars["SJ_nAK4_200"] = SJ_nAK4_200_ + offsetInts; 
+   treeVars["SJ_nAK4_300"] = SJ_nAK4_300_ + offsetInts; 
+   treeVars["SJ_nAK4_400"] = SJ_nAK4_400_ + offsetInts; 
+   treeVars["SJ_nAK4_500"] = SJ_nAK4_500_ + offsetInts; 
+   treeVars["SJ_nAK4_800"] = SJ_nAK4_800_ + offsetInts; 
+   treeVars["SJ_nAK4_1000"] = SJ_nAK4_1000_ + offsetInts; 
 
 
-   treeVars["AK4_m12"] = sqrt( pow(jetsFJ_jet[0].E() + jetsFJ_jet[1].E() ,2) - pow(jetsFJ_jet[0].px() + jetsFJ_jet[1].px(),2) - pow(jetsFJ_jet[0].py() + jetsFJ_jet[1].py(),2)- pow(jetsFJ_jet[0].pz() + jetsFJ_jet[1].pz(),2));   
-   treeVars["AK4_m13"] = sqrt( pow(jetsFJ_jet[0].E() + jetsFJ_jet[2].E() ,2) - pow(jetsFJ_jet[0].px() + jetsFJ_jet[2].px(),2) - pow(jetsFJ_jet[0].py() + jetsFJ_jet[2].py(),2)- pow(jetsFJ_jet[0].pz() + jetsFJ_jet[2].pz(),2));   
-   treeVars["AK4_m14"] = sqrt( pow(jetsFJ_jet[0].E() + jetsFJ_jet[3].E() ,2) - pow(jetsFJ_jet[0].px() + jetsFJ_jet[3].px(),2) - pow(jetsFJ_jet[0].py() + jetsFJ_jet[3].py(),2)- pow(jetsFJ_jet[0].pz() + jetsFJ_jet[3].pz(),2));   
-   treeVars["AK4_m23"] = sqrt( pow(jetsFJ_jet[2].E() + jetsFJ_jet[1].E() ,2) - pow(jetsFJ_jet[2].px() + jetsFJ_jet[1].px(),2) - pow(jetsFJ_jet[2].py() + jetsFJ_jet[1].py(),2)- pow(jetsFJ_jet[2].pz() + jetsFJ_jet[1].pz(),2));   
-   treeVars["AK4_m24"] = sqrt( pow(jetsFJ_jet[3].E() + jetsFJ_jet[1].E() ,2) - pow(jetsFJ_jet[3].px() + jetsFJ_jet[1].px(),2) - pow(jetsFJ_jet[3].py() + jetsFJ_jet[1].py(),2)- pow(jetsFJ_jet[3].pz() + jetsFJ_jet[1].pz(),2));   
-   treeVars["AK4_m34"] = sqrt( pow(jetsFJ_jet[2].E() + jetsFJ_jet[3].E() ,2) - pow(jetsFJ_jet[2].px() + jetsFJ_jet[3].px(),2) - pow(jetsFJ_jet[2].py() + jetsFJ_jet[3].py(),2)- pow(jetsFJ_jet[2].pz() + jetsFJ_jet[3].pz(),2));   
+   treeVars["AK41_nDaughters"] = jetsFJ_jet[0].constituents().size() + offsetInts; 
+   treeVars["AK42_nDaughters"] = jetsFJ_jet[1].constituents().size() + offsetInts; 
+   treeVars["AK43_nDaughters"] = jetsFJ_jet[2].constituents().size() + offsetInts; 
+   treeVars["AK44_nDaughters"] = jetsFJ_jet[3].constituents().size() + offsetInts; 
 
-   treeVars["AK4_m123"] =sqrt( pow(jetsFJ_jet[0].E() + jetsFJ_jet[1].E() + jetsFJ_jet[2].E() ,2) - pow(jetsFJ_jet[0].px() + jetsFJ_jet[1].px() + jetsFJ_jet[2].px(),2) - pow(jetsFJ_jet[0].py() + jetsFJ_jet[1].py() + jetsFJ_jet[2].py(),2)- pow(jetsFJ_jet[0].pz() + jetsFJ_jet[1].pz() + jetsFJ_jet[2].pz(),2));   
-   treeVars["AK4_m124"] =sqrt( pow(jetsFJ_jet[0].E() + jetsFJ_jet[1].E() + jetsFJ_jet[3].E() ,2) - pow(jetsFJ_jet[0].px() + jetsFJ_jet[1].px() + jetsFJ_jet[3].px(),2) - pow(jetsFJ_jet[0].py() + jetsFJ_jet[1].py() + jetsFJ_jet[3].py(),2)- pow(jetsFJ_jet[0].pz() + jetsFJ_jet[1].pz() + jetsFJ_jet[3].pz(),2));   
-   treeVars["AK4_m134"] =sqrt( pow(jetsFJ_jet[0].E() + jetsFJ_jet[2].E() + jetsFJ_jet[3].E() ,2) - pow(jetsFJ_jet[0].px() + jetsFJ_jet[2].px() + jetsFJ_jet[3].px(),2) - pow(jetsFJ_jet[0].py() + jetsFJ_jet[2].py() + jetsFJ_jet[3].py(),2)- pow(jetsFJ_jet[0].pz() + jetsFJ_jet[2].pz() + jetsFJ_jet[3].pz(),2));   
-   treeVars["AK4_m234"] =sqrt( pow(jetsFJ_jet[1].E() + jetsFJ_jet[2].E() + jetsFJ_jet[3].E() ,2) - pow(jetsFJ_jet[1].px() + jetsFJ_jet[2].px() + jetsFJ_jet[3].px(),2) - pow(jetsFJ_jet[1].py() + jetsFJ_jet[2].py() + jetsFJ_jet[3].py(),2)- pow(jetsFJ_jet[1].pz() + jetsFJ_jet[2].pz() + jetsFJ_jet[3].pz(),2));   
-
-   treeVars["AK4_m1234"] =sqrt( pow(jetsFJ_jet[0].E() + jetsFJ_jet[1].E() + jetsFJ_jet[2].E()+jetsFJ_jet[3].E() ,2) - pow(jetsFJ_jet[0].px() + jetsFJ_jet[1].px() + jetsFJ_jet[2].px()+jetsFJ_jet[3].px(),2) - pow(jetsFJ_jet[0].py() + jetsFJ_jet[1].py() + jetsFJ_jet[2].py()+jetsFJ_jet[3].py(),2)- pow(jetsFJ_jet[0].pz() + jetsFJ_jet[1].pz() + jetsFJ_jet[2].pz()+jetsFJ_jet[3].pz(),2));   
-   
-
-   //AK4 jet angles 
-   treeVars["AK4_theta12"] = abs(AK4_jet1.Angle(AK4_jet2));   
-   treeVars["AK4_theta13"] = abs(AK4_jet1.Angle(AK4_jet3));
-   treeVars["AK4_theta14"] = abs(AK4_jet1.Angle(AK4_jet4));
-   treeVars["AK4_theta23"] = abs(AK4_jet2.Angle(AK4_jet3));
-   treeVars["AK4_theta24"] = abs(AK4_jet2.Angle(AK4_jet4));
-   treeVars["AK4_theta34"] = abs(AK4_jet3.Angle(AK4_jet4));
-
-   EventShapeVariables eventShapesAK41( boostedAK41_Part_XYZ );
-   Thrust thrustCalculatorAK41( boostedAK41_Part_LC.begin(), boostedAK41_Part_LC.end() );
-   double fwmAK41[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
-   FWMoments( boostedAK41_Part_TLV, fwmAK41); 
-
-   EventShapeVariables eventShapesAK42( boostedAK42_Part_XYZ );
-   Thrust thrustCalculatorAK42( boostedAK42_Part_LC.begin(), boostedAK42_Part_LC.end() );
-   double fwmAK42[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
-   FWMoments( boostedAK42_Part_TLV, fwmAK42); 
-
-   EventShapeVariables eventShapesAK43( boostedAK43_Part_XYZ );
-   Thrust thrustCalculatorAK43( boostedAK43_Part_LC.begin(), boostedAK43_Part_LC.end() );
-   double fwmAK43[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
-   FWMoments( boostedAK43_Part_TLV, fwmAK43); 
-
-   EventShapeVariables eventShapesAK44( boostedAK44_Part_XYZ );
-   Thrust thrustCalculatorAK44( boostedAK44_Part_LC.begin(), boostedAK44_Part_LC.end() );
-   double fwmAK44[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
-   FWMoments( boostedAK44_Part_TLV, fwmAK44); 
-
-
-   //AK4 jet boosted information - boost reclustered AK4 jets into their COM and look at BES variables, ndaughters, nsubjettiness
-   treeVars["AK41_ndaughters"] = jetsFJ_jet[0].constituents().size();  
-   treeVars["AK41_nsubjets"] = jetsFJ_jet[0].n_exclusive_subjets(0.2); 
-   treeVars["AK41_thrust"] = thrustCalculatorAK41.thrust();
-   treeVars["AK41_sphericity"] = eventShapesAK41.sphericity();
-   treeVars["AK41_asymmetry"] = sumPz_AK41/sumP_AK41; 
-   treeVars["AK41_isotropy"] = eventShapesAK41.isotropy();
-   treeVars["AK41_aplanarity"] = eventShapesAK41.aplanarity();
-   treeVars["AK41_FW1"] = fwmAK41[1]; 
-   treeVars["AK41_FW2"] = fwmAK41[2]; 
-   treeVars["AK41_FW3"] = fwmAK41[3]; 
-   treeVars["AK41_FW4"] = fwmAK41[4]; 
-
-   treeVars["AK42_ndaughters"] = jetsFJ_jet[1].constituents().size(); 
-   treeVars["AK42_nsubjets"] = jetsFJ_jet[1].exclusive_subjets(0.2).size();
-   treeVars["AK42_thrust"] = thrustCalculatorAK42.thrust(); 
-   treeVars["AK42_sphericity"] = eventShapesAK42.sphericity();
-   treeVars["AK42_asymmetry"] = sumPz_AK42/sumP_AK42; 
-   treeVars["AK42_isotropy"] = eventShapesAK42.isotropy();
-   treeVars["AK42_aplanarity"] = eventShapesAK42.aplanarity();
-   treeVars["AK42_FW1"] = fwmAK42[1]; 
-   treeVars["AK42_FW2"] = fwmAK42[2]; 
-   treeVars["AK42_FW3"] = fwmAK42[3]; 
-   treeVars["AK42_FW4"] = fwmAK42[4]; 
-
-   treeVars["AK43_ndaughters"] = jetsFJ_jet[2].constituents().size(); 
-   treeVars["AK43_nsubjets"] = jetsFJ_jet[2].exclusive_subjets(0.2).size();
-   treeVars["AK43_thrust"] = thrustCalculatorAK43.thrust();
-   treeVars["AK43_sphericity"] = eventShapesAK43.sphericity();
-   treeVars["AK43_asymmetry"] = sumPz_AK43/sumP_AK43; 
-   treeVars["AK43_isotropy"] = eventShapesAK43.isotropy();
-   treeVars["AK43_aplanarity"] = eventShapesAK43.aplanarity();
-   treeVars["AK43_FW1"] = fwmAK43[1]; 
-   treeVars["AK43_FW2"] = fwmAK43[2]; 
-   treeVars["AK43_FW3"] = fwmAK43[3]; 
-   treeVars["AK43_FW4"] = fwmAK43[4]; 
-
-        //treeVars["AK44_ndaughters"] = jetsFJ_jet[3].constituents().size(); 
-        //treeVars["AK43_Tau32"] = ; 
-        //treeVars["AK43_Tau21"] = ; 
-        //treeVars["AK44_nsubjets"] = jetsFJ_jet[3].exclusive_subjets(0.2).size();
-        //treeVars["AK44_thrust"] = thrustCalculatorAK44.thrust();
-        //treeVars["AK44_sphericity"] = eventShapesAK44.sphericity();
-        //treeVars["AK44_asymmetry"] = sumPz_AK44/sumP_AK44; 
-        //treeVars["AK44_isotropy"] = eventShapesAK44.isotropy();
-        //treeVars["AK44_aplanarity"] = eventShapesAK44.aplanarity();
-        //treeVars["AK44_FW1"] = fwmAK44[1]; 
-        //treeVars["AK44_FW2"] = fwmAK44[2]; 
-        //treeVars["AK44_FW3"] = fwmAK44[3]; 
-        //treeVars["AK44_FW4"] = fwmAK44[4]; 
-
-   //Full SJ BES variablesf
-   EventShapeVariables eventShapes( boostedSuperJetPart_XYZ );
-   Thrust thrustCalculator( boostedSuperJetPart_LC.begin(), boostedSuperJetPart_LC.end() );
-   double fwm[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
-   FWMoments( boostedSuperJetPart_TLV, fwm); 
-   treeVars["SJ_thrust"] = thrustCalculator.thrust();
-   treeVars["SJ_sphericity"] = eventShapes.sphericity();
-   treeVars["SJ_asymmetry"] = sumPz/sumP; 
-   treeVars["SJ_isotropy"] = eventShapes.isotropy();
-   treeVars["SJ_aplanarity"] = eventShapes.aplanarity();
-   treeVars["SJ_FW1"] = fwm[1]; 
-   treeVars["SJ_FW2"] = fwm[2]; 
-   treeVars["SJ_FW3"] = fwm[3]; 
-   treeVars["SJ_FW4"] = fwm[4]; 
-
-///////////////////// BESvars for tree//////////////////////////////////////////
 
    //AK4 jet mass combinations
    AK4_m1[nSuperJets] = jetsFJ_jet[0].m();   
@@ -1122,6 +1428,29 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    AK4_theta23[nSuperJets] = abs(AK4_jet2.Angle(AK4_jet3));
    AK4_theta24[nSuperJets] = abs(AK4_jet2.Angle(AK4_jet4));
    AK4_theta34[nSuperJets] = abs(AK4_jet3.Angle(AK4_jet4));
+
+   EventShapeVariables eventShapesAK41( boostedAK41_Part_XYZ );
+   Thrust thrustCalculatorAK41( boostedAK41_Part_LC.begin(), boostedAK41_Part_LC.end() );
+   double fwmAK41[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
+   FWMoments( boostedAK41_Part_TLV, fwmAK41); 
+
+   EventShapeVariables eventShapesAK42( boostedAK42_Part_XYZ );
+   Thrust thrustCalculatorAK42( boostedAK42_Part_LC.begin(), boostedAK42_Part_LC.end() );
+   double fwmAK42[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
+   FWMoments( boostedAK42_Part_TLV, fwmAK42); 
+
+   EventShapeVariables eventShapesAK43( boostedAK43_Part_XYZ );
+   Thrust thrustCalculatorAK43( boostedAK43_Part_LC.begin(), boostedAK43_Part_LC.end() );
+   double fwmAK43[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
+   FWMoments( boostedAK43_Part_TLV, fwmAK43); 
+
+   EventShapeVariables eventShapesAK44( boostedAK44_Part_XYZ );
+   Thrust thrustCalculatorAK44( boostedAK44_Part_LC.begin(), boostedAK44_Part_LC.end() );
+   double fwmAK44[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
+   FWMoments( boostedAK44_Part_TLV, fwmAK44); 
+
+
+
    //AK4 jet boosted information - boost reclustered AK4 jets into their COM and look at BES variables, ndaughters, nsubjettiness
    AK41_ndaughters[nSuperJets] = jetsFJ_jet[0].constituents().size();  
    AK41_nsubjets[nSuperJets] = jetsFJ_jet[0].n_exclusive_subjets(0.2); 
@@ -1159,6 +1488,12 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    AK43_FW3[nSuperJets] = fwmAK43[3]; 
    AK43_FW4[nSuperJets] = fwmAK43[4]; 
 
+   EventShapeVariables eventShapes( boostedSuperJetPart_XYZ );
+   Thrust thrustCalculator( boostedSuperJetPart_LC.begin(), boostedSuperJetPart_LC.end() );
+   double fwm[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
+   FWMoments( boostedSuperJetPart_TLV, fwm); 
+
+
    SJ_thrust[nSuperJets] = thrustCalculator.thrust();
    SJ_sphericity[nSuperJets] = eventShapes.sphericity();
    SJ_asymmetry[nSuperJets] = sumPz/sumP; 
@@ -1169,15 +1504,207 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    SJ_FW3[nSuperJets] = fwm[3]; 
    SJ_FW4[nSuperJets] = fwm[4];
 
+
+   //AK4 jet mass combinations
+   treeVars["AK4_m1"] = AK4_m1[nSuperJets]; 
+   treeVars["AK4_m2"] = AK4_m2[nSuperJets]; 
+   treeVars["AK4_m3"] = AK4_m3[nSuperJets]; 
+   treeVars["AK4_m4"] = AK4_m4[nSuperJets]; 
+
+   treeVars["AK41_E"] = AK41_E_tree[nSuperJets]; 
+   treeVars["AK42_E"] = AK42_E_tree[nSuperJets]; 
+   treeVars["AK43_E"] = AK43_E_tree[nSuperJets]; 
+   treeVars["AK44_E"] = AK44_E_tree[nSuperJets]; 
+
+
+   treeVars["AK4_m12"] = AK4_m12[nSuperJets];   
+   treeVars["AK4_m13"] = AK4_m13[nSuperJets];   
+   treeVars["AK4_m14"] = AK4_m14[nSuperJets];   
+   treeVars["AK4_m23"] = AK4_m23[nSuperJets];   
+   treeVars["AK4_m24"] = AK4_m24[nSuperJets];   
+   treeVars["AK4_m34"] = AK4_m34[nSuperJets];   
+
+   treeVars["AK4_m123"] = AK4_m123[nSuperJets];   
+   treeVars["AK4_m124"] =AK4_m124[nSuperJets];   
+   treeVars["AK4_m134"] =AK4_m134[nSuperJets];   
+   treeVars["AK4_m234"] = AK4_m234[nSuperJets];   
+
+   treeVars["AK4_m1234"] = AK4_m1234[nSuperJets];   
+   
+
+   //AK4 jet angles 
+   treeVars["AK4_theta12"] = AK4_theta12[nSuperJets];   
+   treeVars["AK4_theta13"] = AK4_theta13[nSuperJets];
+   treeVars["AK4_theta14"] = AK4_theta14[nSuperJets];
+   treeVars["AK4_theta23"] = AK4_theta23[nSuperJets];
+   treeVars["AK4_theta24"] = AK4_theta24[nSuperJets];
+   treeVars["AK4_theta34"] = AK4_theta34[nSuperJets];
+
+   //AK4 jet boosted information - boost reclustered AK4 jets into their COM and look at BES variables, ndaughters, nsubjettiness
+   treeVars["AK41_nsubjets"] = jetsFJ_jet[0].n_exclusive_subjets(0.2); 
+   treeVars["AK41_thrust"] = thrustCalculatorAK41.thrust();
+   treeVars["AK41_sphericity"] = eventShapesAK41.sphericity();
+   treeVars["AK41_asymmetry"] = sumPz_AK41/sumP_AK41; 
+   treeVars["AK41_isotropy"] = eventShapesAK41.isotropy();
+   treeVars["AK41_aplanarity"] = eventShapesAK41.aplanarity();
+   treeVars["AK41_FW1"] = fwmAK41[1]; 
+   treeVars["AK41_FW2"] = fwmAK41[2]; 
+   treeVars["AK41_FW3"] = fwmAK41[3]; 
+   treeVars["AK41_FW4"] = fwmAK41[4]; 
+
+   treeVars["AK42_nsubjets"] = jetsFJ_jet[1].exclusive_subjets(0.2).size();
+   treeVars["AK42_thrust"] = thrustCalculatorAK42.thrust(); 
+   treeVars["AK42_sphericity"] = eventShapesAK42.sphericity();
+   treeVars["AK42_asymmetry"] = sumPz_AK42/sumP_AK42; 
+   treeVars["AK42_isotropy"] = eventShapesAK42.isotropy();
+   treeVars["AK42_aplanarity"] = eventShapesAK42.aplanarity();
+   treeVars["AK42_FW1"] = fwmAK42[1]; 
+   treeVars["AK42_FW2"] = fwmAK42[2]; 
+   treeVars["AK42_FW3"] = fwmAK42[3]; 
+   treeVars["AK42_FW4"] = fwmAK42[4]; 
+
+   treeVars["AK43_nsubjets"] = jetsFJ_jet[2].exclusive_subjets(0.2).size();
+   treeVars["AK43_thrust"] = thrustCalculatorAK43.thrust();
+   treeVars["AK43_sphericity"] = eventShapesAK43.sphericity();
+   treeVars["AK43_asymmetry"] = sumPz_AK43/sumP_AK43; 
+   treeVars["AK43_isotropy"] = eventShapesAK43.isotropy();
+   treeVars["AK43_aplanarity"] = eventShapesAK43.aplanarity();
+   treeVars["AK43_FW1"] = fwmAK43[1]; 
+   treeVars["AK43_FW2"] = fwmAK43[2]; 
+   treeVars["AK43_FW3"] = fwmAK43[3]; 
+   treeVars["AK43_FW4"] = fwmAK43[4]; 
+
+   treeVars["AK44_nsubjets"] = jetsFJ_jet[3].exclusive_subjets(0.2).size();
+   treeVars["AK44_thrust"] = thrustCalculatorAK44.thrust();
+   treeVars["AK44_sphericity"] = eventShapesAK44.sphericity();
+   treeVars["AK44_asymmetry"] = sumPz_AK44/sumP_AK44; 
+   treeVars["AK44_isotropy"] = eventShapesAK44.isotropy();
+   treeVars["AK44_aplanarity"] = eventShapesAK44.aplanarity();
+   treeVars["AK44_FW1"] = fwmAK44[1]; 
+   treeVars["AK44_FW2"] = fwmAK44[2]; 
+   treeVars["AK44_FW3"] = fwmAK44[3]; 
+   treeVars["AK44_FW4"] = fwmAK44[4]; 
+
+   //Full SJ BES variablesf
+
+   treeVars["SJ_thrust"] = thrustCalculator.thrust();
+   treeVars["SJ_sphericity"] = eventShapes.sphericity();
+   treeVars["SJ_asymmetry"] = sumPz/sumP; 
+   treeVars["SJ_isotropy"] = eventShapes.isotropy();
+   treeVars["SJ_aplanarity"] = eventShapes.aplanarity();
+   treeVars["SJ_FW1"] = fwm[1]; 
+   treeVars["SJ_FW2"] = fwm[2]; 
+   treeVars["SJ_FW3"] = fwm[3]; 
+   treeVars["SJ_FW4"] = fwm[4]; 
+
+
+
+  if(testNewVars)
+  {
+
+     treeVars["SJ_AK4_frac_10"] = 1.0*SJ_nAK4_10_ / SJ_nAK4_1;
+     treeVars["SJ_AK4_frac_25"] = 1.0*SJ_nAK4_25_ / SJ_nAK4_1;
+     treeVars["SJ_AK4_frac_50"] = 1.0*SJ_nAK4_50_ / SJ_nAK4_1;
+     treeVars["SJ_AK4_frac_75"] = 1.0*SJ_nAK4_75_ / SJ_nAK4_1;
+     treeVars["SJ_AK4_frac_100"] = 1.0*SJ_nAK4_100_/ SJ_nAK4_1;
+     treeVars["SJ_AK4_frac_200"] = 1.0*SJ_nAK4_200_/ SJ_nAK4_1;
+     treeVars["SJ_AK4_frac_300"] = 1.0*SJ_nAK4_300_/ SJ_nAK4_1;
+     treeVars["SJ_AK4_frac_500"] = 1.0*SJ_nAK4_500_ / SJ_nAK4_1;
+     treeVars["SJ_AK4_frac_800"] = 1.0*SJ_nAK4_800_/ SJ_nAK4_1;
+
+     treeVars["AK41_daughters_frac_0p1"] = 1.0*n_AK41_parts_0p1  /AK41_parts.size();   
+     treeVars["AK41_daughters_frac_0p5"] = 1.0*n_AK41_parts_0p5  /AK41_parts.size();   
+     treeVars["AK41_daughters_frac_1"] = 1.0*n_AK41_parts_1  /AK41_parts.size();   
+     treeVars["AK41_daughters_frac_2"] = 1.0*n_AK41_parts_2  /AK41_parts.size();   
+     treeVars["AK41_daughters_frac_5"] = 1.0*n_AK41_parts_5  /AK41_parts.size(); 
+     treeVars["AK41_daughters_frac_7p5"] = 1.0*n_AK41_parts_7p5 /AK41_parts.size();     
+     treeVars["AK41_daughters_frac_10"] = 1.0*n_AK41_parts_10  /AK41_parts.size();   
+     treeVars["AK41_daughters_frac_15"] = 1.0*n_AK41_parts_15 /AK41_parts.size();   
+
+     treeVars["AK41_mass_0p1"] = AK41_0p1.M();
+     treeVars["AK41_mass_0p5"] = AK41_0p5.M();
+     treeVars["AK41_mass_1"] = AK41_1.M();
+     treeVars["AK41_mass_2"] = AK41_2.M();
+     treeVars["AK41_mass_5"] = AK41_5.M();
+     treeVars["AK41_mass_7p5"] = AK41_7p5.M();
+     treeVars["AK41_mass_10"] = AK41_10.M();
+     treeVars["AK41_mass_15"] = AK41_15.M();
+
+     treeVars["AK42_daughters_frac_0p1"] = 1.0*n_AK42_parts_0p1  /AK42_parts.size();   
+     treeVars["AK42_daughters_frac_0p5"] = 1.0*n_AK42_parts_0p5  /AK42_parts.size();   
+     treeVars["AK42_daughters_frac_1"] = 1.0*n_AK42_parts_1  /AK42_parts.size();   
+     treeVars["AK42_daughters_frac_2"] = 1.0*n_AK42_parts_2  /AK42_parts.size();   
+     treeVars["AK42_daughters_frac_5"] = 1.0*n_AK42_parts_5  /AK42_parts.size(); 
+     treeVars["AK42_daughters_frac_7p5"] = 1.0*n_AK42_parts_7p5 /AK42_parts.size();     
+     treeVars["AK42_daughters_frac_10"] = 1.0*n_AK42_parts_10  /AK42_parts.size();   
+     treeVars["AK42_daughters_frac_15"] = 1.0*n_AK42_parts_15 /AK42_parts.size();   
+
+     treeVars["AK42_mass_0p1"] = AK42_0p1.M();
+     treeVars["AK42_mass_0p5"] = AK42_0p5.M();
+     treeVars["AK42_mass_1"] = AK42_1.M();
+     treeVars["AK42_mass_2"] = AK42_2.M();
+     treeVars["AK42_mass_5"] = AK42_5.M();
+     treeVars["AK42_mass_7p5"] = AK42_7p5.M();
+     treeVars["AK42_mass_10"] = AK42_10.M();
+     treeVars["AK42_mass_15"] = AK42_15.M();
+
+     treeVars["AK43_daughters_frac_0p1"] = 1.0*n_AK43_parts_0p1  /AK43_parts.size();   
+     treeVars["AK43_daughters_frac_0p5"] = 1.0*n_AK43_parts_0p5  /AK43_parts.size();   
+     treeVars["AK43_daughters_frac_1"] = 1.0*n_AK43_parts_1  /AK43_parts.size();   
+     treeVars["AK43_daughters_frac_2"] = 1.0*n_AK43_parts_2  /AK43_parts.size();   
+     treeVars["AK43_daughters_frac_5"] = 1.0*n_AK43_parts_5  /AK43_parts.size(); 
+     treeVars["AK43_daughters_frac_7p5"] = 1.0*n_AK43_parts_7p5 /AK43_parts.size();     
+     treeVars["AK43_daughters_frac_10"] = 1.0*n_AK43_parts_10  /AK43_parts.size();   
+     treeVars["AK43_daughters_frac_15"] = 1.0*n_AK43_parts_15 /AK43_parts.size();   
+
+     treeVars["AK43_mass_0p1"] = AK43_0p1.M();
+     treeVars["AK43_mass_0p5"] = AK43_0p5.M();
+     treeVars["AK43_mass_1"] = AK43_1.M();
+     treeVars["AK43_mass_2"] = AK43_2.M();
+     treeVars["AK43_mass_5"] = AK43_5.M();
+     treeVars["AK43_mass_7p5"] = AK43_7p5.M();
+     treeVars["AK43_mass_10"] = AK43_10.M();
+     treeVars["AK43_mass_15"] = AK43_15.M();
+
+     treeVars["AK44_daughters_frac_0p1"] = 1.0*n_AK44_parts_0p1  /AK44_parts.size();   
+     treeVars["AK44_daughters_frac_0p5"] = 1.0*n_AK44_parts_0p5  /AK44_parts.size();   
+     treeVars["AK44_daughters_frac_1"] = 1.0*n_AK44_parts_1  /AK44_parts.size();   
+     treeVars["AK44_daughters_frac_2"] = 1.0*n_AK44_parts_2  /AK44_parts.size();   
+     treeVars["AK44_daughters_frac_5"] = 1.0*n_AK44_parts_5  /AK44_parts.size(); 
+     treeVars["AK44_daughters_frac_7p5"] = 1.0*n_AK44_parts_7p5 /AK44_parts.size();     
+     treeVars["AK44_daughters_frac_10"] = 1.0*n_AK44_parts_10  /AK44_parts.size();   
+     treeVars["AK44_daughters_frac_15"] = 1.0*n_AK44_parts_15 /AK44_parts.size();   
+
+     treeVars["AK44_mass_0p1"] = AK44_0p1.M();
+     treeVars["AK44_mass_0p5"] = AK44_0p5.M();
+     treeVars["AK44_mass_1"] = AK44_1.M();
+     treeVars["AK44_mass_2"] = AK44_2.M();
+     treeVars["AK44_mass_5"] = AK44_5.M();
+     treeVars["AK44_mass_7p5"] = AK44_7p5.M();
+     treeVars["AK44_mass_10"] = AK44_10.M();
+     treeVars["AK44_mass_15"] = AK44_15.M();
+
+  }
+
+
+
+
+
+///////////////////// BESvars for tree//////////////////////////////////////////
+
+
+
    for (auto i = treeVars.begin(); i!=treeVars.end(); i++)
    {
       if (  (i->second  != i->second ) || ( isinf(i->second   )  ) )
       {
-            return false; // RETURN cut - event variables are NaN or inf
+           i->second = 0;      //return false; // RETURN cut - event variables are NaN or inf
       }
       else if ( abs( i->second+999.99 ) < 1.0e-10 ) return false;
    }
    return true;
+
+
 
 
 }
@@ -1192,32 +1719,44 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    //lumiBlockNum = aux.luminosityBlock();
    eventNumber       = aux.event();
 
-   bool _verbose =  false;                    // do printouts of each section for debugging
    if(_verbose)std::cout << " -----------------Starting Event -----------------" << std::endl;
    eventnum++;
 
    edm::Handle< std::vector<reco::GenParticle> > genPartCollection; // this will be used several times throughout the code
 
-   if( (runType.find("Suu")!=std::string::npos ))
-   {
 
-      edm::Handle<edm::TriggerResults> triggerBits;
-      iEvent.getByToken(triggerBits_, triggerBits);
-      const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+   // run trigger 
+
+   edm::Handle<edm::TriggerResults> triggerBits;
+   iEvent.getByToken(triggerBits_, triggerBits);
+
+   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+   
+   for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
+   {
+      std::string trigname = *iT;
+      if(debug)std::cout << "Looking for the " << trigname << " trigger." << std::endl;
+
       bool pass = false;
-      std::string trigname= triggers;
       for (unsigned int i = 0; i < triggerBits->size(); ++i) 
       {
          const std::string name = names.triggerName(i);
          const bool accept = triggerBits->accept(i);
-         if ((name.find(trigname) != std::string::npos) &&(accept)) pass =true;
-      }
-
+         if ((name.find(trigname) != std::string::npos) &&(accept))
+         {
+            if(debug)std::cout << "Found the " << *iT << " trigger." << std::endl;
+            pass =true;
+         }
+      } 
       if(!pass)
       {  
-          return;
+          return; // if any of the triggers aren't found, skip event   return CUT
       }
    }
+
+
+   
+
    if(_verbose)std::cout << "In analyze" << std::endl;
 
 
@@ -1457,11 +1996,14 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          {
 
             //these are the bins of the eff histogram you need to draw from
-            // histogram size:  63, 0, 3000, 18, -2.4, 2.4   
+            // histogram size:  63, 0, 6000, 18, -2.4, 2.4   
 
-            int xbin = (int)(corrJet.pt()*30./3000.) + 1;
-            int ybin = (int)((corrJet.eta()+2.4)*18/4.8) +1;
+            // should import the histogram size here so this dosn't have to be manually changed
+            int xbin = (int)(corrJet.pt()*bTagEffMap_nPtBins/bTagEffMap_PtRange) + 1;
+            int ybin = (int)((corrJet.eta()-bTagEffMap_Eta_low)*bTagEffMap_nEtaBins/(bTagEffMap_Eta_high-bTagEffMap_Eta_low)) +1;
 
+
+            if(debug) std::cout << "bTagEffMap_nPtBins/bTagEffMap_PtRange/bTagEffMap_Eta_low/bTagEffMap_nEtaBins/bTagEffMap_Eta_high:" <<bTagEffMap_nPtBins << "/"  <<bTagEffMap_PtRange << "/" <<bTagEffMap_Eta_low << "/" <<bTagEffMap_nEtaBins << "/" <<bTagEffMap_Eta_high << std::endl;
             double SF, SF_up, SF_down;
 
             double bTag_eff_value;
@@ -1566,6 +2108,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
 
+      //if( jetVetoMap->(asd)  ) AK4_fails_veto_map[nAK4] = true;
+
+      int vetoMap_xbin = (int)((corrJet.eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;
+      int vetoMap_ybin = (int)((corrJet.phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // pt(b) = b*(range / # bins) + b0 -> (pt(b) - b0)*(# bins / range)
+      AK4_fails_veto_map[nAK4] = false;
+      if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0)
+      {
+         AK4_fails_veto_map[nAK4] = true;
+      }
+
       lab_AK4_pt[nAK4] = corrJet.pt();
       AK4_mass[nAK4] = corrJet.mass();
       AK4_ptot[nAK4] = corrJet.p();
@@ -1594,19 +2146,20 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       bTag_eventWeight_up  =  (data_tagged_up*data_notTagged_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
       bTag_eventWeight_down = (data_tagged_down*data_notTagged_down) / (MC_tagged*MC_notTagged);   
 
-      if ((bTag_eventWeight_nom != bTag_eventWeight_nom) || (std::isinf(bTag_eventWeight_nom)))
+      if ((bTag_eventWeight_nom != bTag_eventWeight_nom) || (std::isinf(bTag_eventWeight_nom)) || (bTag_eventWeight_nom < 1e-9))
       {
+         std::cout << "BAD BTAG SF: " << bTag_eventWeight_nom << std::endl;
          if(_verbose)std::cout << "data_tagged_up/data_notTagged_up/MC_tagged/MC_notTagged: " <<data_tagged << "/" <<data_notTagged << "/" << MC_notTagged<< "/" << MC_notTagged<<  std::endl;
       } 
    }
 
    lab_nAK4 = nAK4;
-   if (totHT < 1400) return;
+   if (totHT < 1400) return; // RETURN cut
    if(nAK4 <4)return;   // RETURN cut
 
    if(slimmedSelection)
    {
-      if (totHT < 1500) return;
+      if (totHT < 1500) return; // RETURN cut
    }
    // calculate the candidate dijet delta R values
    double minDeltaRDisc12 = sqrt( pow(leadAK4Jets[0].DeltaR(leadAK4Jets[1]),2) + pow(leadAK4Jets[2].DeltaR(leadAK4Jets[3]),2));    // dijet one always has j1 in it
@@ -1804,14 +2357,22 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          nfatjet_pre++;
       }
       if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
+      
       if(isHEM(corrJet.eta(),corrJet.phi())) jet_isHEM[nfatjets] = true;
       else{jet_isHEM[nfatjets] = false;}
 
 
-      //std::cout << "hadron/parton flavours: " << AK8_hadronFlavour[nfatjets]<< "/" << AK8_partonFlavour[nfatjets]<< std::endl;
+
+
+      int vetoMap_xbin = (int)((corrJet.eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;
+      int vetoMap_ybin = (int)((corrJet.phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // pt(b) = b*(range / # bins) + b0 -> (pt(b) - b0)*(# bins / range)
+      AK8_fails_veto_map[nfatjets] = false;
+      if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0.)
+      {
+         AK8_fails_veto_map[nfatjets] = true;
+      }
       if(nfatjets < 2) leadAK8_mass[nfatjets] = corrJet.userFloat("ak8PFJetsPuppiSoftDropMass");
       jet_pt[nfatjets] = corrJet.pt();
-      //jet_phi[nfatjets] = corrJet.phi();
       jet_phi[nfatjets] = iJet->phi();   // this seems to be messed up
       jet_eta[nfatjets] = corrJet.eta();
       jet_mass[nfatjets] = corrJet.mass();
@@ -1832,6 +2393,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       selectedAK8_TLV.push_back(TLorentzVector(corrJet.px(),corrJet.py(),corrJet.pz(),corrJet.energy()));
 
+
+      // match up AK4 jets to AK8 jets (leave indices as -1 if not matched)
       int AK4_counter = 0;
       for(auto iAK4 = selectedAK4_TLV.begin();iAK4 != selectedAK4_TLV.end(); iAK4++ )
       {  
@@ -1887,9 +2450,28 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    if(slimmedSelection)
    {
-      if (nfatjet_pre < 1) return;
-      if (nfatjets < 3) return;
+      if (nfatjet_pre < 2) return;  // RETURN cut
+      if (nfatjets < 3) return;      // RETURN cut
    }
+
+
+
+   if(doPrefiringWeight)
+   {
+      edm::Handle< double > theprefweight;
+      iEvent.getByToken(prefweight_token, theprefweight ) ;
+      prefiringWeight_nom =(*theprefweight);
+
+      edm::Handle< double > theprefweightup;
+      iEvent.getByToken(prefweightup_token, theprefweightup ) ;
+      prefiringWeight_up =(*theprefweightup);
+
+      edm::Handle< double > theprefweightdown;
+      iEvent.getByToken(prefweightdown_token, theprefweightdown ) ;
+      prefiringWeight_down =(*theprefweightdown);
+   }
+
+
 
 
 
@@ -1917,7 +2499,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             else
             {
                std::cout << "ERROR: There are somehow 3 tops in the event ..." << std::endl;
-               return;
+               return;  // RETURN cut
             }
 
          }
@@ -1925,7 +2507,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if ((top_one == NULL) || (top_two == NULL))
       {
          std::cout << "ERROR: Fewer than 2 tops found." << std::endl;
-         return;
+         return;  // RETURN cut
       }
 
       double genTopQuarkOne_pt=top_one->pt();
@@ -1940,42 +2522,202 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    if(doPDFWeights)
    {
       if(_verbose)std::cout << "Setting PDF variables";
+      
+      /*
+      edm::Handle<std::vector<float>> pdf_weights;
+      iEvent.getByToken(pdfWeightToken_, pdf_weights);
+
+      edm::Handle<std::vector<float>> scale_weights;
+      iEvent.getByToken(scaleWeightToken_, scale_weights);
+      */
       edm::Handle<GenEventInfoProduct> evt_info;
       iEvent.getByToken(GeneratorToken_, evt_info);
-      q2 = std::pow(evt_info->pdf()->scalePDF,2); //scalePDF seems to return scale q
-      Generator_id1 = evt_info->pdf()->id.first; //particle 1 id 
-      Generator_id2 = evt_info->pdf()->id.second; //particle 2 id
-      Generator_x1 = evt_info->pdf()->x.first;
-      Generator_x2 = evt_info->pdf()->x.second;
 
-      edm::Handle<std::vector<float>> PDFweights;
-      iEvent.getByToken(pdfWeightToken_, PDFweights);
-      int scale_var_counter = 0;
-      for(auto iii = PDFweights->begin(); iii != PDFweights->end(); iii++ )
-      {
-         if(scale_var_counter == 1)weightFacUp = *iii;
-         else if(scale_var_counter == 2)weightFacDn =*iii;
-         else if(scale_var_counter == 3)weightRenUp = *iii;
-         else if(scale_var_counter == 4)weightRenUpxweightFacUp = *iii;
-         else if(scale_var_counter == 5)weightRenUpxweightFacDn = *iii;
-         else if(scale_var_counter == 6)weightRenDn = *iii;
-         else if(scale_var_counter == 7)weightRenDnxweightFacUp = *iii;
-         else if(scale_var_counter == 8)weightRenDnxweightFacDn = *iii;
-         scale_var_counter++;
-      }
-
-
-      edm::Handle<std::vector<float>> ScaleWeights;
-      iEvent.getByToken(scaleWeightToken_, ScaleWeights);
+      nPDFWeights   = 0;
+      nScaleWeights = 0;
       
-      nPDFWeights = 0;
-      for(auto iii = ScaleWeights->begin();iii!= ScaleWeights->end();iii++)
+      if( (runType.find("QCD") != std::string::npos) || (runType.find("TTJets") != std::string::npos) )
       {
-         pdf_weights[nPDFWeights] = *iii;
-         std::cout << *iii << std::endl;
-         nPDFWeights++;
+
+         double factorizWeights_up[nVars];
+         double factorizWeights_down[nVars];
+         double weightsForVar[nVars]; 
+
+
+
+         //// calculate the up and down pdf wights the "BEST" bay
+         double PDFWeightAvg = 0, PDFWeightStdDev= 0;
+         double PDFwgt, PDFWeightNom, PDFWeightFrac;
+
+         edm::Handle<LHEEventProduct> lheEventProduct;
+         iEvent.getByToken(lheEventProductToken_, lheEventProduct);
+
+
+
+         // FOR QCD MC
+
+         //PDF nom == 325300
+         //Scale: ID=1002-1045, [MUR,MU=0.5/1/1.5, DynScale=1-4]
+         //Renomalization Scale: ID = 1006 (MU_R=2.0), 1011 (MU_R=0.5) 
+         // Factorization Scale: ID = 1016 (MU_F=2.0), 1021 (MU_F=0.5) 
+         // variations 325301-325402 = PDF: ID=1047-1148
+
+
+         // For TTJets MC:
+         //PDF nom = 325300 = ID 1048
+         // variations 325301-325402 = PDF, ID=1049-1150
+
+         unsigned int PDFstart, PDFend;
+         if(runType.find("QCD") != std::string::npos)
+         {
+            PDFstart = 46; // corresponding to <weight MUF="1.0" MUR="1.0" PDF="325301" id="1047"> PDF=325300 MemberID=1 </weight>
+            PDFend = 147;  // cooresponding to <weight MUF="1.0" MUR="1.0" PDF="325402" id="1148"> PDF=325300 MemberID=102 </weight>
+         }
+         else
+         {
+             PDFstart =  48;  // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
+             PDFend   =  149; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
+         }
+            
+         PDFWeightNom = lheEventProduct->originalXWGTUP();
+
+         for(unsigned int iii = 0;  iii < lheEventProduct->weights().size();  iii++) {
+            //std::cout<<"Systematic "<<iii<<" ID: "<<lheEventProduct->weights()[iii].id<<", value "<<lheEventProduct->weights()[iii].wgt<<", ratio "<<lheEventProduct->weights()[iii].wgt/PDFWeightNom<<std::endl;
+            if( iii >= PDFstart && iii < PDFend) 
+            {
+               PDFwgt = lheEventProduct->weights()[iii].wgt;
+               PDFWeightFrac = PDFwgt/PDFWeightNom;
+               PDFWeightAvg += PDFWeightFrac;
+            }
+         }
+
+         PDFWeightAvg = PDFWeightAvg/(PDFend - PDFstart);
+         for (unsigned int i=PDFstart; i < PDFend; ++i) 
+         {
+            PDFwgt = lheEventProduct->weights()[i].wgt;
+            PDFWeightFrac = PDFwgt/(PDFWeightNom);
+            PDFWeightStdDev += std::pow((PDFWeightFrac - PDFWeightAvg),2);
+         }
+         PDFWeightStdDev = sqrt(PDFWeightStdDev/(PDFend - PDFstart - 1)); 
+         PDFWeightUp = 1.0 + PDFWeightStdDev;
+         PDFWeightDown = 1.0 - PDFWeightStdDev;
+
+         //// calculate the renormalization and factorizations the "Ben" way
+
+         // This is the way BEST is doing it - why are they dividing this by the nominal pdf weight? 
+         QCDFactorization_up_BEST      = lheEventProduct->weights()[5].wgt/PDFWeightNom;   // muF = 1.0, muR = 2.0
+         QCDFactorization_down_BEST    = lheEventProduct->weights()[10].wgt/PDFWeightNom;  // muF = 1.0, muR = 0.5
+         QCDRenormalization_up_BEST    = lheEventProduct->weights()[15].wgt/PDFWeightNom;  // muF = 2.0, muR = 1.0
+         QCDRenormalization_down_BEST  = lheEventProduct->weights()[30].wgt/PDFWeightNom;  // muF = 0.5, muR = 1.0
+
+         // envelope indices are the same for QCD and TTbarMC   
+         
+         scale_envelope[0] = lheEventProduct->weights()[15].wgt;  // index 0: muF = 2.0, muR = 1.0 : <weight MUF="2.0" MUR="1.0" PDF="325300" id="1016"> MUF=2.0  </weight>
+         scale_envelope[1] = lheEventProduct->weights()[30].wgt;  // index 1: muF = 0.5, muR = 1.0 : <weight MUF="0.5" MUR="1.0" PDF="325300" id="1031"> MUF=0.5  </weight>
+         scale_envelope[2] = lheEventProduct->weights()[20].wgt;  // index 2: muF = 2.0, muR = 2.0 : <weight MUF="2.0" MUR="2.0" PDF="325300" id="1021"> MUR=2.0 MUF=2.0  </weight>
+         scale_envelope[3] = lheEventProduct->weights()[5].wgt;   // index 3: muF = 1.0, muR = 2.0 : <weight MUF="1.0" MUR="2.0" PDF="325300" id="1006"> MUR=2.0  </weight>
+         scale_envelope[4] = lheEventProduct->weights()[40].wgt;  // index 4: muF = 0.5, muR = 0.5 : <weight MUF="0.5" MUR="0.5" PDF="325300" id="1041"> MUR=0.5 MUF=0.5  </weight>
+         scale_envelope[5] = lheEventProduct->weights()[10].wgt;  // index 5: muF = 1.0, muR = 0.5 : <weight MUF="1.0" MUR="0.5" PDF="325300" id="1011"> MUR=0.5  </weight>
+         scale_envelope[6] = lheEventProduct->weights()[25].wgt;  // index 6: muF = 2.0, muR = 0.5 : <weight MUF="2.0" MUR="0.5" PDF="325300" id="1026"> MUR=0.5 MUF=2.0  </weight>   : this shouldn't be needed
+         scale_envelope[7] = lheEventProduct->weights()[35].wgt;  // index 7: muF = 0.5, muR = 2.0 : <weight MUF="0.5" MUR="2.0" PDF="325300" id="1036"> MUR=2.0 MUF=0.5  </weight> this shouldn't be needed
+         scale_envelope[8] = lheEventProduct->weights()[0].wgt;    // index 8L muF = 1.0, muR = 1.0 : <weight MUF="1.0" MUR="1.0" PDF="325300" id="1001">  </weight> NOMINAL: this might be needed for normalization
+         scale_envelope[9] = lheEventProduct->originalXWGTUP();    // nominal (central?) PDF weight
+
+
+
+         const int VAR_UP = 1;
+         const int VAR_DOWN = -1;
+         int nQCD = 0;
+
+         // init stuff
+
+         PDFWeights_factWeightsRMS_up = 0.;
+         PDFWeights_factWeightsRMS_down = 0.;
+         varWeightsRMS = 0;
+
+         edm::Handle<GenEventInfoProduct> evt_info;
+         iEvent.getByToken(GeneratorToken_, evt_info);
+
+         double scalePDF = evt_info->pdf()->scalePDF; //scalePDF seems to return scale q -> this was previously called q2
+         id1 = evt_info->pdf()->id.first; //particle 1 id 
+         id2 = evt_info->pdf()->id.second; //particle 2 id
+         x1 = evt_info->pdf()->x.first;
+         x2 = evt_info->pdf()->x.second;
+         q2 = pow(scalePDF,2);
+         if(_verbose)std::cout << "id1/id2/x1/x2/scalePDF are" << id1<< "/" <<id2 << "/" << x1<< "/" << x2<< "/" << scalePDF<< std::endl;
+
+         alphas           = calcAlphas(scalePDF);
+         renormWeights[0] = calcRenormWeight(scalePDF, VAR_UP, nQCD); 
+         renormWeights[1] = calcRenormWeight(scalePDF, VAR_DOWN, nQCD); 
+
+         // what are my PDF weights related to what he has here? 
+
+         for (int varN = 0; varN < nVars; varN++) 
+         {
+            factorizWeights_up[varN]   = calcFactorizWeight(varPDFs[varN], id1, id2, x1, x2, scalePDF, VAR_UP);   
+            factorizWeights_down[varN] = calcFactorizWeight(varPDFs[varN], id1, id2, x1, x2, scalePDF, VAR_DOWN); 
+
+            if(_verbose)std::cout << "varN is " << varN << ", the up/down factorizWeights is " << factorizWeights_up[varN]<< "/" <<factorizWeights_down[varN] << std::endl;
+
+            PDFWeights_factWeightsRMS_up += (factorizWeights_up[varN] * factorizWeights_up[varN]);
+            PDFWeights_factWeightsRMS_down += (factorizWeights_down[varN] * factorizWeights_down[varN]);
+            // weight using https://lhapdf.hepforge.org/group__reweight__double.html, one per replica.
+            weightsForVar[varN] = LHAPDF::weightxxQ(id1, id2, x1, x2, scalePDF, nomPDF, varPDFs[varN]); 
+            if(_verbose)std::cout << "weightsForVar[varN] is " << weightsForVar[varN] << std::endl;
+            varWeightsRMS += (weightsForVar[varN] * weightsForVar[varN]);
+            if(_verbose)std::cout << "varWeightsRMS increased by " << varWeightsRMS << std::endl;
+         }
+
+         //Calculate the RMS's
+         PDFWeights_factWeightsRMS_up /= (1.0*nVars);
+         PDFWeights_factWeightsRMS_down /= (1.0*nVars); 
+
+         PDFWeights_factWeightsRMS_up = sqrt(PDFWeights_factWeightsRMS_up);
+
+         PDFWeights_factWeightsRMS_down = sqrt(PDFWeights_factWeightsRMS_down);
+
+         if(_verbose)std::cout << "PDFWeights_factWeightsRMS_up/PDFWeights_factWeightsRMS_down" << PDFWeights_factWeightsRMS_up<< "/" <<PDFWeights_factWeightsRMS_down << std::endl;
+
+         varWeightsRMS /= nVars;
+         varWeightsRMS = sqrt(varWeightsRMS);
+
+
+         //Calculated the error on the varWeightsRMS according to eqn 6.4 from https://arxiv.org/pdf/2203.05506.pdf
+         //Need the values in sorted order
+         int arrSize = sizeof(weightsForVar) / sizeof(weightsForVar[0]);
+         sort(weightsForVar, weightsForVar + arrSize);
+         double weight16 = weightsForVar[15]; // what's the deal with these indices?
+         double weight84 = weightsForVar[83];
+         varWeightsErr = (weight84 - weight16) / 2.0;
+         if (varWeightsErr < 0) varWeightsErr = 0;
+ 
+         if(_verbose)std::cout << " The PDFWeights_alphas is " << alphas << "." << std::endl;
+         if(_verbose)std::cout << " The renormWeights up/down is " <<renormWeights[0] << "/" << renormWeights[1] << "." << std::endl;
+         if(_verbose)std::cout << " The nVars is " <<nVars << "." << std::endl;
+         if(_verbose)std::cout << " The varWeightsRMS is " <<varWeightsRMS << "." << std::endl;
+         if(_verbose)std::cout << " The varWeightsErr is " <<varWeightsErr << "." << std::endl;
+
+         /*
+         edm::Handle<std::vector<float>> PDFweights;
+         iEvent.getByToken(pdfWeightToken_, PDFweights);
+         int scale_var_counter = 0;
+         for(auto iii = PDFweights->begin(); iii != PDFweights->end(); iii++ )
+         {
+            if(scale_var_counter == 1)weightFacUp = *iii;
+            else if(scale_var_counter == 2)weightFacDn =*iii;
+            else if(scale_var_counter == 3)weightRenUp = *iii;
+            else if(scale_var_counter == 4)weightRenUpxweightFacUp = *iii;
+            else if(scale_var_counter == 5)weightRenUpxweightFacDn = *iii;
+            else if(scale_var_counter == 6)weightRenDn = *iii;
+            else if(scale_var_counter == 7)weightRenDnxweightFacUp = *iii;
+            else if(scale_var_counter == 8)weightRenDnxweightFacDn = *iii;
+            scale_var_counter++;
+         }
+         */
+
       }
-      std::cout << "There were " << nPDFWeights << " pdf weights." << std::endl;
+      
+      //std::cout << "There were " << nPDFWeights << " pdf weights and " << nScaleWeights << " scale weights." << std::endl;
    }
 //edm::Handle<GenEventInfoProduct> evt_info;
 
@@ -2398,11 +3140,13 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             {
                if (lab_AK4_AK8_parent[selected_AK4_num] != -1) // -1 were AK4 jets that didn't overlap with AK8 jets 
                {
+
+                  // if this AK4 jet overlaps with this AK8 jet (in the lab frame) AND that AK8 jet is part of this superjet
                   if(AK8_SJ_assignment[ lab_AK4_AK8_parent[selected_AK4_num] ] == nSuperJets)
                   {
                      TLorentzVector boosted_AK4(iAK4_selected->Px(),iAK4_selected->Py(),iAK4_selected->Pz(),iAK4_selected->E());
                      boosted_AK4.Boost(-superJetpx/superJetE,-superJetpy/superJetE,-superJetpz/superJetE); // boost the AK8 jet to its respective SJ COM frame
-                     if( sqrt(pow(boosted_AK4.Phi() - iPJ->phi(),2)+ pow(boosted_AK4.Eta() - iPJ->eta(),2)) < 0.8  ) AK4_is_near_highE_CA4[selected_AK4_num] = true;  // the AK8 jet has been tracked into its sorted SJ and whether it is close to a high energy reclustered CA4 jet is tracked
+                     if( sqrt(pow(boosted_AK4.Phi() - iPJ->phi(),2)+ pow(boosted_AK4.Eta() - iPJ->eta(),2)) < 0.8  ) AK4_is_near_highE_CA4[selected_AK4_num] = true;  // the AK8 jet has been tracked into its sorted SJ and whether it is close to a high energy reclustered CA4 jet is tracked, generous: delta R of 0.8
                   }
                }
                selected_AK4_num++;

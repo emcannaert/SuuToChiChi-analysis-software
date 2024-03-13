@@ -11,5 +11,5 @@ config.Data.publication = False
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 10
 config.Data.outputDatasetTag = 'clustAlg_ST_s-channel-hadronsMC_2018_nom'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024224_20418'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_202436_202044'
 config.Site.storageSite = 'T3_US_FNALLPC'

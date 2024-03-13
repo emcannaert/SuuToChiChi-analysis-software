@@ -6,17 +6,17 @@ import numpy as np
 
 if __name__=="__main__":
 	#try:
-
+	"""
 	# keeping track of how many copy commands have already been made for each of the samples and systematics
-nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
+	nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
 					 "QCDMC1500to2000":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToHadronicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  }, 
-					 "TTJetsMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
-					 "TTJetsMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
+					 "TTbarMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
+					 "TTbarMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_t-channel-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
@@ -33,8 +33,8 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					 "TTToHadronicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "TTJetsMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
-					 "TTJetsMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
+					 "TTbarMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
+					 "TTbarMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_t-channel-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
@@ -50,8 +50,8 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					 "TTToHadronicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC':0,'JER':0,'nom':0    },
-					 "TTJetsMCHT1200to2500":{'JEC':0,'JER':0,'nom':0 },
-					 "TTJetsMCHT2500toInf":{'JEC':0,'JER':0,'nom':0 },
+					 "TTbarMCHT1200to2500":{'JEC':0,'JER':0,'nom':0 },
+					 "TTbarMCHT2500toInf":{'JEC':0,'JER':0,'nom':0 },
 					  "ST_t-channel-antitop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_t-channel-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
@@ -69,8 +69,8 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					 "TTToHadronicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
-					 "TTJetsMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
-					 "TTJetsMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
+					 "TTbarMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
+					 "TTbarMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_t-channel-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':0,'JER':0,'nom':0  },
@@ -87,8 +87,8 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					 "TTToHadronicMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "TTToSemiLeptonicMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "TTToLeptonicMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "TTJetsMCHT1200to2500":{'JEC':[],'JER':[],'nom':[] },
-					 "TTJetsMCHT2500toInf":{'JEC':[],'JER':[],'nom':[] },
+					 "TTbarMCHT1200to2500":{'JEC':[],'JER':[],'nom':[] },
+					 "TTbarMCHT2500toInf":{'JEC':[],'JER':[],'nom':[] },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_t-channel-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -106,8 +106,8 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					 "TTToHadronicMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "TTToSemiLeptonicMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "TTToLeptonicMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "TTJetsMCHT1200to2500":{'JEC':[],'JER':[],'nom':[] },
-					 "TTJetsMCHT2500toInf":{'JEC':[],'JER':[],'nom':[] },
+					 "TTbarMCHT1200to2500":{'JEC':[],'JER':[],'nom':[] },
+					 "TTbarMCHT2500toInf":{'JEC':[],'JER':[],'nom':[] },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_t-channel-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -123,8 +123,8 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					 "TTToHadronicMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "TTToSemiLeptonicMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "TTToLeptonicMC":{ 'JEC':[],'JER':[],'nom':[]  },
-					 "TTJetsMCHT1200to2500":{'JEC':[],'JER':[],'nom':[] },
-					 "TTJetsMCHT2500toInf":{'JEC':[],'JER':[],'nom':[] },
+					 "TTbarMCHT1200to2500":{'JEC':[],'JER':[],'nom':[] },
+					 "TTbarMCHT2500toInf":{'JEC':[],'JER':[],'nom':[] },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_t-channel-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -143,8 +143,8 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					 "TTToHadronicMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "TTToSemiLeptonicMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "TTToLeptonicMC":{ 'JEC':[],'JER':[],'nom':[]  } ,
-					 "TTJetsMCHT1200to2500":{'JEC':[],'JER':[],'nom':[] },
-					 "TTJetsMCHT2500toInf":{'JEC':[],'JER':[],'nom':[] },
+					 "TTbarMCHT1200to2500":{'JEC':[],'JER':[],'nom':[] },
+					 "TTbarMCHT2500toInf":{'JEC':[],'JER':[],'nom':[] },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_t-channel-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
@@ -154,13 +154,66 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					 "dataA":{ 'JEC':[],'JER':[],'nom':[]  }   ,
 					 "dataB":{ 'JEC':[],'JER':[],'nom':[]  } ,
 					 "dataC":{ 'JEC':[],'JER':[],'nom':[]  } ,
-					 "dataD":{ 'JEC':[],'JER':[],'nom':[]  } }}
+					 "dataD":{ 'JEC':[],'JER':[],'nom':[]  } }}"""
+
+	nCommands	= {  
+				
+					"2015": 
+					{ "QCDMC": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
+					 "TTbarMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "STMC":{ 'JEC':0,'JER':0,'nom':0  }
+					 },
+					 "2016": 
+					{ "QCDMC": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
+					 "TTbarMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "STMC":{ 'JEC':0,'JER':0,'nom':0  }
+					 },
+					 "2017": 
+					{ "QCDMC": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
+					 "TTbarMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "STMC":{ 'JEC':0,'JER':0,'nom':0  }
+					 },
+					 "2018": 
+					{ "QCDMC": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
+					 "TTbarMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "STMC":{ 'JEC':0,'JER':0,'nom':0  }
+					 }
+
+			}
 
 
-	samples = ["QCDMC2000toInf","QCDMC1500to2000","QCDMC1000to1500","TTToHadronicMC", "TTToLeptonicMC", "TTToSemiLeptonicMC","ST_t-channel-antitop_inclMC", "ST_t-channel-top_inclMC", "ST_tW-antiTop_inclMC","ST_tW-top_inclMC",
-	"ST_s-channel-hadronsMC",
-	"ST_s-channel-leptonsMC"
-	]
+	all_files_made	= {  
+					"2015": 
+					 { 
+					 "QCDMC": { 'JEC':[],'JER':[],'nom':[]  },
+					 "TTbarMC":{ 'JEC':[],'JER':[],'nom':[] },
+					 "STMC":{ 'JEC':[],'JER':[],'nom':[]  }
+					 },
+					 "2016": 
+					 { 
+					 "QCDMC": { 'JEC':[],'JER':[],'nom':[]  },
+					 "TTbarMC":{ 'JEC':[],'JER':[],'nom':[] },
+					 "STMC":{ 'JEC':[],'JER':[],'nom':[]  }
+					 } ,
+					 "2017": 
+					 { 
+					 "QCDMC": { 'JEC':[],'JER':[],'nom':[]  },
+					 "TTbarMC":{ 'JEC':[],'JER':[],'nom':[] },
+					 "STMC":{ 'JEC':[],'JER':[],'nom':[]  }
+					 },
+					 "2018": 
+					 { 
+					  "QCDMC": { 'JEC':[],'JER':[],'nom':[]  },
+					 "TTbarMC":{ 'JEC':[],'JER':[],'nom':[] },
+					 "STMC":{ 'JEC':[],'JER':[],'nom':[]  }
+					 } 
+				}
+	#samples = ["QCD", "TTbar_HT","ST_"] 
+	samples = ["QCDMC", "TTbarMC","STMC"] 
+
+	
+	
+	
 
 	signal_samples_pkl = open('../signal_samples.pkl', 'r')
   	signal_samples     = pickle.load(signal_samples_pkl)
@@ -193,9 +246,14 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 		year_str = ""
 		sys_str = ""
 		sample_str = ""
-		for sample in samples:
-			if sample in line:
-				sample_str = sample
+		if "QCD" in line:
+			sample_str = "QCDMC"
+		elif "TTJets_HT" in line:
+			sample_str = "TTbarMC"
+		elif "TTTo" in line:
+			sample_str = "TTbarMC"
+		elif "ST_" in line:
+			sample_str = "STMC"
 		for sample in signal_samples:
 			if sample in line:
 				sample_str = "SuuToChiChi"
@@ -205,34 +263,36 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 					sys_str = "JER"
 		else:   #nominal systematic calculations
 			sys_str = "nom"
+		if sys_str	!= "nom":
+			print("ERROR: systematic should be 'nom' for b tagging eff maps. Skipping")
+			continue
 		for year in years:
-			if year in line:
+			if "_%s"%year in line:
 				year_str = year		
 		if sample_str == "" or year_str == "":
-			print("Can't figure out what type of file this is (QCD,TTbar,etc.) or what the year is: ")
+			print("ERROR: (Found %s, %s)Can't figure out what type of file this is (QCD,TTbar,etc.) or what the year is: "%(year_str,sample_str))
 			print(line.strip())
 			continue
 
 		if "Suu" in sample_str:
 			num_str = "%s"%(signal_nCommands[year_str][sample_str][sys_str])
 			#print("num/year/sys/sample = %s/%s/%s/%s"%(num_str,year_str,sys_str,sample_str))
-			signal_files_made[year_str][sample_str][sys_str].append("btagging_efficiencyMap_%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
+			signal_files_made[year_str][sample_str][sys_str].append("btagging_efficiencyMap_%s_combined_%s_%s.root"%(sample_str, year_str, num_str))
 			signal_nCommands[year_str][sample_str][sys_str]+=1
 		else:
 			num_str = "%s"%(nCommands[year_str][sample_str][sys_str])
-			all_files_made[year_str][sample_str][sys_str].append("btagging_efficiencyMap_%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
+			all_files_made[year_str][sample_str][sys_str].append("btagging_efficiencyMap_%s_combined_%s_%s.root"%(sample_str, year_str, num_str))
 			nCommands[year_str][sample_str][sys_str]+=1
 		pipe = '|'
-		command_path.write(r'hadd  btagging_efficiencyMap_%s_%s_%s_combined_%s.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
+		command_path.write(r'hadd -f btagging_efficiencyMap_%s_combined_%s_%s.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, num_str,line.strip(),pipe) + "\n")
 
-	#print(all_files_made)
 	### now add to this .sh script a section that combines all files together into a single "_combined.root", renames files to this if they don't need to be added together
 	for year,year_dict in all_files_made.items():
 		for sample, sample_dict in year_dict.items():
 			for syst,syst_dict in sample_dict.items():
-				combined_file_name = "btagging_efficiencyMap_%s_%s_%s_combined.root"%(sample_str, year_str, sys_str)
+				combined_file_name = "btagging_efficiencyMap_RAW_%s_combined_%s.root"%(sample, year)
 				if len(syst_dict) > 1:    # if there are actually files in this 
-					command_path.write('hadd %s '%combined_file_name)
+					command_path.write('hadd -f %s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
 						command_path.write(" %s"%one_file.strip()) 
 						if iii == (len(syst_dict)-1):
@@ -245,9 +305,10 @@ nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nC
 	for year,year_dict in signal_files_made.items():
 		for sample, sample_dict in year_dict.items():
 			for syst,syst_dict in sample_dict.items():
-				combined_file_name = "btagging_efficiencyMap_%s_%s_%s_combined.root"%(sample_str, year_str, sys_str)
+				combined_file_name = "btagging_efficiencyMap_RAW_%s_combined_%s.root"%(sample, year)
+
 				if len(syst_dict) > 1:    # if there are actually files in this 
-					command_path.write('hadd %s '%combined_file_name)
+					command_path.write('hadd -f %s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
 						command_path.write(" %s"%one_file.strip()) 
 						if iii == (len(syst_dict)-1):

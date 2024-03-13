@@ -6,6 +6,10 @@ import pickle
 ### this can be updated to create the different cfgs for each systematic
 def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, all_systematics):
 
+   includeAllBranches = False
+   slimmedSelection   = False
+   verbose            = False
+
    isSignal = False
    if "Suu" in sample:
       isSignal = True
@@ -16,7 +20,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    apply_pu_ID = True
    doTopPtReweight = False
-   if "TTTo" in sample:
+   if "TTJetsMC" in sample or "TTTo" in sample:
       doTopPtReweight = True
    # need to change trigger for yhears
    trigger = ""
@@ -38,7 +42,16 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       newCfg = open("%s/clusteringAnalyzer_%s_%s_cfg.py"%(output_dir,sample,year),"w")
    else:
       newCfg = open("%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic_[0]),"w")
-   
+   if year == "2015" or year == "2016":
+      jet_veto_map_name = "h2hot_ul16_plus_hbm2_hbp12_qie11"
+      jet_veto_map_file = "data/jetVetoMaps/hotjets-UL16.root"
+   elif year == "2017":
+      jet_veto_map_name = "h2hot_ul17_plus_hep17_plus_hbpw89"
+      jet_veto_map_file = "data/jetVetoMaps/hotjets-UL17_v2.root"
+   elif year == "2018":
+      jet_veto_map_name = "h2hot_ul18_plus_hem1516_and_hbp2m1"
+      jet_veto_map_file = "data/jetVetoMaps/hotjets-UL18.root"
+
    newCfg.write("from PhysicsTools.PatAlgos.tools.helpers  import getPatAlgosToolsTask\n")
    newCfg.write("import FWCore.ParameterSet.Config as cms\n")
 
@@ -164,6 +177,32 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
 
 
+
+
+   ### prefiring weights
+   if year == "2015":
+      prefire_ecal_era = "UL2016preVFP"
+      prefire_muon_era = "2016preVFP"
+   elif year == "2016":
+      prefire_ecal_era = "UL2016postVFP"
+      prefire_muon_era = "2016postVFP"
+   elif year == "2017":
+      prefire_ecal_era = "UL2017BtoF"
+      prefire_muon_era = "20172018"
+   elif year == "2018":
+      prefire_ecal_era = "None"
+      prefire_muon_era = "20172018"
+
+   newCfg.write("from PhysicsTools.PatUtils.l1PrefiringWeightProducer_cfi import l1PrefiringWeightProducer\n")
+   newCfg.write("process.prefiringweight = l1PrefiringWeightProducer.clone(\n")
+   newCfg.write("TheJets = cms.InputTag('selectedUpdatedPatJetsAK4UpdatedJEC'), #this should be the slimmedJets collection with up to date JECs \n")
+   newCfg.write("DataEraECAL = cms.string('%s'), #Use 2016BtoH for 2016\n"%prefire_ecal_era)
+   newCfg.write("DataEraMuon = cms.string('%s'), #Use 2016 for 2016\n"%prefire_muon_era)
+   newCfg.write("UseJetEMPt = cms.bool(False),\n")
+   newCfg.write("PrefiringRateSystematicUnctyECAL = cms.double(0.2),\n")
+   newCfg.write("PrefiringRateSystematicUnctyMuon = cms.double(0.2)\n")
+   newCfg.write(")\n")
+
    for systematic in systematic_:
       """
       # NO LONGER DOING HADRON FILTER, this messes with systematics 
@@ -242,18 +281,19 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
                bTagSF_sample = sample
             """
             if "QCDMC" in sample:
-               bTagSF_sample = "QCDMC_combined"
-            elif "TTTo" in sample:
-               bTagSF_sample = "TTbarMC_combined"
+               bTagSF_sample = "QCDMC"
+            elif "TTTo" in sample or "TTJetsMC" in sample:
+               bTagSF_sample = "TTbarMC"
             elif "ST_" in sample:
-               bTagSF_sample = "STMC_combined"
+               bTagSF_sample = "STMC"
             elif "Suu" in sample:
                bTagSF_sample = "SuuToChiChi"
             else:
                print("ERROR: b tagging SF sample is not found. Sample = %s"%sample)
                return
 
-            newCfg.write("   bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_%s.root'),\n"%(bTagSF_sample,year))
+
+            newCfg.write("   bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root'),\n"%(bTagSF_sample,year))
             if year == "2015":
                newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
             elif year == "2016":
@@ -277,10 +317,14 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          newCfg.write('   tauCollection = cms.InputTag("slimmedTaus"),\n')
          newCfg.write('   pileupCollection = cms.InputTag("slimmedAddPileupInfo"),\n')
          newCfg.write('   systematicType = cms.string("%s%s"),\n'%(systematic,suffix) )
+         newCfg.write('   jetVetoMapFile = cms.FileInPath("%s"),\n'%(jet_veto_map_file) )
+         newCfg.write('   jetVetoMapName = cms.string("%s"),\n'%(jet_veto_map_name) )
+         newCfg.write('   includeAllBranches = cms.bool(%s),\n'%(includeAllBranches ))
+         newCfg.write('   slimmedSelection   = cms.bool(%s),\n'%(slimmedSelection) )
+         newCfg.write('   verbose            = cms.bool(%s),\n'%(verbose) )
          newCfg.write('   year = cms.string("%s"),   #types: 2015,2016,2017,2018\n'%year)
          newCfg.write('   genEventInfoTag=cms.InputTag("generator"),\n')
          newCfg.write('   lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
-
          newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
          newCfg.write('   triggers = cms.string("%s"),\n'%trigger)
          if apply_pu_ID:
@@ -335,7 +379,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    #if doTopPtReweight:
    #   newCfg.write("process.makeGenEvt* ")
       
-   newCfg.write("process.leptonVeto  ")
+   newCfg.write("process.leptonVeto * process.prefiringweight  ")
             ########if you need to check the collections, add this to the path:  process.content
       
    for systematic in systematic_:
@@ -400,6 +444,8 @@ def main():
                            'ST_s-channel-leptonsMC':'/store/mc/RunIISummer20UL16MiniAODAPVv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/0906FC97-9CF7-C64E-9CCB-89BAFAA9700E.root',
                            'ST_tW-antiTop_inclMC':'/store/mc/RunIISummer20UL16MiniAODAPVv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/0906FC97-9CF7-C64E-9CCB-89BAFAA9700E.root',
                            'ST_tW-top_inclMC':'/store/mc/RunIISummer20UL16MiniAODAPVv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/0906FC97-9CF7-C64E-9CCB-89BAFAA9700E.root',
+                           "TTJetsMCHT1200to2500": '/store/mc/RunIISummer20UL16MiniAODAPVv2/TTJetsMC_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v2/2430000/036CEBD3-4911-DE4E-91BC-263C300210E1.root', 
+                           "TTJetsMCHT2500toInf": '/store/mc/RunIISummer20UL16MiniAODAPVv2/TTJetsMC_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v2/40000/01142FB6-5BF4-9E47-BC22-A6269CC0CD32.root',
                           'dataB-ver1': '/store/data/Run2016B/JetHT/MINIAOD/ver1_HIPM_UL2016_MiniAODv2-v2/140000/1384A4D7-51E5-7049-838D-AC846072E52E.root',
                           'dataB-ver2': '/store/data/Run2016B/JetHT/MINIAOD/ver2_HIPM_UL2016_MiniAODv2-v2/120000/1C5D9138-0C43-574E-BD82-B7A1A4C8FAC4.root',
                           'dataC-HIPM': '/store/data/Run2016C/JetHT/MINIAOD/HIPM_UL2016_MiniAODv2-v2/120000/2BABA846-C55B-8742-90D8-4D971A93AE3E.root',
@@ -427,6 +473,8 @@ def main():
                           'TTToHadronicMC':'/store/mc/RunIISummer20UL16MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/00F39D0F-006F-5D45-A346-79EBA8D4354C.root',  
                           'TTToSemiLeptonicMC':'/store/mc/RunIISummer20UL16MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/00F39D0F-006F-5D45-A346-79EBA8D4354C.root',
                           'TTToLeptonicMC':'/store/mc/RunIISummer20UL16MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/00F39D0F-006F-5D45-A346-79EBA8D4354C.root',
+                          "TTJetsMCHT1200to2500": '/store/mc/RunIISummer20UL16MiniAODv2/TTJetsMC_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v2/40000/01A08156-C2BE-F04A-9BE4-18B42897EC29.root', 
+                           "TTJetsMCHT2500toInf": '/store/mc/RunIISummer20UL16MiniAODv2/TTJetsMC_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v2/2430000/0C16029D-16A7-474D-851C-BC8473113E46.root',
                           'ST_t-channel-top_inclMC':'/TTToHadronicMC_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
                            'ST_t-channel-antitop_inclMC':'/TTToHadronicMC_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
                            'ST_s-channel-hadronsMC':'/TTToHadronicMC_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
@@ -457,6 +505,8 @@ def main():
                           'TTToHadronicMC':'/store/mc/RunIISummer20UL17MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/0C1A975A-BE28-4644-BFCE-4494E9484C9D.root',  
                           'TTToSemiLeptonicMC': '/store/mc/RunIISummer20UL17MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/0C1A975A-BE28-4644-BFCE-4494E9484C9D.root',
                           'TTToLeptonicMC':'/store/mc/RunIISummer20UL17MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/0C1A975A-BE28-4644-BFCE-4494E9484C9D.root',
+                          "TTJetsMCHT1200to2500": '/store/mc/RunIISummer20UL17MiniAODv2/TTJetsMC_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2530000/5B02E987-7D55-8F49-AE42-FFC0C9CDF5DA.root', 
+                           "TTJetsMCHT2500toInf": '/store/mc/RunIISummer20UL17MiniAODv2/TTJetsMC_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2520000/F7E8C055-2623-8D4F-AA5F-C12D7E688D4C.root',
                           'ST_t-channel-top_inclMC':'/store/mc/RunIISummer20UL17MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/0C1A975A-BE28-4644-BFCE-4494E9484C9D.root',
                            'ST_t-channel-antitop_inclMC':'/store/mc/RunIISummer20UL17MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/0C1A975A-BE28-4644-BFCE-4494E9484C9D.root',
                            'ST_s-channel-hadronsMC':'/store/mc/RunIISummer20UL17MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/110000/0C1A975A-BE28-4644-BFCE-4494E9484C9D.root',
@@ -488,6 +538,8 @@ def main():
                           'TTToHadronicMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',  
                           'TTToSemiLeptonicMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
                           'TTToLeptonicMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
+                          "TTJetsMCHT1200to2500": '/store/mc/RunIISummer20UL18MiniAODv2/TTJetsMC_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2430000/03B65E85-FA79-CD4C-8A63-86B611E211DF.root', 
+                           "TTJetsMCHT2500toInf": '/store/mc/RunIISummer20UL18MiniAODv2/TTJetsMC_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2530000/0C735F8D-6E99-3848-9C43-723FB97FD397.root',
                           'ST_t-channel-top_inclMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
                            'ST_t-channel-antitop_inclMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
                            'ST_s-channel-hadronsMC':'/store/mc/RunIISummer20UL18MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/0706746B-319B-8B4C-9144-15786F03DC0B.root',
@@ -522,6 +574,8 @@ def main():
                        'TTToHadronicMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',  
                        'TTToSemiLeptonicMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',  
                        'TTToLeptonicMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',  
+                       "TTJetsMCHT1200to2500": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt', 
+                        "TTJetsMCHT2500toInf": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
                        'ST_t-channel-top_inclMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
                         'ST_t-channel-antitop_inclMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
                         'ST_s-channel-hadronsMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
@@ -557,6 +611,8 @@ def main():
                        'TTToHadronicMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',  
                        'TTToSemiLeptonicMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',  
                        'TTToLeptonicMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',  
+                        "TTJetsMCHT1200to2500": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt', 
+                        "TTJetsMCHT2500toInf": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                         'ST_t-channel-top_inclMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                         'ST_t-channel-antitop_inclMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                         'ST_s-channel-hadronsMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
@@ -587,7 +643,9 @@ def main():
                        'QCDMC2000toInf':  'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                        'TTToHadronicMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',  
                        'TTToSemiLeptonicMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',  
-                       'TTToLeptonicMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',  
+                       'TTToLeptonicMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt', 
+                        "TTJetsMCHT1200to2500": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt', 
+                        "TTJetsMCHT2500toInf": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt', 
                        'ST_t-channel-top_inclMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                         'ST_t-channel-antitop_inclMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                         'ST_s-channel-hadronsMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -623,6 +681,8 @@ def main():
                        'TTToHadronicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt', 
                        'TTToSemiLeptonicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',  
                        'TTToLeptonicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',   
+                        "TTJetsMCHT1200to2500": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt', 
+                        "TTJetsMCHT2500toInf": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'ST_t-channel-top_inclMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                         'ST_t-channel-antitop_inclMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                         'ST_s-channel-hadronsMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -657,6 +717,8 @@ def main():
                        'TTToHadronicMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',  
                        'TTToSemiLeptonicMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',  
                        'TTToLeptonicMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',  
+                        "TTJetsMCHT1200to2500":'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt' , 
+                        "TTJetsMCHT2500toInf": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                        'ST_t-channel-top_inclMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_t-channel-antitop_inclMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_s-channel-hadronsMC':'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
@@ -693,6 +755,8 @@ def main():
                        'TTToHadronicMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt', 
                        'TTToSemiLeptonicMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',  
                        'TTToLeptonicMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',  
+                        "TTJetsMCHT1200to2500": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt', 
+                        "TTJetsMCHT2500toInf": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                        'ST_t-channel-top_inclMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_t-channel-antitop_inclMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_s-channel-hadronsMC':'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
@@ -724,6 +788,8 @@ def main():
                        'TTToHadronicMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',  
                        'TTToSemiLeptonicMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',  
                        'TTToLeptonicMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt', 
+                        "TTJetsMCHT1200to2500": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt', 
+                        "TTJetsMCHT2500toInf": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'ST_t-channel-top_inclMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_t-channel-antitop_inclMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_s-channel-hadronsMC':'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
@@ -756,6 +822,8 @@ def main():
                        'TTToHadronicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',  
                        'TTToSemiLeptonicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',  
                        'TTToLeptonicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',  
+                        "TTJetsMCHT1200to2500": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt', 
+                        "TTJetsMCHT2500toInf": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_t-channel-top_inclMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_t-channel-antitop_inclMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         'ST_s-channel-hadronsMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
@@ -794,17 +862,13 @@ def main():
    num_files =0
    for year in years:
       if year == "2015":
-         samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC",
-      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"]
+         samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf", "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC"]
       elif year == "2016":
-         samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
-      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"]
+         samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC"]
       elif year == "2017":
-         samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
-      "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC" ]
+         samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC" , "TTToHadronicMC"]
       elif year == "2018":
-         samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC",
-   "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC" ]
+         samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC" ]
       samples.extend(signal_samples)
       for iii, sample in enumerate(samples):
          for systematic in systematics:

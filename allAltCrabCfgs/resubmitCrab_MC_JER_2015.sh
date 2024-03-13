@@ -9,3 +9,5 @@ crab resubmit --maxmemory 3500 -d crab_projects/crab_clustAlg_ST_tW-antiTop_incl
 crab resubmit --maxmemory 3500 -d crab_projects/crab_clustAlg_ST_tW-top_inclMC_2015_JEC_AltDatasets_000
 crab resubmit --maxmemory 3500 -d crab_projects/crab_clustAlg_TTJetsMCHT1200to2500_2015_JEC_AltDatasets_000
 crab resubmit --maxmemory 3500 -d crab_projects/crab_clustAlg_TTJetsMCHT2500toInf_2015_JEC_AltDatasets_000
+crab resubmit --maxmemory 3500 -d crab_projects/crab_clustAlg_TTToSemiLeptonicMC_2015_JER_AltDatasets_000
+crab resubmit --maxmemory 3500 -d crab_projects/crab_clustAlg_TTToLeptonicMC_2015_JER_AltDatasets_000
