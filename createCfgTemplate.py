@@ -7,8 +7,12 @@ import pickle
 def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, all_systematics):
 
    includeAllBranches = False
-   slimmedSelection   = False
-   verbose            = False
+   slimmedSelection  = False
+   verbose        = False
+
+   doPDF = True
+   if "data" in sample:
+      doPDF = False
 
    isSignal = False
    if "Suu" in sample:
@@ -66,8 +70,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    newCfg.write('process.load("JetMETCorrections.Configuration.JetCorrectionServices_cff")\n')
    newCfg.write('process.load("JetMETCorrections.Configuration.JetCorrectionServicesAllAlgos_cff")\n')
    #if doTopPtReweight:
-   #   newCfg.write('#top pt reweighting\n')
-   #   newCfg.write('process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")\n')
+   #  newCfg.write('#top pt reweighting\n')
+   #  newCfg.write('process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")\n')
 
    newCfg.write('from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection\n')
    """
@@ -99,7 +103,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    if "data" in sample:
       newCfg.write("isData = True\n")
    else:
-      newCfg.write("isData = False\n")      
+      newCfg.write("isData = False\n")  
 
    newCfg.write("from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD\n")
 
@@ -114,20 +118,20 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    newCfg.write("from PhysicsTools.PatAlgos.tools.jetTools import *\n")
    newCfg.write("from RecoBTag.ONNXRuntime.pfDeepBoostedJet_cff import *\n")
    newCfg.write("updateJetCollection(\n")
-   newCfg.write("   process,\n")
-   newCfg.write("   jetSource = cms.InputTag('slimmedJetsAK8'),\n")
-   newCfg.write("   labelName = 'AK8',\n")
-   newCfg.write("   jetCorrections = ('AK8PFPuppi', cms.vstring(corrLabels), 'None'), #previous corrections: 'L2Relative', 'L3Absolute', 'L2L3Residual'\n")
-   newCfg.write("   postfix = 'UpdatedJEC',\n")
-   newCfg.write("   printWarning = False\n")
+   newCfg.write(" process,\n")
+   newCfg.write(" jetSource = cms.InputTag('slimmedJetsAK8'),\n")
+   newCfg.write(" labelName = 'AK8',\n")
+   newCfg.write(" jetCorrections = ('AK8PFPuppi', cms.vstring(corrLabels), 'None'), #previous corrections: 'L2Relative', 'L3Absolute', 'L2L3Residual'\n")
+   newCfg.write(" postfix = 'UpdatedJEC',\n")
+   newCfg.write(" printWarning = False\n")
    newCfg.write(")\n")
    newCfg.write("updateJetCollection(\n")
-   newCfg.write("   process,\n")
-   newCfg.write("   jetSource = cms.InputTag('slimmedJets'),\n")
-   newCfg.write("   labelName = 'AK4',\n")
-   newCfg.write("   jetCorrections = ('AK4PFchs', cms.vstring(corrLabels), 'None'),\n")
-   newCfg.write("   postfix = 'UpdatedJEC',\n")
-   newCfg.write("   printWarning = False\n")
+   newCfg.write(" process,\n")
+   newCfg.write(" jetSource = cms.InputTag('slimmedJets'),\n")
+   newCfg.write(" labelName = 'AK4',\n")
+   newCfg.write(" jetCorrections = ('AK4PFchs', cms.vstring(corrLabels), 'None'),\n")
+   newCfg.write(" postfix = 'UpdatedJEC',\n")
+   newCfg.write(" printWarning = False\n")
    newCfg.write(")  \n")
 
 
@@ -136,14 +140,14 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       newCfg.write("################# Jet PU ID ################\n")
       newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import pileupJetId\n')
       if year == "2016":
-         newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_106X_UL16     #     (or _chsalgos_106X_UL16APV for APV samples)\n')
+         newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_106X_UL16   #   (or _chsalgos_106X_UL16APV for APV samples)\n')
       elif year == "2017":
          newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_106X_UL17\n')
       elif year == "2018":
          newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_106X_UL18\n')
       newCfg.write('process.load("RecoJets.JetProducers.PileupJetID_cfi")\n')
       newCfg.write('process.pileupJetIdUpdated = process.pileupJetId.clone( \n')
-      newCfg.write('jets=cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),      #should be the name of the post-JEC jet collection\n')
+      newCfg.write('jets=cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),  #should be the name of the post-JEC jet collection\n')
       newCfg.write('inputIsCorrected=True,\n')
       newCfg.write('applyJec=False,\n')
       newCfg.write('vertexes=cms.InputTag("offlineSlimmedPrimaryVertices"),\n')
@@ -158,10 +162,10 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
       newCfg.write('process.patAlgosToolsTask.add(process.pileupJetIdUpdated)\n')
 
-      newCfg.write('updateJetCollection(     # running in unscheduled mode, need to manually update collection\n')
-      newCfg.write('   process,\n')
-      newCfg.write('   labelName = "PileupJetID",\n')
-      newCfg.write('   jetSource = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+      newCfg.write('updateJetCollection(    # running in unscheduled mode, need to manually update collection\n')
+      newCfg.write(' process,\n')
+      newCfg.write(' labelName = "PileupJetID",\n')
+      newCfg.write(' jetSource = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
       newCfg.write(')\n')
       newCfg.write('process.updatedPatJetsPileupJetID.userData.userInts.src = ["pileupJetIdUpdated:fullId"]\n')
 
@@ -169,10 +173,10 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    newCfg.write("##############################################################################\n")
    newCfg.write('process.leptonVeto = cms.EDFilter("leptonVeto",\n')
-   newCfg.write('   muonCollection= cms.InputTag("slimmedMuons"),\n')
-   newCfg.write('   electronCollection = cms.InputTag("slimmedElectrons"),\n')
-   newCfg.write('   metCollection = cms.InputTag("slimmedMETs"),\n')
-   newCfg.write('   tauCollection = cms.InputTag("slimmedTaus")\n')
+   newCfg.write(' muonCollection= cms.InputTag("slimmedMuons"),\n')
+   newCfg.write(' electronCollection = cms.InputTag("slimmedElectrons"),\n')
+   newCfg.write(' metCollection = cms.InputTag("slimmedMETs"),\n')
+   newCfg.write(' tauCollection = cms.InputTag("slimmedTaus")\n')
    newCfg.write(")\n")
 
 
@@ -208,23 +212,23 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       # NO LONGER DOING HADRON FILTER, this messes with systematics 
       if not isSignal:  # do NOT run the hadron filter for signal, this messes with systematic stuff
          newCfg.write('process.hadronFilter_%s = cms.EDFilter("hadronFilter",\n'%systematic)
-         newCfg.write('   year = cms.string("%s"),\n'%year)
+         newCfg.write(' year = cms.string("%s"),\n'%year)
 
-         newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
-         newCfg.write('   metCollection = cms.InputTag("slimmedMETs"),\n')
+         newCfg.write(' fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
+         newCfg.write(' metCollection = cms.InputTag("slimmedMETs"),\n')
          if apply_pu_ID:
-            newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
+            newCfg.write(' jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
          else:
-            newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
-         newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
-         newCfg.write('   triggers = cms.string("%s"),\n'%trigger)
-         newCfg.write('   systematicType = cms.string("%s"),\n'%systematic)
-         newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
+            newCfg.write(' jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+         newCfg.write(' bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
+         newCfg.write(' triggers = cms.string("%s"),\n'%trigger)
+         newCfg.write(' systematicType = cms.string("%s"),\n'%systematic)
+         newCfg.write(' JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
          if apply_pu_ID:
-            newCfg.write('   doPUID = cms.bool(True),\n')
+            newCfg.write(' doPUID = cms.bool(True),\n')
          else:
-            newCfg.write('   doPUID = cms.bool(False),\n')
-         newCfg.write('   runType = cms.string("%s")   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTToHadronicMC, TTToSemiLeptonic, TTToLeptonic, DataA, etc. , Suu8_chi3, etc.\n'%sample)
+            newCfg.write(' doPUID = cms.bool(False),\n')
+         newCfg.write(' runType = cms.string("%s")  #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTToHadronicMC, TTToSemiLeptonic, TTToLeptonic, DataA, etc. , Suu8_chi3, etc.\n'%sample)
          newCfg.write(")\n")
 
       """
@@ -241,33 +245,34 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          newCfg.write('process.clusteringAnalyzerAll_%s%s = cms.EDAnalyzer("clusteringAnalyzerAll",\n'%(systematic, suffix) )
          """
          if "QCD" in sample:
-            newCfg.write('   runType = cms.string("QCDMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
+            newCfg.write(' runType = cms.string("QCDMC"), #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
          elif "TTbar" in sample:
-            newCfg.write('   runType = cms.string("TTbarMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
+            newCfg.write(' runType = cms.string("TTbarMC"),  #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
          elif "Suu" in sample:
-            newCfg.write('   runType = cms.string("SigMC"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
+            newCfg.write(' runType = cms.string("SigMC"), #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
          elif "data" in sample:
-            newCfg.write('   runType = cms.string("Data"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
+            newCfg.write(' runType = cms.string("Data"),  #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n')
          else:
             print("something failed with writing runType.", sample ) 
          """
-         newCfg.write('   runType = cms.string("%s"),   #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n'%sample)
+         newCfg.write(' runType = cms.string("%s"), #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTbarMC, DataA, etc. , Suu8_chi3, etc.\n'%sample)
          if "MC" in sample or "Suu" in sample:
-            newCfg.write('   genPartCollection = cms.InputTag("prunedGenParticles"),\n')
-            newCfg.write('      genParticles = cms.InputTag("genParticles"),\n')
-            newCfg.write('      packedGenParticles = cms.InputTag("packedGenParticles"),\n')
+            newCfg.write(' genPartCollection = cms.InputTag("prunedGenParticles"),\n')
+            newCfg.write('  genParticles = cms.InputTag("genParticles"),\n')
+            newCfg.write('  packedGenParticles = cms.InputTag("packedGenParticles"),\n')
 
 
-         newCfg.write("   name = cms.string('BESTGraph'),   path = cms.FileInPath('data/constantgraph.pb'),\n")
-         newCfg.write("   means = cms.FileInPath('data/ScalerParameters_maxAbs_train.txt'),\n")
+         newCfg.write(" BESTname = cms.string('BESTGraph'),  BESTpath = cms.FileInPath('data/BEST_models/constantgraph_%s.pb'),\n"%year)
+
+         newCfg.write(" BESTscale = cms.FileInPath('data/BESTScalerParameters_all_mass_%s.txt'),\n"%(year))
          if year == "2015":
-            newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2016preVFP_UL/puWeights.json'),\n")
+            newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2016preVFP_UL/puWeights.json'),\n")
          elif year == "2016":
-            newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2016postVFP_UL/puWeights.json'),\n")
+            newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2016postVFP_UL/puWeights.json'),\n")
          elif year == "2017":
-            newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2017_UL/puWeights.json'),\n")
+            newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2017_UL/puWeights.json'),\n")
          elif year == "2018":
-            newCfg.write("   PUfile_path = cms.FileInPath('data/POG/LUM/2018_UL/puWeights.json'),\n")
+            newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2018_UL/puWeights.json'),\n")
 
          
          #should this be for data and MC?
@@ -293,51 +298,53 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
                return
 
 
-            newCfg.write("   bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root'),\n"%(bTagSF_sample,year))
+            newCfg.write(" bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root'),\n"%(bTagSF_sample,year))
             if year == "2015":
-               newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
+               newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
             elif year == "2016":
-               newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016postVFP_UL/btagging.json'),\n")
+               newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016postVFP_UL/btagging.json'),\n")
             elif year == "2017":
-               newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2017_UL/btagging.json'),\n")
+               newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2017_UL/btagging.json'),\n")
             elif year == "2018":
-               newCfg.write("   bTagSF_path = cms.FileInPath('data/bTaggingSFs/2018_UL/btagging.json'),\n")
+               newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2018_UL/btagging.json'),\n")
 
-         newCfg.write('   JECUncert_AK8_path = cms.FileInPath("%s"),\n'%jec_file_AK8)
-         newCfg.write('   JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
+         newCfg.write(' JECUncert_AK8_path = cms.FileInPath("%s"),\n'%jec_file_AK8)
+         newCfg.write(' JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
 
-         newCfg.write('   fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
+         newCfg.write(' fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
          if apply_pu_ID:
-            newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
+            newCfg.write(' jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
          else:
-            newCfg.write('   jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
-         newCfg.write('   muonCollection= cms.InputTag("slimmedMuons"),\n')
-         newCfg.write('   electronCollection = cms.InputTag("slimmedElectrons"),\n')
-         newCfg.write('   metCollection = cms.InputTag("slimmedMETs"),\n')
-         newCfg.write('   tauCollection = cms.InputTag("slimmedTaus"),\n')
-         newCfg.write('   pileupCollection = cms.InputTag("slimmedAddPileupInfo"),\n')
-         newCfg.write('   systematicType = cms.string("%s%s"),\n'%(systematic,suffix) )
-         newCfg.write('   jetVetoMapFile = cms.FileInPath("%s"),\n'%(jet_veto_map_file) )
-         newCfg.write('   jetVetoMapName = cms.string("%s"),\n'%(jet_veto_map_name) )
-         newCfg.write('   includeAllBranches = cms.bool(%s),\n'%(includeAllBranches ))
-         newCfg.write('   slimmedSelection   = cms.bool(%s),\n'%(slimmedSelection) )
-         newCfg.write('   verbose            = cms.bool(%s),\n'%(verbose) )
-         newCfg.write('   year = cms.string("%s"),   #types: 2015,2016,2017,2018\n'%year)
-         newCfg.write('   genEventInfoTag=cms.InputTag("generator"),\n')
-         newCfg.write('   lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
-         newCfg.write('   bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
-         newCfg.write('   triggers = cms.string("%s"),\n'%trigger)
+            newCfg.write(' jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+         newCfg.write(' muonCollection= cms.InputTag("slimmedMuons"),\n')
+         newCfg.write(' electronCollection = cms.InputTag("slimmedElectrons"),\n')
+         newCfg.write(' metCollection = cms.InputTag("slimmedMETs"),\n')
+         newCfg.write(' tauCollection = cms.InputTag("slimmedTaus"),\n')
+         newCfg.write(' pileupCollection = cms.InputTag("slimmedAddPileupInfo"),\n')
+         newCfg.write(' systematicType = cms.string("%s%s"),\n'%(systematic,suffix) )
+         newCfg.write(' jetVetoMapFile = cms.FileInPath("%s"),\n'%(jet_veto_map_file) )
+         newCfg.write(' jetVetoMapName = cms.string("%s"),\n'%(jet_veto_map_name) )
+         newCfg.write(' includeAllBranches = cms.bool(%s),\n'%(includeAllBranches ))
+         newCfg.write(' slimmedSelection   = cms.bool(%s),\n'%(slimmedSelection) )
+         newCfg.write(' verbose            = cms.bool(%s),\n'%(verbose) )
+         newCfg.write(' year = cms.string("%s"), #types: 2015,2016,2017,2018\n'%year)
+         newCfg.write(' genEventInfoTag=cms.InputTag("generator"),\n')
+         newCfg.write(' lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
+         newCfg.write(' bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
+         newCfg.write(' triggers = cms.string("%s"),\n'%trigger)
          if apply_pu_ID:
-            newCfg.write('   doPUID = cms.bool(True)\n')
+            newCfg.write(' doPUID = cms.bool(True),\n')
          else:
-            newCfg.write('   doPUID = cms.bool(False)\n')
+            newCfg.write(' doPUID = cms.bool(False),\n')
+         newCfg.write('  doPDF = cms.bool(%s)\n'%doPDF)
+
          newCfg.write(")\n")
 
          # this didn't work, so unneeded
          #if doTopPtReweight:
-         #   newCfg.write('# top pt reweighting stuff\n')
-         #   newCfg.write('process.decaySubset.fillMode = cms.string("kME")\n')
-         #   newCfg.write('process.clusteringAnalyzerAll_%s%s.ttGenEvent = cms.InputTag("genEvt")\n'%(systematic, suffix))
+         #  newCfg.write('# top pt reweighting stuff\n')
+         #  newCfg.write('process.decaySubset.fillMode = cms.string("kME")\n')
+         #  newCfg.write('process.clusteringAnalyzerAll_%s%s.ttGenEvent = cms.InputTag("genEvt")\n'%(systematic, suffix))
 
 
 
@@ -365,7 +372,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    newCfg.write(")\n")
 
    newCfg.write("process.options = cms.untracked.PSet(\n")
-   newCfg.write("   wantSummary = cms.untracked.bool(True),\n")
+   newCfg.write(" wantSummary = cms.untracked.bool(True),\n")
    newCfg.write(")\n")
 
    newCfg.write('process.load("FWCore.MessageLogger.MessageLogger_cfi")\n')
@@ -377,7 +384,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    if apply_pu_ID:
       newCfg.write("process.pileupJetIdUpdated * ")
    #if doTopPtReweight:
-   #   newCfg.write("process.makeGenEvt* ")
+   #  newCfg.write("process.makeGenEvt* ")
       
    newCfg.write("process.leptonVeto * process.prefiringweight  ")
             ########if you need to check the collections, add this to the path:  process.content
@@ -392,7 +399,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
                suffix = ""
 
          #if not isSignal:
-         #   newCfg.write("process.hadronFilter * \n ")
+         #  newCfg.write("process.hadronFilter * \n ")
          newCfg.write(" * process.clusteringAnalyzerAll_%s%s\n"%(systematic, suffix) )
    newCfg.write(")\n")
    newCfg.write("process.patAlgosToolsTask = getPatAlgosToolsTask(process)\n")
@@ -405,7 +412,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
 def main():
 
-   years   = ["2015","2016","2017","2018"]
+   years = ["2015","2016","2017","2018"]
 
    systematics = ["JEC", "JER","nom"]
    # "bTagWeight",    //event weights
@@ -680,7 +687,7 @@ def main():
                        'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'TTToHadronicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt', 
                        'TTToSemiLeptonicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',  
-                       'TTToLeptonicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',   
+                       'TTToLeptonicMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',  
                         "TTJetsMCHT1200to2500": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt', 
                         "TTJetsMCHT2500toInf": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                        'ST_t-channel-top_inclMC':'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -854,7 +861,7 @@ def main():
 
    # signal_files.pkl
    signal_samples_pkl = open('signal_samples.pkl', 'r')
-   signal_samples     = pickle.load(signal_samples_pkl)
+   signal_samples   = pickle.load(signal_samples_pkl)
 
    signal_files_pkl = open('signal_files.pkl', 'r')
    signal_files     = pickle.load(signal_files_pkl)
@@ -884,7 +891,7 @@ def main():
                   
                   print("Failed on sample/year/systematic: %s/%s/%s"%(sample,year,systematic))
             else:
-               makeACfg(sample, year, systematic, datafiles[year][sample], jec_file_AK4[year][sample],jec_file_AK8[year][sample], systematics)   # change input to write systematic type
+               makeACfg(sample, year, systematic, datafiles[year][sample], jec_file_AK4[year][sample],jec_file_AK8[year][sample], systematics)  # change input to write systematic type
                num_files+=1 
    print("Finished with %i files."%num_files )
    return

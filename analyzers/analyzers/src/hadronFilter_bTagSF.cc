@@ -105,6 +105,8 @@ class hadronFilter_bTagSF : public edm::stream::EDFilter<> {
       explicit hadronFilter_bTagSF(const edm::ParameterSet&);
       ~hadronFilter_bTagSF();
       bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF);
+      bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets);
+
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
    private:
@@ -117,13 +119,9 @@ class hadronFilter_bTagSF : public edm::stream::EDFilter<> {
       std::string systematicType;
       std::string runType;
       std::vector<std::string> triggers;
-      edm::FileInPath JECUncert_AK4_path;
-      //JetCorrectionUncertainty *jecUnc_AK4;
+
       std::string year;
 
-      edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl_AK4;//c-r
-
-      bool doJEC = false;
       bool doJER = true;
       bool _verbose = false;
       bool debug = false;
@@ -210,6 +208,18 @@ bool hadronFilter_bTagSF::isgoodjet(const float eta, const float NHF,const float
    else{ return true;}
 
 }
+bool hadronFilter_bTagSF::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
+{
+   if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
+   else if ( (nfatjets >= 2) && (abs(eta) > 1.5) ) return false;
+
+   if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
+      {
+         return false;
+      }
+   else{ return true;}
+
+}
 // ------------ method called on each new Event  ------------
 bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
@@ -258,12 +268,9 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
 
 ///////////////////////////AK4 jets  && HT
    double totHT = 0;
-
-
-
-   iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl_AK4);//c-r
-   JetCorrectorParameters const & JetCorPar_AK4 =( (*JetCorParColl_AK4)["Uncertainty"]);//c-r
-   JetCorrectionUncertainty *jecUnc_AK4 = new JetCorrectionUncertainty(JetCorPar_AK4);//c-r
+   int nAK4 = 0;
+   int nAK8 = 0;
+   int nHeavyAK8 = 0;
 
 
    JME::JetResolution resolution_AK4               = JME::JetResolution::get(iSetup, "AK4PFchs_pt");                          //load JER stuff from global tag
@@ -271,36 +278,13 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
 
    edm::Handle<std::vector<pat::Jet> > smallJets;
    iEvent.getByToken(jetToken_, smallJets);
-   int nBtaggedAK4 = 0;
-   if(_verbose) std::cout << "Looking at AK4 jets." << std::endl;
 
    for(auto iJet = smallJets->begin(); iJet != smallJets->end(); iJet++) 
    {  
-
       if( (iJet->pt() < 15. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;   //don't even bother with these jets
 
       double AK4_sf_total = 1.0;
 
-      ///////////////////////////////////////////////////////
-      /////////////// _JEC ENERGY CORRECTIONS ///////////////
-      ///////////////////////////////////////////////////////
-      if(doJEC)
-      {
-         double AK4_JEC_corr_factor = 1.0;
-
-         jecUnc_AK4->setJetEta( iJet->eta() );
-         jecUnc_AK4->setJetPt( iJet->pt() );
-         double AK4_uncertainty = fabs(jecUnc_AK4->getUncertainty(true));
-         if(systematicType=="JEC_up")
-         {
-            AK4_JEC_corr_factor = 1 + AK4_uncertainty;
-         }
-         else if (systematicType=="JEC_down")
-         {
-            AK4_JEC_corr_factor = 1 - AK4_uncertainty;
-         }
-         AK4_sf_total *= AK4_JEC_corr_factor;
-      }
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
@@ -362,15 +346,100 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
 
       //loose WP 0.1522
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
-      if( ((corrJet.bDiscriminator("pfDeepCSVJetTags:probb") + corrJet.bDiscriminator("pfDeepCSVJetTags:probbb") )< 0.4184)||(corrJet.pt() < 30.) )continue;
-      //loose
-      nBtaggedAK4++;
+      nAK4++;
    }
 
-   if ((totHT < 1200.)) 
+
+
+   if (totHT < 1600.) 
    {
-      if(_verbose) std::cout << "Failed tot HT" << std::endl;
+      //std::cout << "failed HT" << std::endl;
       return false;  //btagged jet cuts
+   }
+   if (nAK4 < 4)
+   {
+      //std::cout << "failed nAK4" << std::endl;
+      return false;
+   }
+
+
+
+   /////////////////////////// AK8 jets 
+
+
+   edm::Handle<std::vector<pat::Jet> > fatJets;
+   iEvent.getByToken(fatJetToken_, fatJets);
+
+
+   JME::JetResolution resolution = JME::JetResolution::get(iSetup, "AK8PF_pt");                          //load JER stuff from global tag
+   JME::JetResolutionScaleFactor resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, "AK8PF");
+
+
+   for(auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++)    //Over AK8 Jets
+   {
+      if( (sqrt(pow(iJet->mass(),2)+pow(iJet->pt(),2)) < 100.) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.4 )) continue;   //don't even bother with these jets
+
+      double AK8_sf_total = 1.0;     // this scales jet/particle 4-vectors, compounds all scale factors
+
+
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      if(doJER)
+      {
+         double AK8_JER_corr_factor = 1.0; // this won't be touched for data
+         double sJER     = -9999.;    //JER scale factor
+         double sigmaJER = -9999.;    //this is the "resolution" you get from the scale factors 
+         
+         //these are for getting the JER scale factors
+         JME::JetParameters parameters_1;
+         parameters_1.setJetPt(iJet->pt());
+         parameters_1.setJetEta(iJet->eta());
+         parameters_1.setRho(*rho);
+         sigmaJER = resolution.getResolution(parameters_1);   //pT resolution
+
+         //JME::JetParameters
+         JME::JetParameters parameters;
+         parameters.setJetPt(iJet->pt());
+         parameters.setJetEta(iJet->eta());
+         sJER =  resolution_sf.getScaleFactor(parameters  );  //{{JME::Binning::JetEta, iJet->eta()}});
+
+         const reco::GenJet *genJet = iJet->genJet();
+         if( genJet)   // try the first technique
+         {
+            AK8_JER_corr_factor = 1 + (sJER - 1)*(iJet->pt()-genJet->pt())/iJet->pt();
+         }
+         else   // if no gen jet is matched, try the second technique
+         {
+            randomNum->SetSeed( abs(static_cast<int>(iJet->phi()*1e4)) );
+            double JERrand = randomNum->Gaus(0.0, sigmaJER);
+            //double JERrand = 1.0 + sigmaJER;
+            AK8_JER_corr_factor = std::max(0., 1 + JERrand*sqrt(std::max(pow(sJER,2)-1,0.)));   //want to make sure this is truncated at 0
+         }
+
+         AK8_sf_total*= AK8_JER_corr_factor;
+      }
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+      pat::Jet corrJet(*iJet);
+      LorentzVector corrJetP4(AK8_sf_total*iJet->px(),AK8_sf_total*iJet->py(),AK8_sf_total*iJet->pz(),AK8_sf_total*iJet->energy());
+      corrJet.setP4(corrJetP4);
+
+      if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 45.))nHeavyAK8++;
+      if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8 )) || (corrJet.mass()< 0.))continue;
+      nAK8++;
+   }
+
+   if(nAK8 < 3 )
+   {
+      //std::cout << "failed nAK8" << std::endl;
+      return false;
+   } 
+   if (nHeavyAK8<2)
+   {
+      //std::cout << "failed nHeavyAK8" << std::endl;
+      return false;
    }
    else{return true;}
 
