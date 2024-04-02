@@ -267,7 +267,7 @@ if __name__=="__main__":
 			print("ERROR: systematic should be 'nom' for b tagging eff maps. Skipping")
 			continue
 		for year in years:
-			if "_%s"%year in line:
+			if "_%s/"%year in line:
 				year_str = year		
 		if sample_str == "" or year_str == "":
 			print("ERROR: (Found %s, %s)Can't figure out what type of file this is (QCD,TTbar,etc.) or what the year is: "%(year_str,sample_str))

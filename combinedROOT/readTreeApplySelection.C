@@ -7,20 +7,21 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    double totHT, dijetMassOne, dijetMassTwo;
    int nfatjets, nfatjet_pre,nAK4;
    double SJ_mass_100[100], AK4_pt[100],AK4_DeepJet_disc[100];
-   int SJ_nAK4_300[100], SJ_nAK4_50[100];
+   int SJ_nAK4_300[100], SJ_nAK4_50[100], SJ_nAK4_100[100], SJ_nAK4_150[100];
    double PU_eventWeight_nom, bTag_eventWeight_nom;
    double superJet_mass[100];
    double diSuperJet_mass;
    double average_bTagSF = 0;
    double average_PUSF   = 0;
    double total_events_unscaled = 0;
-
+   double SJ_mass_200[10], SJ_mass_300[10];
    double AK8_partonFlavour[100];
    int AK4_hadronFlavour[100];
    int eventNumber;
    int AK8_SJ_assignment[100],AK4_SJ_assignment[100];
    bool AK8_is_near_highE_CA4[100],AK4_is_near_highE_CA4[100];
    
+   int totEventsUncut = 0;
 
    const char *_inFilename = inFileName.c_str();
    int total_btags =0;
@@ -58,7 +59,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
          double nEvents =0,nHTcut =0 ,nAK8JetCut =0,nHeavyAK8Cut=0,nBtagCut=0,nSJEnergyCut=0, nSJMass100Cut=0;
          double nZeroBtag = 0, nZeroBtagnSJEnergyCut = 0, nZeroBtagnSJMass100Cut = 0;
-         double nNoBTags = 0, nAT0b = 0, nAT1b = 0;
+         double nNoBTags = 0, nAT0b = 0, nAT1b = 0, nSR = 0, nCR = 0, nAT1b_noScale = 0, nAT0b_noScale = 0;
          std::cout << "Looking at the " << *systematic_suffix << " tree" << std::endl;
 
 
@@ -150,8 +151,16 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
          t1->SetBranchAddress("nAK4" , &nAK4); 
 
-         t1->SetBranchAddress("SJ_mass_100", SJ_mass_100);   
+         t1->SetBranchAddress("SJ_mass_100", SJ_mass_100);
+         t1->SetBranchAddress("SJ_mass_200", SJ_mass_200);
+         t1->SetBranchAddress("SJ_mass_300", SJ_mass_300);
+
+
          t1->SetBranchAddress("SJ_nAK4_300", SJ_nAK4_300);
+         t1->SetBranchAddress("SJ_nAK4_100", SJ_nAK4_100);
+         t1->SetBranchAddress("SJ_nAK4_150", SJ_nAK4_150);
+
+
          t1->SetBranchAddress("SJ_nAK4_50", SJ_nAK4_50);
 
          t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
@@ -217,11 +226,14 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          int tot_nAK4_light = 0,  tot_nAK4_c = 0, tot_nAK4_b = 0;
 
          std::cout << "Looping over events." << std::endl;
+
+
+         totEventsUncut = 0;
          for (Int_t i=0;i<nentries;i++) 
          {  
 
             t1->GetEntry(i);
-
+            totEventsUncut++;
             if ((dataBlock.find("Suu") != std::string::npos))
             {
                if( eventNumber%10 > 2) continue; // should only be for signal
@@ -248,7 +260,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             //std::cout <<"Count is "<<nEvents  << ", " << bTag_eventWeight_nom << "-" << PU_eventWeight_nom<< std::endl;
             //eventWeight = 1;
             nEvents+=eventWeight;
-            if (totHT < 1500.) continue; 
+            if (totHT < 1600.) continue; 
             nHTcut+=eventWeight;
             if( (nfatjets < 3)   ) continue;
             nAK8JetCut+=eventWeight;
@@ -300,16 +312,14 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                nBtagCut+=eventWeight;
                
 
-               if((SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
+               //std:;cout << SJ_mass_200[0]  << " " << SJ_mass_200[1] << std::endl;
+               if( ( (SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2) ) )     //|| (  ( (SJ_nAK4_150[0] + SJ_nAK4_150[1]) > 4) && (SJ_mass_200[0]> 500) && (SJ_mass_200[1]> 500) )  )  // alternative cut to improve 1 TeV efficiency ->   // || ( (SJ_mass_200[0]> 400) && (SJ_mass_200[1]> 400)  ) 
                {
                   //signal region
-
-
-
-
+                  nSR++;
 
                   nSJEnergyCut+=eventWeight;
-                  if((SJ_mass_100[0]>=400.) && (SJ_mass_100[1]>400.)   )
+                  if(((SJ_mass_100[0]>=400.) && (SJ_mass_100[1]>400.))   )
                   {
                      nSJMass100Cut+=eventWeight;
                   }
@@ -322,6 +332,8 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                   {
                      //std::cout << "In the AT1b region: SJ mass/diSJ mass/nAK8/AK4/nBtags/eventweight are " << superJet_mass[1]<< "/" << diSuperJet_mass<< "/" << nfatjets << "/" << nAK4 << "/"<< nTightBTags << "/" << eventWeight <<  std::endl;
                      nAT1b+=eventWeight;
+                     nAT1b_noScale++;
+
                   }
                }
 
@@ -334,8 +346,9 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                nZeroBtag+=eventWeight;
 
                //CR
-               if((SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
+               if( (SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
                {
+                  nCR++;
                   nZeroBtagnSJEnergyCut+=eventWeight;
                }
 
@@ -345,6 +358,8 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                   if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
                   {
                      nAT0b+=eventWeight;
+                     nAT0b_noScale++;
+
                   }
                }
                
@@ -362,9 +377,15 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          std::cout << "AT1b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nBtagCut: - "  <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nAT1b << std::endl;
          std::cout << "AT0b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT1b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nAT0b << std::endl;
 
-         std::cout << "There were a total of " << total_btags << " tight b-tagged jets in this sample." << std::endl; 
-         std::cout << "The average bTagSF was " << average_bTagSF/total_events_unscaled << ", the average PUSF was " << average_PUSF/total_events_unscaled << std::endl; 
+         //std::cout << "There were a total of " << total_btags << " tight b-tagged jets in this sample." << std::endl; 
+         //std::cout << "The average bTagSF was " << average_bTagSF/total_events_unscaled << ", the average PUSF was " << average_PUSF/total_events_unscaled << std::endl; 
          //std::cout << "WARNING: The btag SF is set to 1. Change this when not testing "  << std::endl;
+
+         std::cout << "TotalEvents/TotalPassed: Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/" << nSR << std::endl;
+         std::cout << "TotalEvents/TotalPassed: Control Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nCR  <<std::endl;
+         std::cout << "TotalEvents/TotalPassed: AT1b    Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nAT1b_noScale <<std::endl;
+         std::cout << "TotalEvents/TotalPassed: AT0b    Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nAT0b_noScale <<std::endl;
+
 
          std::cout << "------------- b tagging flavour stuff ------------" << std::endl;
          std::cout << "rate at which light/c/b AK4 jets are found near high-energy reclustered CA4 jets: " << (1.0*nAK4FoundNearHighECA4_light)/tot_nAK4_light<< "/" << (1.0*nAK4FoundNearHighECA4_c)/tot_nAK4_c<< "/" << (1.0*nAK4FoundNearHighECA4_b)/tot_nAK4_b<< std::endl;
@@ -375,7 +396,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    }
    f->Close();
    outFile.Close();
-   //delete f;
+   delete f;
    return true;
 
 }
@@ -400,14 +421,16 @@ void readTreeApplySelection()
 "Suu6_chi1p5_ZTZT_","Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
 "Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_"};  
    //std::vector<std::string> signal_samples = {"Suu8_chi2_WBZT_"};
+   std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
 
    // you must change these ........
    bool runAll = false;
    bool runData = false;
    bool runSignal = false;
-   bool runDataBR = false;
+   bool runDataBR = true;
    bool runTTbar  = false;
-   bool runSelection = true;
+   bool runSelection = false;
+   bool runSingleFile = false;
    std::vector<std::string> years = {"2015","2016","2017","2018"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
    std::vector<std::string> systematics = {"nom", "JEC", "JER"};//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
@@ -415,6 +438,30 @@ void readTreeApplySelection()
    std::string failedFiles = "";
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
+
+   if (runSelection) years = {"2015"};  // single year to run over 
+
+
+   if(runSingleFile)
+   {
+
+      std::string pathToFile = eos_path;
+
+      std::string year_ = "2018";
+      std::vector<std::string> use_systematic_ = {"nom"};
+      std::string dataBlock_ = "Suu5_chi1_ZTZT_";
+
+      std::string systematic_str_  = "_nom";
+      std::string inFileName_ = (pathToFile + dataBlock_ + year_ +  systematic_str_ + "_combined.root").c_str();
+      std::string outFileName_ = (pathToFile+ dataBlock_ + year_ +  systematic_str_ + "_SKIMMED_TEST.root").c_str();
+
+      doThings(inFileName_, outFileName_, eventScaleFactor, year_, use_systematic_, dataBlock_);
+      return;
+   }
+
+
+
+
    for(auto datayear = years.begin();datayear<years.end();datayear++)
    {
       std::vector<std::string> dataBlocks_non_sig; 
@@ -504,8 +551,10 @@ void readTreeApplySelection()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"Suu4_chi1p5_HTHT_","Suu8_chi2_WBHT_"};  
+         dataBlocks = {"dataC-HIPM_"};  
       }
+
+
       else
       {  
         dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
@@ -518,7 +567,6 @@ void readTreeApplySelection()
          {
             std::string year           = *datayear;
             std::string systematic_str = *systematic;
-            std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
 
             std::string inFileName;
             std::string outFileName;
@@ -532,6 +580,17 @@ void readTreeApplySelection()
                outFileName= (*dataBlock + year + "_SKIMMED.root").c_str();
 
             }
+            else if (dataBlock->find("data") != std::string::npos)  
+            {
+               if((*systematic != "nom") && (*systematic != "JEC") )continue; 
+               std::cout << "Running as data." << std::endl;
+               std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
+               std::string output_dir = "";
+               use_systematics = {*systematic};
+               inFileName  = (eos_path + *dataBlock + year +  "_" + systematic_str + "_combined.root").c_str();
+               outFileName= (output_dir+ *dataBlock + year + "_"+ systematic_str + "_SKIMMED.root").c_str();
+            }
+
             else
             {  
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
@@ -540,8 +599,6 @@ void readTreeApplySelection()
                inFileName  = (eos_path + *dataBlock + year +  "_" + systematic_str + "_combined.root").c_str();
                outFileName= (output_dir+ *dataBlock + year + "_"+ systematic_str + "_SKIMMED.root").c_str();
             }
-
-            if ((dataBlock->find("data") != std::string::npos) && (systematic_str == "JER")) continue;
             //if (runSignal) inFileName  = (eos_path+*dataBlock+  year +  "_" + systematic_str+ "_combined.root").c_str();
 
             std::cout << "======================================================================================================================= " << std::endl;
