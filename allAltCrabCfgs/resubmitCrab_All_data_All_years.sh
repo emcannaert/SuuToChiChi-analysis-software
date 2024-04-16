@@ -1,4 +1,0 @@
-source resubmitCrab_All_data_2015.sh
-source resubmitCrab_All_data_2016.sh
-source resubmitCrab_All_data_2017.sh
-source resubmitCrab_All_data_2018.sh

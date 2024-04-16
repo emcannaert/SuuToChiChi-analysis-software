@@ -1,4 +1,0 @@
-crab status --verboseErrors crab_projects/crab_clustAlg_2018_ST_t-channel-antitop_AltDatasets_000
-crab status --verboseErrors crab_projects/crab_clustAlg_2018_ST_tW-antiTop_AltDatasets_000
-crab status --verboseErrors crab_projects/crab_clustAlg_2018_ST_tW-top_AltDatasets_000
-crab status --verboseErrors crab_projects/crab_clustAlg_2018_ST_t-channel-top_AltDatasets_000

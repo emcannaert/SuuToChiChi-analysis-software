@@ -1,2 +1,0 @@
-source resubmitCrab_data_2016.sh
-source resubmitCrab_data_2016_JEC.sh

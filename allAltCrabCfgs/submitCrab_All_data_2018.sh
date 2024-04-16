@@ -1,2 +1,0 @@
-source submitCrab_data_2018_JEC.sh
-source submitCrab_data_2018_nom.sh
