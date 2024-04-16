@@ -20,11 +20,11 @@ else
 	#grep -v root all_files.txt | grep /0000 | grep WBHT > WBHT_eos_paths.txt
 	#grep -v root all_files.txt | grep /0000 | grep WBZT > WBZT_eos_paths.txt
 	#grep -v root all_files.txt | grep /0000 | grep HTZT > HTZT_eos_paths.txt
-	grep -v root all_files_btag.txt | grep "_$2" | grep "MSuu" | grep /000  > signal_eos_paths_btagging.txt
-	grep -v root all_files_btag.txt | grep "_$2" | grep "TTTo" | grep /000  > TTbar_eos_paths_btagging.txt
-	grep -v root all_files_btag.txt | grep "_$2" | grep "QCD" | grep /000  > QCD_eos_paths_btagging.txt
-	grep -v root all_files_btag.txt | grep "_$2" | grep "ST_" | grep /000  > ST_eos_paths_btagging.txt	
-	grep -v root all_files_btag.txt | grep "_$2" | grep "data" | grep /000  > data_eos_paths_btagging.txt
+	grep -v root all_files_btag.txt | grep "_$2/" | grep "MSuu" | grep /000  > signal_eos_paths_btagging.txt
+	grep -v root all_files_btag.txt | grep "_$2/" | grep "TTTo" | grep /000  > TTbar_eos_paths_btagging.txt
+	grep -v root all_files_btag.txt | grep "_$2/" | grep "QCD" | grep /000  > QCD_eos_paths_btagging.txt
+	grep -v root all_files_btag.txt | grep "_$2/" | grep "ST_" | grep /000  > ST_eos_paths_btagging.txt	
+	grep -v root all_files_btag.txt | grep "_$2/" | grep "data" | grep /000  > data_eos_paths_btagging.txt
 	echo "Finished."
     #rm all_files.txt
 fi

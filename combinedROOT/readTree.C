@@ -6,7 +6,7 @@
 
 
 using namespace std;
-bool doThings(std::string inFileName, std::string outFileName, double& nEvents, double& nHTcut, double& nAK8JetCut,double& nHeavyAK8Cut, double& nBtagCut, double& nDoubleTagged,double& nNoBjets, double& nDoubleTaggedCR, double& NNDoubleTag, double& nDoubleTaggedCRNN,double eventScaleFactor, double& nZeroBtagAntiTag, double & nOneBtagAntiTag, std::string dataYear,std::string systematic, std::string dataBlock)
+bool doThings(std::string inFileName, std::string outFileName, double& nEvents, double& nHTcut, double& nAK8JetCut,double& nHeavyAK8Cut, double& nBtagCut, double& nDoubleTagged,double& nNoBjets, double& nDoubleTaggedCR, double& NNDoubleTag,double eventScaleFactor, double& nZeroBtagAntiTag, double & nOneBtagAntiTag, double & nNN_SR, double & nNN_CR, double & nNN_AT1b, double & nNN_AT0b,  std::string dataYear,std::string systematic, std::string dataBlock)
 {
 
    TH1::SetDefaultSumw2();
@@ -55,6 +55,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 
 
+   int total_1b = 0, total_0b = 0;
+
    int totEventsUncut;
 
    double SJ1_BEST_scores[50], SJ2_BEST_scores[50];
@@ -83,8 +85,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
    std::cout << "---------  Reading file: " << _inFilename << std::endl;
 
-
-
    TFile *f = TFile::Open(_inFilename);
 
    if ((f == nullptr)||(f->IsZombie()) )
@@ -112,13 +112,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
          outFile.cd( (systematic+"_"+*systematic_suffix).c_str() );   // go inside the systematic directory 
       }
       
-      //std::cout << "Writing out to tree " <<  (systematic+"_"+*systematic_suffix).c_str() << " in file " << outFileName.c_str() << std::endl;
-
-       // need to tunnel into the directory of the infile   JEC_up, nom_ /   skimmedTree_nom / skimmedTree_JER_up
-
       std::string tree_name;
       std::string systematic_use = systematic;
-      if((systematic == "nom" ) || (systematic == "bTagSF" ) || (systematic == "PUSF" ) || (systematic == "L1Prefiring") || (systematic == "pdf") || (systematic == "topPt")|| (systematic == "scale"))
+      if((systematic == "nom" ) || (systematic == "bTagSF" ) || (systematic == "PUSF" ) || (systematic == "L1Prefiring") || (systematic == "pdf") || (systematic == "topPt")|| (systematic == "scale") || (systematic == "renorm") || (systematic == "fact"))
       {
          tree_name = "nom";
          systematic_use = "";
@@ -128,9 +124,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
          tree_name = systematic+"_"+*systematic_suffix;
       }
 
-      //std::cout << "Looking for tree " << ( tree_name  + "/skimmedTree_"+ tree_name ).c_str() << std::endl;
-      //std::cout << "Inside the root file there is " << std::endl;
-      //f->ls() ;
       TTree *t1;
       Int_t nentries;
 
@@ -155,40 +148,28 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       }
       std::cout << "Successfully got tree." << std::endl;
       
+
+      //////////////////////////////////////////////////
+      /////////// kinematics and diagnostics ///////////
+      //////////////////////////////////////////////////
+
       TH1F* h_totHT  = new TH1F("h_totHT","Total Event HT;H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
-      TH1F* h_disuperjet_mass  = new TH1F("h_disuperjet_mass","diSuperJet Mass;Mass [GeV]; Events / 200 GeV",50,0.,10000);
-      TH1F* h_disuperjet_mass_100  = new TH1F("h_disuperjet_mass_100","diSuperJet Mass (E_{AK4} > 100 GeV);Mass [GeV]; Events / 200 GeV",50,0.,10000);
       TH1I* h_nfatjets_pre  = new TH1I("h_nfatjets_pre","Number of AK8 Jets (p_{T} > 500 GeV, M_{PUPPI} > 45 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
-
-      // QCD control region stuff 
-      TH1I* h_SJ_nAK4_100_CR  = new TH1I("h_SJ_nAK4_100_CR","Number of Reclustered AK4 Jets (E_{COM} > 100 GeV) per SJ (Control Region);nAK4 Jets (E_{COM} > 100 GeV); Events",10,-0.5,9.5);
-      TH1I* h_SJ_nAK4_200_CR  = new TH1I("h_SJ_nAK4_200_CR","Number of Reclustered AK4 Jets (E_{COM} > 200 GeV) per SJ (Control Region);nAK4 Jets (E_{COM} > 200 GeV); Events",10,-0.5,9.5);
-      TH1F* h_SJ_mass_CR  = new TH1F("h_SJ_mass_CR","SuperJet Mass (Control Region) ;Mass [GeV]; Events / 125 GeV",40,0.,5000);
-      TH1F* h_disuperjet_mass_CR  = new TH1F("h_disuperjet_mass_CR","diSuperJet Mass (Control Region);Mass [GeV]; Events / 200 GeV",50,0.,10000);
-      TH2F *h_MSJ_mass_vs_MdSJ_CR = new TH2F("h_MSJ_mass_vs_MdSJ_CR","Double Tagged Superjet mass vs diSuperjet mass (Control Region); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
-
-      // TTbar control region
-      TH2F *h_MSJ_mass_vs_MdSJ_CRTTbar = new TH2F("h_MSJ_mass_vs_MdSJ_CRTTbar","Double Tagged Superjet mass vs diSuperjet mass (TTbar Control Region); diSuperjet mass [GeV];superjet mass", 22,1250., 9500, 20, 500, 3500);  /// 375 * 125
-
-
-      // Signal regions stuff
-      TH1I* h_SJ_nAK4_100_SR  = new TH1I("h_SJ_nAK4_100_SR","Number of Reclustered AK4 Jets (E_{COM} > 100 GeV) per SJ (Signal Region);nAK4 Jets (E_{COM} > 100 GeV); Events",10,-0.5,9.5);
-      TH1I* h_SJ_nAK4_200_SR = new TH1I("h_SJ_nAK4_200_SR","Number of Reclustered AK4 Jets (E_{COM} > 200 GeV) per SJ (Signal Region);nAK4 Jets (E_{COM} > 200 GeV); Events",10,-0.5,9.5);
-      TH1F* h_SJ_mass_SR  = new TH1F("h_SJ_mass_SR","SuperJet Mass (Signal Region) ;Mass [GeV]; Events / 100 GeV",40,0.,5000);
-      TH1F* h_disuperjet_mass_SR  = new TH1F("h_disuperjet_mass_SR","diSuperJet Mass (Signal Region);Mass [GeV]; Events / 200 GeV",50,0.,10000);
-      TH2F *h_MSJ_mass_vs_MdSJ_SR = new TH2F("h_MSJ_mass_vs_MdSJ_SR","Double Tagged Superjet mass vs diSuperjet mass (Signal Region); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
-
       TH2F *h_MSJ_mass_vs_MdSJ_dijet = new TH2F("h_MSJ_mass_vs_MdSJ_dijet","Double Tagged Superjet mass vs diSuperjet mass (dijet technique); 4-jet mass [GeV];avg dijet mass", 22,1250., 9500, 20, 500, 3500);  /// 375 * 125
-
-
-      TH1I* h_nLooseBTags = new TH1I("h_nLooseBTags","Number of Loosely b-tagged AK4 Jets; Events",10,-0.5,9.5);
-      TH1I* h_nMidBTags = new TH1I("h_nMidBTags","Number of Mediumly b-tagged AK4 Jets; Events",10,-0.5,9.5);
-      TH1I* h_nTightBTags = new TH1I("h_nTightBTags","Number of Tightly b-tagged AK4 Jets; Events",10,-0.5,9.5);
-
       TH1I* h_nfatjets = new TH1I("h_nfatjets","Number of AK8 Jets (E_{T} > 300 GeV per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1I* h_nAK4 = new TH1I("h_nAK4","Number of AK4 jets;# AK4 jets; Events",20,-0.5,19.5);
 
+      TH1I* h_nAK4_all  = new TH1I("h_nAK4_all","Number of Lab AK4 Jets (all events);nAK4 Jets; Events",20,-0.5,19.5);
+      TH1I* h_nAK4_all_barrel  = new TH1I("h_nAK4_all_barrel","Number of Lab AK4 Jets (all events in barrel);nAK4 Jets; Events",20,-0.5,19.5);
+      TH1I* h_nAK4_all_endcap  = new TH1I("h_nAK4_all_endcap","Number of Lab AK4 Jets (all events in endcaps);nAK4 Jets; Events",20,-0.5,19.5);
+      TH2I* h_nAK4_wHEM  = new TH2I("h_nAK4_wHEM","Number of AK4 jets (HEM region included); eta; phi",60, -3, 3, 64,-3.2,3.2 );
+      TH2I* h_nAK4_noHEM  = new TH2I("h_nAK4_noHEM","Number of AK4 jets (HEM region NOT included); eta; phi",60, -3, 3, 64,-3.2,3.2 );
+      TH1F* h_AK4_phi_noHEM  = new TH1F("h_AK4_phi_noHEM","AK4 phi (HEM NOT included);eta; Events",64,-3.2,3.2);
 
+      /////////////////////////////////////////////////////////////////////////////
       /////////////more for verifying the CR //////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////
+
       TH1F* h_AK8_jet_mass_SR  = new TH1F("h_AK8_jet_mass_SR","AK8 Jet Mass (SR region);Mass [GeV]; Events / 30 5GeV",50,0.,1500);
       TH1F* h_AK8_jet_mass_CR  = new TH1F("h_AK8_jet_mass_CR","AK8 Jet Mass (CR);Mass [GeV]; Events / 30 GeV",50,0.,1500);
 
@@ -204,48 +185,43 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       TH1I* h_nAK4_SR = new TH1I("h_nAK4_SR","Number of AK4 Jets (E_{T} > 30 GeV per Event ;nAK8 Jets; Events",30,-0.5,29.5);
       TH1I* h_nAK4_CR = new TH1I("h_nAK4_CR","Number of AK4 Jets (E_{T} > 30 GeV per Event ;nAK8 Jets; Events",30,-0.5,29.5);
 
+      /////////////////////////////////////////
+      //////  Region-specific histograms /////
+      ////////////////////////////////////////
 
-      TH1I* h_AK4_partonFlavour = new TH1I("h_AK4_partonFlavour","AK4 parton Flavour ;parton flavour ; Events",59,-29.5,29.5);
+      // SR
+      TH1I* h_SJ_nAK4_100_SR  = new TH1I("h_SJ_nAK4_100_SR","Number of Reclustered AK4 Jets (E_{COM} > 100 GeV) per SJ (Signal Region) (cut-based);nAK4 Jets (E_{COM} > 100 GeV); Events",10,-0.5,9.5);
+      TH1I* h_SJ_nAK4_200_SR = new TH1I("h_SJ_nAK4_200_SR","Number of Reclustered AK4 Jets (E_{COM} > 200 GeV) per SJ (Signal Region) (cut-based);nAK4 Jets (E_{COM} > 200 GeV); Events",10,-0.5,9.5);
+      TH1F* h_SJ_mass_SR  = new TH1F("h_SJ_mass_SR","SuperJet Mass (Signal Region) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_SR  = new TH1F("h_disuperjet_mass_SR","diSuperJet Mass (Signal Region) (cut-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+      TH2F *h_MSJ_mass_vs_MdSJ_SR = new TH2F("h_MSJ_mass_vs_MdSJ_SR","Double Tagged Superjet mass vs diSuperjet mass (Signal Region) (cut-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
+      TH2F* h_MSJ1_vs_MSJ2_SR = new TH2F("h_MSJ1_vs_MSJ2_SR","M_{superjet 2} vs M_{superjet 1} in the Signal Region (cut-based); M_{superjet 1} Events / 70 GeV;M_{superjet 2} Events / 70 GeV",50,0, 3500, 50, 0, 3500);
 
-      TH1F* h_GenBtagged_HT = new TH1F("h_GenBtagged_HT","Event HT of AK4 jets tagged by genParts;H_{T}; Events/300 GeV",25,0.0,7500.0);
-      TH1F* h_RECOBtagged_HT = new TH1F("h_RECOBtagged_HT","Event HT of AK4 jets tagged post RECO;H_{T}; Events/300 GeV",25,0.0,7500.0);
+      // CR
+      TH1I* h_SJ_nAK4_100_CR  = new TH1I("h_SJ_nAK4_100_CR","Number of Reclustered AK4 Jets (E_{COM} > 100 GeV) per SJ (Control Region) (cut-based);nAK4 Jets (E_{COM} > 100 GeV); Events",10,-0.5,9.5);
+      TH1I* h_SJ_nAK4_200_CR  = new TH1I("h_SJ_nAK4_200_CR","Number of Reclustered AK4 Jets (E_{COM} > 200 GeV) per SJ (Control Region) (cut-based);nAK4 Jets (E_{COM} > 200 GeV); Events",10,-0.5,9.5);
+      TH1F* h_SJ_mass_CR  = new TH1F("h_SJ_mass_CR","SuperJet Mass (Control Region) (cut-based);Mass [GeV]; Events / 125 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_CR  = new TH1F("h_disuperjet_mass_CR","diSuperJet Mass (Control Region) (cut-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+      TH2F *h_MSJ_mass_vs_MdSJ_CR = new TH2F("h_MSJ_mass_vs_MdSJ_CR","Double Tagged Superjet mass vs diSuperjet mass (Control Region) (cut-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
+      TH2F* h_MSJ1_vs_MSJ2_CR = new TH2F("h_MSJ1_vs_MSJ2_CR","M_{superjet 2} vs M_{superjet 1} in the Control Region (cut-based); M_{superjet 1} Events / 70 GeV;M_{superjet 2} Events / 70 GeV",50,0, 3500, 50, 0, 3500);
 
-      TH1F* h_GenBtagged_pT = new TH1F("h_GenBtagged_pT","p_{T} of AK4 jets tagged by genParts;p_{T}; Events/100 GeV",25,0.0,2500.0);
-      TH1F* h_RECOBtagged_pT = new TH1F("h_RECOBtagged_pT","p_{T} of AK4 jets tagged post RECO;p_{T}; Events/100 GeV",25,0.0,2500.0);
+      /// AT0b
+      TH2F *h_MSJ_mass_vs_MdSJ_AT0b = new TH2F("h_MSJ_mass_vs_MdSJ_AT0b","Tagged Superjet 2 mass vs diSuperjet mass (AT0b) (cut-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
+      TH1F* h_SJ_mass_AT0b  = new TH1F("h_SJ_mass_AT0b","SuperJet Mass (AT0b) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_AT0b  = new TH1F("h_disuperjet_mass_AT0b","diSuperJet Mass (AT0b) (cut-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+      TH1I* h_nAK4_AT0b  = new TH1I("h_nAK4_AT0b","Number of Lab AK4 Jets (AT0b) (cut-based);nAK4 Jets; Events",25,-0.5,24.5);
 
-      TH1F* h_AK4_DeepJet_disc  = new TH1F("h_AK4_DeepJet_disc","AK4 DeepFlavour bdisc scores;bdisc",25,0.,1.25);
-      TH1F* h_AK4_DeepJet_disc_all  = new TH1F("h_AK4_DeepJet_disc_all","AK4 DeepFlavour bdisc scores;bdisc",25,0.,1.25);
-
-      TH1I* h_nAK4 = new TH1I("h_nAK4","Number of AK4 jets;# AK4 jets; Events",20,-0.5,19.5);
-
-      TH2F *h_MSJ_mass_vs_MdSJ_SR_NN = new TH2F("h_MSJ_mass_vs_MdSJ_SR_NN","Double Tagged Superjet mass vs diSuperjet mass (Signal Region, NN tagging); diSuperjet mass [GeV];superjet mass", 25,0, 10000, 20, 0, 6000);
-
-     TH2F* h_MSJ1_vs_MSJ2_SR = new TH2F("h_MSJ1_vs_MSJ2_SR","M_{superjet 2} vs M_{superjet 1} in the Signal Region; M_{superjet 1} Events / 70 GeV;M_{superjet 2} Events / 70 GeV",50,0, 3500, 50, 0, 3500);
-
-     TH2F* h_MSJ1_vs_MSJ2_CR = new TH2F("h_MSJ1_vs_MSJ2_CR","M_{superjet 2} vs M_{superjet 1} in the Control Region; M_{superjet 1} Events / 70 GeV;M_{superjet 2} Events / 70 GeV",50,0, 3500, 50, 0, 3500);
-
-      TH1I* h_nAK4_all  = new TH1I("h_nAK4_all","Number of Lab AK4 Jets (all events);nAK4 Jets; Events",20,-0.5,19.5);
-      TH1I* h_nAK4_all_barrel  = new TH1I("h_nAK4_all_barrel","Number of Lab AK4 Jets (all events in barrel);nAK4 Jets; Events",20,-0.5,19.5);
-      TH1I* h_nAK4_all_endcap  = new TH1I("h_nAK4_all_endcap","Number of Lab AK4 Jets (all events in endcaps);nAK4 Jets; Events",20,-0.5,19.5);
-
-     /// CR anti-tag region stuff
-      TH2F *h_MSJ_mass_vs_MdSJ_AT0b = new TH2F("h_MSJ_mass_vs_MdSJ_AT0b","Tagged Superjet 2 mass vs diSuperjet mass (Anti-tagged Control Region); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
-      TH1F* h_SJ_mass_AT0b  = new TH1F("h_SJ_mass_AT0b","SuperJet Mass (Anti-tagged Control Region) ;Mass [GeV]; Events / 100 GeV",40,0.,5000);
-      TH1F* h_disuperjet_mass_AT0b  = new TH1F("h_disuperjet_mass_AT0b","diSuperJet Mass (Anti-tagged Control Region);Mass [GeV]; Events / 200 GeV",50,0.,10000);
-      TH1I* h_nAK4_AT0b  = new TH1I("h_nAK4_AT0b","Number of Lab AK4 Jets (0b anti-tag region);nAK4 Jets; Events",25,-0.5,24.5);
-
-      // 1-btag anti-tag region stuff
-      TH2F *h_MSJ_mass_vs_MdSJ_AT1b = new TH2F("h_MSJ_mass_vs_MdSJ_AT1b","Tagged Superjet 2 mass vs diSuperjet mass (1+ b jet Anti-tagged); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
-      TH1F* h_SJ_mass_AT1b  = new TH1F("h_SJ_mass_AT1b","SuperJet Mass (1+ b jet Anti-tagged) ;Mass [GeV]; Events / 100 GeV",40,0.,5000);
-      TH1F* h_disuperjet_mass_AT1b  = new TH1F("h_disuperjet_mass_AT1b","diSuperJet Mass (1+ b jet Anti-tagged);Mass [GeV]; Events / 200 GeV",50,0.,10000);
-      TH1I* h_nAK4_AT1b  = new TH1I("h_nAK4_AT1b","Number of Lab AK4 Jets (1b anti-tag region);nAK4 Jets; Events",25,-0.5,24.5);
-      TH1I* h_nTightbTags_AT1b  = new TH1I("h_nTightbTags_AT1b","Number of tight b-tagged Lab AK4 Jets (1b anti-tag region);n b tags; Events",8,-0.5,7.5);
+      // AT1b
+      TH2F *h_MSJ_mass_vs_MdSJ_AT1b = new TH2F("h_MSJ_mass_vs_MdSJ_AT1b","Tagged Superjet 2 mass vs diSuperjet mass (AT1b) (cut-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
+      TH1F* h_SJ_mass_AT1b  = new TH1F("h_SJ_mass_AT1b","SuperJet Mass (AT1b) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_AT1b  = new TH1F("h_disuperjet_mass_AT1b","diSuperJet Mass (AT1b) (cut-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+      TH1I* h_nAK4_AT1b  = new TH1I("h_nAK4_AT1b","Number of Lab AK4 Jets (AT1b) (cut-based);nAK4 Jets; Events",25,-0.5,24.5);
+      TH1I* h_nTightbTags_AT1b  = new TH1I("h_nTightbTags_AT1b","Number of tight b-tagged Lab AK4 Jets (AT1b) (cut-based);n b tags; Events",8,-0.5,7.5);
 
 
-      TH2I* h_nAK4_wHEM  = new TH2I("h_nAK4_wHEM","Number of AK4 jets (HEM region included); eta; phi",60, -3, 3, 64,-3.2,3.2 );
-      TH2I* h_nAK4_noHEM  = new TH2I("h_nAK4_noHEM","Number of AK4 jets (HEM region NOT included); eta; phi",60, -3, 3, 64,-3.2,3.2 );
-      TH1F* h_AK4_phi_noHEM  = new TH1F("h_AK4_phi_noHEM","AK4 phi (HEM NOT included);eta; Events",64,-3.2,3.2);
-
+      /////////////////////////////
+      //////// BEST stuff /////////
+      /////////////////////////////
 
       TH1F* h_SJ1_BEST_sig_score_1b  = new TH1F("h_SJ1_BEST_sig_score_1b","SJ1 BEST Score for the Signal Category (1b region); Score; superjets",50,0,1.0);
       TH1F* h_SJ1_BEST_Top_score_1b  = new TH1F("h_SJ1_BEST_Top_score_1b","SJ1 BEST Score for the Top Category (1b region); Score; superjets",50,0,1.0);
@@ -255,7 +231,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       TH1F* h_SJ1_BEST_Top_score_0b  = new TH1F("h_SJ1_BEST_Top_score_0b","SJ2 BEST Score for the Top Category (0b region); Score; superjets",50,0,1.0);
       TH1F* h_SJ1_BEST_QCD_score_0b  = new TH1F("h_SJ1_BEST_QCD_score_0b","SJ2 BEST Score for the QCD Category (0b region); Score; superjets",50,0,1.0);
 
-
       TH1F* h_SJ2_BEST_sig_score_1b  = new TH1F("h_SJ2_BEST_sig_score_1b","SJ1 BEST Score for the Signal Category (1b region); Score; superjets",50,0,1.0);
       TH1F* h_SJ2_BEST_Top_score_1b  = new TH1F("h_SJ2_BEST_Top_score_1b","SJ1 BEST Score for the Top Category (1b region); Score; superjets",50,0,1.0);
       TH1F* h_SJ2_BEST_QCD_score_1b  = new TH1F("h_SJ2_BEST_QCD_score_1b","SJ1 BEST Score for the QCD Category (1b region); Score; superjets",50,0,1.0);
@@ -264,25 +239,73 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       TH1F* h_SJ2_BEST_Top_score_0b  = new TH1F("h_SJ2_BEST_Top_score_0b","SJ2 BEST Score for the Top Category (0b region); Score; superjets",50,0,1.0);
       TH1F* h_SJ2_BEST_QCD_score_0b  = new TH1F("h_SJ2_BEST_QCD_score_0b","SJ2 BEST Score for the QCD Category (0b region); Score; superjets",50,0,1.0);
 
-
       TH1I* h_SJ1_decision_1b  = new TH1I("h_SJ1_decision_1b","Superjet decision category (1b region);Category; Superjets",3,-0.5,2.5);
       TH1I* h_SJ1_decision_0b  = new TH1I("h_SJ1_decision_0b","Superjet decision category (0b region);Category; Superjets",3,-0.5,2.5);
 
-      TH1I* h_SJ2_decision_1b  = new TH1I("h_SJ2_decision_1b","uperjet decision category (1b region);Category; Superjets",3,-0.5,2.5);
-      TH1I* h_SJ2_decision_0b  = new TH1I("h_SJ2_decision_0b","uperjet decision category (0b region);Category; Superjets",3,-0.5,2.5);
+      TH1I* h_SJ2_decision_1b  = new TH1I("h_SJ2_decision_1b","superjet decision category (1b region);Category; Superjets",3,-0.5,2.5);
+      TH1I* h_SJ2_decision_0b  = new TH1I("h_SJ2_decision_0b","superjet decision category (0b region);Category; Superjets",3,-0.5,2.5);
 
+      /////////////////////////////////////////////
+      /////////// systematic uncertainties ///////
+      ////////////////////////////////////////////
 
       TH1F * h_pdf_EventWeight= new TH1F("h_pdf_EventWeight", "PDF event weight (up); event weight; Events",200,0.0,10.0);
       TH1F * h_renorm_EventWeight= new TH1F("h_renorm_EventWeight", "Renorm. event weight (up); event weight; Events",200,0.0,2.5);
       TH1F * h_factor_EventWeight= new TH1F("h_factor_EventWeight", "Fact. event weight (up); event weight; Events",200,0.0,2.5);
 
+      ///////////////////////////////
+      ////////// b-tagging //////////
+      ///////////////////////////////
+
+      TH1I* h_nLooseBTags = new TH1I("h_nLooseBTags","Number of Loosely b-tagged AK4 Jets; Events",10,-0.5,9.5);
+      TH1I* h_nMidBTags = new TH1I("h_nMidBTags","Number of Mediumly b-tagged AK4 Jets; Events",10,-0.5,9.5);
+      TH1I* h_nTightBTags = new TH1I("h_nTightBTags","Number of Tightly b-tagged AK4 Jets; Events",10,-0.5,9.5);
+      TH1I* h_AK4_partonFlavour = new TH1I("h_AK4_partonFlavour","AK4 parton Flavour ;parton flavour ; Events",59,-29.5,29.5);
+
+      TH1F* h_AK4_DeepJet_disc  = new TH1F("h_AK4_DeepJet_disc","AK4 DeepFlavour bdisc scores;bdisc",25,0.,1.25);
+      TH1F* h_AK4_DeepJet_disc_all  = new TH1F("h_AK4_DeepJet_disc_all","AK4 DeepFlavour bdisc scores;bdisc",25,0.,1.25);
 
       TH1I* h_true_b_jets_SR  = new TH1I("h_true_b_jets_SR","True (gen-tagged) b AK4 jets per event in the SR; nJets; Events",10,-0.5,9.5);
       TH1I* h_true_b_jets_CR  = new TH1I("h_true_b_jets_CR","True (gen-tagged) b AK4 jets per event in the CR; nJets; Events",10,-0.5,9.5);
-
       TH1I* h_true_b_jets_AT1b  = new TH1I("h_true_b_jets_AT1b","True (gen-tagged) b AK4 jets per event in the AT1b; nJets; Events",10,-0.5,9.5);
       TH1I* h_true_b_jets_AT0b  = new TH1I("h_true_b_jets_AT0b","True (gen-tagged) b AK4 jets per event in the AT0b; nJets; Events",10,-0.5,9.5);
+      TH1I* h_true_b_jets_DT  = new TH1I("h_true_b_jets_DT","True (gen-tagged) b AK4 jets per event in the double tagged regions; nJets; Events",10,-0.5,9.5);
+      TH1I* h_true_b_jets_AT  = new TH1I("h_true_b_jets_AT","True (gen-tagged) b AK4 jets per event in the anti-tagged regions; nJets; Events",10,-0.5,9.5);
 
+      TGraph* g_bTagSF_vs_HT  = new TGraph();
+      g_bTagSF_vs_HT->SetTitle("b-tag Event weight as a function of event H_{T}; H_{T} [GeV]; b-tag Event Weight");
+      g_bTagSF_vs_HT->SetName("g_bTagSF_vs_HT");
+
+      ///////////////////////////////////////////////////////////////////////
+      ///////////////////////// NN - based tagging //////////////////////////
+      ///////////////////////////////////////////////////////////////////////
+
+
+      TH1F* h_SJ_mass_NN_SR  = new TH1F("h_SJ_mass_NN_SR","SuperJet Mass (Signal Region) (NN-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_NN_SR  = new TH1F("h_disuperjet_mass_NN_SR","diSuperJet Mass (Signal Region) (NN-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+      TH2F *h_MSJ_mass_vs_MdSJ_NN_SR = new TH2F("h_MSJ_mass_vs_MdSJ_NN_SR","Double Tagged Superjet mass vs diSuperjet mass (Signal Region) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
+
+      TH1F* h_SJ_mass_NN_CR  = new TH1F("h_SJ_mass_NN_CR","SuperJet Mass (Control Region) (NN-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_NN_CR  = new TH1F("h_disuperjet_mass_NN_CR","diSuperJet Mass (Control Region) (NN-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+      TH2F *h_MSJ_mass_vs_MdSJ_NN_CR = new TH2F("h_MSJ_mass_vs_MdSJ_NN_CR","Double Tagged Superjet mass vs diSuperjet mass (Control Region) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
+
+      TH1F* h_SJ_mass_NN_AT1b   = new TH1F("h_SJ_mass_NN_AT1b","SuperJet Mass (AT1b) (NN-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_NN_AT1b  = new TH1F("h_disuperjet_mass_NN_AT1b","diSuperJet Mass (AT1b) (NN-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+      TH2F *h_MSJ_mass_vs_MdSJ_NN_AT1b = new TH2F("h_MSJ_mass_vs_MdSJ_NN_AT1b","Double Tagged Superjet mass vs diSuperjet mass (AT1b) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
+
+      TH1F* h_SJ_mass_NN_AT0b  = new TH1F("h_SJ_mass_NN_AT0b","SuperJet Mass (AT0b) (NN-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+      TH1F* h_disuperjet_mass_NN_AT0b  = new TH1F("h_disuperjet_mass_NN_AT0b","diSuperJet Mass (AT0b) (NN-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+      TH2F *h_MSJ_mass_vs_MdSJ_NN_AT0b = new TH2F("h_MSJ_mass_vs_MdSJ_NN_AT0b","Double Tagged Superjet mass vs diSuperjet mass (AT0b) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 4000);  /// 375 * 125
+
+
+      TH1I* h_true_b_jets_NN_SR  = new TH1I("h_true_b_jets_NN_SR","True (gen-tagged) b AK4 jets per event in the SR; nJets; Events",10,-0.5,9.5);
+      TH1I* h_true_b_jets_NN_CR  = new TH1I("h_true_b_jets_NN_CR","True (gen-tagged) b AK4 jets per event in the CR; nJets; Events",10,-0.5,9.5);
+
+      TH1I* h_true_b_jets_NN_AT1b  = new TH1I("h_true_b_jets_NN_AT1b","True (gen-tagged) b AK4 jets per event in the AT1b; nJets; Events",10,-0.5,9.5);
+      TH1I* h_true_b_jets_NN_AT0b  = new TH1I("h_true_b_jets_NN_AT0b","True (gen-tagged) b AK4 jets per event in the AT0b; nJets; Events",10,-0.5,9.5);
+
+      TH1I* h_true_b_jets_NN_DT  = new TH1I("h_true_b_jets_NN_DT","True (gen-tagged) b AK4 jets per event in the double tagged regions; nJets; Events",10,-0.5,9.5);
+      TH1I* h_true_b_jets_NN_AT  = new TH1I("h_true_b_jets_NN_AT","True (gen-tagged) b AK4 jets per event in the anti-tagged regions; nJets; Events",10,-0.5,9.5);
 
 
 
@@ -337,7 +360,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       t1->SetBranchAddress("dijetMassOne", &dijetMassOne); 
       t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo); 
 
-      t1->SetBranchAddress("nGenBJets_AK4", nGenBJets_AK4); 
+     // t1->SetBranchAddress("nGenBJets_AK4", nGenBJets_AK4); 
 
       t1->SetBranchAddress("AK4_partonFlavour", AK4_partonFlavour); 
       t1->SetBranchAddress("AK4_hadronFlavour", AK4_HadronFlavour); 
@@ -379,7 +402,38 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       else if((systematic == "pdf") && (*systematic_suffix == "down")) t1->SetBranchAddress("PDFWeightDown_BEST", &pdf_weight);
       else{pdf_weight = 1.0; }
 
-      //////// renormalization and factorization scale systematic 
+
+      /////// scale stuff 
+
+
+      scale_weight = 1.0; 
+      renormWeight = 1.0;
+      factWeight   = 1.0;
+
+      //////// renormalization scale systematic 
+      if((systematic == "renorm") && (*systematic_suffix == "up"))
+      {
+         t1->SetBranchAddress("QCDRenormalization_up_BEST", &renormWeight); // alternative:  PDFWeights_renormWeight_up
+         factWeight   = 1.0;
+      } 
+      else if((systematic == "renorm") && (*systematic_suffix == "down"))
+      {
+         t1->SetBranchAddress("QCDRenormalization_down_BEST", &renormWeight); // alternative: PDFWeights_renormWeight_down
+         factWeight   = 1.0;
+      } 
+
+      //////// factorization scale systematic 
+      if((systematic == "fact") && (*systematic_suffix == "up"))
+      {
+         t1->SetBranchAddress("QCDFactorization_up_BEST", &factWeight);     // alternative:  PDFWeights_factWeightsRMS_up
+         renormWeight = 1.0;
+      } 
+      else if((systematic == "fact") && (*systematic_suffix == "down"))
+      {
+         t1->SetBranchAddress("QCDFactorization_down_BEST", &factWeight);     // alternative: PDFWeights_factWeightsRMS_down
+      } 
+
+      //////// renormalization and factorization scale systematics COMBINED
       if((systematic == "scale") && (*systematic_suffix == "up"))
       {
          t1->SetBranchAddress("QCDRenormalization_up_BEST", &renormWeight); // alternative:  PDFWeights_renormWeight_up
@@ -390,14 +444,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
          t1->SetBranchAddress("QCDRenormalization_down_BEST", &renormWeight); // alternative: PDFWeights_renormWeight_down
          t1->SetBranchAddress("QCDFactorization_down_BEST", &factWeight);     // alternative: PDFWeights_factWeightsRMS_down
       } 
-      else
-      { 
-         scale_weight = 1.0; 
-         renormWeight = 1.0;
-         factWeight   = 1.0;
-      }
-
-
+   
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
       //////// top pt systematic 
       if (inFileName.find("TTJets") != std::string::npos)
@@ -411,7 +459,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       }
       
       
-
       // need to do this for all the corresponding trees (*systematic == "nom" ) || (*systematic == "bTagSF" ) || (*systematic == "PUSF" ) || (*systematic == "pdf") || (*systematic == "L1Prefiring") || (*systematic == "pdf") || (*systematic == "topPt")|| (*systematic == "scale")
 
       int totalEvents = 0;
@@ -425,6 +472,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       double tightDeepCSV = 0.7527;
       int passHTandAK8 = 0;
 
+      int nbTagSF_vs_HT_points = 0;
       double looseDeepCSV_DeepJet;
       double medDeepCSV_DeepJet;
       double tightDeepCSV_DeepJet;
@@ -461,7 +509,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       double nEvents_unscaled_1b_antiTag = 0.0,nEvents_unscaled_0b_antiTag = 0,nEvents_unscaled_SR =0, nEvents_unscaled_CR =0;
       int num_bad_btagSF = 0, num_bad_PUSF = 0, num_bad_topPt = 0, num_bad_scale = 0, num_bad_pdf = 0, num_bad_prefiring = 0;
       int badEventSF = 0;
-      int nGenBJets = 0;
 
       totEventsUncut = nentries;
 
@@ -522,6 +569,11 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
                bTag_eventWeight = 1.0;
                num_bad_btagSF++;
             }
+
+
+
+            g_bTagSF_vs_HT->SetPoint(nbTagSF_vs_HT_points, totHT, bTag_eventWeight);
+            nbTagSF_vs_HT_points++;
             if ((PU_eventWeight != PU_eventWeight) || (std::isinf(PU_eventWeight))|| (std::isnan(PU_eventWeight))   )
             {
                PU_eventWeight = 1.0;
@@ -530,14 +582,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
             
 
-            if ((factWeight != factWeight) || (std::isinf(factWeight))  || (std::isnan(factWeight)) || (abs(factWeight) > 100))
+            if ((factWeight != factWeight) || (std::isinf(factWeight))  || (std::isnan(factWeight)) || (abs(factWeight) > 100) || (abs(factWeight) < 0.001) )
             {
                factWeight = 1.0;
               // num_bad_scale++;
                //std::cout << "BAD factorization weight during " << systematic << "_" << *systematic_suffix << ": " << factWeight << std::endl;
             }
 
-            if ((renormWeight != renormWeight) || (std::isinf(renormWeight))  || (std::isnan(renormWeight)) || (abs(renormWeight) > 100))
+            if ((renormWeight != renormWeight) || (std::isinf(renormWeight))  || (std::isnan(renormWeight)) || (abs(renormWeight) > 100) || (abs(renormWeight) < 0.001))
             {
                renormWeight = 1.0;
               //std::cout << "BAD renormalization weight during " << systematic << "_" << *systematic_suffix << ": " << renormWeight << std::endl;
@@ -558,7 +610,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
                num_bad_pdf++;
             }
  
-            eventScaleFactor = bTag_eventWeight*PU_eventWeight*scale_weight*pdf_weight*topPtWeight;   /// these are all MC-only systematics
+            eventScaleFactor = bTag_eventWeight*PU_eventWeight*pdf_weight*topPtWeight*factWeight*renormWeight;   /// these are all MC-only systematics
          }  
 
          ////// check data systematics
@@ -584,34 +636,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
          h_factor_EventWeight->Fill(factWeight);
 
 
-         //if (eventScaleFactor>0) eventScaleFactor = 1.0/eventScaleFactor;
-         nEvents+=eventScaleFactor;
-         if ( (totHT < 1600.)    ) continue;
-         nHTcut+=eventScaleFactor;
-         if( (nfatjets < 3) ) continue;
-         nAK8JetCut+=eventScaleFactor;
-         if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassOne < 1000.)  ))
-         {
-            continue;
-         } 
-         nHeavyAK8Cut+=eventScaleFactor;
-         h_nAK4->Fill(nAK4);
 
-         double eventWeightToUse = eventScaleFactor; 
-         
-         /////////////////////////////////////////////////////////////////////////////////
-         /////////////////////////////////////////////////////////////////////////////////
-
-         eventnum++;
-         //int _nAK4 = 0;
-         for(int iii = 0;iii< nAK4; iii++)
-         {
-            //if(AK4_pt[iii] > 80.) _nAK4++;
-            h_AK4_DeepJet_disc_all->Fill(AK4_DeepJet_disc[iii],eventWeightToUse);
-         }    
-         
          int nTightBTags = 0, nMedBTags = 0, nLooseBtags =0;
-
+         int nGenBJets;
          for(int iii = 0;iii< nAK4; iii++)
          {
 
@@ -620,137 +647,178 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
             if ( (AK4_DeepJet_disc[iii] > tightDeepCSV_DeepJet ) && (AK4_pt[iii] > 30.)) nTightBTags++;
             if ( (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )   && (AK4_pt[iii] > 30.)) nMedBTags++;
             if ( (AK4_DeepJet_disc[iii] > looseDeepCSV_DeepJet ) && (AK4_pt[iii] > 30.)) nLooseBtags++;
+
+            if(abs(AK4_HadronFlavour[iii]) == 5) nGenBJets++;
+
             //if(abs(AK4_partonFlavour[iii])==5) nLooseBtags++;
 
          }
+
+         if(nTightBTags > 0) total_1b++;
+         else { total_0b++;}
+
+
+         //if (eventScaleFactor>0) eventScaleFactor = 1.0/eventScaleFactor;
+         nEvents+=eventScaleFactor;
+         if ( (totHT < 1600.)    ) continue;
+         nHTcut+=eventScaleFactor;
+         if( (nfatjets < 3) ) continue;
+         nAK8JetCut+=eventScaleFactor;
+         h_nfatjets_pre->Fill(nfatjet_pre);
+
+         if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassOne < 1000.)  ))
+         {
+            continue;
+         } 
+
+
+         nPassPreSelection++;
+         nHeavyAK8Cut+=eventScaleFactor;
+         h_nAK4->Fill(nAK4);
+         double eventWeightToUse = eventScaleFactor; 
+      
+
+         ///////////////////////////////////////////////////////
+         ////////////////////// b-tagging //////////////////////
+         ///////////////////////////////////////////////////////
+
+         eventnum++;
+         for(int iii = 0;iii< nAK4; iii++)
+         {
+            //if(AK4_pt[iii] > 80.) _nAK4++;
+            h_AK4_DeepJet_disc_all->Fill(AK4_DeepJet_disc[iii],eventWeightToUse);
+         }    
+         
          h_nTightBTags->Fill(nTightBTags,eventWeightToUse);
          h_nMidBTags->Fill(nMedBTags,eventWeightToUse);
          h_nLooseBTags->Fill(nLooseBtags,eventWeightToUse);
 
+         ///////////////////////////////
+         ////////// 0b region //////////
+         ///////////////////////////////
 
-         for(int iii = 0;iii<nAK4;iii++)
-         {
-            if(nGenBJets_AK4[iii]>0)nGenBJets++;
-            //h_AK4_partonFlavour->Fill(AK4_partonFlavour[iii]);
-            //if(abs(AK4_partonFlavour[iii])==5) nLooseBtags++;
-            if(abs(AK4_partonFlavour[iii])==5)
-            {
-               h_GenBtagged_HT->Fill(totHT,eventWeightToUse);
-               h_GenBtagged_pT->Fill(AK4_pt[iii],eventWeightToUse);
-            }
-            //std::cout << AK4_partonFlavour[iii] << std::endl;
-
-            if(AK4_DeepJet_disc[nAK4]>looseDeepCSV_DeepJet)
-            {
-               h_RECOBtagged_HT->Fill(totHT,eventWeightToUse);
-               h_RECOBtagged_pT->Fill(AK4_pt[iii],eventWeightToUse);
-            }
-         }
-
-
-
-         /// 0b control region 
          if( nTightBTags < 1 ) 
          {
-
                
-               
-               h_SJ2_BEST_sig_score_0b->Fill(SJ2_BEST_scores[0]);
-               h_SJ2_BEST_Top_score_0b->Fill(SJ2_BEST_scores[1]);
-               h_SJ2_BEST_QCD_score_0b->Fill(SJ2_BEST_scores[2]);
-               h_SJ2_decision_0b->Fill(SJ2_decision);
+            h_SJ2_BEST_sig_score_0b->Fill(SJ2_BEST_scores[0]);
+            h_SJ2_BEST_Top_score_0b->Fill(SJ2_BEST_scores[1]);
+            h_SJ2_BEST_QCD_score_0b->Fill(SJ2_BEST_scores[2]);
+            h_SJ2_decision_0b->Fill(SJ2_decision);
 
-               h_SJ1_BEST_sig_score_0b->Fill(SJ1_BEST_scores[0]);
-               h_SJ1_BEST_Top_score_0b->Fill(SJ1_BEST_scores[1]);
-               h_SJ1_BEST_QCD_score_0b->Fill(SJ1_BEST_scores[2]);
-               h_SJ1_decision_0b->Fill(SJ1_decision);
-               
-               
-               nNoBjets+=eventScaleFactor;
-               h_SJ_nAK4_100_CR->Fill(SJ_nAK4_100[0],eventWeightToUse);
-               h_SJ_nAK4_100_CR->Fill(SJ_nAK4_100[1],eventWeightToUse);
+            h_SJ1_BEST_sig_score_0b->Fill(SJ1_BEST_scores[0]);
+            h_SJ1_BEST_Top_score_0b->Fill(SJ1_BEST_scores[1]);
+            h_SJ1_BEST_QCD_score_0b->Fill(SJ1_BEST_scores[2]);
+            h_SJ1_decision_0b->Fill(SJ1_decision);
+            
+            
+            nNoBjets+=eventScaleFactor;
+            h_SJ_nAK4_100_CR->Fill(SJ_nAK4_100[0],eventWeightToUse);
+            h_SJ_nAK4_100_CR->Fill(SJ_nAK4_100[1],eventWeightToUse);
 
-               h_SJ_nAK4_200_CR->Fill(SJ_nAK4_200[0],eventWeightToUse);
-               h_SJ_nAK4_200_CR->Fill(SJ_nAK4_200[1],eventWeightToUse);
+            h_SJ_nAK4_200_CR->Fill(SJ_nAK4_200[0],eventWeightToUse);
+            h_SJ_nAK4_200_CR->Fill(SJ_nAK4_200[1],eventWeightToUse);
 
-               //h_SJ_mass_CR->Fill( (superJet_mass[0]+superJet_mass[1])/2. ,eventWeightToUse   );
-               //h_SJ_mass_CR->Fill(superJet_mass[0]);
-               //h_SJ_mass_CR->Fill(superJet_mass[1]);
+            h_nfatjets_CR->Fill(nfatjets,eventWeightToUse);
+            for(int iii = 0; iii< nfatjets; iii++)
+            {
+               h_AK8_jet_mass_CR->Fill(jet_mass[iii],eventWeightToUse);
+            }
+            h_nAK4_CR->Fill(nAK4,eventWeightToUse);
+            for(int iii = 0; iii< nAK4; iii++)
+            {
+               h_AK4_jet_mass_CR->Fill(AK4_mass[iii],eventWeightToUse);
+            }
 
-               //h_SJ_mass_CR->Fill( superJet_mass[0]    );
-               //h_SJ_mass_CR->Fill( superJet_mass[1]    );
 
-               
+            ////////////////////////////////////////////////////////////
+            ///////////////////// cut-based tagging ////////////////////
+            ////////////////////////////////////////////////////////////
 
-               h_nfatjets_CR->Fill(nfatjets,eventWeightToUse);
-               for(int iii = 0; iii< nfatjets; iii++)
+
+            ///////////////////
+            /////// CR ////////
+            ///////////////////
+
+            if(   (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.)   )
+            {
+               if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
                {
-                  h_AK8_jet_mass_CR->Fill(jet_mass[iii],eventWeightToUse);
-               }
-               h_nAK4_CR->Fill(nAK4,eventWeightToUse);
-               for(int iii = 0; iii< nAK4; iii++)
-               {
-                  h_AK4_jet_mass_CR->Fill(AK4_mass[iii],eventWeightToUse);
-               }
-               
-               //CR
-               if(   (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.)   )
-               {
-                  if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
-                  {
-
-
-                     h_true_b_jets_CR->Fill(nGenBJets);
-
-                     //if( 0.25 < ( superJet_mass[0]- superJet_mass[1])/ min(superJet_mass[0],superJet_mass[1]))continue;
-                     h_disuperjet_mass_CR->Fill(diSuperJet_mass,eventWeightToUse);
-                     h_SJ_mass_CR->Fill( (superJet_mass[0]+superJet_mass[1])/2. ,eventWeightToUse );
-                     h_totHT_CR->Fill(totHT,eventWeightToUse);
-                     nDoubleTaggedCR+=eventScaleFactor;
-                     h_MSJ_mass_vs_MdSJ_CR->Fill(diSuperJet_mass,(    superJet_mass[1]+superJet_mass[0])/2   ,eventWeightToUse );
-                     h_MSJ1_vs_MSJ2_CR->Fill(superJet_mass[0],superJet_mass[1],eventWeightToUse);
-                     sum_eventSF_CR+=eventScaleFactor;
-                     nEvents_unscaled_CR+=1;
-                  }
-
-               }
-                           // double tagging NN based
-               if(  (SJ1_decision<3) && (SJ2_decision<3)  )
-               {
-                  {
-                     nDoubleTaggedCRNN+=eventScaleFactor;
-                  }
+                  h_disuperjet_mass_CR->Fill(diSuperJet_mass,eventWeightToUse);
+                  h_SJ_mass_CR->Fill( (superJet_mass[0]+superJet_mass[1])/2. ,eventWeightToUse );
+                  h_totHT_CR->Fill(totHT,eventWeightToUse);
+                  nDoubleTaggedCR+=eventScaleFactor;
+                  h_MSJ_mass_vs_MdSJ_CR->Fill(diSuperJet_mass,(    superJet_mass[1]+superJet_mass[0])/2   ,eventWeightToUse );
+                  h_MSJ1_vs_MSJ2_CR->Fill(superJet_mass[0],superJet_mass[1],eventWeightToUse);
+                  sum_eventSF_CR+=eventScaleFactor;
+                  nEvents_unscaled_CR+=1;
+                  h_true_b_jets_DT->Fill(nGenBJets);
+                  h_true_b_jets_CR->Fill(nGenBJets);
                }
 
-               //  AT0b
-               if(   (SJ_nAK4_50[0]<1) && (SJ_mass_100[0]<150.)   )
+            }
+
+            ///////////////////
+            ////// AT0b ///////
+            ///////////////////
+
+            if(   (SJ_nAK4_50[0]<1) && (SJ_mass_100[0]<150.)   )
+            {
+               if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
                {
-                  if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
-                  {
+                  nZeroBtagAntiTag+=eventScaleFactor;
+                  h_MSJ_mass_vs_MdSJ_AT0b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse);
+                  h_disuperjet_mass_AT0b->Fill(diSuperJet_mass,eventWeightToUse);
+                  h_SJ_mass_AT0b->Fill(superJet_mass[1],eventWeightToUse);
+                  sum_eventSF_0b_antiTag+=eventScaleFactor;
+                  nEvents_unscaled_0b_antiTag+=1;
+                  h_nAK4_AT0b->Fill(nAK4_recount,eventWeightToUse);
+                  h_true_b_jets_AT->Fill(nGenBJets);
+                  h_true_b_jets_AT0b->Fill(nGenBJets);
+               }  
 
-                     h_true_b_jets_AT0b->Fill(nGenBJets);
+            }
 
-                     nZeroBtagAntiTag+=eventScaleFactor;
-                     h_MSJ_mass_vs_MdSJ_AT0b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse);
-                     h_disuperjet_mass_AT0b->Fill(diSuperJet_mass,eventWeightToUse);
-                     h_SJ_mass_AT0b->Fill(superJet_mass[1],eventWeightToUse);
-                     sum_eventSF_0b_antiTag+=eventScaleFactor;
-                     nEvents_unscaled_0b_antiTag+=1;
-                     h_nAK4_AT0b->Fill(nAK4_recount,eventWeightToUse);
+            ////////////////////////////////////////////////////////////
+            ///////////////////// NN-based tagging /////////////////////
+            ////////////////////////////////////////////////////////////
 
-                  }  
-
+            ///////////////////
+            ////// NN CR //////
+            ///////////////////
+            if(  (SJ1_decision == 0) && (SJ2_decision == 0)  )
+            {
+               {
+                  nNN_CR +=eventScaleFactor;
+                  h_SJ_mass_NN_CR->Fill((superJet_mass[0]+superJet_mass[1])/2. ,eventWeightToUse);
+                  h_disuperjet_mass_NN_CR->Fill(diSuperJet_mass,eventWeightToUse);
+                  h_MSJ_mass_vs_MdSJ_NN_CR->Fill(diSuperJet_mass,(superJet_mass[1]+superJet_mass[0])/2,eventWeightToUse);
+                  h_true_b_jets_NN_CR->Fill(nGenBJets);
+                  h_true_b_jets_NN_DT->Fill(nGenBJets);
                }
+            }
+
+            ///////////////////
+            ///// NN AT0b /////
+            ///////////////////
+            if(  (SJ1_decision == 0) && (SJ2_decision == 1)  )
+            {
+               {
+                  nNN_AT0b +=eventScaleFactor;
+                  h_SJ_mass_NN_AT0b->Fill(superJet_mass[1],eventWeightToUse);
+                  h_disuperjet_mass_NN_AT0b->Fill(diSuperJet_mass,eventWeightToUse);
+                  h_MSJ_mass_vs_MdSJ_NN_AT0b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse);
+                  h_true_b_jets_NN_AT0b->Fill(nGenBJets);
+                  h_true_b_jets_NN_AT->Fill(nGenBJets);
+               }
+            } 
+
 
 
          }
-         nPassPreSelection++;
-
          
-
-
-
-         //// 1b region
+         /////////////////////////////
+         ///////// 1b region /////////
+         /////////////////////////////
 
          if ( (nTightBTags > 0)  )
          {
@@ -763,10 +831,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
             h_SJ_nAK4_200_SR->Fill(SJ_nAK4_200[0],eventWeightToUse);
             h_SJ_nAK4_200_SR->Fill(SJ_nAK4_200[1],eventWeightToUse);
 
-            //h_SJ_mass_SR->Fill(superJet_mass[0]);
-            //h_SJ_mass_SR->Fill(superJet_mass[1]);
 
-            
             h_SJ2_BEST_sig_score_1b->Fill(SJ2_BEST_scores[0]);
             h_SJ2_BEST_Top_score_1b->Fill(SJ2_BEST_scores[1]);
             h_SJ2_BEST_QCD_score_1b->Fill(SJ2_BEST_scores[2]);
@@ -790,46 +855,46 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
             }
             h_totHT_SR->Fill(totHT,eventWeightToUse);
 
-               //SR
-               if(   (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.)   )
+
+
+            ////////////////////////////////////////////////////////////
+            ///////////////////// cut-based tagging ////////////////////
+            ////////////////////////////////////////////////////////////
+
+
+            ///////////////////
+            /////// SR ////////
+            ///////////////////
+
+            if(   (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.)   )
+            {
+               if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
                {
-                  if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
-                  {
 
+                  h_true_b_jets_DT->Fill(nGenBJets);
+                  h_true_b_jets_SR->Fill(nGenBJets);
 
-                     h_true_b_jets_SR->Fill(nGenBJets);
+                  h_disuperjet_mass_SR->Fill(diSuperJet_mass,eventWeightToUse);
+                  h_SJ_mass_SR->Fill( (superJet_mass[0]+superJet_mass[1])/2. ,eventWeightToUse );
+                  nDoubleTagged+= eventScaleFactor;
+                  h_MSJ_mass_vs_MdSJ_SR->Fill(diSuperJet_mass,(    superJet_mass[1]+superJet_mass[0])/2 ,eventWeightToUse   );
+                  h_MSJ1_vs_MSJ2_SR->Fill(superJet_mass[0],superJet_mass[1],eventWeightToUse);
+                  sum_eventSF_SR+=eventScaleFactor;
+                  nEvents_unscaled_SR+=1;
 
-                     //if( 0.25 < ( superJet_mass[0]- superJet_mass[1])/ min(superJet_mass[0],superJet_mass[1]))continue;
-
-
-                     h_disuperjet_mass_SR->Fill(diSuperJet_mass,eventWeightToUse);
-                     h_SJ_mass_SR->Fill( (superJet_mass[0]+superJet_mass[1])/2. ,eventWeightToUse );
-                     nDoubleTagged+= eventScaleFactor;
-                     h_MSJ_mass_vs_MdSJ_SR->Fill(diSuperJet_mass,(    superJet_mass[1]+superJet_mass[0])/2 ,eventWeightToUse   );
-                     h_MSJ1_vs_MSJ2_SR->Fill(superJet_mass[0],superJet_mass[1],eventWeightToUse);
-                     sum_eventSF_SR+=eventScaleFactor;
-                     nEvents_unscaled_SR+=1;
-
-                  }
                }
-                  // double tagging NN based
-               if(  (SJ1_decision<3) && (SJ2_decision<3)  )
-               {
-                  {
-                     
-                     h_MSJ_mass_vs_MdSJ_SR_NN->Fill(diSuperJet_mass, (superJet_mass[1]+superJet_mass[0]   )/2.,eventWeightToUse );
-                     NNDoubleTag+=eventScaleFactor;
-                  }
-               }
+            }
 
 
-
-            //AT1b
+            ///////////////////
+            ////// AT1b ///////
+            ///////////////////
             if(   (SJ_nAK4_50[0]<1) && (SJ_mass_100[0]<150.)   )
             {
                if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
                {
 
+                  h_true_b_jets_AT->Fill(nGenBJets);
 
                   h_true_b_jets_AT0b->Fill(nGenBJets);
 
@@ -844,14 +909,46 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
                }
 
             }
-         }
 
-         
+
+            ////////////////////////////////////////////////////////////
+            ///////////////////// NN-based tagging /////////////////////
+            ////////////////////////////////////////////////////////////
+
+            ///////////////////
+            ////// NN SR //////
+            ///////////////////
+            if(  (SJ1_decision == 0) && (SJ2_decision == 0)  )
+            {
+               {
+                  nNN_SR +=eventScaleFactor;
+                  h_SJ_mass_NN_SR->Fill((superJet_mass[0]+superJet_mass[1])/2. ,eventWeightToUse );
+                  h_disuperjet_mass_NN_SR->Fill(diSuperJet_mass,eventWeightToUse);
+                  h_MSJ_mass_vs_MdSJ_NN_SR->Fill(diSuperJet_mass,(    superJet_mass[1]+superJet_mass[0])/2 ,eventWeightToUse);
+                  h_true_b_jets_NN_SR->Fill(nGenBJets);
+                  h_true_b_jets_NN_DT->Fill(nGenBJets);
+               }
+            }
+
+            ///////////////////
+            ///// NN AT1b /////
+            ///////////////////
+            if(  (SJ1_decision == 0) && (SJ2_decision == 1)  )
+            {
+               {
+                  nNN_AT1b +=eventScaleFactor;
+                  h_SJ_mass_NN_AT1b->Fill(superJet_mass[1],eventWeightToUse);
+                  h_disuperjet_mass_NN_AT1b->Fill(diSuperJet_mass,eventWeightToUse );
+                  h_MSJ_mass_vs_MdSJ_NN_AT1b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse );
+                  h_true_b_jets_NN_AT1b->Fill(nGenBJets);
+                  h_true_b_jets_NN_AT->Fill(nGenBJets);
+               }
+            } 
+
+         }
 
          nPreselected++;
       }
-
-
 
       
       outFile.Write();
@@ -859,98 +956,25 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       //std::cout << "This can be further broken down - average b-tag SF is " << sum_eventSF_SR/nEvents_unscaled_SR  << "/" <<sum_eventSF_CR/nEvents_unscaled_CR << "/" <<sum_eventSF_0b_antiTag/nEvents_unscaled_0b_antiTag << "/" << sum_eventSF_1b_antiTag/nEvents_unscaled_1b_antiTag<<  "in the signal/control/0b-antiTag/1b-antiTag regions" << std::endl;
       //std::cout << "The number of bad btag and PU SFs was " << num_bad_btagSF << " and " << num_bad_PUSF << std::endl;
       std::cout << "Finishing systematic " << systematic << " "<< *systematic_suffix << std::endl;
-
       std::cout << "Total Events: " << totEventsUncut << " in " << inFileName << " for " << systematic << " "<< *systematic_suffix << std::endl;
       std::cout << "In " << inFileName << " there were " << num_bad_btagSF<< "/" << num_bad_PUSF<< "/"<< num_bad_topPt<< "/"<< num_bad_scale<< "/"<<num_bad_pdf << "/" <<num_bad_prefiring << " bad btag/PU/topPt/scale/pdf/prefiring event weights" << std::endl; 
       std::cout << "There were " << badEventSF << " bad events." << std::endl;
-
       std::cout << "Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear  << " : total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<   sum_eventSF_SR   << std::endl;
+      std::cout << dataBlock << "/" << dataYear << "/" << systematic+ "_" + *systematic_suffix << " : there was a total of " << total_1b << "/" << total_0b << " events in the 1b/0b region (all pre-selected)." << std::endl;
 
-
-
+      g_bTagSF_vs_HT->Write();
       
-      delete  h_totHT;
-      delete  h_disuperjet_mass;
-      delete  h_disuperjet_mass_100;
-      delete  h_nfatjets_pre;
-      delete  h_SJ_nAK4_100_CR;
-      delete  h_SJ_nAK4_200_CR;
-      delete  h_SJ_mass_CR;
-      delete  h_disuperjet_mass_CR;
-      delete  h_MSJ_mass_vs_MdSJ_CR;
-      delete  h_MSJ_mass_vs_MdSJ_CRTTbar;
-      delete  h_SJ_nAK4_100_SR;
-      delete  h_SJ_nAK4_200_SR;
-      delete  h_SJ_mass_SR;
-      delete  h_disuperjet_mass_SR;
-      delete  h_MSJ_mass_vs_MdSJ_SR;
-      delete  h_MSJ_mass_vs_MdSJ_dijet;
-      delete  h_nLooseBTags;
-      delete  h_nMidBTags;
-      delete  h_nTightBTags;
-      delete  h_nfatjets;
-      delete  h_MSJ_mass_vs_MdSJ_AT1b;
-      delete  h_SJ_mass_AT1b;
-      delete  h_disuperjet_mass_AT1b;
-      delete  h_nAK4_AT1b;
-      delete  h_nTightbTags_AT1b;
-      delete  h_nAK4_wHEM;
-      delete  h_nAK4_noHEM;
-      delete  h_AK4_phi_noHEM;
-      delete  h_SJ1_BEST_sig_score_1b;
-      delete  h_SJ1_BEST_Top_score_1b;
-      delete  h_SJ1_BEST_QCD_score_1b;
-      delete  h_SJ1_BEST_sig_score_0b;
-      delete  h_SJ1_BEST_Top_score_0b;
-      delete  h_SJ1_BEST_QCD_score_0b;
-      delete  h_SJ2_BEST_sig_score_1b;
-      delete  h_SJ2_BEST_Top_score_1b;
-      delete  h_SJ2_BEST_QCD_score_1b;
-      delete  h_SJ2_BEST_sig_score_0b;
-      delete  h_SJ2_BEST_Top_score_0b;
-      delete  h_SJ2_BEST_QCD_score_0b;
-      delete  h_SJ1_decision_1b;
-      delete  h_SJ1_decision_0b;
-      delete  h_SJ2_decision_1b;
-      delete  h_SJ2_decision_0b;
+      delete g_bTagSF_vs_HT;delete  h_totHT;delete  h_nfatjets_pre;delete  h_SJ_nAK4_100_CR;delete  h_SJ_nAK4_200_CR;delete  h_SJ_mass_CR;delete  h_disuperjet_mass_CR;delete  h_MSJ_mass_vs_MdSJ_CR;delete  h_SJ_nAK4_100_SR;
+      delete  h_SJ_nAK4_200_SR;delete  h_SJ_mass_SR;delete  h_disuperjet_mass_SR;delete  h_MSJ_mass_vs_MdSJ_SR;delete  h_MSJ_mass_vs_MdSJ_dijet;delete  h_nLooseBTags;delete  h_nMidBTags;delete  h_nTightBTags;
+      delete  h_nfatjets;delete  h_MSJ_mass_vs_MdSJ_AT1b;delete  h_SJ_mass_AT1b;delete  h_disuperjet_mass_AT1b;delete  h_nAK4_AT1b;delete  h_nTightbTags_AT1b;delete  h_nAK4_wHEM;delete  h_nAK4_noHEM;
+      delete  h_AK4_phi_noHEM;delete  h_SJ1_BEST_sig_score_1b;delete  h_SJ1_BEST_Top_score_1b;delete  h_SJ1_BEST_QCD_score_1b;delete  h_SJ1_BEST_sig_score_0b;delete  h_SJ1_BEST_Top_score_0b;delete  h_SJ1_BEST_QCD_score_0b;delete  h_SJ2_BEST_sig_score_1b;
+      delete  h_SJ2_BEST_Top_score_1b;delete  h_SJ2_BEST_QCD_score_1b;delete  h_SJ2_BEST_sig_score_0b;delete  h_SJ2_BEST_Top_score_0b;delete  h_SJ2_BEST_QCD_score_0b;delete  h_SJ1_decision_1b;delete  h_SJ1_decision_0b;
+      delete  h_SJ2_decision_1b;delete  h_SJ2_decision_0b;delete  h_AK8_jet_mass_SR;delete  h_AK8_jet_mass_CR;delete  h_AK4_jet_mass_SR;delete  h_AK4_jet_mass_CR;delete  h_totHT_SR;delete  h_totHT_CR;
+      delete  h_nfatjets_SR;delete  h_nfatjets_CR;delete  h_nAK4_SR;delete  h_nAK4_CR;delete  h_AK4_partonFlavour;delete  h_AK4_DeepJet_disc;delete  h_AK4_DeepJet_disc_all;delete  h_nAK4;delete  h_MSJ1_vs_MSJ2_SR;
+      delete  h_MSJ1_vs_MSJ2_CR;delete  h_nAK4_all;delete  h_nAK4_all_barrel;delete  h_nAK4_all_endcap;delete  h_MSJ_mass_vs_MdSJ_AT0b;delete h_SJ_mass_AT0b;delete  h_disuperjet_mass_AT0b;delete h_SJ_mass_NN_SR;
+      delete h_disuperjet_mass_NN_SR; delete h_MSJ_mass_vs_MdSJ_NN_SR; delete h_SJ_mass_NN_CR;delete h_disuperjet_mass_NN_CR;delete h_MSJ_mass_vs_MdSJ_NN_CR;delete h_SJ_mass_NN_AT1b;delete h_disuperjet_mass_NN_AT1b;
+      delete h_MSJ_mass_vs_MdSJ_NN_AT1b; delete h_SJ_mass_NN_AT0b; delete h_disuperjet_mass_NN_AT0b;delete h_MSJ_mass_vs_MdSJ_NN_AT0b;
 
-      delete  h_AK8_jet_mass_SR;
-      delete  h_AK8_jet_mass_CR;
-      delete  h_AK4_jet_mass_SR;
-      delete  h_AK4_jet_mass_CR;
-      delete  h_totHT_SR;
-      delete  h_totHT_CR;
-      delete  h_nfatjets_SR;
-      delete  h_nfatjets_CR;
-      delete  h_nAK4_SR;
-      delete  h_nAK4_CR;
-
-
-      delete  h_AK4_partonFlavour;
-      delete  h_GenBtagged_HT;
-      delete  h_RECOBtagged_HT;
-      delete  h_GenBtagged_pT;
-      delete  h_RECOBtagged_pT;
-      delete  h_AK4_DeepJet_disc;
-      delete  h_AK4_DeepJet_disc_all;
-      delete  h_nAK4;
-      delete  h_MSJ_mass_vs_MdSJ_SR_NN;
-      delete  h_MSJ1_vs_MSJ2_SR;
-
-
-
-
-      delete  h_MSJ1_vs_MSJ2_CR;
-      delete  h_nAK4_all;
-      delete  h_nAK4_all_barrel;
-      delete  h_nAK4_all_endcap;
-      delete  h_MSJ_mass_vs_MdSJ_AT0b;
-
-      delete  h_SJ_mass_AT0b;
-      delete  h_disuperjet_mass_AT0b;
-      /*
-      delete  h_nAK4_AT0b;
-      delete  h_MSJ_mass_vs_MdSJ_AT1b; */
 
    }
 
@@ -960,7 +984,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
    return true;
 }
 
-
 void readTree()
 {  
    bool debug = false;
@@ -969,10 +992,11 @@ void readTree()
    bool allHTBins    = true;
    bool runData      = false;
    bool runSignal    = false;
-   bool runBR        = true;
-   bool runAll       = false;
+   bool runBR        = false;
+   bool runAll       = true;
    bool runDataBR    = false;
    bool runSelection = false;
+   bool runSingleFile = false;
    int nFailedFiles = 0;
    std::string failedFiles = "";
 
@@ -990,7 +1014,8 @@ void readTree()
 
 
 
-   std::vector<std::string> systematics = {"bTagSF","nom", "PUSF", "JEC", "JER", "topPt", "L1Prefiring", "pdf", "scale"}; 
+   std::vector<std::string> systematics = {"nom","bTagSF", "PUSF", "JEC", "JER", "topPt", "L1Prefiring", "pdf","renorm", "fact" };  // "scale"
+
    // delete root files in the /Users/ethan/Documents/rootFiles/processedRootFiles folder
 
    //systematics = { "scale"}; 
@@ -1122,7 +1147,39 @@ void readTree()
       }
       else if(runSelection)
       {
-         dataBlocks =  {"QCDMC2000toInf_"};
+         dataBlocks =  {"QCDMC1000to1500_", "QCDMC1500to2000_", "QCDMC2000toInf_","dataA_", "dataB_", "dataC_","dataD_" }; //
+      }
+      else if ( runSingleFile)
+      {
+
+         double nEvents = 0, nHTcut  = 0, nAK8JetCut = 0, nHeavyAK8Cut = 0, nBtagCut = 0, nDoubleTagged = 0, nNoBjets = 0;
+         double nDoubleTaggedCR = 0, NNDoubleTag = 0, nZeroBtagAntiTag = 0, nOneBtagAntiTag = 0;
+         double nNN_SR = 0, nNN_CR = 0 , nNN_AT1b = 0,nNN_AT0b = 0;        
+
+
+         double eventScaleFactor = 1.0;
+         std::string dataYear = "2018";
+         std::string systematic = "nom";
+         std::string dataBlock = "Suu4TeV_chi1TeV_";
+
+         ///   Suu6_chi1p5_ZTZT_2018_genPartFiltered_combined.root
+         std::string inFileName = ( dataBlock+  dataYear + "_genPartFiltered_combined.root").c_str();
+         std::string outFileName = ( dataBlock+  dataYear + "_genPartFiltered_processed.root").c_str();
+
+         doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag, eventScaleFactor,nZeroBtagAntiTag, nOneBtagAntiTag, nNN_SR, nNN_CR, nNN_AT1b,nNN_AT0b, dataYear,systematic, dataBlock );
+
+         std::cout << "Total 1b double tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/1+ b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nDoubleTagged << std::endl;
+         std::cout << "Total 0b double tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nNoBjets << "/" << nDoubleTaggedCR << std::endl;
+         std::cout << "Total 1b anti tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nOneBtagAntiTag << std::endl;
+         std::cout << "Total 0b anti tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nNoBjets << "/" << nZeroBtagAntiTag << std::endl;
+         //std::cout << "number of events NN tagged: " << NNDoubleTag << std::endl;
+         std::cout << "Total events in the NN_SR/NN_CR/NN_AT1b/NN_AT0b: " << nNN_SR << "/" << nNN_CR << "/" << nNN_AT1b << "/" << nNN_AT0b << std::endl;
+         std::cout << "Finished with "<< inFileName << "." << std::endl;
+         std::cout << std::endl;
+         std::cout << std::endl;
+         std::cout << std::endl;
+         std::cout << std::endl;
+         return;
       }
       else
       {
@@ -1135,34 +1192,22 @@ void readTree()
          double eventScaleFactor = 1; 
          std::cout << "------------ Looking at systematic: " << *systematic << " --------------" << std::endl;
 
-         
          for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
          {
-
-
             if ((*dataBlock).find("data")!= std::string::npos)
             {  
                // these are MC-only systematics 
                if ((*systematic == "bTagSF") || (*systematic == "PUSF") || (*systematic == "JER")  || (*systematic == "topPt") || (*systematic == "pdf") || (*systematic == "scale") ) continue;
             }
             
-            double nEvents = 0;
-            double nHTcut  = 0;
-            double nAK8JetCut = 0;
-            double nHeavyAK8Cut = 0;
-            double nBtagCut = 0;
-            double nDoubleTagged = 0;
-            double nNoBjets = 0;
-            double nDoubleTaggedCR = 0;
-            double NNDoubleTag = 0;
-            double nDoubleTaggedCRNN = 0;
-            double nZeroBtagAntiTag = 0;
-            double nOneBtagAntiTag = 0;
+            double nEvents = 0, nHTcut  = 0, nAK8JetCut = 0, nHeavyAK8Cut = 0, nBtagCut = 0, nDoubleTagged = 0, nNoBjets = 0;
+            double nDoubleTaggedCR = 0, NNDoubleTag = 0, nZeroBtagAntiTag = 0, nOneBtagAntiTag = 0;
+            double nNN_SR = 0, nNN_CR = 0 , nNN_AT1b = 0,nNN_AT0b = 0;
 
             std::string year = *dataYear;
             std::string systematic_str;  
             // event weight systematics (below)
-            if ((*systematic == "nom" ) || (*systematic == "bTagSF" ) || (*systematic == "PUSF" ) || (*systematic == "pdf") || (*systematic == "L1Prefiring") || (*systematic == "pdf") || (*systematic == "topPt")|| (*systematic == "scale") ) systematic_str = "nom";
+            if ((*systematic == "nom" ) || (*systematic == "bTagSF" ) || (*systematic == "PUSF" ) || (*systematic == "pdf") || (*systematic == "L1Prefiring") || (*systematic == "pdf") || (*systematic == "topPt")|| (*systematic == "scale")|| (*systematic == "renorm") || (*systematic == "fact") ) systematic_str = "nom";
             else
             {
                systematic_str = *systematic;
@@ -1175,9 +1220,7 @@ void readTree()
             std::cout << "Reading File " << inFileName << " for year,sample,systematic " << year << "/" <<*dataBlock << "/" << *systematic<< std::endl;
             try
             {
-
-               
-               if (!doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag,nDoubleTaggedCRNN, eventScaleFactor,nZeroBtagAntiTag, nOneBtagAntiTag, *dataYear,*systematic, *dataBlock ))
+               if (!doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag, eventScaleFactor,nZeroBtagAntiTag, nOneBtagAntiTag, nNN_SR, nNN_CR, nNN_AT1b, nNN_AT0b, *dataYear,*systematic, *dataBlock ))
                {
                   if( !(failedFiles.find( (*dataBlock +"/" + year ).c_str()  ) != std::string::npos)) // don't copy this multiple times
                   {
@@ -1185,16 +1228,12 @@ void readTree()
                      nFailedFiles++;
                   }
                }
-               
-
             }
             catch(...)
             {
                std::cout << "ERROR: Failed for year/sample/systematic" << year<< "/" << *dataBlock << "/" << *systematic << std::endl;
                continue;
             } 
-
-
 
             std::cout << " @@@@@@@@ There have been " << nFailedFiles << " failed jobs files @@@@@@@@" << std::endl;
             std::cout << "Failed files: " << failedFiles << std::endl;
@@ -1206,6 +1245,7 @@ void readTree()
                std::cout << "Total 0b double tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nNoBjets << "/" << nDoubleTaggedCR << std::endl;
                std::cout << "Total 1b anti tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nOneBtagAntiTag << std::endl;
                std::cout << "Total 0b anti tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nNoBjets << "/" << nZeroBtagAntiTag << std::endl;
+               std::cout << "Total events in the NN_SR/NN_CR/NN_AT1b/NN_AT0b: " << nNN_SR << "/" << nNN_CR << "/" << nNN_AT1b << "/" << nNN_AT0b << std::endl;
                //std::cout << "number of events NN tagged: " << NNDoubleTag << std::endl;
                std::cout << "Finished with "<< inFileName << "." << std::endl;
                std::cout << std::endl;
@@ -1213,11 +1253,7 @@ void readTree()
                std::cout << std::endl;
                std::cout << std::endl;
             }
-
-
          }
-
-         
       }
    }
 }

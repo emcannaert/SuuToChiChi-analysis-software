@@ -21,6 +21,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    int AK8_SJ_assignment[100],AK4_SJ_assignment[100];
    bool AK8_is_near_highE_CA4[100],AK4_is_near_highE_CA4[100];
    
+   int SJ1_decision, SJ2_decision;
    int totEventsUncut = 0;
 
    const char *_inFilename = inFileName.c_str();
@@ -57,9 +58,9 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
       for(auto systematic_suffix = systematic_suffices.begin(); systematic_suffix < systematic_suffices.end();systematic_suffix++)
       {
 
-         double nEvents =0,nHTcut =0 ,nAK8JetCut =0,nHeavyAK8Cut=0,nBtagCut=0,nSJEnergyCut=0, nSJMass100Cut=0;
-         double nZeroBtag = 0, nZeroBtagnSJEnergyCut = 0, nZeroBtagnSJMass100Cut = 0;
-         double nNoBTags = 0, nAT0b = 0, nAT1b = 0, nSR = 0, nCR = 0, nAT1b_noScale = 0, nAT0b_noScale = 0;
+         double nEvents =0,nHTcut =0 ,nAK8JetCut =0,nHeavyAK8Cut=0,nBtagCut=0,nSJEnergyCut=0, nSJMass100Cut=0, nNN_tagged_SR =0 ;
+         double nZeroBtag = 0, nZeroBtagnSJEnergyCut = 0, nZeroBtagnSJMass100Cut = 0, nNN_tagged_CR = 0;
+         double nNoBTags = 0, nAT0b = 0, nAT1b = 0, nSR = 0, nCR = 0, nAT1b_noScale = 0, nAT0b_noScale = 0, nNN_tagged_AT1b = 0, nNN_tagged_AT0b = 0 ;
          std::cout << "Looking at the " << *systematic_suffix << " tree" << std::endl;
 
 
@@ -159,6 +160,10 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("SJ_nAK4_300", SJ_nAK4_300);
          t1->SetBranchAddress("SJ_nAK4_100", SJ_nAK4_100);
          t1->SetBranchAddress("SJ_nAK4_150", SJ_nAK4_150);
+
+         t1->SetBranchAddress("SJ1_decision", &SJ1_decision);
+         t1->SetBranchAddress("SJ2_decision", &SJ2_decision);
+
 
 
          t1->SetBranchAddress("SJ_nAK4_50", SJ_nAK4_50);
@@ -312,10 +317,15 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                nBtagCut+=eventWeight;
                
 
-               //std:;cout << SJ_mass_200[0]  << " " << SJ_mass_200[1] << std::endl;
+
+
+               ////////////////////// CUTBASED ///////////////////////
+
+               // Signal region
+
                if( ( (SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2) ) )     //|| (  ( (SJ_nAK4_150[0] + SJ_nAK4_150[1]) > 4) && (SJ_mass_200[0]> 500) && (SJ_mass_200[1]> 500) )  )  // alternative cut to improve 1 TeV efficiency ->   // || ( (SJ_mass_200[0]> 400) && (SJ_mass_200[1]> 400)  ) 
                {
-                  //signal region
+                  
                   nSR++;
 
                   nSJEnergyCut+=eventWeight;
@@ -335,6 +345,20 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                      nAT1b_noScale++;
 
                   }
+               }
+
+               ///////////////////////// NN-based //////////////////////// 
+
+               // NN signal region
+               if ((SJ1_decision == 0) &&(SJ2_decision == 0))
+               {
+                  nNN_tagged_SR+= eventWeight;
+               }
+
+               // NN AT1b region
+               if (  (SJ1_decision != 0)&&( SJ2_decision == 0)    )
+               {
+                  nNN_tagged_AT1b+=eventWeight;
                }
 
 
@@ -362,6 +386,23 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
                   }
                }
+
+
+               ///////////////////////// NN-based //////////////////////// 
+
+               // NN control region
+               if ((SJ1_decision == 0) && (SJ2_decision == 0))
+               {
+                  nNN_tagged_CR+=eventWeight;
+               }
+
+               // NN AT0b region
+               if (  (SJ1_decision != 0)&&( SJ2_decision == 0)    )
+               {
+                  nNN_tagged_AT0b+=eventWeight;
+               }
+
+
                
             }
             t2->Fill();
@@ -376,6 +417,11 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          std::cout << "Control Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT0b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nZeroBtagnSJEnergyCut << std::endl;
          std::cout << "AT1b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nBtagCut: - "  <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nAT1b << std::endl;
          std::cout << "AT0b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT1b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nAT0b << std::endl;
+
+         std::cout << "NN_SR for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " <<  nNN_tagged_SR << std::endl;
+         std::cout << "NN_CR for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " << nNN_tagged_CR << std::endl;
+         std::cout << "NN_AT1b for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " <<  nNN_tagged_AT1b << std::endl;
+         std::cout << "NN_AT0b for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string <<  " " << nNN_tagged_AT0b << std::endl;
 
          //std::cout << "There were a total of " << total_btags << " tight b-tagged jets in this sample." << std::endl; 
          //std::cout << "The average bTagSF was " << average_bTagSF/total_events_unscaled << ", the average PUSF was " << average_PUSF/total_events_unscaled << std::endl; 

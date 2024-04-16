@@ -90,7 +90,7 @@ class BESTEvaluation {
     
     int nCategories = 3;
 
-    int NumBESTInputs_ = 107; // abbott: just grab this from the inputShapes_ vector?
+    int NumBESTInputs_ = 180; // abbott: just grab this from the inputShapes_ vector?
     std::vector<std::string> inputNames_; // abbott: input/output names can be grabbed from the graphDef?
     std::string outputName_;
 };

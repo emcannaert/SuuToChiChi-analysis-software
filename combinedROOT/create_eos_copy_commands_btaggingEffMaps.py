@@ -290,7 +290,7 @@ if __name__=="__main__":
 	for year,year_dict in all_files_made.items():
 		for sample, sample_dict in year_dict.items():
 			for syst,syst_dict in sample_dict.items():
-				combined_file_name = "btagging_efficiencyMap_RAW_%s_combined_%s.root"%(sample, year)
+				combined_file_name = "btagging_efficiencyMap_RAW_combined_%s_%s.root"%(sample, year)
 				if len(syst_dict) > 1:    # if there are actually files in this 
 					command_path.write('hadd -f %s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
@@ -305,7 +305,7 @@ if __name__=="__main__":
 	for year,year_dict in signal_files_made.items():
 		for sample, sample_dict in year_dict.items():
 			for syst,syst_dict in sample_dict.items():
-				combined_file_name = "btagging_efficiencyMap_RAW_%s_combined_%s.root"%(sample, year)
+				combined_file_name = "btagging_efficiencyMap_RAW_combined_%s_%s.root"%(sample, year)
 
 				if len(syst_dict) > 1:    # if there are actually files in this 
 					command_path.write('hadd -f %s '%combined_file_name)

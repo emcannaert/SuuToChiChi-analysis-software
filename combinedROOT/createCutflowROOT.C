@@ -19,6 +19,8 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    // event weights
    double PU_EventWeight_nom = 1, L1Prefiring_EventWeight_nom = 1, bTag_EventWeight_nom = 1;
 
+
+   int SJ1_decision, SJ2_decision; 
    double TopPT_EventWeight_up = 1, PU_EventWeight_up = 1, L1Prefiring_EventWeight_up = 1, bTag_EventWeight_up = 1, pdf_EventWeight_up = 1, renorm_EventWeight_up = 1, factor_EventWeight_up = 1;
    double PU_EventWeight_down = 1, L1Prefiring_EventWeight_down = 1, bTag_EventWeight_down = 1, pdf_EventWeight_down = 1, renorm_EventWeight_down= 1, factor_EventWeight_down = 1;
 
@@ -52,11 +54,7 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    if ( ( (dataBlock.find("Suu") != std::string::npos) ) || (dataBlock.find("data") != std::string::npos)) event_SF = 1.0;
    else { event_SF = scale_factors[dataBlock][year];}
 
-
-
    std::cout << "The event SF is " << event_SF <<  " for sample "<< dataBlock <<std::endl;
-
-
 
    const char *_inFilename = inFileName.c_str();
    int total_btags =0;
@@ -175,16 +173,29 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
 
 
-         TH1F *h_m_SJ1_AT1b = new TH1F("h_m_SJ1_AT1b", "AT1b SJ mass; SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
-         TH1F *h_m_SJ1_AT0b = new TH1F("h_m_SJ1_AT0b", "AT0b SJ mass; SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
-         TH1F *  h_m_SJ1_SR = new TH1F("h_m_SJ1_SR", "SR SJ mass; SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
-         TH1F *  h_m_SJ1_CR = new TH1F("h_m_SJ1_CR", "CR SJ mass; SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
+         TH1F *h_m_SJ1_AT1b = new TH1F("h_m_SJ1_AT1b", "AT1b SJ mass (cut-based); SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
+         TH1F *h_m_SJ1_AT0b = new TH1F("h_m_SJ1_AT0b", "AT0b SJ mass (cut-based) ; SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
+         TH1F *  h_m_SJ1_SR = new TH1F("h_m_SJ1_SR", "SR SJ mass (cut-based); SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
+         TH1F *  h_m_SJ1_CR = new TH1F("h_m_SJ1_CR", "CR SJ mass (cut-based); SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
 
-         TH1F *  h_m_diSJ_SR = new TH1F("h_m_diSJ_SR", "SR diSuperjet mass; SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
-         TH1F *  h_m_diSJ_CR = new TH1F("h_m_diSJ_CR", "CR diSuperjet mass; SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+         TH1F *  h_m_diSJ_SR = new TH1F("h_m_diSJ_SR", "SR diSuperjet mass (cut-based); SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+         TH1F *  h_m_diSJ_CR = new TH1F("h_m_diSJ_CR", "CR diSuperjet mass (cut-based); SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
 
-         TH1F *  h_m_diSJ_AT1b = new TH1F("h_m_diSJ_AT1b", "AT1b diSuperjet mass; SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
-         TH1F *  h_m_diSJ_AT0b = new TH1F("h_m_diSJ_AT0b", "AT0b diSuperjet mass; SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+         TH1F *  h_m_diSJ_AT1b = new TH1F("h_m_diSJ_AT1b", "AT1b diSuperjet mass (cut-based); SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+         TH1F *  h_m_diSJ_AT0b = new TH1F("h_m_diSJ_AT0b", "AT0b diSuperjet mass (cut-based); SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+
+
+         TH1F * h_m_SJ1_NN_AT1b = new TH1F("h_m_SJ1_NN_AT1b", "AT1b SJ mass (NN-based); SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
+         TH1F * h_m_SJ1_NN_AT0b = new TH1F("h_m_SJ1_NN_AT0b", "AT0b SJ mass (NN-based); SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
+         TH1F *  h_m_SJ1_NN_SR = new TH1F("h_m_SJ1_NN_SR", "SR SJ mass (NN-based); SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
+         TH1F *  h_m_SJ1_NN_CR = new TH1F("h_m_SJ1_NN_CR", "CR SJ mass (NN-based); SJ mass [GeV]; Events / 70 GeV",50,0.0,3500);
+
+         TH1F *  h_m_diSJ_NN_SR = new TH1F("h_m_diSJ_NN_SR", "SR diSuperjet mass (NN-based); SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+         TH1F *  h_m_diSJ_NN_CR = new TH1F("h_m_diSJ_NN_CR", "CR diSuperjet mass (NN-based); SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+
+         TH1F *  h_m_diSJ_NN_AT1b = new TH1F("h_m_diSJ_NN_AT1b", "AT1b diSuperjet mass (NN-based); SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+         TH1F *  h_m_diSJ_NN_AT0b = new TH1F("h_m_diSJ_NN_AT0b", "AT0b diSuperjet mass (NN-based); SJ mass [GeV]; Events / 160 GeV",50,0.0,8000);
+
 
 
 
@@ -260,6 +271,10 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("jet_mass", AK8_mass);
 
          t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
+
+         t1->SetBranchAddress("SJ1_decision", &SJ1_decision);
+         t1->SetBranchAddress("SJ2_decision", &SJ2_decision);
+
 
          // SF stuff
          //nom
@@ -442,6 +457,9 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                nBtagCut+=EventWeight;
                h_SJ_nAK4_300_semiRAW->Fill(SJ_nAK4_300[1],EventWeight); 
 
+
+
+               ///////////////////////// cut-based //////////////////////// 
                if((SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
                {
                   //signal region
@@ -468,11 +486,35 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                }
 
 
+
+               ///////////////////////// NN-based //////////////////////// 
+
+               // NN signal region
+               if ((SJ1_decision == 1) && (SJ2_decision == 1))
+               {
+                  h_m_SJ1_NN_SR->Fill(superJet_mass[1],EventWeight );
+                  h_m_diSJ_NN_SR->Fill(diSuperJet_mass, EventWeight);
+               }
+
+               // NN AT1b region
+               if (  (SJ1_decision != 1)&&( SJ2_decision == 1)    )
+               {
+
+                  h_m_SJ1_NN_AT1b->Fill(superJet_mass[1],EventWeight );
+                  h_m_diSJ_NN_AT1b->Fill(diSuperJet_mass, EventWeight);
+               }
+
+
+
             }
             if((nTightBTags < 1))
             {
 
                nZeroBtag+=EventWeight;
+
+
+
+                ///////////////////////// cut-based //////////////////////// 
 
                //CR
                if((SJ_nAK4_300[0]>=2) && (SJ_nAK4_300[1]>=2)   )
@@ -493,6 +535,26 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                      h_m_diSJ_AT0b->Fill(diSuperJet_mass, EventWeight);
 
                   }
+               }
+
+
+
+
+               ///////////////////////// NN-based //////////////////////// 
+
+               // NN control region
+               if ((SJ1_decision == 1) && (SJ2_decision == 1))
+               {
+                  h_m_SJ1_NN_CR->Fill(superJet_mass[1],EventWeight );
+                  h_m_diSJ_NN_CR->Fill(diSuperJet_mass, EventWeight);
+               }
+
+               // NN AT0b region
+               if (  (SJ1_decision != 1)&&( SJ2_decision == 1)    )
+               {
+
+                  h_m_SJ1_NN_AT0b->Fill(superJet_mass[1],EventWeight );
+                  h_m_diSJ_NN_AT0b->Fill(diSuperJet_mass, EventWeight);
                }
                
             }
@@ -583,9 +645,9 @@ void createCutflowROOT()
 
    // you must change these ........
    bool runData   = false;
-   bool runSignal = true;
+   bool runSignal = false;
    bool runBR     = false;
-   bool runAll     = false;
+   bool runAll     = true;
    bool runSelection = false;
    bool runDataBR = false;
    std::vector<std::string> years = {"2018","2017","2016","2015"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
