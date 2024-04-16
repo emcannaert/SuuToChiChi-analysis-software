@@ -2,10 +2,10 @@
 *.h5
 #data/
 allaltCrabCfgs/*.pyc
-allaltCrabCfgs/crab_clusteringAnalyzer*.py
+allAltCrabCfgs/crab_clusteringAnalyzer*cfg.py
 allAltCrabCfgs/crab_projects/
-allCrabCfgs/
-allCfgs/
+#allCrabCfgs/
+#allCfgs/
 btagging/cfgs
 crab_projects/
 jsonpog-integration/
