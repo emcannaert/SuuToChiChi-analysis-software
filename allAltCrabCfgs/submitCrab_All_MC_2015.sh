@@ -1,3 +1,0 @@
-source submitCrab_MC_2015_JEC.sh
-source submitCrab_MC_2015_JER.sh
-source submitCrab_MC_2015.sh

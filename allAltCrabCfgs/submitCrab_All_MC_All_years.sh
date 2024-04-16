@@ -1,4 +1,0 @@
-source submitCrab_All_MC_2015.sh
-source submitCrab_All_MC_2016.sh
-source submitCrab_All_MC_2017.sh
-source submitCrab_All_MC_2018.sh

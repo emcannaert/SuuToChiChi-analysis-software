@@ -1,2 +1,0 @@
-source submitCrab_All_data_All_years.sh
-source submitCrab_All_MC_All_years.sh
