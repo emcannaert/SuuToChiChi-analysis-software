@@ -21,7 +21,7 @@ import ROOT
 def makeBtagEffMap(year,sample):
 
    #systematic = "nom"
-   inFileName  = "../data/btaggingEffMapsRAW/btagging_efficiencyMap_RAW_%s_combined_%s.root"%(sample,year)
+   inFileName  = "../data/btaggingEffMapsRAW/btagging_efficiencyMap_RAW_combined_%s_%s.root"%(sample,year)
    print("Attempting to open file %s"%(inFileName))
 
    outFileName = "../data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root"%(sample,year)

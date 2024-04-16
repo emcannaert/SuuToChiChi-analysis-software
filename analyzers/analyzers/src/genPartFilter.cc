@@ -370,7 +370,6 @@ genPartFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       nHtZt++;
    } 
      
-   //std::cout << "nHtHt " << nHtHt<< " nWbWb "<< nWbWb<< " nZtZt " << nZtZt<< " nWbHt " << nWbHt<< " nWbZt " << nWbZt<< " nHtZt" << nHtZt << std::endl;
   /* 
    //if ( (nH==0)&&(ntop>0)    )
    //{
@@ -424,7 +423,13 @@ genPartFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 */
    //if(!_ZtZt)return false;
    if (! ( _htWb || _htZt || _ZtWb || _WbWb || _htht || _ZtZt)  ) return false;
-   else{ return true;}
+   else
+   { 
+
+      //std::cout << "nHtHt " << nHtHt<< " nWbWb "<< nWbWb<< " nZtZt " << nZtZt<< " nWbHt " << nWbHt<< " nWbZt " << nWbZt<< " nHtZ t" << nHtZt << std::endl;
+
+      return true;
+   }
    
 }
 

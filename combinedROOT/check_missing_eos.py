@@ -322,11 +322,11 @@ if __name__ == "__main__":
 		for sample in use_samples:			
 			total_files_processed+=1
 			processed_file   = "%s_%s_processed.root"%(sample, year)
-			if len([file for file in all_files_processed if processed_file in file and convert_to_bytes(file.split()[4]) > 1000  ]) == 0:
+			if len([file for file in all_files_processed if (processed_file in file and convert_to_bytes(file.split()[4]) > 1000)  ]) == 0:
 				output_file.write("MISSING: %s\n"%processed_file)
 				missing_files_list_processed.append(processed_file)
 				missing_files_processed+=1
-			elif len([file for file in all_files_processed if processed_file in file and convert_to_bytes(file.split()[4]) < 1000  ]) == 1:
+			elif len([file for file in all_files_processed if (processed_file in file and convert_to_bytes(file.split()[4]) < 1000)  ]) == 1:
 				output_file.write("BAD FILE: %s\n"%processed_file)
 				bad_files_list_processed.append(processed_file)
 				missing_files_processed+=1

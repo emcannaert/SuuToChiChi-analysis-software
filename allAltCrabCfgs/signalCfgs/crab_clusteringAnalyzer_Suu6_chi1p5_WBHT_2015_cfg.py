@@ -11,5 +11,5 @@ config.Data.publication = False
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.Data.outputDatasetTag = 'clustAlg_Suu6_chi1p5_WBHT_2015_nom'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_202436_202044'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024410_202245'
 config.Site.storageSite = 'T3_US_FNALLPC'

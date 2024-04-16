@@ -150,6 +150,7 @@ leptonVeto::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel("example",pIn);
    #endif */
     int nE =0, nTau = 0, nMuon = 0;
+    //int nTau_e = 0, nTau_mu = 0, nTau_jet = 0;
     edm::Handle<std::vector<pat::Muon>> muons;
     iEvent.getByToken(muonToken_, muons);
     for(auto iM = muons->begin(); iM != muons->end();iM++)
@@ -166,28 +167,32 @@ leptonVeto::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
 
 
-    /* No tau vetoeing because it's too much work 
+    // No tau vetoeing because it's too much work 
 
+    
     
     edm::Handle<std::vector<pat::Tau>> taus;
     iEvent.getByToken(tauToken_, taus);
     for(auto iT = taus->begin(); iT != taus->end();iT++)
     {
-      if((iT->pt() > 20.) && (abs(iT->eta()) < 2.3)  )
-      {
-        if (iT->tauID("byMediumDeepTau2017v2p1VSjet"))   //was medium before
-        {
-            if (iT->tauID("byLooseDeepTau2017v2p1VSe") && iT->tauID("byMediumDeepTau2017v2p1VSmu"))
-            {
-               nTau++;
-            }
-        }
-      }
-            ///byVTightDeepTau2017v2p1VSjet doesn't work on 2018 MC
-    }
-    */ 
-    //std::cout << "E/Mu/Tau: " << nE << "/" << nMuon << "/" << nTau << std::endl;
+        if((iT->pt() > 20.) && (abs(iT->eta()) < 2.3) && (iT->decayMode() != 5) && (iT->decayMode() != 6) && (iT->decayMode() != 7)  ) // && (abs(iT->dz() < 0.2))
+        {  
+            //std::cout <<"byTightDeepTau2017v2p1VSe  " <<  iT->tauID("byTightDeepTau2017v2p1VSe")  << std::endl;
+            //std::cout <<"byTightDeepTau2017v2p1VSjet  " <<  iT->tauID("byTightDeepTau2017v2p1VSjet")  << std::endl;
+            //std::cout <<"byTightDeepTau2017v2p1VSmu  " <<  iT->tauID("byTightDeepTau2017v2p1VSmu")  << std::endl;
 
+            if ( iT->tauID("byVVLooseDeepTau2017v2p1VSe")&& iT->tauID("byMediumDeepTau2017v2p1VSjet") && iT->tauID("byTightDeepTau2017v2p1VSmu")  )
+            {
+                nTau++;
+                //std::cout << iT->tauID("asfqwef") << std::endl;
+            }
+        }          
+    }
+    //nTau = 0;
+    //std::cout << "E/Mu/Tau: " << nE << "/" << nMuon << "/" << nTau << std::endl;
+    //std::cout << "--------------------------------------------------------" << std::endl;
+    //std::cout << "There are " << nTau << " taus in the event. " << std::endl;
+    //std::cout << "electron/muon/jet: " << nTau_e << "/" << nTau_mu <<"/" << nTau_jet << std::endl;
     if( (nTau > 0) || (nE > 0) || (nMuon > 0) )return false;
     else {return true;}
    

@@ -35,7 +35,7 @@ else
 	python create_eos_copy_commands_btaggingEffMaps.py signal_eos_paths_btagging.txt
 	source eos_copy_commands_btagging.sh
 	
-	rm *Suu*_combined_*.root
+	#rm *Suu*_combined_*.root
 
 	## to merge
 		# get the file paths
@@ -52,7 +52,14 @@ else
 	#echo "Copying new eos files to root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT"
 	#xrdcp -f *$2*combined.root root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT/
 	#echo "Deleting eos files here to save space."
-	rm *$2*combined.root
+	#rm  btagging_efficiencyMap_*$2*combined_*.root
+
+	rm btagging_efficiencyMap_SuuToChiChi_combined_$2_*.root
+	rm btagging_efficiencyMap_QCDMC_combined_$2_*.root
+	rm btagging_efficiencyMap_TTbarMC_combined_$2_*.root
+	rm btagging_efficiencyMap_STMC_combined_$2_*.root
+
+
 	rm TTbar_eos_paths_btagging.txt
 	rm QCD_eos_paths_btagging.txt
 	rm ST_eos_paths_btagging.txt

@@ -470,7 +470,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       bTagEffMap_nEtaBins = lightjet_eff->GetNbinsY();
 
       cset = CorrectionSet::from_file(bTagSF_path.fullPath());
-      cset_corrector_bc = cset->at("deepJet_mujets");   //deepJet_comb, 
+      cset_corrector_bc    = cset->at("deepJet_mujets");   //deepJet_comb, 
       cset_corrector_light = cset->at("deepJet_incl");   //deepJet_incl
 
       //get corrections from PU file
@@ -1463,12 +1463,12 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
 
    AK4_m1234[nSuperJets] =sqrt( pow(jetsFJ_jet[0].E() + jetsFJ_jet[1].E() + jetsFJ_jet[2].E()+jetsFJ_jet[3].E() ,2) - pow(jetsFJ_jet[0].px() + jetsFJ_jet[1].px() + jetsFJ_jet[2].px()+jetsFJ_jet[3].px(),2) - pow(jetsFJ_jet[0].py() + jetsFJ_jet[1].py() + jetsFJ_jet[2].py()+jetsFJ_jet[3].py(),2)- pow(jetsFJ_jet[0].pz() + jetsFJ_jet[1].pz() + jetsFJ_jet[2].pz()+jetsFJ_jet[3].pz(),2));   
 
-   AK4_theta12[nSuperJets] = abs(AK4_jet1.Angle(AK4_jet2));   
-   AK4_theta13[nSuperJets] = abs(AK4_jet1.Angle(AK4_jet3));
-   AK4_theta14[nSuperJets] = abs(AK4_jet1.Angle(AK4_jet4));
-   AK4_theta23[nSuperJets] = abs(AK4_jet2.Angle(AK4_jet3));
-   AK4_theta24[nSuperJets] = abs(AK4_jet2.Angle(AK4_jet4));
-   AK4_theta34[nSuperJets] = abs(AK4_jet3.Angle(AK4_jet4));
+   AK4_theta12[nSuperJets] = cos(abs(AK4_jet1.Angle(AK4_jet2)));   
+   AK4_theta13[nSuperJets] = cos(abs(AK4_jet1.Angle(AK4_jet3)));
+   AK4_theta14[nSuperJets] = cos(abs(AK4_jet1.Angle(AK4_jet4)));
+   AK4_theta23[nSuperJets] = cos(abs(AK4_jet2.Angle(AK4_jet3)));
+   AK4_theta24[nSuperJets] = cos(abs(AK4_jet2.Angle(AK4_jet4)));
+   AK4_theta34[nSuperJets] = cos(abs(AK4_jet3.Angle(AK4_jet4)));
 
    EventShapeVariables eventShapesAK41( boostedAK41_Part_XYZ );
    Thrust thrustCalculatorAK41( boostedAK41_Part_LC.begin(), boostedAK41_Part_LC.end() );
@@ -2094,10 +2094,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged *= SF*bTag_eff_value;
                   data_tagged_up *= SF_up*bTag_eff_value;
                   data_tagged_down *= SF_down*bTag_eff_value;
-
                   if(_verbose)std::cout << "tagged c jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
-
-
                }
                else
                {
@@ -2105,15 +2102,13 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged *= (1 - SF*bTag_eff_value);
                   data_notTagged_up *= (1 - SF_up*bTag_eff_value);
                   data_notTagged_down *= (1 - SF_down*bTag_eff_value);
-
                   if(_verbose)std::cout << "untagged c jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
-
                }
             }
             else if(corrJet.hadronFlavour() == 5) // b jets
             {
                bTag_eff_value = truebjet_eff->GetBinContent(xbin,ybin);
-               SF = cset_corrector_bc->evaluate(   {"central", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF             = cset_corrector_bc->evaluate(   {"central", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
                jet_bTagSF_b[nTrue_b_AK4] = SF;
                nTrue_b_AK4++;
                SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
@@ -2140,6 +2135,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   if(_verbose)std::cout << "untagged b jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
 
                }
+            }
+            else
+            {
+               std::cout << "ERROR: invalid AK4 hadron flavour. " << std::endl;
             }
             double epsilon = 1e-12;
             if ( (abs(MC_tagged)<epsilon )||(abs(MC_tagged)<epsilon )||(abs(MC_tagged)<epsilon )||(abs(MC_tagged)<epsilon ))
@@ -2492,7 +2491,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    if(slimmedSelection)
    {
-      if (nfatjet_pre < 2) return;  // RETURN cut
+      if  (  (nfatjets < 3) ||   ((nfatjet_pre < 2) && ((dijetMassOne < 1000.) || (dijetMassTwo < 1000.)  )  )  )  return;  // RETURN cut
       if (nfatjets < 3) return;      // RETURN cut
    }
 

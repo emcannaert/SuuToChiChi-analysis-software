@@ -377,9 +377,7 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
          {
             h_nTruebJets_btagged->Fill(corrJet.pt(),corrJet.eta());
          }
-
       }
-
    }
 
    //fill the histograms as necessary and save these 

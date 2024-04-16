@@ -39,14 +39,14 @@ void BESTEvaluation::configure(const edm::ParameterSet& iConfig){
   if      (runYear_ == "2015")  inputNames_.push_back("input_1");
   else if (runYear_ == "2016")  inputNames_.push_back("input_2");
   else if (runYear_ == "2017")  inputNames_.push_back("input_3");
-  else if (runYear_ == "2018")  inputNames_.push_back("input_1");
+  else if (runYear_ == "2018")  inputNames_.push_back("input_4");
   // abbott: odd if/else statements here, examine later
 
   // The output name needs to match the name of the output layer in the data/constantgraph.pb file
-  if      (runYear_ == "2015")  outputName_ = "dense_7/Softmax";
-  else if (runYear_ == "2016")  outputName_ = "dense_14/Softmax";
-  else if (runYear_ == "2017")  outputName_ = "ense_27/Softmax";
-  else if (runYear_ == "2018")  outputName_ = "dense_5/Softmax";
+  if      (runYear_ == "2015")  outputName_ = "dense_9/Softmax";
+  else if (runYear_ == "2016")  outputName_ = "dense_18/Softmax";
+  else if (runYear_ == "2017")  outputName_ = "dense_27/Softmax";
+  else if (runYear_ == "2018")  outputName_ = "dense_36/Softmax";
 
   inputShapes_.push_back(tensorflow::TensorShape{1, NumBESTInputs_});
   inputTensors_.resize(inputShapes_.size()); // Set the internal tensor list to the size of your inputs
@@ -107,13 +107,15 @@ std::vector<float> BESTEvaluation::getPrediction(std::map<std::string, float> &B
   inputTensors_.at(kBEST_).second.flat<float>().setZero();
 
 
-
+  //std::cout << "------------------------ New Superjet --------------------------" << std::endl;
+  //std::cout << "Event number " << std::fixed << int(BESTInputs["eventNumber"]) << std::endl;
 
   // Scale the BESTInputs and load them into the input tensor in the correct order
   for (int n=0; n < NumBESTInputs_; n++){
     float value = BESTInputs[listOfBESTVars[n]];
     auto [scalerString, param1, param2] = paramDict_[listOfBESTVars[n]];
 
+    //std::cout  <<  listOfBESTVars[n] << " " << getScaledValue(value, scalerStringToInt_[scalerString], param1, param2) << std::endl; 
     inputTensors_.at(kBEST_).second.matrix<float>()(0, n) = getScaledValue(value, scalerStringToInt_[scalerString], param1, param2); 
   }
 

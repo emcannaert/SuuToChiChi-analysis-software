@@ -1,6 +1,6 @@
 *.root
 *.h5
-data/
+#data/
 allaltCrabCfgs/*.pyc
 allaltCrabCfgs/crab_clusteringAnalyzer*.py
 allAltCrabCfgs/crab_projects/
@@ -14,6 +14,11 @@ lumimasks/
 *.pyc
 *.txt
 *.json
+*.pkl
 *.tar
 *.tar.gz
 *.gz
+*cfg.py
+calcXS/
+LHEWeightsReader/
+crab_projects/
