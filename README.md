@@ -14,13 +14,14 @@ cmsenv
 ```
 
 To run the main analyzer, create the cfg files with   
-
+```
 python createCfgTemplate.py  
+```
 
 and run one with   
-
-cmsRun (your cfg selection).py  
-
+```
+cmsRun <your cfg selection>.py  
+```
 The output files will be in this main src directory.   
 
 
@@ -29,14 +30,12 @@ The full pipeline for the analysis looks like this -
 1.	create cfg files createCfgTemplate.py
 2.	create crab cfg files createAltCrabCfg.py
 3.	submit crab files
-4.	get EOS paths to outputs, go to combinedROOT, feed in text file and run create_eos_copy_commands.py
-5.	run eos_copy_commands.sh to copy EOS files to combinedROOT folder 
-6.	change the file paths in combinedROOT/readTreeApplySelection.C to run over the samples, years, systematics you want
-7.	run readTreeApplySelection.C to get the skimmed root files
-8.	delete combined ROOT files
-9.	copy skimmed ROOT files locally
-10.	run readTreeMC.C, readTreeMCBR.C, or readTreeData.C to do final selection
-11.	create plots from this with script of your choice (the files will be under rootFiles/processeRootFiles), or move on to bin merging
-12.	run bin merging script
-13.	run script to create final combine plots with these binnings
-14.	run this output in Higgs Combine 
+4.	run ``` combinedROOT/merge_eos_files.sh < name of eos output folder > ``` to merge crab N-tuples and save them to EOS 
+5.	run readTreeApplySelection.C to get output root files that have been skimmed by the analysis initial selection 
+6.	run readTree.C to create histograms for statistical analysis
+7.	copy processed histograms locally
+8.	(Local) get stat-uncertainty-optimized bin maps for 2D histograms from calculateStatisticalUncertaintyBins.py
+9.	(Local) linearize 2D histograms with linearize_final_plots.py
+10.	copy linearized plots to combine workspace
+
+The combine workspace constituting the individual RooFit workspaces and Combine data cards is saved at https://gitlab.cern.ch/ecannaer/suutochichi_combine . 
