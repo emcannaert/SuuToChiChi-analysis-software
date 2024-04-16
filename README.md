@@ -30,12 +30,12 @@ The full pipeline for the analysis looks like this -
 1.	create cfg files createCfgTemplate.py
 2.	create crab cfg files createAltCrabCfg.py
 3.	submit crab files
-4.	run ``` combinedROOT/merge_eos_files.sh < name of eos output folder > ``` to merge crab N-tuples and save them to EOS 
-5.	run readTreeApplySelection.C to get output root files that have been skimmed by the analysis initial selection 
-6.	run readTree.C to create histograms for statistical analysis
+4.	run ``` combinedROOT/merge_eos_files.sh <eos output folder> ``` to merge crab N-tuples and save them to EOS 
+5.	run ``` combinedROOT/readTreeApplySelection.C ```  to get output root files that have been skimmed by the analysis initial selection 
+6.	run ``` combinedROOT readTree.C ``` to create histograms for the statistical analysis
 7.	copy processed histograms locally
-8.	(Local) get stat-uncertainty-optimized bin maps for 2D histograms from calculateStatisticalUncertaintyBins.py
-9.	(Local) linearize 2D histograms with linearize_final_plots.py
+8.	(Locally) get stat-uncertainty-optimized bin maps for 2D histograms by running calculateStatisticalUncertaintyBins.py
+9.	(Locally) linearize 2D histograms with linearize_final_plots.py
 10.	copy linearized plots to combine workspace
 
 The combine workspace constituting the individual RooFit workspaces and Combine data cards is saved at https://gitlab.cern.ch/ecannaer/suutochichi_combine . 
