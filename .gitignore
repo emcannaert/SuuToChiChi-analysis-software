@@ -2,6 +2,7 @@
 *.h5
 #data/
 allaltCrabCfgs/*.pyc
+LHEWeightsReader/
 allAltCrabCfgs/crab_clusteringAnalyzer*cfg.py
 allAltCrabCfgs/crab_projects/
 #allCrabCfgs/
