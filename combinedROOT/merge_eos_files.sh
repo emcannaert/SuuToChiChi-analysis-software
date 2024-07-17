@@ -12,8 +12,24 @@ else
 
 	echo "Getting all eos file paths"
 	source find_eos_files.sh $1 $2
-	echo "Copying TTbar Files"
+	
 
+	echo "Copying WW Files"
+	python create_eos_copy_commands.py WW_eos_paths.txt
+	source eos_copy_commands.sh
+	rm WW_MC*_combined_*.root
+
+	echo "Copying ZZ Files"
+	python create_eos_copy_commands.py ZZ_eos_paths.txt
+	source eos_copy_commands.sh
+	rm ZZ_MC*_combined_*.root
+
+	echo "Copying W+Jets Files"
+	python create_eos_copy_commands.py WJets_eos_paths.txt
+	source eos_copy_commands.sh
+	rm WJets*_combined_*.root
+
+	echo "Copying TTbar Files"
 	python create_eos_copy_commands.py TTbar_eos_paths.txt
 	source eos_copy_commands.sh
 	rm TTTo*_combined_*.root
@@ -27,6 +43,7 @@ else
 	python create_eos_copy_commands.py ST_eos_paths.txt
 	source eos_copy_commands.sh
 	rm ST_*_combined_*.root
+
 	echo "Copying data files"
 	python create_eos_copy_commands.py data_eos_paths.txt
 	source eos_copy_commands.sh
@@ -53,6 +70,8 @@ else
 	xrdcp -f *$2*combined.root root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT/
 	echo "Deleting eos files here to save space."
 	rm *$2*combined.root
+
+	rm WJets_eos_paths.txt
 	rm TTbar_eos_paths.txt
 	rm QCD_eos_paths.txt
 	rm ST_eos_paths.txt
@@ -62,7 +81,7 @@ else
 	echo "The eos folder $1 was merged on $(date)" >> last_merge.txt
 
 	echo "Finished."
-	echo "WARNING: data files are set to not be copied. Change this in the script if you want these."
+	#$echo "WARNING: data files are set to not be copied. Change this in the script if you want these."
 
 fi
 

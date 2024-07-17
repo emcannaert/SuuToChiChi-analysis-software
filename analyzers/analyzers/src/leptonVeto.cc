@@ -175,17 +175,26 @@ leptonVeto::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByToken(tauToken_, taus);
     for(auto iT = taus->begin(); iT != taus->end();iT++)
     {
-        if((iT->pt() > 20.) && (abs(iT->eta()) < 2.3) && (iT->decayMode() != 5) && (iT->decayMode() != 6) && (iT->decayMode() != 7)  ) // && (abs(iT->dz() < 0.2))
+        if((iT->pt() > 20.) && (abs(iT->eta()) < 2.3) && (iT->decayMode() != 5) && (iT->decayMode() != 6) && (iT->decayMode() != 7)  && (iT->tauID("decayModeFindingNewDMs") > 0.5) ) // && (abs(iT->dz() < 0.2))
         {  
-            //std::cout <<"byTightDeepTau2017v2p1VSe  " <<  iT->tauID("byTightDeepTau2017v2p1VSe")  << std::endl;
-            //std::cout <<"byTightDeepTau2017v2p1VSjet  " <<  iT->tauID("byTightDeepTau2017v2p1VSjet")  << std::endl;
-            //std::cout <<"byTightDeepTau2017v2p1VSmu  " <<  iT->tauID("byTightDeepTau2017v2p1VSmu")  << std::endl;
 
-            if ( iT->tauID("byVVLooseDeepTau2017v2p1VSe")&& iT->tauID("byMediumDeepTau2017v2p1VSjet") && iT->tauID("byTightDeepTau2017v2p1VSmu")  )
+            /*
+            double dz = 0;
+            auto leadChargedHadrCand = iT->leadChargedHadrCand();
+            if ( leadChargedHadrCand->isNonnull()   ) 
+            {
+                    dz = leadChargedHadrCand->dz();
+            } 
+            if( abs(dz)<0.2)
+            {
+
+            }  
+            */
+            if ((iT->tauID("byVVLooseDeepTau2017v2p1VSe") > 0.5) && (iT->tauID("byMediumDeepTau2017v2p1VSjet") > 0.5) && (iT->tauID("byTightDeepTau2017v2p1VSmu") > 0.5)  )
             {
                 nTau++;
-                //std::cout << iT->tauID("asfqwef") << std::endl;
-            }
+            }   
+
         }          
     }
     //nTau = 0;
@@ -193,9 +202,22 @@ leptonVeto::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     //std::cout << "--------------------------------------------------------" << std::endl;
     //std::cout << "There are " << nTau << " taus in the event. " << std::endl;
     //std::cout << "electron/muon/jet: " << nTau_e << "/" << nTau_mu <<"/" << nTau_jet << std::endl;
-    if( (nTau > 0) || (nE > 0) || (nMuon > 0) )return false;
-    else {return true;}
+    
+    bool doSingleMuon = false;
+
+
+    if(doSingleMuon)
+    {
+        if( (nMuon > 0) )return true;  // do we want there to be 0 electrons and 0 taus?
+        else {return false;}
+    }
+    else
+    {
+        if( (nTau > 0) || (nE > 0) || (nMuon > 0) )return false;
+        else {return true;}
    
+    }
+
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------

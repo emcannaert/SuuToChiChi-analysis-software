@@ -7,9 +7,9 @@ import pickle
 def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, all_systematics):
 
    includeAllBranches = False
-   slimmedSelection  = False
+   slimmedSelection  = True
    verbose        = False
-
+   runSideband    = False
    doPDF = True
    if "data" in sample:
       doPDF = False
@@ -19,8 +19,11 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       isSignal = True
    systematic_ = [systematic__]
    if "Suu" in sample:
-      systematic_ = all_systematics
-
+      systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC" ]        #all_systematics
+   elif systematic__ == "JEC":
+      systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"]
+   elif systematic__ == "JER":
+      systematic_ = [  "JER_eta193", "JER_193eta25", "JER"] ## we aren't using JERs for eta > 2.5, so no need for the other 4 uncertainties
 
    apply_pu_ID = True
    doTopPtReweight = False
@@ -40,12 +43,12 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       output_dir = "allCfgs"
    if isSignal:
       newCfg = open("%s/clusteringAnalyzer_%s_%s_cfg.py"%(output_dir,sample,year),"w")
-   elif systematic_[0] == "":
-      newCfg = open("%s/clusteringAnalyzer_%s_%s_%scfg.py"%(output_dir,sample,year, systematic_[0]),"w")
-   elif systematic_[0] == "nom":
+   elif systematic__ == "":
+      newCfg = open("%s/clusteringAnalyzer_%s_%s_%scfg.py"%(output_dir,sample,year, systematic__),"w")
+   elif systematic__ == "nom":
       newCfg = open("%s/clusteringAnalyzer_%s_%s_cfg.py"%(output_dir,sample,year),"w")
    else:
-      newCfg = open("%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic_[0]),"w")
+      newCfg = open("%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic__),"w")
    if year == "2015" or year == "2016":
       jet_veto_map_name = "h2hot_ul16_plus_hbm2_hbp12_qie11"
       jet_veto_map_file = "data/jetVetoMaps/hotjets-UL16.root"
@@ -112,7 +115,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    
    newCfg.write("################# JEC ################\n")
-   newCfg.write("corrLabels = ['L1FastJet','L2Relative','L3Absolute']\n")
+   ######### AK8 jets #########
+   newCfg.write("corrLabels = ['L2Relative']\n")  ## ,'L3Absolute' -> should these be included?
    newCfg.write("if isData:\n")
    newCfg.write("	corrLabels.append('L2L3Residual')\n")
    newCfg.write("from PhysicsTools.PatAlgos.tools.jetTools import *\n")
@@ -125,11 +129,16 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    newCfg.write(" postfix = 'UpdatedJEC',\n")
    newCfg.write(" printWarning = False\n")
    newCfg.write(")\n")
+   ######### AK4 jets #########
+   newCfg.write("corrLabels_AK4 = ['L1FastJet','L2Relative']\n") # 'L3Absolute'
+   newCfg.write("if isData:\n")
+   newCfg.write(" corrLabels_AK4.append('L2L3Residual')\n")
+
    newCfg.write("updateJetCollection(\n")
    newCfg.write(" process,\n")
    newCfg.write(" jetSource = cms.InputTag('slimmedJets'),\n")
    newCfg.write(" labelName = 'AK4',\n")
-   newCfg.write(" jetCorrections = ('AK4PFchs', cms.vstring(corrLabels), 'None'),\n")
+   newCfg.write(" jetCorrections = ('AK4PFchs', cms.vstring(corrLabels_AK4), 'None'),\n")
    newCfg.write(" postfix = 'UpdatedJEC',\n")
    newCfg.write(" printWarning = False\n")
    newCfg.write(")  \n")
@@ -293,6 +302,10 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
                bTagSF_sample = "STMC"
             elif "Suu" in sample:
                bTagSF_sample = "SuuToChiChi"
+            elif "WJets" in sample:
+               bTagSF_sample = "TTbarMC"
+            elif "WW" in sample or "ZZ" in sample:
+               bTagSF_sample = "TTbarMC"
             else:
                print("ERROR: b tagging SF sample is not found. Sample = %s"%sample)
                return
@@ -327,6 +340,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          newCfg.write(' includeAllBranches = cms.bool(%s),\n'%(includeAllBranches ))
          newCfg.write(' slimmedSelection   = cms.bool(%s),\n'%(slimmedSelection) )
          newCfg.write(' verbose            = cms.bool(%s),\n'%(verbose) )
+         newCfg.write(' runSideband            = cms.bool(%s),\n'%(runSideband) )
          newCfg.write(' year = cms.string("%s"), #types: 2015,2016,2017,2018\n'%year)
          newCfg.write(' genEventInfoTag=cms.InputTag("generator"),\n')
          newCfg.write(' lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
@@ -357,7 +371,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
 
 
-   use_syst = systematic_[0]
+   use_syst = systematic__
 
    if "Suu" in sample:
       use_syst = ""
@@ -365,7 +379,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          use_syst = "nom"
       newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("%s_%s_combined.root")\n'%(sample,year))
    else:
-      if systematic_[0] == "nom":
+      if systematic__ == "nom":
          use_syst = "nom"
       newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("clusteringAnalyzer_%s_%s_%s_output.root")\n'%(sample,year,use_syst))
 
@@ -414,7 +428,12 @@ def main():
 
    years = ["2015","2016","2017","2018"]
 
-   systematics = ["JEC", "JER","nom"]
+   ### uncertaintites for JEC
+   ### FlavorQCD, RelativeBal, HF, BBEC1, EC2, Absolute, BBEC1_2018, EC2_2018, Absolute_2018, HF_2018, RelativeSample_2018
+
+   #systematics = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JER_eta193", "JER_193eta25",  "JEC","JER","nom" ]
+   systematics = [  "JEC","JER","nom" ]
+
    # "bTagWeight",    //event weights
    # "PUweight",
 
@@ -472,7 +491,15 @@ def main():
                            "Suu5_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
                            "Suu5_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
                            "Suu4_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
-                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root" },
+                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root" ,
+                            "WJetsMC_LNu-HT800to1200":  "/store/mc/RunIISummer20UL16MiniAODAPVv2/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/112568C4-56D6-0A40-8FD3-022F2C63130C.root" ,
+                           "WJetsMC_LNu-HT1200to2500": "/store/mc/RunIISummer20UL16MiniAODAPVv2/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/0F5E3868-A595-1C43-93FC-5550AC330918.root" ,
+                           "WJetsMC_LNu-HT2500toInf": "/store/mc/RunIISummer20UL16MiniAODAPVv2/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v2/100000/1E29C378-733E-F84F-932F-0CE0B3BD3682.root" ,
+                           "WJetsMC_QQ-HT800toInf" :"/store/mc/RunIISummer20UL16MiniAODAPVv2/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v2/230000/023153B0-7563-8540-AEB8-7A7C980DD714.root"  ,
+                           "TTJetsMCHT800to1200": "/store/mc/RunIISummer20UL16MiniAODAPVv2/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v2/2430000/45043110-263C-3447-B965-593802DEC8F9.root",
+                           "WW_MC": "/store/mc/RunIISummer20UL16MiniAODAPVv2/WW_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/70000/76375D0A-3EEC-A34D-B12B-ED7D9DF0A04B.root",
+                           "ZZ_MC": "/store/mc/RunIISummer20UL16MiniAODAPVv2/ZZ_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/70000/BFC826A3-5055-2F47-8C06-5B19FDF0BBBE.root"
+                                    },
 
                '2016': { 'QCDMC1000to1500': '/store/mc/RunIISummer20UL16MiniAODv2/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/110000/17418062-EBE8-C947-8950-E797EC69F62B.root',
                           'QCDMC1500to2000': '/store/mc/RunIISummer20UL16MiniAODv2/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/110000/2DF4DD91-8FF2-AE45-AE33-40048C9E3E75.root',
@@ -504,7 +531,14 @@ def main():
                            "Suu5_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
                            "Suu5_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
                            "Suu4_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
-                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"},
+                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root",
+                           "WJetsMC_LNu-HT800to1200": "/store/mc/RunIISummer20UL16MiniAODv2/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/120000/79C21123-A36B-1F43-823C-2F2897754D77.root"   ,
+                           "WJetsMC_LNu-HT1200to2500": "/store/mc/RunIISummer20UL16MiniAODv2/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/230000/CBA9B1F7-8AB0-404A-8964-FE973731302C.root" ,
+                           "WJetsMC_LNu-HT2500toInf": "/store/mc/RunIISummer20UL16MiniAODv2/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v2/120000/79797602-9555-0F44-BD7D-8BD21DD23DAB.root"  ,
+                           "WJetsMC_QQ-HT800toInf":  "/store/mc/RunIISummer20UL16MiniAODv2/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v2/2430000/053EAB96-2CF5-9F4C-8B00-6A23FEECA72D.root"  ,
+                           "TTJetsMCHT800to1200":  "/store/mc/RunIISummer20UL16MiniAODv2/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v2/2530000/06652515-959A-914C-BC31-B789F9E24E43.root",
+                           "WW_MC": "/store/mc/RunIISummer20UL16MiniAODv2/WW_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/70000/E0BE095D-BCC7-864C-B70E-84D75AD77D32.root",
+                           "ZZ_MC": "/store/mc/RunIISummer20UL16MiniAODv2/ZZ_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_v17-v1/280000/D5A40A37-7023-3248-9F06-883E9641D968.root"    },
 
    '2017': { 'QCDMC1000to1500': '/store/mc/RunIISummer20UL17MiniAODv2/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2520000/01272D1D-0108-7247-9F21-B2EB4EA22964.root',
                           'QCDMC1500to2000': '/store/mc/RunIISummer20UL17MiniAODv2/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2530000/0BC4C1BF-56C8-2C42-B288-9DE3DD3DB312.root',
@@ -538,7 +572,14 @@ def main():
                            "Suu5_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
                            "Suu5_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
                            "Suu4_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
-                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"},
+                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root",
+                           "WJetsMC_LNu-HT800to1200":  "/store/mc/RunIISummer20UL17MiniAODv2/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/120000/047D8A7F-D35C-774B-B5B5-B314EED4EE01.root"  ,
+                           "WJetsMC_LNu-HT1200to2500": "/store/mc/RunIISummer20UL17MiniAODv2/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v1/110000/0954A4E9-E6BB-644F-AB6E-D9C20C4209D8.root" ,
+                           "WJetsMC_LNu-HT2500toInf":  "/store/mc/RunIISummer20UL17MiniAODv2/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/230000/3A27F1F1-43D5-074E-B021-2B1D95C70BEF.root" ,
+                           "WJetsMC_QQ-HT800toInf":   "/store/mc/RunIISummer20UL17MiniAODv2/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/230000/045543C1-4163-CE4D-B9BA-105CFF3976F2.root" ,
+                           "TTJetsMCHT800to1200": "/store/mc/RunIISummer20UL17MiniAODv2/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2530000/02D12EB2-34DC-6643-8A63-C7360E6AD401.root",
+                           "WW_MC": "/store/mc/RunIISummer20UL17MiniAODv2/WW_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v1/280000/6817A6AE-CAC0-824B-99F8-CF4FA0717C33.root", 
+                           "ZZ_MC": "/store/mc/RunIISummer20UL17MiniAODv2/ZZ_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v1/230000/66C883AB-FD5E-B34A-8D9E-66C1767BF42A.root"},
    '2018': { 'QCDMC1000to1500': '/store/mc/RunIISummer20UL18MiniAODv2/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2430000/0E582A57-8443-1D42-BBAB-85FF439FF1B3.root',
                           'QCDMC1500to2000': '/store/mc/RunIISummer20UL18MiniAODv2/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2820000/00BB6737-E608-494F-89BB-FE3D868AEDE3.root',
                           'QCDMC2000toInf':  '/store/mc/RunIISummer20UL18MiniAODv2/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2520000/081EFA0A-32E5-0040-B527-F3D5C40EB561.root',
@@ -570,11 +611,16 @@ def main():
                            "Suu5_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
                            "Suu5_chi1": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
                            "Suu4_chi1p5": "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
-                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"}
-
+                           "Suu4_chi1" : "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root",
+                           "WJetsMC_LNu-HT800to1200":  "/store/mc/RunIISummer20UL18MiniAODv2/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/00000/1504731E-6070-D747-8E22-25C2D5D915DD.root" ,
+                           "WJetsMC_LNu-HT1200to2500": "/store/mc/RunIISummer20UL18MiniAODv2/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/110000/0F35DDAD-A0A9-4146-AD82-61B14BE0F32B.root" ,
+                           "WJetsMC_LNu-HT2500toInf":  "/store/mc/RunIISummer20UL18MiniAODv2/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2530000/48A4E234-7205-C640-B2AA-A623F67CC886.root" ,
+                           "WJetsMC_QQ-HT800toInf":   "/store/mc/RunIISummer20UL18MiniAODv2/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2550000/21E85713-18F9-5441-8A3C-906740E795E7.root" ,
+                           "TTJetsMCHT800to1200":  "/store/mc/RunIISummer20UL18MiniAODv2/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2430000/02D4F908-3886-C748-A054-428662AA6077.root" ,
+                           "WW_MC": "/store/mc/RunIISummer20UL18MiniAODv2/WW_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/230000/0849192E-1894-4541-8A50-EE3FF4A77AF9.root",
+                           "ZZ_MC": "/store/mc/RunIISummer20UL18MiniAODv2/ZZ_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2430000/A0F466AB-CC86-4B40-9E6E-80159DB164F2.root"
    }
-
-
+}
    jec_file_AK4 = { '2015': { 'QCDMC1000to1500': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC1500to2000': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC2000toInf':  'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
@@ -609,7 +655,14 @@ def main():
                         "Suu5_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1p5": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
-                        "signal": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt'
+                        "signal": 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+                           "WJetsMC_LNu-HT800to1200":  'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt' ,
+                           "WJetsMC_LNu-HT1200to2500": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "WJetsMC_LNu-HT2500toInf":  'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "WJetsMC_QQ-HT800toInf":   'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "TTJetsMCHT800to1200": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "WW_MC": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt', 
+                           "ZZ_MC": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt'
 
                        },
             '2016': { 'QCDMC1000to1500': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
@@ -643,7 +696,14 @@ def main():
                         "Suu5_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
-                        "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt'},
+                        "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "WJetsMC_LNu-HT800to1200":   'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "WJetsMC_LNu-HT1200to2500": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "WJetsMC_LNu-HT2500toInf":  'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "WJetsMC_QQ-HT800toInf":   'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "TTJetsMCHT800to1200":'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+                           "WW_MC": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt', 
+                           "ZZ_MC": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt'},
 
 '2017': { 'QCDMC1000to1500': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                        'QCDMC1500to2000': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -679,7 +739,14 @@ def main():
                      "Suu5_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                      "Suu4_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
                      "Suu4_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
-                     "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt'
+                     "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                      "WJetsMC_LNu-HT800to1200":  'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt' ,
+                     "WJetsMC_LNu-HT1200to2500": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "WJetsMC_LNu-HT2500toInf": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt' ,
+                     "WJetsMC_QQ-HT800toInf":   'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "TTJetsMCHT800to1200": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+                     "WW_MC": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt', 
+                     "ZZ_MC": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt'
 
                      },
 '2018': { 'QCDMC1000to1500': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
@@ -714,9 +781,15 @@ def main():
                         "Suu5_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                         "Suu4_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
-                        "signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt'}
-
-}
+                        "signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                         "WJetsMC_LNu-HT800to1200":  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt' ,
+                        "WJetsMC_LNu-HT1200to2500": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "WJetsMC_LNu-HT2500toInf":  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "WJetsMC_QQ-HT800toInf":   'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "TTJetsMCHT800to1200":'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+                        "WW_MC": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt', 
+                        "ZZ_MC": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt'
+                        }}
 
    jec_file_AK8 = { '2015': { 'QCDMC1000to1500': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC1500to2000': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
@@ -753,7 +826,15 @@ def main():
                         "Suu5_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1p5": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
-                        "signal": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt'},
+                        "signal": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+
+                        "WJetsMC_LNu-HT800to1200":   'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_LNu-HT1200to2500": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_LNu-HT2500toInf": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_QQ-HT800toInf":   'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "TTJetsMCHT800to1200": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WW_MC": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt', 
+                        "ZZ_MC": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt'},
 
 
             '2016': { 'QCDMC1000to1500': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
@@ -787,7 +868,15 @@ def main():
                         "Suu5_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1p5": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
-                        "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt'},
+                        "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_LNu-HT800to1200":   'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_LNu-HT1200to2500": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_LNu-HT2500toInf": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_QQ-HT800toInf":  'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt' ,
+                        "TTJetsMCHT800to1200":'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WW_MC": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt', 
+                        "ZZ_MC": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt'
+                        },
 
 '2017': { 'QCDMC1000to1500': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC1500to2000': 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
@@ -822,7 +911,15 @@ def main():
                         "Suu5_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1p5": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
-                        "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt'},
+                        "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_LNu-HT800to1200":   'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_LNu-HT1200to2500": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_LNu-HT2500toInf":  'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WJetsMC_QQ-HT800toInf":  'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt' ,
+                        "TTJetsMCHT800to1200":'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                        "WW_MC": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt', 
+                        "ZZ_MC": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt'
+                        },
 '2018': { 'QCDMC1000to1500': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC1500to2000': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                        'QCDMC2000toInf':  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
@@ -855,36 +952,45 @@ def main():
                      "Suu5_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                      "Suu4_chi1p5": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
                      "Suu4_chi1": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
-                     "signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt'}
+                     "signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "WJetsMC_LNu-HT800to1200":   'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "WJetsMC_LNu-HT1200to2500": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "WJetsMC_LNu-HT2500toInf":   'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "WJetsMC_QQ-HT800toInf":  'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt' ,
+                     "TTJetsMCHT800to1200":'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                     "WW_MC": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt', 
+                     "ZZ_MC": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt'}
 
 }
 
    # signal_files.pkl
-   signal_samples_pkl = open('signal_samples.pkl', 'r')
+   signal_samples_pkl = open('data/pkl/signal_samples.pkl', 'r')
    signal_samples   = pickle.load(signal_samples_pkl)
 
-   signal_files_pkl = open('signal_files.pkl', 'r')
+   signal_files_pkl = open('data/pkl/signal_files.pkl', 'r')
    signal_files     = pickle.load(signal_files_pkl)
 
    num_files =0
    for year in years:
       if year == "2015":
-         samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf", "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC"]
+         samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf", "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200", "WW_MC", "ZZ_MC"]
       elif year == "2016":
-         samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC"]
+         samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200", "WW_MC", "ZZ_MC"]
       elif year == "2017":
-         samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC" , "TTToHadronicMC"]
+         samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC" , "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200", "WW_MC", "ZZ_MC"]
       elif year == "2018":
-         samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC" ]
+         samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200", "WW_MC", "ZZ_MC" ]
       samples.extend(signal_samples)
       for iii, sample in enumerate(samples):
          for systematic in systematics:
+
             if "Suu" in sample:
                try:
 
                   JEC_sample = sample
                   if "Suu" in sample:
                      JEC_sample = "signal"
+
                   makeACfg(sample, year, systematic, signal_files[year][sample], jec_file_AK4[year][JEC_sample],jec_file_AK8[year][JEC_sample], systematics)   # change input to write systematic type
                   num_files+=1
                except:
