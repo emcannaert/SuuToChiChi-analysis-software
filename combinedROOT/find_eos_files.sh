@@ -20,6 +20,9 @@ else
 	#grep -v root all_files.txt | grep /0000 | grep WBHT > WBHT_eos_paths.txt
 	#grep -v root all_files.txt | grep /0000 | grep WBZT > WBZT_eos_paths.txt
 	#grep -v root all_files.txt | grep /0000 | grep HTZT > HTZT_eos_paths.txt
+	grep -v root all_files.txt | grep "_$2" | grep "WW_MC" | grep /000  > WW_eos_paths.txt
+	grep -v root all_files.txt | grep "_$2" | grep "ZZ_MC" | grep /000  > ZZ_eos_paths.txt
+	grep -v root all_files.txt | grep "_$2" | grep "WJets" | grep /000  > WJets_eos_paths.txt
 	grep -v root all_files.txt | grep "_$2" | grep "MSuu" | grep /000  > signal_eos_paths.txt
 	grep -v root all_files.txt | grep "_$2" | grep "TTJets" | grep /000  > TTbar_eos_paths.txt
 	grep -v root all_files.txt | grep "_$2" | grep "TTTo" | grep /000  >> TTbar_eos_paths.txt # new, done to get the leptonic and semi-leptonic TTbar files

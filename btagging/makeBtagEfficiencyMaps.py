@@ -20,6 +20,9 @@ import ROOT
 
 def makeBtagEffMap(year,sample):
 
+
+   ################ tight b tagged jets ###################
+
    #systematic = "nom"
    inFileName  = "../data/btaggingEffMapsRAW/btagging_efficiencyMap_RAW_combined_%s_%s.root"%(sample,year)
    print("Attempting to open file %s"%(inFileName))
@@ -30,37 +33,73 @@ def makeBtagEffMap(year,sample):
    outHistFile = ROOT.TFile.Open(outFileName,"RECREATE")
    print("Successfully opened file.")
 
-   h_nLightJets = inFile.Get( "calculateBtagEfficiencyMaps/h_nLightJets")
-   h_nTruebJets = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruebJets")
-   h_nTruecJets = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruecJets")
+   h_nLightJets_tight = inFile.Get( "calculateBtagEfficiencyMaps/h_nLightJets_tight")
+   h_nTruebJets_tight = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruebJets_tight")
+   h_nTruecJets_tight = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruecJets_tight")
 
-   h_nLightJets_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nLightJets_btagged")
-   h_nTruebJets_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruebJets_btagged")
-   h_nTruecJets_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruecJets_btagged")
+   h_nLightJets_tight_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nLightJets_tight_btagged")
+   h_nTruebJets_tight_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruebJets_tight_btagged")
+   h_nTruecJets_tight_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruecJets_tight_btagged")
 
    print("Imported histograms from file.")
 
-   h_effLightJets = h_nLightJets_btagged.Clone();
-   h_effbJets     = h_nTruebJets_btagged.Clone();
-   h_effcJets     = h_nTruecJets_btagged.Clone();
+   h_effLightJets_tight = h_nLightJets_tight_btagged.Clone();
+   h_effbJets_tight     = h_nTruebJets_tight_btagged.Clone();
+   h_effcJets_tight     = h_nTruecJets_tight_btagged.Clone();
 
-   h_effLightJets.SetTitle("Light jet efficiency maps")
-   h_effbJets.SetTitle("true b jet efficiency maps")
-   h_effcJets.SetTitle("true c jet efficiency maps")
+   h_effLightJets_tight.SetTitle("Light jet efficiency maps")
+   h_effbJets_tight.SetTitle("true b jet efficiency maps")
+   h_effcJets_tight.SetTitle("true c jet efficiency maps")
 
-   h_effLightJets.SetName("h_effLightJets")
-   h_effbJets.SetName("h_effbJets")
-   h_effcJets.SetName("h_effcJets")
+   h_effLightJets_tight.SetName("h_effLightJets_tight")
+   h_effbJets_tight.SetName("h_effbJets_tight")
+   h_effcJets_tight.SetName("h_effcJets_tight")
 
 
-   h_effLightJets.Divide(h_nLightJets)
-   h_effbJets.Divide(h_nTruebJets)
-   h_effcJets.Divide(h_nTruecJets)
-   print("Did TH2 division.")
+   h_effLightJets_tight.Divide(h_nLightJets_tight)
+   h_effbJets_tight.Divide(h_nTruebJets_tight)
+   h_effcJets_tight.Divide(h_nTruecJets_tight)
+   print("Did TH2 division for tight b-tagged jets.")
 
-   h_effLightJets.Write()
-   h_effbJets.Write()
-   h_effcJets.Write()
+   h_effLightJets_tight.Write()
+   h_effbJets_tight.Write()
+   h_effcJets_tight.Write()
+
+
+
+   ################## medium b tagged jets ####################
+   h_nLightJets_med = inFile.Get( "calculateBtagEfficiencyMaps/h_nLightJets_med")
+   h_nTruebJets_med = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruebJets_med")
+   h_nTruecJets_med = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruecJets_med")
+
+   h_nLightJets_med_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nLightJets_med_btagged")
+   h_nTruebJets_med_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruebJets_med_btagged")
+   h_nTruecJets_med_btagged = inFile.Get( "calculateBtagEfficiencyMaps/h_nTruecJets_med_btagged")
+
+   print("Imported histograms from file.")
+
+   h_effLightJets_med = h_nLightJets_med_btagged.Clone();
+   h_effbJets_med     = h_nTruebJets_med_btagged.Clone();
+   h_effcJets_med     = h_nTruecJets_med_btagged.Clone();
+
+   h_effLightJets_med.SetTitle("Light jet efficiency maps")
+   h_effbJets_med.SetTitle("true b jet efficiency maps")
+   h_effcJets_med.SetTitle("true c jet efficiency maps")
+
+   h_effLightJets_med.SetName("h_effLightJets_med")
+   h_effbJets_med.SetName("h_effbJets_med")
+   h_effcJets_med.SetName("h_effcJets_med")
+
+
+   h_effLightJets_med.Divide(h_nLightJets_med)
+   h_effbJets_med.Divide(h_nTruebJets_med)
+   h_effcJets_med.Divide(h_nTruecJets_med)
+   print("Did TH2 division for med b-tagged jets.")
+
+   h_effLightJets_med.Write()
+   h_effbJets_med.Write()
+   h_effcJets_med.Write()
+
    print("Wrote efficiency maps to %s"%outFileName)
 
    outHistFile.Close()

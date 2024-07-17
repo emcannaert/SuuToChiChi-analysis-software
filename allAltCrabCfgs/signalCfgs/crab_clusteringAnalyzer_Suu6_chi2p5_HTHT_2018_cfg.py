@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config
 config = config()
 config.General.requestName = 'clustAlg_Suu6_chi2p5_HTHT_2018_nom_AltDatasets_000'
-config.General.workArea = 'crab_projects'
+config.General.workArea = 'crab_projects_sideband'
 config.General.transferOutputs = True
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.pluginName = 'Analysis'
@@ -11,5 +11,5 @@ config.Data.publication = False
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.Data.outputDatasetTag = 'clustAlg_Suu6_chi2p5_HTHT_2018_nom'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024410_202245'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024716_122143_sideband'
 config.Site.storageSite = 'T3_US_FNALLPC'

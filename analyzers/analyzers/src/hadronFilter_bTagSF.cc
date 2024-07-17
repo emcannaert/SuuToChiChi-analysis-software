@@ -106,6 +106,7 @@ class hadronFilter_bTagSF : public edm::stream::EDFilter<> {
       ~hadronFilter_bTagSF();
       bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF);
       bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets);
+      bool isHEM(const float jet_eta, const float jet_phi);
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -211,7 +212,7 @@ bool hadronFilter_bTagSF::isgoodjet(const float eta, const float NHF,const float
 bool hadronFilter_bTagSF::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
 {
    if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
-   else if ( (nfatjets >= 2) && (abs(eta) > 1.5) ) return false;
+   else if ( (nfatjets >= 2) && (abs(eta) > 1.4) ) return false;
 
    if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
       {
@@ -220,40 +221,55 @@ bool hadronFilter_bTagSF::isgoodjet(const float eta, const float NHF,const float
    else{ return true;}
 
 }
+bool hadronFilter_bTagSF::isHEM(const float jet_eta, const float jet_phi)
+{
+
+   if(year != "2018") return false; // HEM is only relevant for 2018
+
+   if( (jet_phi >  -1.57)&&( jet_phi < -0.87) )
+   {
+      if( (jet_eta > -3.0)&&(jet_eta < -1.3))return true;
+
+   }
+   return false;
+}
+
+
 // ------------ method called on each new Event  ------------
 bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
 /////////////////Trigger///////////////
-
-   edm::Handle<edm::TriggerResults> triggerBits;
-   iEvent.getByToken(triggerBits_, triggerBits);
-
-   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-   
-   for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
+   if ((runType.find("data") != std::string::npos) )  // run trigger ONLY for data, NOT for MC
    {
-      std::string trigname = *iT;
-      if(debug)std::cout << "Looking for the " << trigname << " trigger." << std::endl;
+      edm::Handle<edm::TriggerResults> triggerBits;
+      iEvent.getByToken(triggerBits_, triggerBits);
 
-      bool pass = false;
-      for (unsigned int i = 0; i < triggerBits->size(); ++i) 
+      const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+      
+      for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
       {
+         std::string trigname = *iT;
+         if(debug)std::cout << "Looking for the " << trigname << " trigger." << std::endl;
 
-         const std::string name = names.triggerName(i);
-         const bool accept = triggerBits->accept(i);
-         if ((name.find(trigname) != std::string::npos) &&(accept))
+         bool pass = false;
+         for (unsigned int i = 0; i < triggerBits->size(); ++i) 
          {
-            if(debug)std::cout << "Found the " << *iT << " trigger." << std::endl;
-            pass =true;
+
+            const std::string name = names.triggerName(i);
+            const bool accept = triggerBits->accept(i);
+            if ((name.find(trigname) != std::string::npos) &&(accept))
+            {
+               if(debug)std::cout << "Found the " << *iT << " trigger." << std::endl;
+               pass =true;
+            }
+         } 
+         if(!pass)
+         {  
+             return false; // if any of the triggers aren't found, skip event
          }
-      } 
-      if(!pass)
-      {  
-          return false; // if any of the triggers aren't found, skip event
       }
    }
-
    //std::cout << "Pases trigger" << std::endl;
    //calculate HT -> make HT > 1250. GeV
 
@@ -346,6 +362,9 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
 
       //loose WP 0.1522
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
+
+      if (isHEM(corrJet.eta(),corrJet.phi())) return false;
+
       nAK4++;
    }
 
@@ -428,6 +447,8 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
 
       if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 45.))nHeavyAK8++;
       if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8 )) || (corrJet.mass()< 0.))continue;
+      if (isHEM(corrJet.eta(),corrJet.phi())) return false;
+
       nAK8++;
    }
 

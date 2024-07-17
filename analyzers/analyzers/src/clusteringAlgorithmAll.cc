@@ -1,6 +1,6 @@
 ////////////////////////////HELP////////////////////////////////
 //////////////Uses new clustering algorithm to capture heavy resonance jet substructure//////////////
-////////////////Last updated Feb 23 2021 ////////////////////////////////////////////////////////////
+////////////////Last updated 17 Jul 2024 ////////////////////////////////////////////////////////////
 
 //_top_
 // system include files
@@ -115,8 +115,11 @@ private:
    double calcAlphas(double q2);
    double calcRenormWeight(double q2, int up_or_dn, int nQCD);
    double calcFactorizWeight(LHAPDF::PDF* pdf, double id1, double id2, double x1, double x2, double q2, int up_or_dn);
+   std::string returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType);
+   double getJECUncertaintyFromSources(std::string jet_type, double pt, double eta);
    const reco::Candidate* parse_chain(const reco::Candidate* cand);
-   
+   bool applyJERSource(std::string uncertainty_source, double eta);
+   std::map<std::string, std::map<std::string, std::string>> file_map;
 
    //init all inpaths, tokens, instrings
    edm::EDGetTokenT<std::vector<pat::Jet>> fatJetToken_;
@@ -127,19 +130,15 @@ private:
    edm::EDGetTokenT<std::vector<pat::Jet>> jetToken_;
    edm::EDGetTokenT<std::vector<pat::MET>> metToken_;
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puSummaryToken_;
-
    edm::EDGetTokenT<GenEventInfoProduct> GeneratorToken_;
-
    edm::EDGetTokenT<std::vector<float>> pdfWeightToken_;
    edm::EDGetTokenT<std::vector<float>> scaleWeightToken_;
-
    edm::EDGetTokenT< double > prefweight_token;
    edm::EDGetTokenT< double > prefweightup_token;
    edm::EDGetTokenT< double > prefweightdown_token;
-
    edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
-   
    edm::EDGetTokenT<double> m_rho_token;
+
 
    TTree * tree;
    BESTEvaluation* BEST_;
@@ -185,7 +184,7 @@ private:
    bool slimmedSelection   = false;  // apply a more strict selection to save space
    bool _verbose           = false; // do printouts of each section for debugging
    bool debug              = false; // print out some other debug stuff
-
+   bool runSideband        = false;
    int SJ_nAK4_50[100],SJ_nAK4_70[100],SJ_nAK4_100[100],SJ_nAK4_125[100],SJ_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_300[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
    double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
    double SJ_mass_50[100], SJ_mass_70[100],SJ_mass_100[100],superJet_mass[100],SJ_AK4_50_mass[100],SJ_AK4_70_mass[100];
@@ -211,7 +210,8 @@ private:
    double AK4_ptot[100], AK4_eta[100], AK4_phi[100];
    int SJ1_decision,SJ2_decision;
    double SJ1_BEST_scores[3],SJ2_BEST_scores[3];
-   double bTag_eventWeight_nom, bTag_eventWeight_up, bTag_eventWeight_down;
+   double bTag_eventWeight_T_nom, bTag_eventWeight_T_up, bTag_eventWeight_T_down, bTag_eventWeight_bc_T_up, bTag_eventWeight_bc_T_down, bTag_eventWeight_light_T_up, bTag_eventWeight_light_T_down;
+   double bTag_eventWeight_M_nom, bTag_eventWeight_M_up, bTag_eventWeight_M_down, bTag_eventWeight_bc_M_up, bTag_eventWeight_bc_M_down, bTag_eventWeight_light_M_up, bTag_eventWeight_light_M_down;
    bool _htWb,_htZt,_ZtWb,_WbWb,_htht,_ZtZt;
    //BES variables
    double AK4_m1[2], AK4_m2[2],AK4_m3[2],AK4_m4[2], AK41_E_tree[2],AK42_E_tree[2],AK43_E_tree[2],AK44_E_tree[2], AK4_m12[2],AK4_m13[2],AK4_m14[2],AK4_m23[2],AK4_m24[2],AK4_m34[2];
@@ -224,6 +224,7 @@ private:
    double AK43_thrust[2],AK43_sphericity[2],AK43_asymmetry[2],AK43_isotropy[2],AK43_aplanarity[2],AK43_FW1[2],AK43_FW2[2],AK43_FW3[2],AK43_FW4[2];
    double SJ_thrust[2],SJ_sphericity[2],SJ_asymmetry[2],SJ_isotropy[2],SJ_aplanarity[2],SJ_FW1[2],SJ_FW2[2],SJ_FW3[2],SJ_FW4[2];
 
+   double JEC_uncert_AK8[100],JEC_uncert_AK4[100];
    //MP superjet AK4 jet momenta and energies, tedious,but means we can do some SJ calculations locally, these will also become BEST variables
    double SJ1_AK4_px[20], SJ1_AK4_py[20], SJ1_AK4_pz[20], SJ1_AK4_E[20];
    double SJ2_AK4_px[20], SJ2_AK4_py[20], SJ2_AK4_pz, SJ2_AK4_E[20];
@@ -244,7 +245,9 @@ private:
    double weightFacUp,weightFacDn,weightRenUp,weightRenUpxweightFacUp,weightRenUpxweightFacDn;
    double weightRenDn,weightRenDnxweightFacUp,weightRenDnxweightFacDn;
 
-   double jet_bTagSF_b[100], jet_bTagSF_c[100], jet_bTagSF_light[100];
+   double jet_bTagSF_b_T[100], jet_bTagSF_c_T[100], jet_bTagSF_light_T[100];
+   double jet_bTagSF_b_M[100], jet_bTagSF_c_M[100], jet_bTagSF_light_M[100];
+
    int nTrue_b_AK4, nTrue_c_AK4, nTrue_light_AK4;
    double pdf_weights[200];
    double x1,x2,q2;
@@ -256,6 +259,8 @@ private:
 
    bool jet_isHEM[100], jet_pre_isHEM[100];
    TH2F *truebjet_eff,*truecjet_eff, *lightjet_eff;
+   TH2F *truebjet_eff_med,*truecjet_eff_med, *lightjet_eff_med;
+
    TH2F * jetVetoMap;
    double prefiringWeight_nom, prefiringWeight_up, prefiringWeight_down;
 
@@ -271,11 +276,11 @@ private:
    int PDFWeights_nVars;
    double alphas;
    int nVars; 
+
    double factWeightsRMSs[2]; // Up, down
    double varWeightsRMS;
    double varWeightsErr;
    double renormWeights[2]; //Up, down
-
    double scale_envelope[10];
 
    int LHAPDF_NOM;
@@ -305,7 +310,9 @@ private:
 
    double QCDFactorization_up_BEST, QCDFactorization_down_BEST, QCDRenormalization_up_BEST, QCDRenormalization_down_BEST;
 
-
+   std::vector<std::string> uncertainty_sources;
+   std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK4;   // contains the correctors for each uncertainty source
+   std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK8;   // contains the correctors for each uncertainty source
 
 
 };
@@ -316,14 +323,11 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
 {
    // import parameters from cfg, set variables needed to analyze the event
-   
-   // necessary for importing NN file
-
    runType        = iConfig.getParameter<std::string>("runType");
    systematicType = iConfig.getParameter<std::string>("systematicType");
    year           = iConfig.getParameter<std::string>("year");
 
-
+   // necessary for importing NN file
    cache_ = new CacheHandler(path_);
    BEST_ = new BESTEvaluation(cache_);
    BEST_->configure(iConfig);
@@ -331,6 +335,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    includeAllBranches = iConfig.getParameter<bool>("includeAllBranches");
    slimmedSelection   = iConfig.getParameter<bool>("slimmedSelection");
    _verbose           = iConfig.getParameter<bool>("verbose");
+   runSideband        = iConfig.getParameter<bool>("runSideband");
 
    jetVetoMapName = iConfig.getParameter<std::string>("jetVetoMapName");
    jetVetoMapFile = iConfig.getParameter<edm::FileInPath>("jetVetoMapFile");
@@ -380,7 +385,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             LHAPDF_VAR_LOW = 325501;
             LHAPDF_VAR_HIGH = 325600;
          }
-         else
+         else   // NOT correct for TTbar
          {
             LHAPDF_NOM = 325300;
             LHAPDF_VAR_LOW = 325301;
@@ -403,10 +408,49 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
    doPUID = iConfig.getParameter<bool>("doPUID");
 
+   ///////////////////////////////////////
+   /////// JEC Uncertainty stuff /////////
+   ///////////////////////////////////////
+
+
    //initialize JEC text files (should be possible to open these here )
 
-   jecUnc_AK4 = new JetCorrectionUncertainty(JECUncert_AK4_path.fullPath().c_str());
-   jecUnc_AK8 = new JetCorrectionUncertainty(JECUncert_AK8_path.fullPath().c_str());
+   /////////////////////////////////////////////////////////////////////////
+   //////////////// create file maps for the JEC sources ///////////////////
+
+   file_map["2015"]["MC"] = "Summer19UL16APV_V9_MC";
+   file_map["2016"]["MC"] = "Summer19UL16_V9_MC";
+   file_map["2017"]["MC"] = "Summer19UL17_V6_MC";
+   file_map["2018"]["MC"] = "Summer19UL18_V5_MC";
+
+   file_map["2015"]["dataBCD"] = "Summer19UL16APV_RunBCD_V7_DATA";
+   file_map["2015"]["dataEF"]  = "Summer19UL16APV_RunEF_V7_DATA";
+
+   file_map["2016"]["dataFGH"] = "Summer19UL16_RunFGH_V7_DATA";
+
+   file_map["2017"]["dataB"] = "Summer19UL17_RunB_V6_DATA";
+   file_map["2017"]["dataC"] = "Summer19UL17_RunC_V6_DATA";
+   file_map["2017"]["dataD"] = "Summer19UL17_RunD_V6_DATA";
+   file_map["2017"]["dataE"] = "Summer19UL17_RunE_V6_DATA";
+   file_map["2017"]["dataF"] = "Summer19UL17_RunF_V6_DATA";
+
+   file_map["2018"]["dataA"] = "Summer19UL18_RunA_V6_DATA";
+   file_map["2018"]["dataB"] = "Summer19UL18_RunB_V6_DATA";
+   file_map["2018"]["dataC"] = "Summer19UL18_RunC_V6_DATA";
+   file_map["2018"]["dataD"] = "Summer19UL18_RunD_V6_DATA";
+
+
+   if(_verbose)std::cout << "Getting text file names." << std::endl;
+   edm::FileInPath  JEC_source_text_AK4 = (edm::FileInPath )returnJECFile(year, systematicType, "AK4", runType );
+   edm::FileInPath  JEC_source_text_AK8 = (edm::FileInPath )returnJECFile(year, systematicType, "AK8", runType );
+
+   if(_verbose)std::cout << "AK4/AK8 text files are " << JEC_source_text_AK4 << "--------" << JEC_source_text_AK8 << std::endl;
+   // OLD way of doing JEC uncertainties, these are paths to the total uncertainties
+   //jecUnc_AK4 = new JetCorrectionUncertainty(JECUncert_AK4_path.fullPath().c_str());
+   //jecUnc_AK8 = new JetCorrectionUncertainty(JECUncert_AK8_path.fullPath().c_str());
+
+   if(_verbose)std::cout << "Finished getting JetCorrectionUncertainty objects from text files." << std::endl;
+
    fatJetToken_ = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
    jetToken_    = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetCollection"));
 
@@ -453,14 +497,93 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       std::cout << "Incorrect year: " << year << std::endl;
       return; // return cut
    }
+
+
+   // load in the JetCorrectors for each uncertainty source for the given reduced uncertainty source
+   // systematics = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JER_eta193", "JER_193eta25",  "JEC","JER","nom" ]
+
+   if ((systematicType == "JEC_up" )|| (systematicType == "JEC_down")  )   // total uncertainty 
+   {
+      uncertainty_sources = {"Total"};
+   }
+
+   else if ((systematicType.find("BBEC1_year") != std::string::npos) )   uncertainty_sources = {"RelativeJEREC1","RelativePtEC1","RelativeStatEC"};
+   else if ((systematicType.find("EC2_year") != std::string::npos) )     uncertainty_sources = {"RelativeJEREC2","RelativePtEC2"};
+   else if ((systematicType.find("Absolute_year") != std::string::npos) )  uncertainty_sources = {"AbsoluteStat","RelativeStatFSR","TimePtEta"};
+   else if ((systematicType.find("HF_year") != std::string::npos) )      uncertainty_sources = {"RelativeStatHF"};
+   else if ((systematicType.find("RelativeSample_year") != std::string::npos))  uncertainty_sources = {"RelativeSample"};
+   else if ((systematicType.find("FlavorQCD") != std::string::npos) )    uncertainty_sources = {"FlavorQCD"};
+   else if ((systematicType.find("RelativeBal") != std::string::npos))  uncertainty_sources = {"RelativeBal"};
+   else if ((systematicType.find("HF") != std::string::npos) )           uncertainty_sources = {"PileUpPtHF", "RelativeJERHF","RelativePtHF"};
+   else if ((systematicType.find("BBEC1") != std::string::npos) )        uncertainty_sources = {"PileUpPtBB", "PileUpPtEC1", "RelativePtBB"};
+   else if ((systematicType.find("EC2") != std::string::npos) )          uncertainty_sources = {"PileUpPtEC2"};
+   else if ((systematicType.find("Absolute") != std::string::npos) )     uncertainty_sources = {"AbsoluteMPFBias", "AbsoluteScale", "Fragmentation","PileUpDataMC","PileUpPtRef","RelativeFSR","SinglePionECAL","SinglePionHCAL"};
+   else {std::cout << "Running uncertainty " << systematicType << std::endl;}
+   // get jet corrector maps   
+   if(_verbose)std::cout << "Getting JEC correction maps for AK4 and AK8 jets." << std::endl;
+
+   for(const auto &uncertainty_source: uncertainty_sources)
+   {
+
+      if(_verbose)std::cout <<  "----- AK4 jets: -----" << std::endl;
+      if(_verbose)std::cout <<  "uncertainty_source: " << uncertainty_source << std::endl;
+      JetCorrectorParameters source_parameters_reduced_AK4(JEC_source_text_AK4.fullPath().c_str(), uncertainty_source);
+      if(_verbose)std::cout << "AK4: JEC_source_text_AK4.fullPath().c_str() is " << JEC_source_text_AK4.fullPath().c_str() << std::endl;
+      if(_verbose)std::cout <<  "AK4: creating the pointer for JetCorrectionUncertainty" << std::endl;
+      std::unique_ptr<JetCorrectionUncertainty> source_uncertainty_reduced_AK4(new JetCorrectionUncertainty(source_parameters_reduced_AK4));
+      if(_verbose)std::cout <<  "AK4: adding the uncertainty object to the JEC map" << std::endl;
+      JEC_map_AK4.emplace(uncertainty_source, std::move(source_uncertainty_reduced_AK4));
+      if(_verbose)std::cout <<  "AK4: added the uncertainty object to the JEC map" << std::endl;
+
+
+      if(_verbose)std::cout <<  "----- AK8 jets: -----" << std::endl;
+      if(_verbose)std::cout << "AK8: JEC_source_text_AK8.fullPath().c_str() is " << JEC_source_text_AK8.fullPath().c_str() << std::endl;
+      if(_verbose)std::cout << "uncertainty_source is " << uncertainty_source << std::endl;
+      JetCorrectorParameters source_parameters_reduced_AK8(JEC_source_text_AK8.fullPath().c_str(), uncertainty_source);
+      if(_verbose)std::cout <<  "AK8: creating the pointer for JetCorrectionUncertainty" << std::endl;
+      std::unique_ptr<JetCorrectionUncertainty> source_uncertainty_reduced_AK8(new JetCorrectionUncertainty(source_parameters_reduced_AK8));
+      if(_verbose)std::cout <<  "AK8: adding the uncertainty object to the JEC map" << std::endl;
+      JEC_map_AK8.emplace(uncertainty_source, std::move(source_uncertainty_reduced_AK8));
+      if(_verbose)std::cout <<  "AK8: added the uncertainty object to the JEC map" << std::endl;
+
+   }
+
+
+   if(_verbose)
+   {
+      // list the uncertainty sources listed in the map
+      for (const auto& pair : JEC_map_AK4) 
+      {
+        std::cout << "AK4 Key: " << pair.first << std::endl;
+      }
+      for (const auto& pair : JEC_map_AK8) 
+      {
+        std::cout << "AK8 Key: " << pair.first << std::endl;
+      }
+   }
+
+
+   if(_verbose)std::cout << "Got JEC correction maps for AK4 and AK8 jets." << std::endl;
+
+
+   ///////////////////////////////////////////////////////////////
+   //////////////////////// B-tagging stuff //////////////////////
+   ///////////////////////////////////////////////////////////////
+
    if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
    {
 
+      if(_verbose)std::cout << "Setting up b-tag efficiency maps" << std::endl;
       bTagEff_file = new TFile( bTagEff_path.fullPath().c_str() );   //this path might need to be updated
 
-      truebjet_eff = (TH2F*)bTagEff_file->Get("h_effbJets");
-      truecjet_eff = (TH2F*)bTagEff_file->Get("h_effcJets");
-      lightjet_eff = (TH2F*)bTagEff_file->Get("h_effLightJets");
+      truebjet_eff = (TH2F*)bTagEff_file->Get("h_effbJets_tight");   
+      truecjet_eff = (TH2F*)bTagEff_file->Get("h_effcJets_tight");  
+      lightjet_eff = (TH2F*)bTagEff_file->Get("h_effLightJets_tight"); 
+
+      truebjet_eff_med = (TH2F*)bTagEff_file->Get("h_effbJets_med"); 
+      truecjet_eff_med = (TH2F*)bTagEff_file->Get("h_effcJets_med"); 
+      lightjet_eff_med = (TH2F*)bTagEff_file->Get("h_effLightJets_med"); 
+
 
       bTagEffMap_PtRange = lightjet_eff->GetXaxis()->GetXmax();
       bTagEffMap_Eta_high = lightjet_eff->GetYaxis()->GetXmax();
@@ -469,23 +592,29 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       bTagEffMap_nPtBins = lightjet_eff->GetNbinsX();
       bTagEffMap_nEtaBins = lightjet_eff->GetNbinsY();
 
-      cset = CorrectionSet::from_file(bTagSF_path.fullPath());
-      cset_corrector_bc    = cset->at("deepJet_mujets");   //deepJet_comb, 
-      cset_corrector_light = cset->at("deepJet_incl");   //deepJet_incl
+      if(_verbose)std::cout << "Setting up b-tag correctionlib corrector" << std::endl;
 
+      cset = CorrectionSet::from_file(bTagSF_path.fullPath());
+      cset_corrector_bc    = cset->at("deepJet_mujets");   //deepJet_comb,    // deepJet_mujets -> what we were using originally, deepJet_ttbar -> what BTV suggested we could use, UPDATE: deepJet_ttbar is not recognized!!!
+      if(_verbose)std::cout << "Got bc b-tag correctionlib corrector" << std::endl;
+      cset_corrector_light = cset->at("deepJet_incl");   //deepJet_incl
       //get corrections from PU file
       PUjson = CorrectionSet::from_file(PUfile_path.fullPath());
       PUjson_year = PUjson->at(lumiTag);
+      if(_verbose)std::cout << "Set up pileup correctionlib corrector" << std::endl;
    }
 
-   // Jet veto map stuff
+   if(_verbose)std::cout << "Setting up jet veto map files and ranges" << std::endl;
+
+
+   //////////////////////////////////////
+   //////// Jet veto map stuff //////////
+   ////////////////////////////////////// 
+
    jetVetoMap_file = new TFile( jetVetoMapFile.fullPath().c_str() ); 
    jetVetoMap = (TH2F*)jetVetoMap_file->Get(jetVetoMapName.c_str());
    jetVetoMap_XRange = jetVetoMap->GetXaxis()->GetXmax() - jetVetoMap->GetXaxis()->GetXmin();
    jetVetoMap_YRange = jetVetoMap->GetYaxis()->GetXmax() - jetVetoMap->GetYaxis()->GetXmin();
-
-
-
 
    jetVetoMap_Xmin = jetVetoMap->GetXaxis()->GetXmin();
    jetVetoMap_Ymin = jetVetoMap->GetYaxis()->GetXmin();
@@ -493,8 +622,12 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    jetVetoMap_nBinsY = jetVetoMap->GetNbinsY();
 
 
+   if(_verbose)std::cout << "Initializing TTree variables." << std::endl;
 
-   // init tree branches
+   ///////////////////////////////////////
+   ////////// init tree branches /////////
+   ///////////////////////////////////////
+
    tree->Branch("nfatjets", &nfatjets, "nfatjets/I");
 
    tree->Branch("nAK4", &nAK4, "nAK4/I");
@@ -548,9 +681,12 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
    tree->Branch("prefiringWeight_nom",  &prefiringWeight_nom, "prefiringWeight_nom/D");
 
- 
-   if(includeAllBranches)
+   tree->Branch("JEC_uncert_AK4",  &JEC_uncert_AK4, "JEC_uncert_AK4[nAK4]/D");
+   tree->Branch("JEC_uncert_AK8",  &JEC_uncert_AK8, "JEC_uncert_AK4[nfatjets]/D");
+
+   if(includeAllBranches) // EXTRA tree branches to be included if needed
    {
+      if(_verbose)std::cout << "Setting up extra TTree variables" << std::endl;
 
       //tree->Branch("AK4_bdisc", AK4_bdisc, "AK4_bdisc[nAK4]/D");
       tree->Branch("totMET",&totMET, "totMET/D");
@@ -563,7 +699,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       tree->Branch("SJ_mass_1000", SJ_mass_1000, "SJ_mass_1000[nSuperJets]/D");
       tree->Branch("leadAK8_mass",leadAK8_mass, "leadAK8_mass[nfatjets]/D");
       tree->Branch("event_reco_pt", &event_reco_pt, "event_reco_pt/D");
-
 
       //////// BES variables (not actually necessary to save here)
 
@@ -658,6 +793,8 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
    {
 
+      if(_verbose)std::cout << "Setting up MC-specific stuff (genParts tokens, MC-specific TTree vars)" << std::endl;
+
       genPartToken_           = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genPartCollection"));
       packedGenParticleToken_ = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("packedGenParticles"));
       genParticleToken_       = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticles"));
@@ -671,17 +808,23 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       tree->Branch("nTrue_c_AK4", &nTrue_c_AK4  , "nTrue_c_AK4/I");
       tree->Branch("nTrue_light_AK4", &nTrue_light_AK4  , "nTrue_light_AK4/I");
 
-      tree->Branch("jet_bTagSF_b", jet_bTagSF_b  , "jet_bTagSF_b[nTrue_b_AK4]/D");
-      tree->Branch("jet_bTagSF_c", jet_bTagSF_c  , "jet_bTagSF_c[nTrue_c_AK4]/D");
-      tree->Branch("jet_bTagSF_light", jet_bTagSF_light  , "jet_bTagSF_light[nTrue_light_AK4]/D");
+      tree->Branch("jet_bTagSF_b_T", jet_bTagSF_b_T  , "jet_bTagSF_b_T[nTrue_b_AK4]/D");
+      tree->Branch("jet_bTagSF_c_T", jet_bTagSF_c_T  , "jet_bTagSF_c_T[nTrue_c_AK4]/D");
+      tree->Branch("jet_bTagSF_light_T", jet_bTagSF_light_T  , "jet_bTagSF_light_T[nTrue_light_AK4]/D");
 
+      tree->Branch("jet_bTagSF_b_M", jet_bTagSF_b_M  , "jet_bTagSF_b_M[nTrue_b_AK4]/D");
+      tree->Branch("jet_bTagSF_c_M", jet_bTagSF_c_M  , "jet_bTagSF_c_M[nTrue_c_AK4]/D");
+      tree->Branch("jet_bTagSF_light_M", jet_bTagSF_light_M  , "jet_bTagSF_light_M[nTrue_light_AK4]/D");
+
+      tree->Branch("bTag_eventWeight_T_nom", &bTag_eventWeight_T_nom  , "bTag_eventWeight_T_nom/D");  /// tight WP event weight
+      tree->Branch("bTag_eventWeight_M_nom", &bTag_eventWeight_M_nom  , "bTag_eventWeight_M_nom/D");  /// med WP event weight
 
       if(doPUSF)  tree->Branch("PU_eventWeight_nom", &PU_eventWeight_nom, "PU_eventWeight_nom/D");
-      if(doBtagSF)tree->Branch("bTag_eventWeight_nom", &bTag_eventWeight_nom  , "bTag_eventWeight_nom/D");
-
 
       if (systematicType == "nom") // don't need these saved for other systematic types
       {
+         if(_verbose)std::cout << "Setting up nom uncertainty-specific variables (event weights)" << std::endl;
+
          if(doPUSF)
          {
             tree->Branch("PU_eventWeight_up", &PU_eventWeight_up, "PU_eventWeight_up/D");
@@ -690,8 +833,24 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
          }
          if(doBtagSF)
          {
-            tree->Branch("bTag_eventWeight_up", &bTag_eventWeight_up  , "bTag_eventWeight_up/D");
-            tree->Branch("bTag_eventWeight_down", &bTag_eventWeight_down  , "bTag_eventWeight_down/D");
+            // tight WP event weight
+            tree->Branch("bTag_eventWeight_T_up", &bTag_eventWeight_T_up  , "bTag_eventWeight_T_up/D");
+            tree->Branch("bTag_eventWeight_T_down", &bTag_eventWeight_T_down  , "bTag_eventWeight_T_down/D");
+
+            tree->Branch("bTag_eventWeight_bc_T_up", &bTag_eventWeight_bc_T_up  , "bTag_eventWeight_bc_T_up/D");
+            tree->Branch("bTag_eventWeight_bc_T_down", &bTag_eventWeight_bc_T_down  , "bTag_eventWeight_bc_T_down/D");
+            tree->Branch("bTag_eventWeight_light_T_up", &bTag_eventWeight_light_T_up  , "bTag_eventWeight_light_T_up/D");
+            tree->Branch("bTag_eventWeight_light_T_down", &bTag_eventWeight_light_T_down  , "bTag_eventWeight_light_T_down/D");
+
+            // med WP event weight
+            tree->Branch("bTag_eventWeight_M_up", &bTag_eventWeight_M_up  , "bTag_eventWeight_M_up/D");
+            tree->Branch("bTag_eventWeight_M_down", &bTag_eventWeight_M_down  , "bTag_eventWeight_M_down/D");
+
+            tree->Branch("bTag_eventWeight_bc_M_up", &bTag_eventWeight_bc_M_up  , "bTag_eventWeight_bc_M_up/D");
+            tree->Branch("bTag_eventWeight_bc_M_down", &bTag_eventWeight_bc_M_down  , "bTag_eventWeight_bc_M_down/D");
+            tree->Branch("bTag_eventWeight_light_M_up", &bTag_eventWeight_light_M_up  , "bTag_eventWeight_light_M_up/D");
+            tree->Branch("bTag_eventWeight_light_M_down", &bTag_eventWeight_light_M_down  , "bTag_eventWeight_light_M_down/D");
+
          }
          if(doPDFWeights)
          {
@@ -745,24 +904,23 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       // generator/pdf variables
       if(doPDFWeights)
       {
+         if(_verbose)std::cout << "Importing PDF weights and setting up PDF weight variables" << std::endl;
+
          nomPDF = LHAPDF::mkPDF(LHAPDF_NOM); //Nominal PDF
          // get PDF weights
          for (int i = 0; i< nVars; i++)
          {
             varPDFs[i] = LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
          } 
-         
          tree->Branch("id1", &id1, "id1/I");
          tree->Branch("id2", &id2, "id2/I");
          tree->Branch("x1", &x1, "x1/D");
          tree->Branch("x2", &x2, "x2/D");
          tree->Branch("q2", &q2, "q2/D");   
-
          tree->Branch("PDFWeights_alphas", &alphas, "PDFWeights_alphas/D");
          tree->Branch("PDFWeights_nVars", &nVars, "PDFWeights_nVars/i");
          tree->Branch("PDFWeights_varWeightsRMS", &varWeightsRMS, "PDFWeights_varWeightsRMS/D");
          tree->Branch("PDFWeights_varWeightsErr", &varWeightsErr, "PDFWeights_varWeightsErr/D");
-
       }
 
    }
@@ -770,6 +928,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    {
          std::cout <<"Running as data ..." << std::endl;
    }
+   if(_verbose)std::cout << "------- End of Constructor ------ " << std::endl;
 
 }
 
@@ -783,10 +942,104 @@ const reco::Candidate* clusteringAnalyzerAll::parse_chain(const reco::Candidate*
    }
    return cand;
 }
-// checks jet (tight) ID
+
+
+//// return back the JEC file for a given systematic, year, and jet type
+std::string clusteringAnalyzerAll::returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType)
+{
+   std::string data_type = "MC";
+   std::string jet_str  = "AK8PFPuppi";
+   if (jet_type == "AK4"){ jet_str = "AK4PFchs";}
+   if ((runType.find("data") != std::string::npos) )
+   {
+      if(year == "2015")
+      {
+         if( (runType.find("dataE") != std::string::npos) || (runType.find("dataF") != std::string::npos)  )
+         {
+            data_type = "dataEF";
+         }
+         else 
+         { 
+            data_type = "dataBCD";
+         }
+      }
+      if(year == "2016")
+      {
+         data_type = "dataFGH";
+      } 
+      else if (year == "2017")
+      { 
+         data_type = runType;
+      }
+      else if (year == "2018")
+      { 
+         data_type = runType;
+      }
+   }  
+   // Summer19UL16APV_V9_MC/RegroupedV2_Summer19UL16APV_V9_MC_UncertaintySources_AK4PFchs.txt
+   if (data_type.find("data") != std::string::npos ) return  ("data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str();
+   else { return  ("data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str(); }
+
+}
+
+/// returns the JEC uncertainty scale factor (from a specific, reduced source) for a given jet with pt, eta
+double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type, double pt, double eta)
+{  
+
+   if(_verbose)std::cout << "----------------------------- new jet --------------------------------- " << std::endl;
+   if(_verbose)std::cout << "Reduced uncertainty is " << systematicType << std::endl;
+
+   if(_verbose)std::cout << "There are " << uncertainty_sources.size() << " uncertainties." << std::endl;
+   double uncert = 0.0;
+   int uncertainty_number = 0;
+   std::string uncertainty_names = "";
+   for(auto uncert_source = uncertainty_sources.begin(); uncert_source!=uncertainty_sources.end();uncert_source++)
+   {
+      /// get the uncertainty from the JetCorrector object
+      double AK4_JEC_uncertainty;
+      if(_verbose)std::cout << "Uncertainty number " << uncertainty_number << ". The uncertainty source is " << *uncert_source << std::endl;
+
+      if( jet_type == "AK4")
+      {  
+
+         if(_verbose)std::cout << "For AK8: Trying to access source " << *uncert_source << std::endl;
+         JEC_map_AK4[*uncert_source]->setJetEta(eta );
+         JEC_map_AK4[*uncert_source]->setJetPt( pt );
+         AK4_JEC_uncertainty = fabs(JEC_map_AK4[*uncert_source]->getUncertainty(true));
+         if(_verbose)std::cout << "Source: " << *uncert_source << ", value:  " << AK4_JEC_uncertainty << std::endl;
+         uncert+=AK4_JEC_uncertainty;
+         uncertainty_names += (*uncert_source + " ");
+      }
+      else if(jet_type == "AK8")
+      {
+
+         if(_verbose)std::cout << "For AK8: Trying to access source " << *uncert_source << std::endl;
+         JEC_map_AK8[*uncert_source]->setJetEta( eta );
+         JEC_map_AK8[*uncert_source]->setJetPt( pt );
+         double AK8_JEC_uncertainty = fabs(JEC_map_AK8[*uncert_source]->getUncertainty(true));
+         if(_verbose)std::cout << "Source: " << *uncert_source << ", value:  " << AK8_JEC_uncertainty << std::endl;
+         uncert+=AK8_JEC_uncertainty;
+         uncertainty_names += (*uncert_source + ", ");
+      }
+      uncertainty_number++;
+   }
+   if(_verbose)std::cout << "Total uncertainty: " << uncert << " from uncertainties: " << uncertainty_names << "(" << uncertainty_number << " total sources)."  << std::endl;
+
+   return uncert;
+}  
+
+// return the JER scale factor for a given uncertainty source and jet eta
+bool clusteringAnalyzerAll::applyJERSource(std::string uncertainty_source, double eta)
+{
+   if((uncertainty_source == "JER_up") || (uncertainty_source == "JER_down"))return true; // all jets are corrected for the "total" JER uncertainty
+   else if(  (uncertainty_source.find("JER_eta193") != std::string::npos) && (abs(eta) < 1.93  ))return true;
+   else if(  (uncertainty_source.find("JER_193eta25") != std::string::npos) && ( abs(eta) >=1.93  ) && (abs(eta) < 2.5  ))return true;
+   else {return false;}
+}
+
+// returns bool if jet (or more generally, object) is within the HEM region
 bool clusteringAnalyzerAll::isHEM(const float jet_eta, const float jet_phi)
 {
-
    if(year != "2018") return false; // HEM is only relevant for 2018
 
    if( (jet_phi >  -1.57)&&( jet_phi < -0.87) )
@@ -796,11 +1049,13 @@ bool clusteringAnalyzerAll::isHEM(const float jet_eta, const float jet_phi)
    }
    return false;
 }
+
+// bool corresponding to if AK4 jet passes tight ID
 bool clusteringAnalyzerAll::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF,bool jetPUid, const float iJet_pt)
 {
    if( (abs(eta) > 2.4)) return false;
 
-
+   // only apply to AK4 jets
    // apply the MEDIUM PU jet id https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetIDUL
    if( (!jetPUid) && (iJet_pt < 50.0)) return false;
 
@@ -811,11 +1066,11 @@ bool clusteringAnalyzerAll::isgoodjet(const float eta, const float NHF,const flo
    else{ return true;}
 
 }
-// checks jet (tight) ID
+// checks AK8 jet (tight) ID
 bool clusteringAnalyzerAll::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
 {
    if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
-   else if ( (nfatjets >= 2) && (abs(eta) > 1.5) ) return false;
+   else if ( (nfatjets >= 2) && (abs(eta) > 1.4) ) return false;
 
    if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
       {
@@ -825,7 +1080,7 @@ bool clusteringAnalyzerAll::isgoodjet(const float eta, const float NHF,const flo
 
 }
 // calculates the MPP frame given a TLorentzVector of SJ particles
-double clusteringAnalyzerAll::calcMPP(TLorentzVector superJetTLV ) 
+double clusteringAnalyzerAll::calcMPP(TLorentzVector superJetTLV )  
 {
    Vector jet_axis(superJetTLV.Px()/superJetTLV.P(),superJetTLV.Py()/superJetTLV.P(),superJetTLV.Pz()/superJetTLV.P());
    double min_pp = 99999999999999.;
@@ -860,12 +1115,11 @@ bool clusteringAnalyzerAll::isMatchedtoSJ(std::vector<TLorentzVector> superJetTL
 {
    for(auto iJet = superJetTLVs.begin(); iJet!=superJetTLVs.end(); iJet++)
    {
-      if( abs(candJet.Angle(iJet->Vect())) < 0.001) return true;
-      
+      if( abs(candJet.Angle(iJet->Vect())) < 0.001) return true;  
    }
-   
    return false;
 }
+// for QCD scale uncertainty
 double clusteringAnalyzerAll::calcAlphas(double q2) 
 { 
     double mZ = 91.2; //Z boson mass in the NNPDF31_nnlo_as_0118 docs (http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118/NNPDF31_nnlo_as_0118.info )
@@ -874,7 +1128,7 @@ double clusteringAnalyzerAll::calcAlphas(double q2)
     double b0 = (33 - 2.0 * nFlavors) / (12 * M_PI); 
     return alphas_mZ / (1 + alphas_mZ * b0 * std::log(q2 / std::pow(mZ,2))); // alphas evolution
 }
-
+// for QCD factorization uncertainty
 double clusteringAnalyzerAll::calcFactorizWeight(LHAPDF::PDF* pdf, double id1, double id2, double x1, double x2, double q2, int up_or_dn) 
 {
     double k2;
@@ -908,7 +1162,6 @@ double clusteringAnalyzerAll::calcRenormWeight(double q2, int up_or_dn, int nQCD
     else {
       throw std::invalid_argument("up_or_dn must be -1 or 1");
     }
-    
     double alphas_old = calcAlphas(q2);
     double alphas_new = calcAlphas(k2*q2);
  
@@ -918,8 +1171,6 @@ double clusteringAnalyzerAll::calcRenormWeight(double q2, int up_or_dn, int nQCD
 // does filling of the superjet variables to give the NN
 bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, std::vector<fastjet::PseudoJet> iSJ, int nSuperJets )
 {
-
-
    bool testNewVars = true; // include new SJ vars to give to NN
 
    double superJetpx=0,superJetpy=0,superJetpz=0,superJetE=0;
@@ -1067,18 +1318,10 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
 
       }
 
-      if(iPJ->E()>1.)
-      {
-         SJ_nAK4_1++;   // this is just used for a fraction calculation
-      }
-      if(iPJ->E()>5.)
-      {
-         SJ_nAK4_5++;   // this is just used for a fraction calculation
-      }
-      if(iPJ->E()>10.)
-      {
-         SJ_nAK4_10_++;
-      }
+      if(iPJ->E()>1.)  SJ_nAK4_1++;   // this is just used for a fraction calculation
+      if(iPJ->E()>5.)  SJ_nAK4_5++;   // this is just used for a fraction calculation
+      if(iPJ->E()>10.) SJ_nAK4_10_++;
+
       if(iPJ->E()>25.)
       {
          SJ_25_px+=iPJ->px();SJ_25_py+=iPJ->py();SJ_25_pz+=iPJ->pz();SJ_25_E+=iPJ->E();
@@ -1178,6 +1421,8 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    int n_AK44_parts_0p1 = 0, n_AK44_parts_0p5 = 0, n_AK44_parts_2 =0, n_AK44_parts_7p5=0, n_AK44_parts_15=0;
 
 
+
+   // reclustered AK4 jets where only particles with energy greater than X are considered 
    TLorentzVector AK41_0p1(0,0,0,0); TLorentzVector AK41_0p5(0,0,0,0); TLorentzVector AK41_1(0,0,0,0); 
    TLorentzVector AK41_2(0,0,0,0); TLorentzVector AK41_5(0,0,0,0); TLorentzVector AK41_7p5(0,0,0,0);
    TLorentzVector AK41_10(0,0,0,0); TLorentzVector AK41_15(0,0,0,0);
@@ -1397,10 +1642,6 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    TVector3 AK4_jet4(jetsFJ_jet[3].px(),jetsFJ_jet[3].py(),jetsFJ_jet[3].pz());
 
    //fill superjet variables here ...
-
-   
-
-
    //SJ mass variables
 
    treeVars["SJ_mass"]    = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2)); 
@@ -1638,8 +1879,6 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    treeVars["SJ_FW3"] = fwm[3]; 
    treeVars["SJ_FW4"] = fwm[4]; 
 
-
-
   if(testNewVars)
   {
 
@@ -1729,15 +1968,10 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
 
 
 
-
-
-///////////////////// BESvars for tree//////////////////////////////////////////
-
-
-
+   ///////////////////// BESvars for tree /////////////
+   /////////// fill input variables to NN /////////////
    for (auto i = treeVars.begin(); i!=treeVars.end(); i++)
    {
-
       //std::cout<< i->first << " "  << i->second << std::endl;
       if (  (i->second  != i->second ) || ( isinf(i->second   )  ) )
       {
@@ -1747,55 +1981,64 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    }
    return true;
 
-
-
-
 }
 
+
+// main analyzer function: pre-select events, recluster superjets, calculate all variables from superjets
 void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
+   if(_verbose)std::cout << "-------- Beginning of Analyzer -------- " << std::endl;
+
+
+   //////////////////////////////////
+   //////// Event information ///////
+   //////////////////////////////////
 
    const edm::EventAuxiliary& aux = iEvent.eventAuxiliary();
    //runNum       = aux.run();
    //lumiBlockNum = aux.luminosityBlock();
    eventNumber       = aux.event();
 
-   if(_verbose)std::cout << " -----------------Starting Event -----------------" << std::endl;
+   if(_verbose)std::cout << " -----------------Starting Event ----------------- " << std::endl;
    eventnum++;
 
    edm::Handle< std::vector<reco::GenParticle> > genPartCollection; // this will be used several times throughout the code
 
 
-   // run trigger 
+   ////////////////////////////////// 
+   ///////// Apply Triggers /////////
+   //////////////////////////////////
 
-   edm::Handle<edm::TriggerResults> triggerBits;
-   iEvent.getByToken(triggerBits_, triggerBits);
-
-   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-   
-   for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
+   if ((runType.find("data") != std::string::npos) )  // run trigger ONLY for data, NOT for MC
    {
-      std::string trigname = *iT;
-      if(debug)std::cout << "Looking for the " << trigname << " trigger." << std::endl;
+      edm::Handle<edm::TriggerResults> triggerBits;
+      iEvent.getByToken(triggerBits_, triggerBits);
 
-      bool pass = false;
-      for (unsigned int i = 0; i < triggerBits->size(); ++i) 
+      const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+      
+      for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
       {
-         const std::string name = names.triggerName(i);
-         const bool accept = triggerBits->accept(i);
-         if ((name.find(trigname) != std::string::npos) &&(accept))
+         std::string trigname = *iT;
+         if(debug)std::cout << "Looking for the " << trigname << " trigger." << std::endl; 
+
+         bool pass = false;
+         for (unsigned int i = 0; i < triggerBits->size(); ++i) 
          {
-            if(debug)std::cout << "Found the " << *iT << " trigger." << std::endl;
-            pass =true;
+            const std::string name = names.triggerName(i);
+            const bool accept = triggerBits->accept(i);
+            if ((name.find(trigname) != std::string::npos) &&(accept))
+            {
+               if(debug)std::cout << "Found the " << *iT << " trigger." << std::endl;
+               pass =true;
+            }
+         } 
+         if(!pass)
+         {  
+             return; // if any of the triggers aren't found, skip event   return CUT
          }
-      } 
-      if(!pass)
-      {  
-          return; // if any of the triggers aren't found, skip event   return CUT
       }
    }
-
 
    
 
@@ -1805,33 +2048,23 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
-   ///////////////////////////////////   _BRMC area_ ///////////////////////////////////////////////
+   ///////////////////////////////////   _Background MC area_ //////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-   /////////////////////////////////////////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////////////////////////////////////////
-   ///////////////////////////////    _shared area_   //////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////////////////////////////////////////
 
    if ((runType.find("MC") != std::string::npos) || (runType.find("Suu")!=std::string::npos ) )
    {
 
       if(_verbose)std::cout << "before pileup" << std::endl;
 
-      // I am presuming the PU scale factors are only for MC because they involve the number of "true" interactions
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////_pileup_//////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //                                              get the pileup weight for this event
       if(doPUSF)
       {
          edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;
@@ -1848,7 +2081,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             {
                std::cout << "Found bad PUSF: val/ntrueInt = " << PU_eventWeight_nom << "/" << ntrueInt <<std::endl;
             }
-
          }  
       }
 
@@ -1866,8 +2098,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    std::vector<TLorentzVector> selectedAK4_TLV; // will be used to study superjet taggging flavour dependence 
 
-
-
    JME::JetResolution resolution_AK4               = JME::JetResolution::get(iSetup, "AK4PFchs_pt");                          //load JER stuff from global tag
    JME::JetResolutionScaleFactor resolution_sf_AK4 = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
 
@@ -1877,19 +2107,40 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    edm::Handle<double> rho;
    iEvent.getByToken(m_rho_token, rho);
 
+
+   //// tight b-tag WP variables
    double MC_tagged = 1.0,  MC_notTagged = 1.0, data_tagged = 1.0, data_notTagged = 1.0; //these are for the bTagging SFs
    double data_tagged_up = 1.0, data_notTagged_up = 1.0; //these are for the bTagging SFs
    double data_tagged_down = 1.0, data_notTagged_down = 1.0; //these are for the bTagging SFs
+
+   double data_tagged_bc_up = 1.0, data_notTagged_bc_up = 1.0; //these are for the bTagging SFs
+   double data_tagged_bc_down = 1.0, data_notTagged_bc_down = 1.0; //these are for the bTagging SFs
+
+   double data_tagged_light_up = 1.0, data_notTagged_light_up = 1.0; //these are for the bTagging SFs
+   double data_tagged_light_down = 1.0, data_notTagged_light_down = 1.0; //these are for the bTagging SFs
+
+   //// med b-tag WP variables
+   double MC_tagged_med = 1.0,  MC_notTagged_med = 1.0, data_tagged_med = 1.0, data_notTagged_med = 1.0; //these are for the bTagging SFs
+   double data_tagged_up_med = 1.0, data_notTagged_up_med = 1.0; //these are for the bTagging SFs
+   double data_tagged_down_med = 1.0, data_notTagged_down_med = 1.0; //these are for the bTagging SFs
+
+   double data_tagged_bc_up_med = 1.0, data_notTagged_bc_up_med = 1.0; //these are for the bTagging SFs
+   double data_tagged_bc_down_med = 1.0, data_notTagged_bc_down_med = 1.0; //these are for the bTagging SFs
+
+   double data_tagged_light_up_med = 1.0, data_notTagged_light_up_med = 1.0; //these are for the bTagging SFs
+   double data_tagged_light_down_med = 1.0, data_notTagged_light_down_med = 1.0; //these are for the bTagging SFs
 
    nTrue_light_AK4 = 0;
    nTrue_b_AK4 = 0;
    nTrue_c_AK4 = 0;
 
+
+   // loop over AK4 jets: correct with JECs and JERs, get information for selection, save kinematic information, and calculate b-tagging event weights
    for(auto iJet = smallJets->begin(); iJet != smallJets->end(); iJet++) 
    {
 
       double AK4_sf_total = 1.0;
-
+      double AK4_JEC_corr_factor = 1.0;
 
       if( (iJet->pt() < 15. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;   //don't even bother with these jets, lost causes
 
@@ -1899,17 +2150,14 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       if(doJEC)
       {
-         //if (systematicType == "") continue;   // 
-         double AK4_JEC_corr_factor = 1.0;
 
-         jecUnc_AK4->setJetEta( iJet->eta() );
-         jecUnc_AK4->setJetPt( iJet->pt() );
-         double AK4_JEC_uncertainty = fabs(jecUnc_AK4->getUncertainty(true));
-         if(systematicType=="JEC_up")
+         double AK4_JEC_uncertainty = getJECUncertaintyFromSources("AK4",  iJet->pt(), iJet->eta());
+
+         if(systematicType.find("_up") != std::string::npos) 
          {
             AK4_JEC_corr_factor = 1 + AK4_JEC_uncertainty;
          }
-         else if (systematicType=="JEC_down")
+         else if(systematicType.find("_down") != std::string::npos) 
          {
             AK4_JEC_corr_factor = 1 - AK4_JEC_uncertainty;
          }   
@@ -1947,14 +2195,19 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             parameters.setJetPt(iJet->pt());
             parameters.setJetEta(iJet->eta());
             sJER =  resolution_sf_AK4.getScaleFactor(parameters  );  //{{JME::Binning::JetEta, iJet->eta()}});
-            if(systematicType=="JER_up")
+            
+            if( applyJERSource(systematicType, iJet->eta())  )
             {
-               sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::UP);    // SF + 1 sigma uncertainty
+               if( systematicType.find("_up") != std::string::npos ) 
+               {
+                  sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::UP);    // SF + 1 sigma uncertainty
+               }
+               else if( systematicType.find("_down") != std::string::npos ) 
+               {
+                  sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::DOWN);  // SF - 1 sigma uncertainty
+               }
             }
-            else if (systematicType=="JER_down")
-            {
-               sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::DOWN);  // SF - 1 sigma uncertainty
-            }
+
             const reco::GenJet *genJet = iJet->genJet();
             if( genJet)   // try the first technique
             {
@@ -1975,7 +2228,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
 
-      // create scaled jet object that will be used for cuts 
+      // create corrected (scaled) jet object that will be used for cuts 
       pat::Jet corrJet(*iJet);
       LorentzVector corrJetP4(AK4_sf_total*iJet->px(),AK4_sf_total*iJet->py(),AK4_sf_total*iJet->pz(),AK4_sf_total*iJet->energy());
       corrJet.setP4(corrJetP4);
@@ -1995,10 +2248,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          PUID = bool( (corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1)) || (corrJet.pt() > 50.) );
       }
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),PUID, corrJet.pt() )) ) continue;
-      //if( isHEM(corrJet.eta(), corrJet.phi()))continue;
+      
+      if( isHEM(corrJet.eta(), corrJet.phi()))return;  //RETURN CUT - if a jet is in the HEM (=bad) region, don't use this event
 
       double deepJetScore = corrJet.bDiscriminator("pfDeepFlavourJetTags:probb") + corrJet.bDiscriminator("pfDeepFlavourJetTags:probbb")+ corrJet.bDiscriminator("pfDeepFlavourJetTags:problepb");
-
+      JEC_uncert_AK4[nAK4] = AK4_JEC_corr_factor;
       if(_verbose)std::cout << "the year is " << year << " with working point value of " << deepjet_wp_tight << ". The hadronFlavour is " << corrJet.hadronFlavour() <<  " and deepjet score " << deepJetScore<< std::endl;
       
 
@@ -2008,8 +2262,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////
       if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos) )
       {
-
-         
          iEvent.getByToken(genPartToken_, genPartCollection);
          // jet is assumed to be not tagged 
          nGenBJets_AK4[nAK4] = 0;
@@ -2023,9 +2275,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             {
                nGenBJets_AK4[nAK4]++;
             } 
-
          }
-
       }
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2044,36 +2294,83 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             int xbin = (int)(corrJet.pt()*bTagEffMap_nPtBins/bTagEffMap_PtRange) + 1;
             int ybin = (int)((corrJet.eta()-bTagEffMap_Eta_low)*bTagEffMap_nEtaBins/(bTagEffMap_Eta_high-bTagEffMap_Eta_low)) +1;
 
-
             if(debug) std::cout << "bTagEffMap_nPtBins/bTagEffMap_PtRange/bTagEffMap_Eta_low/bTagEffMap_nEtaBins/bTagEffMap_Eta_high:" <<bTagEffMap_nPtBins << "/"  <<bTagEffMap_PtRange << "/" <<bTagEffMap_Eta_low << "/" <<bTagEffMap_nEtaBins << "/" <<bTagEffMap_Eta_high << std::endl;
             double SF, SF_up, SF_down;
+            double SF_med, SF_up_med, SF_down_med;
+            double bTag_eff_value, bTag_eff_value_med;
 
-            double bTag_eff_value;
             if(corrJet.hadronFlavour() == 0)   //light jets
             {
 
                bTag_eff_value = lightjet_eff->GetBinContent(xbin,ybin);
-               SF = cset_corrector_light->evaluate({"central", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
-               jet_bTagSF_light[nTrue_light_AK4] = SF;
+               bTag_eff_value_med = lightjet_eff_med->GetBinContent(xbin,ybin);
+
+               SF = cset_corrector_light->evaluate({"central", "T", 0, std::abs(corrJet.eta()), corrJet.pt()}); /// tight WP SF
+               SF_med = cset_corrector_light->evaluate({"central", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+
+               jet_bTagSF_light_T[nTrue_light_AK4] = SF;
+               jet_bTagSF_light_M[nTrue_light_AK4] = SF_med;
+
                nTrue_light_AK4++;
+
+               // tight WP
                SF_up   = cset_corrector_light->evaluate({"up_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
                SF_down = cset_corrector_light->evaluate({"down_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               // med WP
+               SF_up_med   = cset_corrector_light->evaluate({"up_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down_med = cset_corrector_light->evaluate({"down_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
                if(deepJetScore > deepjet_wp_tight)
                {
+
+                  // tight WP
                   MC_tagged *= bTag_eff_value;
                   data_tagged *= SF*bTag_eff_value;
                   data_tagged_up *= SF_up*bTag_eff_value;
                   data_tagged_down *= SF_down*bTag_eff_value;
+
+                  data_tagged_light_up   *= SF_up*bTag_eff_value;   // this is a light jet, shift by uncertainty
+                  data_tagged_light_down *= SF_down*bTag_eff_value; // this is a light jet, shift by uncertainty
+                  data_tagged_bc_up   *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
+                  data_tagged_bc_down *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
+
+                  // med WP
+                  MC_tagged_med *= bTag_eff_value_med;
+                  data_tagged_med *= SF_med*bTag_eff_value_med;
+                  data_tagged_up_med *= SF_up_med*bTag_eff_value_med;
+                  data_tagged_down_med *= SF_down_med*bTag_eff_value_med;
+
+                  data_tagged_light_up_med   *= SF_up_med*bTag_eff_value_med;   // this is a light jet, shift by uncertainty
+                  data_tagged_light_down_med *= SF_down_med*bTag_eff_value_med; // this is a light jet, shift by uncertainty
+                  data_tagged_bc_up_med   *= SF_med*bTag_eff_value_med;   // this is a light jet, leave bc at nom
+                  data_tagged_bc_down_med *= SF_med*bTag_eff_value_med;   // this is a light jet, leave bc at nom
+
                   if(_verbose)std::cout << "tagged light jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
                }
                else
                {
-
+                  // tight WP
                   MC_notTagged *= (1 - bTag_eff_value);
                   data_notTagged *= (1 - SF*bTag_eff_value);
                   data_notTagged_up *= (1 - SF_up*bTag_eff_value);
                   data_notTagged_down *= (1 - SF_down*bTag_eff_value);
+
+                  data_notTagged_light_up   *= (1 - SF_up*bTag_eff_value); // this is a light jet, shift by uncertainty
+                  data_notTagged_light_down *= (1 - SF_down*bTag_eff_value); // this is a light jet, shift by uncertainty
+                  data_notTagged_bc_up      *= (1 - SF*bTag_eff_value); // this is a light jet, leave bc at nom
+                  data_notTagged_bc_down    *= (1 - SF*bTag_eff_value); // this is a light jet, leave bc at nom
+
+                  // med WP
+                  MC_notTagged_med *= (1 - bTag_eff_value_med);
+                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
+                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
+                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_up_med   *= (1 - SF_up_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
+                  data_notTagged_light_down_med *= (1 - SF_down_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
+                  data_notTagged_bc_up_med      *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
+                  data_notTagged_bc_down_med    *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
 
                   if(_verbose)std::cout << "untagged light jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
@@ -2081,56 +2378,152 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             else if(corrJet.hadronFlavour() == 4) //charm jets
             {
                bTag_eff_value = truecjet_eff->GetBinContent(xbin,ybin);
+               bTag_eff_value_med = truecjet_eff_med->GetBinContent(xbin,ybin);
+
                SF = cset_corrector_bc->evaluate(   {"central", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
-               jet_bTagSF_c[nTrue_c_AK4] = SF;
+               SF_med = cset_corrector_bc->evaluate(   {"central", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+
+               jet_bTagSF_c_T[nTrue_c_AK4] = SF;
+               jet_bTagSF_c_M[nTrue_c_AK4] = SF_med;
+
                nTrue_c_AK4++;
+               // tight WP
                SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
                SF_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+
+               // med WP
+               SF_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
                if(deepJetScore > deepjet_wp_tight)
                {
+                  // tight WP
                   MC_tagged  *= bTag_eff_value;
                   data_tagged *= SF*bTag_eff_value;
                   data_tagged_up *= SF_up*bTag_eff_value;
                   data_tagged_down *= SF_down*bTag_eff_value;
+
+                  data_tagged_light_up    *= SF*bTag_eff_value;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_light_down  *= SF*bTag_eff_value;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_bc_up       *= SF_up*bTag_eff_value;   //this is a c jet, shift bc uncertainty by sigma
+                  data_tagged_bc_down     *= SF_down*bTag_eff_value; //this is a c jet, shift bc uncertainty by sigma
+
+                  // med WP
+                  MC_tagged_med  *= bTag_eff_value_med;
+                  data_tagged_med *= SF_med*bTag_eff_value_med;
+                  data_tagged_up_med *= SF_up_med*bTag_eff_value_med;
+                  data_tagged_down_med *= SF_down_med*bTag_eff_value_med;
+
+                  data_tagged_light_up_med    *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_light_down_med  *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_bc_up_med       *= SF_up_med*bTag_eff_value_med;   //this is a c jet, shift bc uncertainty by sigma
+                  data_tagged_bc_down_med     *= SF_down_med*bTag_eff_value_med; //this is a c jet, shift bc uncertainty by sigma
+
                   if(_verbose)std::cout << "tagged c jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
                }
                else
                {
+                  // tight WP
                   MC_notTagged *= (1 - bTag_eff_value);
                   data_notTagged *= (1 - SF*bTag_eff_value);
                   data_notTagged_up *= (1 - SF_up*bTag_eff_value);
                   data_notTagged_down *= (1 - SF_down*bTag_eff_value);
+
+                  data_notTagged_light_up     *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_down   *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_up        *= (1 - SF_up*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_down      *= (1 - SF_down*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
+
+                  // med WP
+                  MC_notTagged_med *= (1 - bTag_eff_value_med);
+                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
+                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
+                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_up_med     *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_up_med        *= (1 - SF_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_down_med      *= (1 - SF_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+
+
                   if(_verbose)std::cout << "untagged c jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
             }
             else if(corrJet.hadronFlavour() == 5) // b jets
             {
                bTag_eff_value = truebjet_eff->GetBinContent(xbin,ybin);
-               SF             = cset_corrector_bc->evaluate(   {"central", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
-               jet_bTagSF_b[nTrue_b_AK4] = SF;
+               bTag_eff_value_med = truebjet_eff_med->GetBinContent(xbin,ybin);
+
+               SF             = cset_corrector_bc->evaluate(   {"central", "T", 5, std::abs(corrJet.eta()), corrJet.pt()}); // tight WP
+               SF_med         = cset_corrector_bc->evaluate(   {"central", "M", 5, std::abs(corrJet.eta()), corrJet.pt()}); // med WP
+
+               jet_bTagSF_b_T[nTrue_b_AK4] = SF;
+               jet_bTagSF_b_M[nTrue_b_AK4] = SF_med;
+
                nTrue_b_AK4++;
+
+               // tight WP
                SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
                SF_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+
+               // med WP
+               SF_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
+
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
                if(deepJetScore > deepjet_wp_tight)
                {
+                  // tight WP
                   MC_tagged  *= bTag_eff_value;
                   data_tagged *= SF*bTag_eff_value;
                   data_tagged_up *= SF_up*bTag_eff_value;
                   data_tagged_down *= SF_down*bTag_eff_value;
+
+                  data_tagged_light_up    *= SF*bTag_eff_value;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_light_down  *= SF*bTag_eff_value;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_bc_up       *= SF_up*bTag_eff_value;   //this is a b jet, shift bc uncertainty by sigma
+                  data_tagged_bc_down     *= SF_down*bTag_eff_value; //this is a b jet, shift bc uncertainty by sigma
+
+                  // med WP
+                  MC_tagged_med  *= bTag_eff_value_med;
+                  data_tagged_med *= SF_med*bTag_eff_value_med;
+                  data_tagged_up_med *= SF_up_med*bTag_eff_value_med;
+                  data_tagged_down_med *= SF_down_med*bTag_eff_value_med;
+
+                  data_tagged_light_up_med    *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_light_down_med  *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_bc_up_med       *= SF_up_med*bTag_eff_value_med;   //this is a b jet, shift bc uncertainty by sigma
+                  data_tagged_bc_down_med     *= SF_down_med*bTag_eff_value_med; //this is a b jet, shift bc uncertainty by sigma
 
                   if(_verbose)std::cout << "tagged b jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
 
                }
                else
                {  
+                  // tight WP
                   MC_notTagged *= (1 - bTag_eff_value);
                   data_notTagged *= (1 - SF*bTag_eff_value);
                   data_notTagged_up *= (1 - SF_up*bTag_eff_value);
                   data_notTagged_down *= (1 - SF_down*bTag_eff_value);
+
+                  data_notTagged_light_up     *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_down   *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_up        *= (1 - SF_up*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_down      *= (1 - SF_down*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
+
+                  // med WP
+                  MC_notTagged_med *= (1 - bTag_eff_value_med);
+                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
+                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
+                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_up_med     *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_up_med        *= (1 - SF_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_down_med      *= (1 - SF_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+
 
                   if(_verbose)std::cout << "untagged b jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
 
@@ -2147,9 +2540,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             }
          }
       }
-
-
-      //if( jetVetoMap->(asd)  ) AK4_fails_veto_map[nAK4] = true;
 
       int vetoMap_xbin = (int)((corrJet.eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;
       int vetoMap_ybin = (int)((corrJet.phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // pt(b) = b*(range / # bins) + b0 -> (pt(b) - b0)*(# bins / range)
@@ -2182,26 +2572,69 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    ///////////////////// calculate b tag event weights //////////////////////
    if(doBtagSF)
    {
+      // tight WP
+      bTag_eventWeight_T_nom =  (data_tagged*data_notTagged) / (MC_tagged*MC_notTagged);
+      bTag_eventWeight_T_up  =  (data_tagged_up*data_notTagged_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_T_down = (data_tagged_down*data_notTagged_down) / (MC_tagged*MC_notTagged);   
 
-      bTag_eventWeight_nom =  (data_tagged*data_notTagged) / (MC_tagged*MC_notTagged);
-      bTag_eventWeight_up  =  (data_tagged_up*data_notTagged_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
-      bTag_eventWeight_down = (data_tagged_down*data_notTagged_down) / (MC_tagged*MC_notTagged);   
+      bTag_eventWeight_light_T_up  =  (data_tagged_light_up*data_notTagged_light_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_light_T_down = (data_tagged_light_down*data_notTagged_light_down) / (MC_tagged*MC_notTagged);   
 
-      if ((bTag_eventWeight_nom != bTag_eventWeight_nom) || (std::isinf(bTag_eventWeight_nom)) || (bTag_eventWeight_nom < 1e-9))
+      bTag_eventWeight_bc_T_up  =  (data_tagged_bc_up*data_notTagged_bc_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_bc_T_down = (data_tagged_bc_down*data_notTagged_bc_down) / (MC_tagged*MC_notTagged);   
+
+      // med WP
+      bTag_eventWeight_M_nom =  (data_tagged_med*data_notTagged_med) / (MC_tagged_med*MC_notTagged_med);
+      bTag_eventWeight_M_up  =  (data_tagged_up_med*data_notTagged_up_med) / (MC_tagged_med*MC_notTagged_med);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_M_down = (data_tagged_down_med*data_notTagged_down_med) / (MC_tagged_med*MC_notTagged_med);   
+
+      bTag_eventWeight_light_M_up  =  (data_tagged_light_up_med*data_notTagged_light_up_med) / (MC_tagged_med*MC_notTagged_med);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_light_M_down = (data_tagged_light_down_med*data_notTagged_light_down_med) / (MC_tagged_med*MC_notTagged_med);   
+
+      bTag_eventWeight_bc_M_up  =  (data_tagged_bc_up_med*data_notTagged_bc_up_med) / (MC_tagged_med*MC_notTagged_med);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_bc_M_down = (data_tagged_bc_down_med*data_notTagged_bc_down_med) / (MC_tagged_med*MC_notTagged_med);   
+
+      if ((bTag_eventWeight_T_nom != bTag_eventWeight_T_nom) || (std::isinf(bTag_eventWeight_T_nom)) || (bTag_eventWeight_T_nom < 1e-9))
       {
-         //std::cout << "BAD BTAG SF: " << bTag_eventWeight_nom << std::endl;
+         //std::cout << "BAD BTAG SF: " << bTag_eventWeight_T_nom << std::endl;
          if(_verbose)std::cout << "data_tagged_up/data_notTagged_up/MC_tagged/MC_notTagged: " <<data_tagged << "/" <<data_notTagged << "/" << MC_notTagged<< "/" << MC_notTagged<<  std::endl;
       } 
    }
 
    lab_nAK4 = nAK4;
-   if (totHT < 1400) return; // RETURN cut
+
    if(nAK4 <4)return;   // RETURN cut
 
-   if(slimmedSelection)
-   {
-      if (totHT < 1600) return; // RETURN cut
+
+
+
+   /////////////////////////////////
+   // Apply HT selection criteria //
+   /////////////////////////////////
+
+
+   if( ( runSideband) )
+   {  
+      if( (totHT > 1600) ||  (totHT  < 1200)  ) return; // only want to lower HT region, RETURN cut
    }
+   else // MAIN-BAND
+   {
+      if(slimmedSelection) // slimmed selection to save space
+      {
+         if( totHT < 1600 ) return; // // RETURN cut
+      }
+      else // normal selection 
+      {
+         if( totHT < 1400 ) return; // RETURN cut
+      }
+   }
+
+
+   ///////////////////////////////////
+   ////// Calculate dijet masses /////
+   ///////////////////////////////////
+
+
    // calculate the candidate dijet delta R values
    double minDeltaRDisc12 = sqrt( pow(leadAK4Jets[0].DeltaR(leadAK4Jets[1]),2) + pow(leadAK4Jets[2].DeltaR(leadAK4Jets[3]),2));    // dijet one always has j1 in it
    double minDeltaRDisc13 = sqrt( pow(leadAK4Jets[0].DeltaR(leadAK4Jets[2]),2) + pow(leadAK4Jets[1].DeltaR(leadAK4Jets[3]),2));
@@ -2247,7 +2680,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    if(_verbose)std::cout << "before AK8 jets" << std::endl;
 
-
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    ////////////////////////////////////////////////////////////_AK8 Jets_/////////////////////////////////////////////////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2258,32 +2690,24 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    std::vector<TLorentzVector> superJetOneLV;        //workaround for weird fastjet bug
    std::vector<TLorentzVector> superJetTwoLV;        //workaround for weird fastjet bug
 
-
-
    std::vector<TLorentzVector> selectedAK8_TLV;
-
-   // selectedAK4_TLV -> all AK4 jets that are within R=0.8 of the selected AK8 jets
-   // AK4_hadronFlavour uses the same index as these 
-   // assume AK4 jets are assigned to the same superjet as their parent AK8 jet -> not a very good assumption ... 
-   // see if these AK4 jet concide with high-energy reclustered CA4 jets 
-   // selected_TLV_AK4_index => nfatjet index of the AK8 jet inside which these AK4 jets are located
-
-   // loop over selectedAK4_TLV 
-
    edm::Handle<std::vector<pat::Jet> > fatJets;
    iEvent.getByToken(fatJetToken_, fatJets);
 
    JME::JetResolution resolution = JME::JetResolution::get(iSetup, "AK8PF_pt");                          //load JER stuff from global tag
    JME::JetResolutionScaleFactor resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, "AK8PF");
 
-   //Get AK8 jet info in order to get to COM frame and get a vector of all the (good) AK8 jet particles
    nfatjets = 0;
    nfatjet_pre = 0;
    TLorentzVector allAK8(0,0,0,0);
    std::vector<TLorentzVector> leadAK8Jets;
    //diAK8Jet_mass
    double tot_jet_px=0,tot_jet_py=0,tot_jet_pz=0, tot_jet_E=0;
-   for(auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++)    //Over AK8 Jets
+
+
+
+   // loop over AK8 jets, save information for event selection, grab particles to create superjets
+   for(auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++)    
    {
 
 
@@ -2291,25 +2715,26 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       double AK8_sf_total = 1.0;     // this scales jet/particle 4-vectors, compounds all scale factors
 
-   
+      double AK8_JEC_corr_factor = 1.0;
+
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       ///////// _JET ENERGY CORRECTION UNCERTAINTY STUFF, AK8 jets should already be corrected in the cfg ////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
       if(doJEC)
       {
-         double AK8_JEC_corr_factor = 1.0;
 
-         jecUnc_AK8->setJetEta( iJet->eta() );
-         jecUnc_AK8->setJetPt( iJet->pt() );
-
+         //jecUnc_AK8->setJetEta( iJet->eta() );
+         //jecUnc_AK8->setJetPt( iJet->pt() );
          // JECs are already applied in cfg with updateJetCollection, this is for getting the uncertainties 
-         double AK8_JEC_uncertainty = jecUnc_AK8->getUncertainty(true);
-         if(systematicType=="JEC_up")
+         //double AK8_JEC_uncertainty = jecUnc_AK8->getUncertainty(true);
+        double  AK8_JEC_uncertainty = getJECUncertaintyFromSources("AK8",  iJet->pt(), iJet->eta());
+
+         if (systematicType.find("_up") != std::string::npos)      
          {
             AK8_JEC_corr_factor = 1 + AK8_JEC_uncertainty;
          }
-         else if (systematicType=="JEC_down")
+         else if (systematicType.find("_down") != std::string::npos)      
          {
             AK8_JEC_corr_factor = 1 - AK8_JEC_uncertainty;
          }
@@ -2319,7 +2744,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       }
 
-      
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2346,14 +2770,19 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             parameters.setJetPt(iJet->pt());
             parameters.setJetEta(iJet->eta());
             sJER =  resolution_sf.getScaleFactor(parameters  );  //{{JME::Binning::JetEta, iJet->eta()}});
-            if(systematicType=="JER_up")
+
+            if( applyJERSource(systematicType, iJet->eta())  )
             {
-               sJER = resolution_sf.getScaleFactor(parameters, Variation::UP);    // SF + 1 sigma uncertainty
+               if( systematicType.find("_up") != std::string::npos ) 
+               {
+                  sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::UP);    // SF + 1 sigma uncertainty
+               }
+               else if( systematicType.find("_down") != std::string::npos ) 
+               {
+                  sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::DOWN);  // SF - 1 sigma uncertainty
+               }
             }
-            else if (systematicType=="JER_down")
-            {
-               sJER = resolution_sf.getScaleFactor(parameters, Variation::DOWN);  // SF - 1 sigma uncertainty
-            }
+
             const reco::GenJet *genJet = iJet->genJet();
             if( genJet)   // try the first technique
             {
@@ -2378,17 +2807,13 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-      // create scaled jet object that will be used for cuts 
+      // create corrected (scaled) jet object that will be used for cuts 
       pat::Jet corrJet(*iJet);
       LorentzVector corrJetP4(AK8_sf_total*iJet->px(),AK8_sf_total*iJet->py(),AK8_sf_total*iJet->pz(),AK8_sf_total*iJet->energy());
       corrJet.setP4(corrJetP4);
 
-
       if(_verbose)  std::cout << "nominal p4: " << iJet->px()<< "," <<iJet->py() << "," << iJet->pz()<< "," << iJet->energy()<< std::endl;
       if(_verbose)  std::cout << "corrected p4: " << corrJet.px()<< "," <<corrJet.py() << "," << corrJet.pz()<< "," << corrJet.energy()<< std::endl;
-
 
       if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 45.)) 
       {
@@ -2399,11 +2824,14 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
       if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
       
-      if(isHEM(corrJet.eta(),corrJet.phi())) jet_isHEM[nfatjets] = true;
+      if(isHEM(corrJet.eta(),corrJet.phi()))
+      {
+         jet_isHEM[nfatjets] = true;
+         return; // RETURN CUT - do not want events that have jets in the HEM (=bad) region
+      } 
       else{jet_isHEM[nfatjets] = false;}
 
-
-
+      JEC_uncert_AK8[nfatjets] = AK8_JEC_corr_factor;
 
       int vetoMap_xbin = (int)((corrJet.eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;
       int vetoMap_ybin = (int)((corrJet.phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // pt(b) = b*(range / # bins) + b0 -> (pt(b) - b0)*(# bins / range)
@@ -2411,14 +2839,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0.)
       {
          AK8_fails_veto_map[nfatjets] = true;
+         return; // RETURN CUT - do not want events that have jets in the veto (=bad) regions
       }
       if(nfatjets < 2) leadAK8_mass[nfatjets] = corrJet.userFloat("ak8PFJetsPuppiSoftDropMass");
       jet_pt[nfatjets] = corrJet.pt();
-      jet_phi[nfatjets] = iJet->phi();   // this seems to be messed up
+      jet_phi[nfatjets] = iJet->phi();  
       jet_eta[nfatjets] = corrJet.eta();
       jet_mass[nfatjets] = corrJet.mass();
 
 
+      // save selected AK8 jet particles for use in calculating the thrust axis
       for (unsigned int iii=0; iii<iJet->numberOfDaughters();iii++)   // get all jet particles
       {
          const reco::Candidate* iJ = iJet->daughter(iii);
@@ -2434,7 +2864,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       selectedAK8_TLV.push_back(TLorentzVector(corrJet.px(),corrJet.py(),corrJet.pz(),corrJet.energy()));
 
-
       // match up AK4 jets to AK8 jets (leave indices as -1 if not matched)
       int AK4_counter = 0;
       for(auto iAK4 = selectedAK4_TLV.begin();iAK4 != selectedAK4_TLV.end(); iAK4++ )
@@ -2442,7 +2871,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          if( sqrt(pow(iAK4->Eta()-corrJet.eta(),2)+ pow(iAK4->Phi()-corrJet.phi(),2)) < 0.8 )lab_AK4_AK8_parent[AK4_counter] = nfatjets;
          AK4_counter++;
       }
-
 
       AK8_is_near_highE_CA4[nfatjets] = false; // initialize this to false
 
@@ -2487,15 +2915,21 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
 
-   if ((nfatjets < 2) || (nfatjet_pre < 1) )return; // RETURN cut
+   ////////////////////////////////
+   ///////// Select events ////////
+   ////////////////////////////////
 
    if(slimmedSelection)
    {
       if  (  (nfatjets < 3) ||   ((nfatjet_pre < 2) && ((dijetMassOne < 1000.) || (dijetMassTwo < 1000.)  )  )  )  return;  // RETURN cut
-      if (nfatjets < 3) return;      // RETURN cut
    }
+   else if ((nfatjets < 2) || (nfatjet_pre < 1) )return; // RETURN cut
 
 
+
+   /////////////////////////////////////////////////
+   /////// Get L1 prefiring weight for event////////
+   /////////////////////////////////////////////////
 
    if(doPrefiringWeight)
    {
@@ -2514,15 +2948,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
 
-
-
 ////////////////////////////////////////////////////////////
 /////////////// calculate _top pt weights //////////////////   
 ////////////////////////////////////////////////////////////
 
-
-
-   if( doTopPtReweight)
+   if( doTopPtReweight) // will only be true for TTbar samples
    {
 
    ////////////////////// Calculate top pt weight /////////////////
@@ -2557,20 +2987,14 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    }
 
-/////////////////////////////////////////////////////////////
-/////////////// calculate _pdf weights //////////////////////
-/////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
+   /////////////// calculate _pdf weights //////////////////////
+   /////////////////////////////////////////////////////////////
+
    if(doPDFWeights)
    {
       if(_verbose)std::cout << "Setting PDF variables";
       
-      /*
-      edm::Handle<std::vector<float>> pdf_weights;
-      iEvent.getByToken(pdfWeightToken_, pdf_weights);
-
-      edm::Handle<std::vector<float>> scale_weights;
-      iEvent.getByToken(scaleWeightToken_, scale_weights);
-      */
       edm::Handle<GenEventInfoProduct> evt_info;
       iEvent.getByToken(GeneratorToken_, evt_info);
 
@@ -2592,8 +3016,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          edm::Handle<LHEEventProduct> lheEventProduct;
          iEvent.getByToken(lheEventProductToken_, lheEventProduct);
 
-         // FOR QCD MC
 
+         // PDF weight information: 
+         // -------------------------------------------------------------
+
+         // FOR QCD MC
          //PDF nom == 325300
          //Scale: ID=1002-1045, [MUR,MU=0.5/1/1.5, DynScale=1-4]
          //Renomalization Scale: ID = 1006 (MU_R=2.0), 1011 (MU_R=0.5) 
@@ -2605,8 +3032,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          //PDF nom = 325300 = ID 1048
          // variations 325501-325600 = PDF, ID=1049-1148
 
-
-
          // For signal: 
          // PDF nom = 325500
          // Scale: ID=1002-1045
@@ -2614,7 +3039,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          // Factorization Scale: ID = 1016 (MU_F=2.0), 1026 (MU_F=0.5) 
          // variations 325301-325402 = PDF: ID=1049-1148
 
-
+         // ---------------------------------------------------------------
 
          unsigned int PDFstart, PDFend;
          if(runType.find("QCD") != std::string::npos)
@@ -2755,36 +3180,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          if(_verbose)std::cout << " The nVars is " <<nVars << "." << std::endl;
          if(_verbose)std::cout << " The varWeightsRMS is " <<varWeightsRMS << "." << std::endl;
          if(_verbose)std::cout << " The varWeightsErr is " <<varWeightsErr << "." << std::endl;
-
-         /*
-         edm::Handle<std::vector<float>> PDFweights;
-         iEvent.getByToken(pdfWeightToken_, PDFweights);
-         int scale_var_counter = 0;
-         for(auto iii = PDFweights->begin(); iii != PDFweights->end(); iii++ )
-         {
-            if(scale_var_counter == 1)weightFacUp = *iii;
-            else if(scale_var_counter == 2)weightFacDn =*iii;
-            else if(scale_var_counter == 3)weightRenUp = *iii;
-            else if(scale_var_counter == 4)weightRenUpxweightFacUp = *iii;
-            else if(scale_var_counter == 5)weightRenUpxweightFacDn = *iii;
-            else if(scale_var_counter == 6)weightRenDn = *iii;
-            else if(scale_var_counter == 7)weightRenDnxweightFacUp = *iii;
-            else if(scale_var_counter == 8)weightRenDnxweightFacDn = *iii;
-            scale_var_counter++;
-         }
-         */
-
       }
       
-      //std::cout << "There were " << nPDFWeights << " pdf weights and " << nScaleWeights << " scale weights." << std::endl;
    }
-//edm::Handle<GenEventInfoProduct> evt_info;
-
 
    
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    ////////////////////////////////////////////////////////////_Clustering_///////////////////////////////////////////////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   //     This is the point where superjets will be formed !
 
    if(_verbose)std::cout << "before cluster" << std::endl;
    /////calculate COM frame boost////////////////////////////////////////////////////////////////////?????///////////////
@@ -2813,7 +3217,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
     //fastjet::JetDefinition jet_def0(fastjet::antikt_algorithm, R0);  // alternate jet clustering algorithm
    fastjet::JetDefinition jet_def0(fastjet::cambridge_algorithm, R0);
-
    fastjet::ClusterSequence cs_jet0(candsBoostedPJ, jet_def0); 
 
    // shedding particles happens here -> can change this energy threshold, just changed it from 50. 
@@ -2829,7 +3232,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       {
          for(auto iDaughter = iJet->constituents().begin(); iDaughter != iJet->constituents().end(); iDaughter++)
          {
-            //std::cout << counter << " ";
             counter++;
             candsBoosted.push_back(reco::LeafCandidate(+1, reco::Candidate::LorentzVector(iDaughter->px(), iDaughter->py(), iDaughter->pz(), iDaughter->E())));
             candsBoostedTLV.push_back(TLorentzVector( iDaughter->px(), iDaughter->py(), iDaughter->pz(), iDaughter->E()    ));
@@ -2861,9 +3263,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     std::vector<TLorentzVector> posSuperJet_preSort;
     std::vector<TLorentzVector> miscJets;
 
-    //std::vector<TLorentzVector> negSuperJet_alt;
-    //std::vector<TLorentzVector> posSuperJet_alt;
-    //std::vector<TLorentzVector> miscJets_alt;
     for (auto iJet=jetsFJ_jet0.begin(); iJet<jetsFJ_jet0.end(); iJet++)                             
     {
         TLorentzVector candJet(iJet->px(),iJet->py(),iJet->pz(),iJet->E());
@@ -2910,13 +3309,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    }
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-
-
    /////////// Associating lab AK8 jets with one of the COM reclustered AK8 jets which gives assignment of lab AK8 jets to the superjets
-
-   // lab AK8 jets = selectedAK8_TLV
    int lab_AK8_num = 0;
-
 
    for(auto iLabAK8 = selectedAK8_TLV.begin(); iLabAK8!=selectedAK8_TLV.end(); iLabAK8++)
    { 
@@ -3017,9 +3411,9 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    {
      if(_verbose)std::cout << "starting superjet" << nSuperJets <<std::endl;
 
-      ////////////////////////inside superjet loop //////////////////
+      ///////////////// /inside superjet loop //////////////////////
       ///////         fill BESTmap for superjet ////////////////////
-      /////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////
 
 
       //////get BEST scores for superjet /////////
@@ -3073,10 +3467,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
       superJet_mass[nSuperJets] = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2));
       TLorentzVector superJetTLV(superJetpx,superJetpy,superJetpz,superJetE);    //Lorentz vector representing jet axis -> now minimize the parallel momentum
-      
-      //double betaMag = calcMPP(superJetTLV);
-      //double betaMag = sqrt(pow(superJetpx,2)+pow(superJetpy,2)+pow(superJetpz,2))/superJetE;
-
 
       std::vector<fastjet::PseudoJet> boostedSuperJetPart;
 

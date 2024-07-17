@@ -98,7 +98,9 @@ public:
 private:
    virtual void analyze(const edm::Event&, const edm::EventSetup&);
 
-   bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF);
+   bool isHEM(const float jet_eta, const float jet_phi);
+
+   bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF,bool jetPUid, const float iJet_pt);
    bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets);
    const reco::Candidate* parse_chain(const reco::Candidate* cand);
    
@@ -115,19 +117,33 @@ private:
    edm::EDGetTokenT<std::vector<pat::Electron>> electronToken_;
    edm::EDGetTokenT<std::vector<pat::Tau>> tauToken_;
    edm::EDGetTokenT<double> m_rho_token;
+   edm::FileInPath JECUncert_AK8_path;
+   edm::FileInPath JECUncert_AK4_path;
 
+   JetCorrectionUncertainty *jecUnc_AK4;
+   JetCorrectionUncertainty *jecUnc_AK8;
+   
    bool doPUID;
 
    TTree * tree;
 
 
-   TH2F *h_nLightJets;
-   TH2F *h_nTruebJets;
-   TH2F *h_nTruecJets; 
+   TH2F *h_nLightJets_tight;
+   TH2F *h_nTruebJets_tight;
+   TH2F *h_nTruecJets_tight; 
 
-   TH2F *h_nLightJets_btagged; 
-   TH2F *h_nTruebJets_btagged; 
-   TH2F *h_nTruecJets_btagged; 
+   TH2F *h_nLightJets_tight_btagged; 
+   TH2F *h_nTruebJets_tight_btagged; 
+   TH2F *h_nTruecJets_tight_btagged; 
+
+   TH2F *h_nLightJets_med;
+   TH2F *h_nTruebJets_med;
+   TH2F *h_nTruecJets_med; 
+
+   TH2F *h_nLightJets_med_btagged; 
+   TH2F *h_nTruebJets_med_btagged; 
+   TH2F *h_nTruecJets_med_btagged; 
+
 
    TRandom3 *randomNum = new TRandom3(); // for JERs
 
@@ -142,6 +158,15 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
    runType        = iConfig.getParameter<std::string>("runType");
    year           = iConfig.getParameter<std::string>("year");
 
+   JECUncert_AK8_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK8_path");
+   JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
+
+   jecUnc_AK4 = new JetCorrectionUncertainty(JECUncert_AK4_path.fullPath().c_str());
+   jecUnc_AK8 = new JetCorrectionUncertainty(JECUncert_AK8_path.fullPath().c_str());
+
+   JetCorrectionUncertainty *jecUnc_AK4;
+   JetCorrectionUncertainty *jecUnc_AK8;
+
    int NBINSX;
    double PTMAX;
    if(runType.find("Suu") != std::string::npos)
@@ -155,14 +180,23 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
       PTMAX  = 6000.;  // best to keep bin sizes the same between these
    }
 
-   h_nLightJets = new TH2F("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruebJets = new TH2F("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  NBINSX,0, 6000, 18, -2.4, 2.4);
-   h_nTruecJets = new TH2F("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   // tight WP
+   h_nLightJets_tight = new TH2F("h_nLightJets_tight" ,"total number of true light jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_tight = new TH2F("h_nTruebJets_tight" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  NBINSX,0, 6000, 18, -2.4, 2.4);
+   h_nTruecJets_tight = new TH2F("h_nTruecJets_tight" ,"total number of true c jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 
-   h_nLightJets_btagged = new TH2F("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruebJets_btagged = new TH2F("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruecJets_btagged = new TH2F("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nLightJets_tight_btagged = new TH2F("h_nLightJets_tight_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_tight_btagged = new TH2F("h_nTruebJets_tight_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets_tight_btagged = new TH2F("h_nTruecJets_tight_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 
+   // med WP
+   h_nLightJets_med = new TH2F("h_nLightJets_med" ,"total number of true light jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_med = new TH2F("h_nTruebJets_med" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  NBINSX,0, 6000, 18, -2.4, 2.4);
+   h_nTruecJets_med = new TH2F("h_nTruecJets_med" ,"total number of true c jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+
+   h_nLightJets_med_btagged = new TH2F("h_nLightJets_med_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_med_btagged = new TH2F("h_nTruebJets_med_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets_med_btagged = new TH2F("h_nTruecJets_med_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 
 
    doPUID = iConfig.getParameter<bool>("doPUID");
@@ -172,19 +206,29 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
    m_rho_token  = consumes<double>(fixedGridRhoAllTag_);
    edm::Service<TFileService> fs;      
 
-   h_nLightJets = fs->make<TH2F>("h_nLightJets" ,"total number of true light jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruebJets = fs->make<TH2F>("h_nTruebJets" ,"total number of true b jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruecJets = fs->make<TH2F>("h_nTruecJets" ,"total number of true c jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nLightJets_tight = fs->make<TH2F>("h_nLightJets_tight" ,"total number of true light jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_tight = fs->make<TH2F>("h_nTruebJets_tight" ,"total number of true b jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets_tight = fs->make<TH2F>("h_nTruecJets_tight" ,"total number of true c jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 
-   h_nLightJets_btagged = fs->make<TH2F>("h_nLightJets_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruebJets_btagged = fs->make<TH2F>("h_nTruebJets_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruecJets_btagged = fs->make<TH2F>("h_nTruecJets_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nLightJets_tight_btagged = fs->make<TH2F>("h_nLightJets_tight_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_tight_btagged = fs->make<TH2F>("h_nTruebJets_tight_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets_tight_btagged = fs->make<TH2F>("h_nTruecJets_tight_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+
+   h_nLightJets_med = fs->make<TH2F>("h_nLightJets_med" ,"total number of true light jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_med = fs->make<TH2F>("h_nTruebJets_med" ,"total number of true b jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets_med = fs->make<TH2F>("h_nTruecJets_med" ,"total number of true c jets; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+
+   h_nLightJets_med_btagged = fs->make<TH2F>("h_nLightJets_med_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruebJets_med_btagged = fs->make<TH2F>("h_nTruebJets_med_btagged" ,"total number of true b jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
+   h_nTruecJets_med_btagged = fs->make<TH2F>("h_nTruecJets_med_btagged" ,"total number of true c jets that are b-tagged; jet p_{T} [GeV];jet eta",   NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 }
 
 
-bool calculateBtagEfficiencyMaps::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF)
+bool calculateBtagEfficiencyMaps::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, bool jetPUid, const float iJet_pt)
 {
    if( (abs(eta) > 2.4)) return false;
+
+   if( (!jetPUid) && (iJet_pt < 50.0)) return false;
 
    if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
       {
@@ -196,7 +240,7 @@ bool calculateBtagEfficiencyMaps::isgoodjet(const float eta, const float NHF,con
 bool calculateBtagEfficiencyMaps::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
 {
    if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
-   else if ( (nfatjets >= 2) && (abs(eta) > 1.5) ) return false;
+   else if ( (nfatjets >= 2) && (abs(eta) > 1.4) ) return false;
 
    if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
       {
@@ -206,7 +250,18 @@ bool calculateBtagEfficiencyMaps::isgoodjet(const float eta, const float NHF,con
 
 }
 
+bool calculateBtagEfficiencyMaps::isHEM(const float jet_eta, const float jet_phi)
+{
 
+   if(year != "2018") return false; // HEM is only relevant for 2018
+
+   if( (jet_phi >  -1.57)&&( jet_phi < -0.87) )
+   {
+      if( (jet_eta > -3.0)&&(jet_eta < -1.3))return true;
+
+   }
+   return false;
+}
 void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    //need to correct AK4 jet 4-vectors with JECs and JERs, I'm not doing anything with AK8 jet b-tagging, so no need to have these for anything
@@ -221,29 +276,29 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
    iEvent.getByToken(m_rho_token, rho);
 
    // set working points 
-   double deepJet_wp_loose, deepJet_wp_med, deepjet_wp_tight;
+   double deepJet_wp_loose, deepjet_wp_med, deepjet_wp_tight;
    if(year == "2018")
    {
       //deepJet_wp_loose = 0.0490;
-      //deepJet_wp_med   = 0.2783;    
+      deepjet_wp_med   = 0.2783;    
       deepjet_wp_tight = 0.7100;
    }
    else if(year == "2017")
    {
       //deepJet_wp_loose = 0.0532;
-      //deepJet_wp_med   = 0.3040;
+      deepjet_wp_med   = 0.3040;
       deepjet_wp_tight = 0.7476;
    }
    else if(year == "2016")
    {
       //deepJet_wp_loose = 0.0480;
-      //deepJet_wp_med   = 0.2489;
+      deepjet_wp_med   = 0.2489;
       deepjet_wp_tight = 0.6377;
    }
    else if(year == "2015")
    {
       //deepJet_wp_loose = 0.0508;
-      //deepJet_wp_med   = 0.2598;
+      deepjet_wp_med   = 0.2598;
       deepjet_wp_tight = 0.6502;
    }
    else {std::cout << "ERROR: enter valid run year into cfg"; return;}
@@ -254,6 +309,15 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
 
       double AK4_sf_total = 1.0;
 
+      ///////////// JEC shifts (shift all jets up and down ) ///////////////
+      double JEC_sf_up = 1.0, JEC_sf_down = 1.0;
+
+      jecUnc_AK4->setJetEta( iJet->eta() );
+      jecUnc_AK4->setJetPt( iJet->pt() );
+
+      double AK4_JEC_uncertainty = fabs(jecUnc_AK4->getUncertainty(true));
+      JEC_sf_up   = 1 + AK4_JEC_uncertainty;
+      JEC_sf_down = 1 - AK4_JEC_uncertainty;
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
@@ -293,6 +357,7 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
          }
       }
       */
+
 
       double AK4_JER_corr_factor = 1.0; // this won't be touched for data
 
@@ -338,44 +403,117 @@ void calculateBtagEfficiencyMaps::analyze(const edm::Event& iEvent, const edm::E
       AK4_sf_total*= AK4_JER_corr_factor;
 
       // create scaled jet object that will be used for cuts 
-      pat::Jet  corrJet(*iJet);
+      pat::Jet  corrJet(*iJet); 
       LorentzVector corrJetP4(AK4_sf_total*iJet->px(),AK4_sf_total*iJet->py(),AK4_sf_total*iJet->pz(),AK4_sf_total*iJet->energy());
       corrJet.setP4(corrJetP4);
+
+      pat::Jet  corrJet_up(*iJet); 
+      LorentzVector corrJetP4_up(JEC_sf_up*AK4_sf_total*iJet->px(),JEC_sf_up*AK4_sf_total*iJet->py(),JEC_sf_up*AK4_sf_total*iJet->pz(),JEC_sf_up*AK4_sf_total*iJet->energy());
+      corrJet_up.setP4(corrJetP4_up);
+
+      pat::Jet  corrJet_down(*iJet); 
+      LorentzVector corrJetP4_down(JEC_sf_down*AK4_sf_total*iJet->px(),JEC_sf_down*AK4_sf_total*iJet->py(),JEC_sf_down*AK4_sf_total*iJet->pz(),JEC_sf_down*AK4_sf_total*iJet->energy());
+      corrJet_down.setP4(corrJetP4_down);
 
       bool PUID = true;
       if(doPUID)
       {
          PUID = bool(corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1));
       }
-      if( (corrJet.pt()  < 50.) && (!PUID)) continue; //if particle doesn't pass the PUID
-      if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
+      //if( (corrJet.pt()  < 50.) && (!PUID)) continue; //if particle doesn't pass the PUID
+      if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(), PUID, corrJet.pt()))  ) continue;
 
 
+      if (isHEM(corrJet.eta(),corrJet.phi())) return;
 
-      //    double deepJet_wp_loose, deepJet_wp_med, deepjet_wp_tight;
+
+      //    double deepJet_wp_loose, deepjet_wp_med, deepjet_wp_tight;
       double deepJetScore = corrJet.bDiscriminator("pfDeepFlavourJetTags:probb") + corrJet.bDiscriminator("pfDeepFlavourJetTags:probbb")+ corrJet.bDiscriminator("pfDeepFlavourJetTags:problepb");
       if(corrJet.hadronFlavour() == 0)   //light jets
-      {
-         h_nLightJets->Fill(corrJet.pt(),corrJet.eta());
+      {  
+         // nom JEC uncertainty 
+         h_nLightJets_tight->Fill(corrJet.pt(),corrJet.eta());
+         h_nLightJets_med->Fill(corrJet.pt(),corrJet.eta());
+
+          // up JEC uncertainty 
+         h_nLightJets_tight->Fill(corrJet_up.pt(),corrJet_up.eta());
+         h_nLightJets_med->Fill(corrJet_up.pt(),corrJet_up.eta());
+
+          // down JEC uncertainty 
+         h_nLightJets_tight->Fill(corrJet_down.pt(),corrJet_down.eta());
+         h_nLightJets_med->Fill(corrJet_down.pt(),corrJet_down.eta());
+
          if(deepJetScore > deepjet_wp_tight)
          {
-            h_nLightJets_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nLightJets_tight_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nLightJets_tight_btagged->Fill(corrJet_up.pt(),corrJet_up.eta());
+            h_nLightJets_tight_btagged->Fill(corrJet_down.pt(),corrJet_down.eta());
+
+         }
+         if(deepJetScore > deepjet_wp_med)
+         {
+            h_nLightJets_med_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nLightJets_med_btagged->Fill(corrJet_up.pt(),corrJet_up.eta());
+            h_nLightJets_med_btagged->Fill(corrJet_down.pt(),corrJet_down.eta());
+
          }
       }
       else if(corrJet.hadronFlavour() == 4) //charm jets
       {
-         h_nTruecJets->Fill(corrJet.pt(),corrJet.eta());
+         // nom JEC uncertainty 
+         h_nTruecJets_tight->Fill(corrJet.pt(),corrJet.eta());
+         h_nTruecJets_med->Fill(corrJet.pt(),corrJet.eta());
+
+         // up JEC uncertainty 
+         h_nTruecJets_tight->Fill(corrJet_up.pt(),corrJet_up.eta());
+         h_nTruecJets_med->Fill(corrJet_up.pt(),corrJet_up.eta());
+
+         // down JEC uncertainty 
+         h_nTruecJets_tight->Fill(corrJet_down.pt(),corrJet_down.eta());
+         h_nTruecJets_med->Fill(corrJet_down.pt(),corrJet_down.eta());
+
          if(deepJetScore > deepjet_wp_tight)
          {
-            h_nTruecJets_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nTruecJets_tight_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nTruecJets_tight_btagged->Fill(corrJet_up.pt(),corrJet_up.eta());
+            h_nTruecJets_tight_btagged->Fill(corrJet_down.pt(),corrJet_down.eta());
+
+         }
+         if(deepJetScore > deepjet_wp_med)
+         {
+            h_nTruecJets_med_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nTruecJets_med_btagged->Fill(corrJet_up.pt(),corrJet_up.eta());
+            h_nTruecJets_med_btagged->Fill(corrJet_down.pt(),corrJet_down.eta());
+
          }
       }
       else if(corrJet.hadronFlavour() == 5) // b jets
       {
-         h_nTruebJets->Fill(corrJet.pt(),corrJet.eta());
+         // nom JEC uncertainty 
+         h_nTruebJets_tight->Fill(corrJet.pt(),corrJet.eta());
+         h_nTruebJets_med->Fill(corrJet.pt(),corrJet.eta());
+
+         // up JEC uncertainty 
+         h_nTruebJets_tight->Fill(corrJet_up.pt(),corrJet_up.eta());
+         h_nTruebJets_med->Fill(corrJet_up.pt(),corrJet_up.eta());
+
+         // down JEC uncertainty 
+         h_nTruebJets_tight->Fill(corrJet_down.pt(),corrJet_down.eta());
+         h_nTruebJets_med->Fill(corrJet_down.pt(),corrJet_down.eta());
+
          if(deepJetScore > deepjet_wp_tight)
          {
-            h_nTruebJets_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nTruebJets_tight_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nTruebJets_tight_btagged->Fill(corrJet_up.pt(),corrJet_up.eta());
+            h_nTruebJets_tight_btagged->Fill(corrJet_down.pt(),corrJet_down.eta());
+
+         }
+         if(deepJetScore > deepjet_wp_med)
+         {
+            h_nTruebJets_med_btagged->Fill(corrJet.pt(),corrJet.eta());
+            h_nTruebJets_med_btagged->Fill(corrJet_up.pt(),corrJet_up.eta());
+            h_nTruebJets_med_btagged->Fill(corrJet_down.pt(),corrJet_down.eta());
+
          }
       }
    }

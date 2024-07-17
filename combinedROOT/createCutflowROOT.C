@@ -17,8 +17,7 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    double average_PUSF   = 0;
    double total_events_unscaled = 0;
    // event weights
-   double PU_EventWeight_nom = 1, L1Prefiring_EventWeight_nom = 1, bTag_EventWeight_nom = 1;
-
+   double PU_EventWeight_nom = 1, L1Prefiring_EventWeight_nom = 1, bTag_EventWeight_T_nom = 1,bTag_EventWeight_M_nom = 1;
 
    int SJ1_decision, SJ2_decision; 
    double TopPT_EventWeight_up = 1, PU_EventWeight_up = 1, L1Prefiring_EventWeight_up = 1, bTag_EventWeight_up = 1, pdf_EventWeight_up = 1, renorm_EventWeight_up = 1, factor_EventWeight_up = 1;
@@ -28,6 +27,8 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    double AK8_phi[100], AK8_eta[100], AK8_pt[100], AK8_mass[100];
    double AK4_phi[100], AK4_eta[100], AK4_pt[100], AK4_mass[100];
    double AK8_JER[100];
+
+   bool verbose = false;
    std::map<std::string, std::map<std::string, double> > scale_factors = 
    {
       {"QCDMC1000to1500_",     { {"2015", 1.578683216}, {"2016",1.482632755},  {"2017",3.126481451},  {"2018",4.407417122}  }},
@@ -54,7 +55,7 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    if ( ( (dataBlock.find("Suu") != std::string::npos) ) || (dataBlock.find("data") != std::string::npos)) event_SF = 1.0;
    else { event_SF = scale_factors[dataBlock][year];}
 
-   std::cout << "The event SF is " << event_SF <<  " for sample "<< dataBlock <<std::endl;
+   if(verbose) std::cout << "The event SF is " << event_SF <<  " for sample "<< dataBlock <<std::endl;
 
    const char *_inFilename = inFileName.c_str();
    int total_btags =0;
@@ -69,7 +70,7 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
    }
    const char *_outFilename = outFileName.c_str();    //create the output file where the skimmed tree will be 
 
-   std::cout << "The output file name is : " << _outFilename << std::endl;
+   if(verbose) std::cout << "The output file name is : " << _outFilename << std::endl;
 
    TFile outFile(_outFilename,"RECREATE");
    
@@ -93,7 +94,6 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          double nEvents =0,nHTcut =0 ,nAK8JetCut =0,nHeavyAK8Cut=0,nBtagCut=0,nSJEnergyCut=0, nSJMass100Cut=0;
          double nZeroBtag = 0, nZeroBtagnSJEnergyCut = 0, nZeroBtagnSJMass100Cut = 0;
          double nNoBTags = 0, nAT0b = 0, nAT1b = 0;
-         std::cout << "Looking at the " << *systematic_suffix << " tree" << std::endl;
 
          //create histograms
 
@@ -123,7 +123,9 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
 
          
-         TH1F * h_btag_EventWeight_nom= new TH1F("h_btag_EventWeight_nom", "b-tagging event weight (nom); event weight; Events",200,0.0,3.0);
+         TH1F * h_btag_EventWeight_T_nom= new TH1F("h_btag_EventWeight_T_nom", "b-tagging event weight (nom) (tight WP); event weight; Events",200,0.0,3.0);
+         TH1F * h_btag_EventWeight_M_nom= new TH1F("h_btag_EventWeight_M_nom", "b-tagging event weight (nom) (med WP); event weight; Events",200,0.0,3.0);
+
          TH1F * h_PU_EventWeight_nom= new TH1F("h_PU_EventWeight_nom", "Pileup event weight (nom); event weight; Events",200,0.0,4.0);
          TH1F * h_L1Prefiring_EventWeight_nom= new TH1F("h_L1Prefiring_EventWeight_nom", "L1 Prefiring event weigh (nom); event weight; Events",200,0.0,1.5);
          //TH1F * h_pdf_EventWeight_nom= new TH1F("h_PDFEventWeight_nom", "PDF event weight (nom); event weight; Events",200,0.0,10.0);
@@ -207,11 +209,11 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             tree_string = "nom";
             new_tree_string = "nom";
          } 
-         else if (systematic == "")
+         else if( systematic == "")
          {
-            tree_string = "";
-            new_tree_string = "";
-         }
+            tree_string = "nom";
+            new_tree_string = "nom";
+         } 
          else
          { 
             tree_string = ( systematic+ "_" + *systematic_suffix   ).c_str();
@@ -221,16 +223,15 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          std::string oldTreeName = "clusteringAnalyzerAll_" + tree_string + "/tree_"+ tree_string;
          std::string newTreeName = "skimmedTree_"+ new_tree_string + *systematic_suffix;
 
-         std::cout << "looking for tree name: " << oldTreeName<< std::endl;
-         std::cout << "naming new tree " << newTreeName << std::endl;
-         std::cout << "getting tree " << (oldTreeName).c_str() << std::endl;
-
          TTree *t1 = (TTree*)f->Get( oldTreeName.c_str()   ); 
 
          if(t1 == nullptr)
          {
             std:: cout << "ERROR getting tree " << oldTreeName << " , in file " << _inFilename << std::endl;
          }
+
+
+         if(verbose)std::cout << "Got the " << oldTreeName << " tree" << std::endl;
 
          outFile.cd();   // return to outer directory
          //gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
@@ -269,45 +270,52 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("jet_eta", AK8_eta);
          t1->SetBranchAddress("jet_phi", AK8_phi);
          t1->SetBranchAddress("jet_mass", AK8_mass);
-
          t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
 
          t1->SetBranchAddress("SJ1_decision", &SJ1_decision);
          t1->SetBranchAddress("SJ2_decision", &SJ2_decision);
-
-
-         // SF stuff
-         //nom
-         t1->SetBranchAddress("bTag_EventWeight_nom", &bTag_EventWeight_nom); 
-         t1->SetBranchAddress("PU_EventWeight_nom", &PU_EventWeight_nom); 
-         t1->SetBranchAddress("prefiringWeight_nom", &L1Prefiring_EventWeight_nom); 
-         t1->SetBranchAddress("AK8_JER", AK8_JER); 
-
-         //up
-         t1->SetBranchAddress("bTag_EventWeight_up", &bTag_EventWeight_up); 
-         t1->SetBranchAddress("PU_EventWeight_up", &PU_EventWeight_up); 
-         t1->SetBranchAddress("prefiringWeight_up", &L1Prefiring_EventWeight_up); 
-         t1->SetBranchAddress("QCDRenormalization_up_BEST", &renorm_EventWeight_up); 
-         t1->SetBranchAddress("QCDFactorization_up_BEST", &factor_EventWeight_up); 
-         t1->SetBranchAddress("PDFWeightUp_BEST", &pdf_EventWeight_up); 
-         if( (dataBlock.find("TTJets") != std::string::npos) ) t1->SetBranchAddress("top_pt_weight", &TopPT_EventWeight_up); 
-
-         //down
-         t1->SetBranchAddress("bTag_EventWeight_down", &bTag_EventWeight_down); 
-         t1->SetBranchAddress("PU_EventWeight_down", &PU_EventWeight_down); 
-         t1->SetBranchAddress("prefiringWeight_down", &L1Prefiring_EventWeight_down); 
-         t1->SetBranchAddress("QCDRenormalization_down_BEST", &renorm_EventWeight_down); 
-         t1->SetBranchAddress("QCDFactorization_down_BEST", &factor_EventWeight_down); 
-         t1->SetBranchAddress("PDFWeightDown_BEST", &pdf_EventWeight_down); 
-
-
-         t1->SetBranchAddress("eventNumber", &eventNumber); 
-
          
+         t1->SetBranchAddress("eventNumber", &eventNumber); 
          t1->SetBranchAddress("superJet_mass", superJet_mass); 
          t1->SetBranchAddress("diSuperJet_mass", &diSuperJet_mass); 
 
-         std::cout << "got tree, set branch addresses. " << std::endl;
+         // SF stuff
+
+
+         if( !(inFileName.find("data") != std::string::npos))
+         {                        
+            t1->SetBranchAddress("bTag_eventWeight_T_nom", &bTag_EventWeight_T_nom); 
+            t1->SetBranchAddress("bTag_eventWeight_M_nom", &bTag_EventWeight_M_nom); 
+            t1->SetBranchAddress("PU_eventWeight_nom", &PU_EventWeight_nom); 
+            t1->SetBranchAddress("AK8_JER", AK8_JER); 
+
+            //up
+            t1->SetBranchAddress("bTag_eventWeight_up", &bTag_EventWeight_up); 
+            t1->SetBranchAddress("PU_eventWeight_up", &PU_EventWeight_up); 
+            t1->SetBranchAddress("QCDRenormalization_up_BEST", &renorm_EventWeight_up); 
+            t1->SetBranchAddress("QCDFactorization_up_BEST", &factor_EventWeight_up); 
+            t1->SetBranchAddress("PDFWeightUp_BEST", &pdf_EventWeight_up); 
+
+
+            //down
+            t1->SetBranchAddress("bTag_eventWeight_down", &bTag_EventWeight_down); 
+            t1->SetBranchAddress("PU_eventWeight_down", &PU_EventWeight_down); 
+            t1->SetBranchAddress("QCDRenormalization_down_BEST", &renorm_EventWeight_down); 
+            t1->SetBranchAddress("QCDFactorization_down_BEST", &factor_EventWeight_down); 
+            t1->SetBranchAddress("PDFWeightDown_BEST", &pdf_EventWeight_down); 
+         }  
+
+
+         //nom
+         t1->SetBranchAddress("prefiringWeight_nom", &L1Prefiring_EventWeight_nom); 
+         //up
+         t1->SetBranchAddress("prefiringWeight_up", &L1Prefiring_EventWeight_up); 
+
+         if( (dataBlock.find("TTJets") != std::string::npos) ) t1->SetBranchAddress("top_pt_weight", &TopPT_EventWeight_up); 
+
+         //down
+         t1->SetBranchAddress("prefiringWeight_down", &L1Prefiring_EventWeight_down); 
+
 
          double looseDeepCSV_DeepJet;
          double medDeepCSV_DeepJet;
@@ -347,8 +355,6 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             {
                if( eventNumber%10 > 2) continue; // should only be for signal
             }
-
-
             EventWeight = 1.0;
             //TopPT_EventWeight_nom=1.0;
             //L1Prefiring_EventWeight_nom=1.0;
@@ -356,9 +362,9 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
             if ((dataBlock.find("MC") != std::string::npos))
             {
-               if ((bTag_EventWeight_nom != bTag_EventWeight_nom) || (std::isinf(bTag_EventWeight_nom)))
+               if ((bTag_EventWeight_T_nom != bTag_EventWeight_T_nom) || (std::isinf(bTag_EventWeight_T_nom)))
                {
-                  bTag_EventWeight_nom = 1.0;
+                  bTag_EventWeight_T_nom = 1.0;
                   std::cout << "ERROR: bad event weight due to bTag event weight." << std::endl;
                }
                if ((PU_EventWeight_nom != PU_EventWeight_nom) || (std::isinf(PU_EventWeight_nom)))
@@ -367,8 +373,8 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                   std::cout << "ERROR: bad event weight due to PU weight." << std::endl;
                }
 
-               EventWeight = PU_EventWeight_nom*bTag_EventWeight_nom ;
-               average_bTagSF+= bTag_EventWeight_nom;
+               EventWeight = PU_EventWeight_nom;
+               average_bTagSF+= bTag_EventWeight_T_nom;
                average_PUSF  += PU_EventWeight_nom;
 
                //if((dataBlock.find("TTJets") != std::string::npos)) EventWeight*= TopPT_EventWeight_nom;
@@ -376,11 +382,13 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
             }
             EventWeight *= L1Prefiring_EventWeight_nom;
             EventWeight *= event_SF; 
-            //std::cout <<"Count is "<<nEvents  << ", " << bTag_EventWeight_nom << "-" << PU_EventWeight_nom<< std::endl;
+            //std::cout <<"Count is "<<nEvents  << ", " << bTag_EventWeight_T_nom << "-" << PU_EventWeight_nom<< std::endl;
 
             //nom
-            h_btag_EventWeight_nom->Fill(bTag_EventWeight_nom );
+            h_btag_EventWeight_T_nom->Fill(bTag_EventWeight_T_nom );
             h_PU_EventWeight_nom->Fill(PU_EventWeight_nom);
+            h_btag_EventWeight_M_nom->Fill(bTag_EventWeight_M_nom );
+
             h_L1Prefiring_EventWeight_nom->Fill(L1Prefiring_EventWeight_nom);
 
             //up
@@ -449,11 +457,18 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
                   total_btags++;
                   nTightBTags++;
                } 
+               if ( (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet ) && (AK4_pt[iii] > 30.) )
+               {
+                  nMedBTags++;
+               } 
+
             }
 
             h_nTight_b_jets_semiRAW->Fill(nTightBTags,EventWeight);
             if ( (nTightBTags > 0)  )
             {
+
+               EventWeight *= bTag_EventWeight_T_nom;
                nBtagCut+=EventWeight;
                h_SJ_nAK4_300_semiRAW->Fill(SJ_nAK4_300[1],EventWeight); 
 
@@ -507,8 +522,10 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
 
 
             }
-            if((nTightBTags < 1))
+            if((nMedBTags < 1))
             {
+
+               EventWeight *= bTag_EventWeight_M_nom;
 
                nZeroBtag+=EventWeight;
 
@@ -563,63 +580,19 @@ void doThings(std::string inFileName, std::string outFileName, double &eventScal
          outFile.Write();
 
          // now that histograms are written, kill the old histograms so the ram isn't overused
-         delete h_tot_HT_semiRAW;
-         delete h_nfatjets_semiRAW;
-         delete h_nfatjets_pre_semiRAW;
-         delete h_dijet_mass_semiRAW;
-         delete h_nDijet_pairs_semiRAW;
-         delete h_nTight_b_jets_semiRAW;
-         delete h_SJ_nAK4_300_semiRAW;
-         delete h_AK8_pt;
-         delete h_AK8_eta;
-         delete h_AK8_phi;
-         delete h_AK8_mass;
-         delete h_AK4_pt;
-         delete h_AK4_eta;
-         delete h_AK4_phi;
-         delete h_AK4_mass;
-         delete h_btag_EventWeight_nom;
-         delete h_PU_EventWeight_nom;
-         delete h_L1Prefiring_EventWeight_nom;
-         delete h_JER_ScaleFactor_nom;
-         delete h_superjet_mass_SR;
-         delete h_superjet_mass_CR;
-         delete h_m_SJ1_AT1b;
-         delete h_m_SJ1_AT0b;
-         delete h_m_SJ1_SR;
-         delete h_m_SJ1_CR;
-         delete h_m_diSJ_SR;
-         delete h_m_diSJ_CR;
-
-         delete h_btag_EventWeight_up;
-         delete h_PU_EventWeight_up;
-         delete h_L1Prefiring_EventWeight_up;
-         delete h_pdf_EventWeight_up;
-         delete h_renorm_EventWeight_up;
-         delete h_factor_EventWeight_up;
-         delete h_TopPT_EventWeight_up;
-         delete h_JER_ScaleFactor_up;
-         delete h_btag_EventWeight_down;
-         delete h_PU_EventWeight_down;
-         delete h_L1Prefiring_EventWeight_down;
-         delete h_pdf_EventWeight_down;
-         delete h_renorm_EventWeight_down;
-         delete h_factor_EventWeight_down;
+         delete h_tot_HT_semiRAW; delete h_nfatjets_semiRAW;delete h_nfatjets_pre_semiRAW;delete h_dijet_mass_semiRAW;delete h_nDijet_pairs_semiRAW;delete h_nTight_b_jets_semiRAW;delete h_SJ_nAK4_300_semiRAW;delete h_AK8_pt;
+         delete h_AK8_eta;delete h_AK8_phi;delete h_AK8_mass;delete h_AK4_pt;delete h_AK4_eta;delete h_AK4_phi;delete h_AK4_mass;delete h_btag_EventWeight_T_nom; delete h_btag_EventWeight_M_nom; delete h_PU_EventWeight_nom;delete h_L1Prefiring_EventWeight_nom;delete h_JER_ScaleFactor_nom;
+         delete h_superjet_mass_SR;delete h_superjet_mass_CR;delete h_m_SJ1_AT1b;delete h_m_SJ1_AT0b;delete h_m_SJ1_SR;delete h_m_SJ1_CR;delete h_m_diSJ_SR;delete h_m_diSJ_CR;delete h_btag_EventWeight_up;
+         delete h_PU_EventWeight_up;delete h_L1Prefiring_EventWeight_up;delete h_pdf_EventWeight_up;delete h_renorm_EventWeight_up;delete h_factor_EventWeight_up;delete h_TopPT_EventWeight_up;delete h_JER_ScaleFactor_up;
+         delete h_btag_EventWeight_down;delete h_PU_EventWeight_down;delete h_L1Prefiring_EventWeight_down;delete h_pdf_EventWeight_down;delete h_renorm_EventWeight_down;delete h_factor_EventWeight_down;
          delete h_JER_ScaleFactor_down;
       }
    }
    outFile.Close();
-
-
-
-
 }
-
 
 void createCutflowROOT()
 {
-
-
    std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
 
    std::vector<std::string> signal_samples = {
@@ -637,32 +610,25 @@ void createCutflowROOT()
 "Suu6_chi1p5_ZTZT_","Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
 "Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_"};
 
-   std::vector<std::string> background_samples = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+   std::vector<std::string> background_samples = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", // "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
 
-
-
-
-   // you must change these ........
    bool runData   = false;
    bool runSignal = false;
    bool runBR     = false;
    bool runAll     = true;
    bool runSelection = false;
    bool runDataBR = false;
+
    std::vector<std::string> years = {"2018","2017","2016","2015"};//{"2015","2016","2017","2018"};    // for testing  "2015","2016","2017"
    std::vector<std::string> systematics = {"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
    int yearNum = 0;
-
 
    if (runSelection) years = {"2015"};
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
    for(auto datayear = years.begin();datayear<years.end();datayear++)
    {
-
-
-
       std::vector<std::string> data_samples;
       if(*datayear == "2015")
       {
@@ -685,15 +651,11 @@ void createCutflowROOT()
       std::string skimmedFilePaths;
       if (runAll)
       {
-
          //dataBlocks = signal_samples;
-
          dataBlocks.reserve( signal_samples.size() + background_samples.size() +data_samples.size() ); // preallocate memory
-
          dataBlocks.insert( dataBlocks.end(), signal_samples.begin(), signal_samples.end() );
          dataBlocks.insert( dataBlocks.end(), background_samples.begin(), background_samples.end() );
          dataBlocks.insert( dataBlocks.end(), data_samples.begin(), data_samples.end() );
-
       }
       else if (runDataBR)
       {
@@ -725,8 +687,6 @@ void createCutflowROOT()
          std::vector<std::string> use_systematics;
          for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
          {
-
-
             std::string year = *datayear;
             std::string systematic_str = *systematic;
 
@@ -749,7 +709,6 @@ void createCutflowROOT()
                use_systematics = {*systematic};
                outFileName= ("cutflowFiles/"+*dataBlock+year +  "_"+ systematic_str+ "_CUTFLOW.root").c_str();
             }
-             
             try
             {
                doThings(inFileName,outFileName,eventScaleFactor,year, use_systematics,*dataBlock);
@@ -766,12 +725,8 @@ void createCutflowROOT()
                   std::cout << "ERROR: Failed with sample: "<< *dataBlock<< "/" << year << "/" << systematic_str<< std::endl; 
                   continue;
                }
-               
-
             }
-
             std::cout << "Finished with "<< inFileName << std::endl;
-
             yearNum++;
          }
       }

@@ -7,6 +7,9 @@ import numpy as np
 if __name__=="__main__":
 	#try:
 
+
+					 
+
 	# keeping track of how many copy commands have already been made for each of the samples and systematics
 
 	nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
@@ -16,6 +19,7 @@ if __name__=="__main__":
 					 "TTToHadronicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  }, 
+					 "TTJetsMCHT800to1200":{ 'JEC':0,'JER':0,'nom':0 },
 					 "TTJetsMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
 					 "TTJetsMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
@@ -23,6 +27,12 @@ if __name__=="__main__":
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT800to1200":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT1200to2500":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT2500toInf":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_QQ-HT800toInf":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WW_MC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "ZZ_MC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "dataB-ver2":{'JEC':0,'JER':0,'nom':0 } ,
 					 "dataC-HIPM":{ 'JEC':0,'JER':0,'nom':0 } ,
 					 "dataD-HIPM":{'JEC':0,'JER':0,'nom':0 } ,
@@ -34,6 +44,7 @@ if __name__=="__main__":
 					 "TTToHadronicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "TTJetsMCHT800to1200":{ 'JEC':0,'JER':0,'nom':0 },
 					 "TTJetsMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
 					 "TTJetsMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
@@ -42,6 +53,12 @@ if __name__=="__main__":
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT800to1200":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT1200to2500":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT2500toInf":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_QQ-HT800toInf":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WW_MC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "ZZ_MC":{ 'JEC':0,'JER':0,'nom':0  },
 					  "dataF":{ 'JEC':0,'JER':0,'nom':0  } ,
 					 "dataG":{ 'JEC':0,'JER':0,'nom':0  } ,
 					 "dataH":{ 'JEC':0,'JER':0,'nom':0  }  } ,
@@ -51,6 +68,7 @@ if __name__=="__main__":
 					 "TTToHadronicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC':0,'JER':0,'nom':0    },
+					 "TTJetsMCHT800to1200":{ 'JEC':0,'JER':0,'nom':0 },
 					 "TTJetsMCHT1200to2500":{'JEC':0,'JER':0,'nom':0 },
 					 "TTJetsMCHT2500toInf":{'JEC':0,'JER':0,'nom':0 },
 					  "ST_t-channel-antitop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
@@ -59,6 +77,12 @@ if __name__=="__main__":
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT800to1200":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT1200to2500":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT2500toInf":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_QQ-HT800toInf":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WW_MC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "ZZ_MC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "dataB":{ 'JEC':0,'JER':0,'nom':0  } ,
 					 "dataC":{ 'JEC':0,'JER':0,'nom':0   } ,
 					 "dataD":{ 'JEC':0,'JER':0,'nom':0  } ,
@@ -70,6 +94,7 @@ if __name__=="__main__":
 					 "TTToHadronicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "TTJetsMCHT800to1200":{ 'JEC':0,'JER':0,'nom':0 },
 					 "TTJetsMCHT1200to2500":{ 'JEC':0,'JER':0,'nom':0 },
 					 "TTJetsMCHT2500toInf":{ 'JEC':0,'JER':0,'nom':0 },
 					 "ST_t-channel-antitop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
@@ -78,6 +103,12 @@ if __name__=="__main__":
 					 "ST_s-channel-leptonsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "ST_tW-top_inclMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT800to1200":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT1200to2500":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_LNu-HT2500toInf":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC_QQ-HT800toInf":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WW_MC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "ZZ_MC":{ 'JEC':0,'JER':0,'nom':0  },
 					  "dataA":{ 'JEC':0,'JER':0,'nom':0  }   ,
 					 "dataB":{ 'JEC':0,'JER':0,'nom':0  } ,
 					 "dataC":{ 'JEC':0,'JER':0,'nom':0  } ,
@@ -96,6 +127,13 @@ if __name__=="__main__":
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
+					"TTJetsMCHT800to1200":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC_LNu-HT800to1200":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC_LNu-HT1200to2500":{ 'JEC':[],'JER':[],'nom':[]   },
+					 "WJetsMC_LNu-HT2500toInf":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "WJetsMC_QQ-HT800toInf":{'JEC':[],'JER':[],'nom':[]  },
+					 "WW_MC":{'JEC':[],'JER':[],'nom':[]  },
+					 "ZZ_MC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "dataB-ver2":{ 'JEC':[],'JER':[],'nom':[]  } ,
 					 "dataC-HIPM":{ 'JEC':[],'JER':[],'nom':[]  } ,
 					 "dataD-HIPM":{ 'JEC':[],'JER':[],'nom':[]  } ,
@@ -115,6 +153,13 @@ if __name__=="__main__":
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  } ,
+					"TTJetsMCHT800to1200":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC_LNu-HT800to1200":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC_LNu-HT1200to2500":{ 'JEC':[],'JER':[],'nom':[]   },
+					 "WJetsMC_LNu-HT2500toInf":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "WJetsMC_QQ-HT800toInf":{'JEC':[],'JER':[],'nom':[]  },
+ 					 "WW_MC":{'JEC':[],'JER':[],'nom':[]  },
+					 "ZZ_MC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "dataF":{ 'JEC':[],'JER':[],'nom':[]  } ,
 					 "dataG":{ 'JEC':[],'JER':[],'nom':[]  } ,
 					 "dataH":{ 'JEC':[],'JER':[],'nom':[]  } } ,
@@ -132,6 +177,13 @@ if __name__=="__main__":
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-antiTop_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  },
+					"TTJetsMCHT800to1200":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC_LNu-HT800to1200":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC_LNu-HT1200to2500":{ 'JEC':[],'JER':[],'nom':[]   },
+					 "WJetsMC_LNu-HT2500toInf":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "WJetsMC_QQ-HT800toInf":{'JEC':[],'JER':[],'nom':[]  },
+ 					 "WW_MC":{'JEC':[],'JER':[],'nom':[]  },
+					 "ZZ_MC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "dataB":{ 'JEC':[],'JER':[],'nom':[]  } ,
 					 "dataC":{ 'JEC':[],'JER':[],'nom':[]  } ,
 					 "dataD":{ 'JEC':[],'JER':[],'nom':[]  } ,
@@ -152,6 +204,13 @@ if __name__=="__main__":
 					 "ST_s-channel-hadronsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_s-channel-leptonsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "ST_tW-top_inclMC":{ 'JEC':[],'JER':[],'nom':[]  }  , 
+					 "TTJetsMCHT800to1200":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC_LNu-HT800to1200":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC_LNu-HT1200to2500":{ 'JEC':[],'JER':[],'nom':[]   },
+					 "WJetsMC_LNu-HT2500toInf":{ 'JEC':[],'JER':[],'nom':[]  },
+					 "WJetsMC_QQ-HT800toInf":{'JEC':[],'JER':[],'nom':[]  },
+					 "WW_MC":{'JEC':[],'JER':[],'nom':[]  },
+					 "ZZ_MC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "dataA":{ 'JEC':[],'JER':[],'nom':[]  }   ,
 					 "dataB":{ 'JEC':[],'JER':[],'nom':[]  } ,
 					 "dataC":{ 'JEC':[],'JER':[],'nom':[]  } ,
@@ -160,7 +219,15 @@ if __name__=="__main__":
 
 	samples = ["QCDMC2000toInf","QCDMC1500to2000","QCDMC1000to1500","TTToHadronicMC", "TTToLeptonicMC", "TTToSemiLeptonicMC","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-antitop_inclMC", "ST_t-channel-top_inclMC", "ST_tW-antiTop_inclMC","ST_tW-top_inclMC",
 	"ST_s-channel-hadronsMC",
-	"ST_s-channel-leptonsMC", "dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM","dataF-HIPM", "dataF", "dataG", "dataH","dataB","dataC","dataD","dataE", "dataF", "dataA"
+	"ST_s-channel-leptonsMC", "dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM","dataF-HIPM", "dataF", "dataG", "dataH","dataB","dataC","dataD","dataE", "dataF", "dataA",
+"TTJetsMCHT800to1200",
+"WJetsMC_LNu-HT800to1200",
+"WJetsMC_LNu-HT1200to2500",
+"WJetsMC_LNu-HT2500toInf",
+"WJetsMC_QQ-HT800toInf",
+	"WW_MC",
+	"ZZ_MC"
+
 	]
 
 	signal_samples_pkl = open('../signal_samples.pkl', 'r')
@@ -214,7 +281,7 @@ if __name__=="__main__":
 				year_str = year		
 		if sample_str == "" or year_str == "":
 			print("Can't figure out what type of file this is (QCD,TTbar,etc.) or what the year is: ")
-			print(line.strip())
+			print("Line is: ", line.strip())
 			continue
 		#print("num/year/sys/sample = %s/%s/%s/%s"%(num_str,year_str,sys_str,sample_str))
 		if "Suu" in sample_str:
