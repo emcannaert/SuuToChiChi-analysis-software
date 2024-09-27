@@ -11,7 +11,7 @@ then
 else
 	echo "Looking for EOS files for directory $EOSBASE$1 for year $2."
 
-	xrdfs root://cmseos.fnal.gov ls -R /store/user/ecannaer/$1 > all_files.txt
+	xrdfs root://cmseos.fnal.gov ls -R $EOSBASE$1 > all_files.txt
 	
 
 	#grep -v root all_files.txt | grep /0000 | grep HTHT > HTHT_eos_paths.txt

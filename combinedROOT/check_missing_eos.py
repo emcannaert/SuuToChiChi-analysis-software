@@ -84,7 +84,7 @@ if __name__ == "__main__":
 	   "ST_tW-top_inclMC" ]
 
 
-	signal_samples_pkl = open('../signal_samples.pkl', 'r')
+	signal_samples_pkl = open('../data/pkl/signal_samples.pkl', 'r')
 	signal_samples	 = pickle.load(signal_samples_pkl)
 	signal_samples = np.array(signal_samples)
 	samples.extend(signal_samples)
@@ -111,12 +111,13 @@ if __name__ == "__main__":
 	   "ST_tW-top_inclMC" ]
    		use_samples = samples
 		use_samples.extend(data_samples[year])
+		use_samples.extend( signal_samples )
 		for sample in use_samples:
 			systematics = ["nom","JEC","JER"]
 			if "data" in sample:
 				systematics = ["nom","JEC"]
 			elif "Suu" in sample:
-				systematics = ["nom"]
+				systematics = ["nom","JEC"]
 			for systematic in systematics:
 				total_files_crab+=1
 				if "Suu" in sample:
@@ -158,12 +159,13 @@ if __name__ == "__main__":
 	   "ST_tW-top_inclMC" ]
    		use_samples = samples
 		use_samples.extend(data_samples[year])
+		use_samples.extend( signal_samples )
 		for sample in use_samples:
 			systematics = ["nom","JEC","JER"]
 			if "data" in sample:
 				systematics = ["nom","JEC"]
 			if "Suu" in sample:
-				systematics = ["nom"]
+				systematics = ["nom","JEC"]
 			for systematic in systematics:
 				total_files_combined+=1
 				combined_file  = "%s_%s_%s_combined.root"%(sample, year, systematic)
@@ -212,13 +214,14 @@ if __name__ == "__main__":
 	   "ST_tW-antiTop_inclMC",
 	   "ST_tW-top_inclMC" ]
 		use_samples = samples
+		use_samples.extend( signal_samples )
 		use_samples.extend(data_samples[year])
 		for sample in use_samples:
 			systematics = ["nom","JEC","JER"]
 			if "data" in sample:
 				systematics = ["nom","JEC"]
 			if "Suu" in sample:
-				systematics = ["nom"]
+				systematics = ["nom","JEC"]
 			for systematic in systematics:
 				total_files_skimmed+=1
 				skimmed_file   = "%s_%s_%s_SKIMMED.root"%(sample, year, systematic)
@@ -264,13 +267,14 @@ if __name__ == "__main__":
 	   "ST_tW-antiTop_inclMC",
 	   "ST_tW-top_inclMC" ]
 		use_samples = samples
+		use_samples.extend( signal_samples )
 		use_samples.extend(data_samples[year])
 		for sample in use_samples:
 			systematics = ["nom","JEC","JER"]
 			if "data" in sample:
 				systematics = ["nom","JEC"]
 			if "Suu" in sample:
-				systematics = ["nom"]
+				systematics = ["nom","JEC"]
 			for systematic in systematics:
 				total_files_cutflow+=1
 				cutflow_file   = "%s_%s_%s_CUTFLOW.root"%(sample, year, systematic)
@@ -318,6 +322,7 @@ if __name__ == "__main__":
 	   "ST_tW-antiTop_inclMC",
 	   "ST_tW-top_inclMC" ]
 		use_samples = samples
+		use_samples.extend( signal_samples )
 		use_samples.extend(data_samples[year])
 		for sample in use_samples:			
 			total_files_processed+=1
