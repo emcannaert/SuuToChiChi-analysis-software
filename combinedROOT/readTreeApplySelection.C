@@ -24,6 +24,8 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    int totEventsUncut = 0;
    bool verbose = true;
 
+   bool passesPFHT = false, passesPFJet = false;
+
    const char *_inFilename = inFileName.c_str();
    int total_btags =0;
    
@@ -40,9 +42,20 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
    std::cout << "The output file name is : " << _outFilename << std::endl;
 
-   TFile outFile(_outFilename,"RECREATE");
+   TFile * outFile = TFile::Open(_outFilename,"RECREATE");
    
    std::vector<std::string> systematic_suffices = {""};
+
+   /*
+   std::cout << "-------------------------------------------" << std::endl;
+   std::cout << "-------------------------------------------" << std::endl;
+   std::cout << "-------------------------------------------" << std::endl;
+   std::cout << " WARNING: All scale factors set to 1.0" << std::endl;
+   std::cout << "-------------------------------------------" << std::endl;
+   std::cout << "-------------------------------------------" << std::endl;
+   std::cout << "-------------------------------------------" << std::endl;
+   */
+
 
    for(auto systematic_ = systematics.begin();systematic_ < systematics.end();systematic_++)
    {
@@ -58,7 +71,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          double nEvents =0,nHTcut =0 ,nAK8JetCut =0,nHeavyAK8Cut=0,nBtagCut=0,nSJEnergyCut=0, nSJMass100Cut=0, nNN_tagged_SR =0 ;
          double nZeroBtag = 0, nZeroBtagnSJEnergyCut = 0, nZeroBtagnSJMass100Cut = 0, nNN_tagged_CR = 0;
          double nNoBTags = 0, nAT0b = 0, nAT1b = 0, nSR = 0, nCR = 0, nAT1b_noScale = 0, nAT0b_noScale = 0, nNN_tagged_AT1b = 0, nNN_tagged_AT0b = 0 ;
-         std::cout << "Looking at the " << *systematic_suffix << " tree" << std::endl;
+
          int nBadEvents = 0;
          std::string tree_string;
          std::string new_tree_string;
@@ -95,10 +108,10 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          if(verbose)std::cout << "looking for tree name: " << oldTreeName<< std::endl;
          if(verbose)std::cout << "naming new tree " << newTreeName << std::endl;
 
-         outFile.cd();   // return to outer directory
+         outFile->cd();   // return to outer directory
          //gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
          gDirectory->mkdir( newTreeDirectory.c_str()  );   //create directory for this systematic
-         outFile.cd( newTreeDirectory.c_str() );   // go inside the systematic directory 
+         outFile->cd( newTreeDirectory.c_str() );   // go inside the systematic directory 
 
          TTree *t1;
          TTree *t2;
@@ -113,12 +126,12 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t2 = t1->CloneTree(0);
          std::cout << "Successfully found tree "<< oldTreeName << std::endl;
 
-        // }
-         /*
-         catch(...)
+         //}
+
+         /*catch(...)
          {
             std::cout << "Failed finding tree " << oldTreeName<< " for file " << inFileName << std::endl;
-            return;
+            return false;
          } */
 
          t2->SetName(   newTreeName.c_str() );
@@ -148,11 +161,11 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("SJ1_decision", &SJ1_decision);
          t1->SetBranchAddress("SJ2_decision", &SJ2_decision);
 
-
-
          t1->SetBranchAddress("SJ_nAK4_50", SJ_nAK4_50);
-
          t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
+
+         t1->SetBranchAddress("passesPFHT", &passesPFHT); 
+         t1->SetBranchAddress("passesPFJet", &passesPFJet); 
 
 
          if( !(inFileName.find("data") != std::string::npos))
@@ -218,10 +231,11 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          totEventsUncut = 0;
          for (Int_t i=0;i<nentries;i++) 
          {  
-
-
-
             t1->GetEntry(i);
+
+            ///// APPLY TRIGGER 
+            if ((!passesPFHT) || (!passesPFJet) ) continue; // skip events that don't pass both triggers
+		
             totEventsUncut++;
             if ((dataBlock.find("Suu") != std::string::npos))
             {
@@ -256,6 +270,10 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                average_PUSF  += PU_eventWeight_nom;
                //if(eventWeight < 1e-5)std::cout << "ERROR: bad event weight." << std::endl;
             }
+
+
+            //eventWeight = 1.0;
+
 
             nEvents+=eventWeight;
             if (runType == "main-band")
@@ -399,7 +417,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             }
             t2->Fill();
          }
-         outFile.Write();
+         outFile->Write();
 
          std::cout << "--------------------------------------   new systematic --------------------------------------" << std::endl;
 
@@ -431,15 +449,15 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
    }
    f->Close();
-   outFile.Close();
+   outFile->Close();
    delete f;
    return true;
 
 }
 
-
 void readTreeApplySelection()
 {
+
 
 
    std::vector<std::string> signal_samples = {
@@ -457,20 +475,25 @@ void readTreeApplySelection()
 "Suu6_chi1p5_ZTZT_","Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
 "Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_"};  
    //std::vector<std::string> signal_samples = {"Suu8_chi2_WBZT_"};
-   std::string eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
+   std::string combinedROOT_eos_path       =  "root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT/";       //  "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
+   std::string skimmedFiles_eos_path       =  "root://cmseos.fnal.gov//store/user/ecannaer/skimmedFiles/";       //  "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
+   
    std:string runType = "main-band";
    // you must change these ........
-   bool runAll = false;
-   bool runData = false;
-   bool runSignal = false;
-   bool runDataBR = true;
-   bool runTTbar  = false;
-   bool runSelection = false;
+   bool runAll        = false;
+   bool runData       = false;
+   bool runSignal     = false;
+   bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
+   bool runDataBR     = true;
+   bool runTTbar      = false;
+   bool runSelection  = false;
    bool runSingleFile = false;
-   bool runExtras    = false;
-   bool runSideband = false;
+   bool runExtras     = false;
+   bool runSideband   = false;
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
+   //years = {"2018","2017","2016","2015"};  
    std::vector<std::string> systematics = {"nom", "JEC", "JER",  };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
+
    int yearNum = 0;
    int nFailedFiles = 0;
    std::string failedFiles = "";
@@ -478,18 +501,18 @@ void readTreeApplySelection()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   if (runSelection) years = {"2015"};  // single year to run over 
+   if (runSelection) years = {"2015","2016","2017","2018"};  // single year to run over 
 
    if(runSingleFile)
    {
 
-      std::string pathToFile = eos_path;
+      std::string pathToFile = combinedROOT_eos_path;
 
-      std::string year_ = "2017";
+      std::string year_ = "2016";
       std::vector<std::string> use_systematic_ = {"nom"};
-      std::string dataBlock_ = "QCDMC1000to1500_";
+      std::string dataBlock_ = "ST_s-channel-leptonsMC_";
 
-      std::string systematic_str_  = "_nom";
+      std::string systematic_str_  = "_JEC";
       std::string inFileName_ = (pathToFile + dataBlock_ + year_ +  systematic_str_ + "_combined.root").c_str();
       std::string outFileName_ = (dataBlock_ + year_ +  systematic_str_ + "_SKIMMED.root").c_str();
 
@@ -504,7 +527,6 @@ void readTreeApplySelection()
    {
       std::vector<std::string> dataBlocks_non_sig; 
       std::vector<std::string> dataBlocks; 
-      std::string skimmedFilePaths;
       if (runAll)
       {
          if(*datayear == "2015")
@@ -589,52 +611,95 @@ void readTreeApplySelection()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"ZZ_MC_", "WW_MC_"};  
+         dataBlocks = {"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"};  
       }
       else if(runExtras)
       {
          std::cout << "Running WJets and extra TTJets datasets. " << std::endl;
          dataBlocks = {   "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",  "TTJetsMCHT800to1200_"};
       }
-      else if(runSideband)
+      else if(runSimple)
       {
 
-         std::cout << "Running side-band region." << std::endl;
-
-          std::vector<std::string> dataBlocks_non_sig = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_" };
-      
-
+         systematics = {"nom"};
 
          if(*datayear == "2015")
          {
-            dataBlocks_non_sig = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "WW_MC_","ZZ_MC_" }; // dataB-ver1 not present
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_"}; // dataB-ver1 not present
          }
          else if(*datayear == "2016")
          {
-            dataBlocks_non_sig = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "WW_MC_","ZZ_MC_" };
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_"};
          }
          else if(*datayear == "2017")
          {
-            dataBlocks_non_sig = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "WW_MC_","ZZ_MC_" };
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_"};
          }
          else if(*datayear == "2018")
          {
-            dataBlocks_non_sig = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "WW_MC_","ZZ_MC_" };
-         }    
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_"} ;
+         }
+         
+         else{std::cout << "ERROR: incorrect year. "; return;} 
 
-         dataBlocks.reserve( dataBlocks_non_sig.size() + signal_samples.size() ); // preallocate memory
-         dataBlocks.insert( dataBlocks.end(), dataBlocks_non_sig.begin(), dataBlocks_non_sig.end() );
-         dataBlocks.insert( dataBlocks.end(), signal_samples.begin(), signal_samples.end() );
+
+      }
+      else if(runSideband)
+      {
+
+
+         bool runSidebandSignal  = false;
+         bool runSidebandAll     = true;
+         bool runeSidebandDataBR = false;
+         std::cout << "Running side-band region." << std::endl;
+
+
+         std::vector<std::string> dataBlocks_non_sig;
+         
+         if ( (runSidebandAll) || (runeSidebandDataBR))
+         {
+            if(*datayear == "2015")
+            {
+               dataBlocks_non_sig = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
+            "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "WW_MC_","ZZ_MC_" }; // dataB-ver1 not present
+            }
+            else if(*datayear == "2016")
+            {
+               dataBlocks_non_sig = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
+            "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "WW_MC_","ZZ_MC_" };
+            }
+            else if(*datayear == "2017")
+            {
+               dataBlocks_non_sig = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
+            "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "WW_MC_","ZZ_MC_" };
+            }
+            else if(*datayear == "2018")
+            {
+               dataBlocks_non_sig = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
+            "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "WW_MC_","ZZ_MC_" };
+            }    
+         }
+         else if( runSidebandSignal)
+         {
+            dataBlocks.reserve( signal_samples.size() ); // preallocate memory
+            dataBlocks.insert( dataBlocks.end(), signal_samples.begin(), signal_samples.end() );
+         }
+
+         if(runSidebandAll) 
+            {
+            dataBlocks = dataBlocks_non_sig;
+
+            dataBlocks.reserve( dataBlocks_non_sig.size() + signal_samples.size() ); // preallocate memory
+            dataBlocks.insert( dataBlocks.end(), dataBlocks_non_sig.begin(), dataBlocks_non_sig.end() );
+            dataBlocks.insert( dataBlocks.end(), signal_samples.begin(), signal_samples.end() );
+         }
+
 
 
          runType = "side-band";
 
-         eos_path       = "root://cmsxrootd.fnal.gov//store/user/ecannaer/sideband_combinedROOT/";
+         combinedROOT_eos_path       =  "root://cmseos.fnal.gov//store/user/ecannaer/sideband_combinedROOT/";   //"root://cmsxrootd.fnal.gov//store/user/ecannaer/sideband_combinedROOT/";
+         skimmedFiles_eos_path       =  "root://cmseos.fnal.gov//store/user/ecannaer/sideband_skimmedFiles/";       //  "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
 
       } 
       else
@@ -644,46 +709,56 @@ void readTreeApplySelection()
       }
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
       {
-
          bool JEC_has_been_opened = false;
          std::vector<std::string> use_systematics;
          for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
          {
 
-            if(( dataBlock->find("data") != std::string::npos  ) && (systematic->find("JER") != std::string::npos)) continue; // there are no JER files for data
+            if(( dataBlock->find("data") != std::string::npos  ) && ( (systematic->find("JER") != std::string::npos) ) ) continue; // there are no JER files for data,   || ((systematic->find("JEC") != std::string::npos)      
             std::string year           = *datayear;
             std::string systematic_str = *systematic;
 
             std::string inFileName;
             std::string outFileName;
 
-            std::cout << year << " " << systematic_str << " " << *dataBlock << std::endl; 
+            //std::cout << year << " " << systematic_str << " " << *dataBlock << std::endl; 
 
-            if (dataBlock->find("Suu") != std::string::npos)  // all signal systematics are in a single file
+            if (dataBlock->find("Suu") != std::string::npos) 
             {
-               if(*systematic != "nom") continue; // only need to run once for signal
-               std::cout << "Running as signal." << std::endl;
+               if((*systematic != "nom") && (*systematic != "JEC")) continue; // only need to run once for signal
+               //std::cout << "Running as signal." << std::endl;
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
-               use_systematics = {"nom","JER_eta193", "JER_193eta25", "JER","JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"};
-               inFileName  = (eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
-               outFileName= (*dataBlock + year + "_SKIMMED.root").c_str();
+               if((*systematic == "nom") ) 
+               {
+                  use_systematics = {"nom","JER_eta193", "JER_193eta25", "JER"};
+                  inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
+                  outFileName= (*dataBlock + year + "_SKIMMED.root").c_str();
+
+               }
+               else if(*systematic == "JEC")
+               {
+                  use_systematics = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year"};
+                  inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
+                  outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
+               }
+               
             }
             else if (*systematic == "JEC")  // JEC systematics comprise a large amount of sub-systematics 
             {
-               std::cout << "Running JEC uncertainties." << std::endl;
+               //std::cout << "Running JEC uncertainties." << std::endl;
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
                use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"};    // should be list of all JEC uncertainties 
-               inFileName  = (eos_path + *dataBlock + year +"_JEC_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
+               inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_JEC_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
                // if the JEC file has not yet been opened, delete the file so that it is being started from fresh 
                outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
 
             }  
             else if ( (*systematic == "JER") && !(dataBlock->find("data") != std::string::npos))  // JEC systematics comprise a large amount of sub-systematics 
             {
-               std::cout << "Running JER uncertainties." << std::endl;
+               //std::cout << "Running JER uncertainties." << std::endl;
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
                use_systematics = {"JER_eta193", "JER_193eta25", "JER"};    // should be list of all JEC uncertainties 
-               inFileName  = (eos_path + *dataBlock + year +"_JER_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
+               inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_JER_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
                // if the JEC file has not yet been opened, delete the file so that it is being started from fresh 
                outFileName= (*dataBlock + year + "_JER_SKIMMED.root").c_str();
 
@@ -693,10 +768,10 @@ void readTreeApplySelection()
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
                std::string output_dir = "";
                use_systematics = {*systematic};
-               inFileName  = (eos_path + *dataBlock + year +  "_" + systematic_str + "_combined.root").c_str();
+               inFileName  = (combinedROOT_eos_path + *dataBlock + year +  "_" + systematic_str + "_combined.root").c_str();
                outFileName= (output_dir+ *dataBlock + year + "_"+ systematic_str + "_SKIMMED.root").c_str();
             }
-            //if (runSignal) inFileName  = (eos_path+*dataBlock+  year +  "_" + systematic_str+ "_combined.root").c_str();
+            //if (runSignal) inFileName  = (combinedROOT_eos_path+*dataBlock+  year +  "_" + systematic_str+ "_combined.root").c_str();
 
             std::cout << "======================================================================================================================= " << std::endl;
             std::cout << "======================================================================================================================= " << std::endl;
@@ -706,23 +781,43 @@ void readTreeApplySelection()
 
             if (!doThings(inFileName, outFileName, eventScaleFactor, year, use_systematics, *dataBlock, runType))
             {
+
+               std::cout << "ERROR: Failed with file " << inFileName << "  ----   (" << *dataBlock << "/" << year  << "/"  << systematic_str <<")"  <<std::endl;
+
                failedFiles+= (", "+ *dataBlock +"/" + year +"/"  + systematic_str ).c_str();
                nFailedFiles++;
+
             }
             else
             {
-               std::cout << "Moving file " << outFileName << " to " << "root://cmseos.fnal.gov//store/user/ecannaer/skimmedFiles/" << std::endl;
+               std::cout << "Moving file " << outFileName << " to " << skimmedFiles_eos_path << std::endl;
                int delete_result = 1;
-               std::cout << "The directory looks like this: " << std::endl;
-               delete_result *= system( "ls -ltrh") ;
 
-               delete_result *= system( ("source  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/scp_file.sh " + outFileName + " root://cmseos.fnal.gov//store/user/ecannaer/skimmedFiles/").c_str() ) ;
-               delete_result *= system( ("rm  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str() ) ;
+               delete_result = system( ("source  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/scp_file.sh " + outFileName + " " + skimmedFiles_eos_path).c_str() ) ;
+               if (delete_result > 0) std::cout << "ERROR: failed to run scp_file.sh to copy file to eos --- " << outFileName + " /  " + skimmedFiles_eos_path << std::endl;
+               //delete_result *= system( ("rm  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str() ) ;
+               delete_result = system( ("source /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/remove_file.sh  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str()  );
+               if (delete_result > 0)
+               {
+
+                  std::cout << "ERROR: failed to remove skimmed file from local directory --- command was: " << ("source /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/remove_file.sh  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str() << std::endl;
+                  int exit_status = WEXITSTATUS(delete_result);
+                  int signal_number = WTERMSIG(delete_result);
+                  std::cerr << "Command exit status: " << exit_status << std::endl;
+                  std::cerr << "Command terminated by signal: " << signal_number << std::endl;
+                  continue;
+               }
+               else
+               {
+                  std::cout << "Done moving file " << outFileName + " to " + skimmedFiles_eos_path << "."<< std::endl;
+               }
 
 
             }
-            
-            std::cout << "Finished with "<< inFileName << std::endl;
+            std::cout << "-------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+            std::cout << "---  Finished with "<< inFileName << " (" << year << ") (" << systematic_str << ") (" << *dataBlock << ")   -- " << std::endl;
+            std::cout << "-------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+
             std:: cout << std::endl;
             std:: cout << std::endl;
             std:: cout << std::endl;
@@ -730,7 +825,12 @@ void readTreeApplySelection()
 
             std::cout << " @@@@@@@@ There have been " << nFailedFiles << " failed jobs files @@@@@@@@" << std::endl;
             std::cout << "Failed files: " << failedFiles << std::endl;
+            std::cout << "----------------------------------------------------------------------------" << std::endl;
 
+            std:: cout << std::endl;
+            std:: cout << std::endl;
+            std:: cout << std::endl;
+            std:: cout << std::endl;
 
             yearNum++;
          }

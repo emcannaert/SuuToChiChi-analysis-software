@@ -13,7 +13,7 @@ else
 	echo "Getting all eos file paths"
 	source find_eos_files.sh $1 $2
 	
-
+	
 	echo "Copying WW Files"
 	python create_eos_copy_commands.py WW_eos_paths.txt
 	source eos_copy_commands.sh
@@ -63,11 +63,8 @@ else
 		# remove files from combinedROOT
 
 
-	echo "Removing old eos file paths."
-	#eosrm /store/user/ecannaer/combinedROOT/*$2*combined.root
-
-	echo "Copying new eos files to root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT"
-	xrdcp -f *$2*combined.root root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT/
+	echo "Copying new eos files to root://cmseos.fnal.gov/$EOSBASE/combinedROOT"
+	xrdcp -f *$2*combined.root root://cmseos.fnal.gov/$EOSBASE/combinedROOT/
 	echo "Deleting eos files here to save space."
 	rm *$2*combined.root
 
@@ -77,7 +74,8 @@ else
 	rm ST_eos_paths.txt
 	rm data_eos_paths.txt
 	rm signal_eos_paths.txt
-
+	rm WW_eos_paths.txt
+	rm ZZ_eos_paths.txt
 	echo "The eos folder $1 was merged on $(date)" >> last_merge.txt
 
 	echo "Finished."

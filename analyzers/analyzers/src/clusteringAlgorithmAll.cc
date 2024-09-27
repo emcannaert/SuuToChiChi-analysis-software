@@ -171,7 +171,6 @@ private:
    std::map<std::string, float> BESTmap;
 
 
-
    //init event variables
    bool doJEC              = true;
    bool doJER              = false;
@@ -193,7 +192,6 @@ private:
    double event_reco_pt;
    double diSuperJet_mass,diSuperJet_mass_100;
    double top_pt_weight;
-   double eventBetaCOM   = -999.;
    double totHT = 0;
    double dijetMassOne, dijetMassTwo;
    int nfatjet_pre = 0;
@@ -203,7 +201,7 @@ private:
    double totMET;
    int lab_nAK4 = 0;
    double lab_AK4_pt[100];
-   double btag_score_uncut[100];
+   //double btag_score_uncut[100];
    int nAK4_uncut = 0;
    int nGenBJets_AK4[100],AK4_hadronFlavour[100], AK4_partonFlavour[100];
    int nCategories = 3;
@@ -231,7 +229,7 @@ private:
 
    double AK8_hadronFlavour[100], AK8_partonFlavour[100];
    int AK8_SJ_assignment[100], AK4_SJ_assignment[100];
-
+   bool passesPFHT = false, passesPFJet = false;
    double jet_phi[100];
    int ntrueInt;
    double diAK8Jet_mass[100];
@@ -293,6 +291,12 @@ private:
    double PDFWeightUp, PDFWeightDown;  // BEST-style PDF weights
    TRandom3 *randomNum = new TRandom3(); // for JERs
 
+   /*
+   int nLowMassJetCR_M30 = 0;
+   int nLowMassJetCR_M20 = 0;
+   int nEventsHighMass = 0;
+   int nLowMassJetCR_M45 = 0;
+   */
    // btag scale factor stuff
    std::unique_ptr<CorrectionSet> cset;
    Correction::Ref cset_corrector_bc;
@@ -329,7 +333,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
    // necessary for importing NN file
    cache_ = new CacheHandler(path_);
-   BEST_ = new BESTEvaluation(cache_);
+   BEST_  = new BESTEvaluation(cache_);
    BEST_->configure(iConfig);
 
    includeAllBranches = iConfig.getParameter<bool>("includeAllBranches");
@@ -364,7 +368,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       if(doPDFWeights)
       {
 
-         GeneratorToken_ = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
+         GeneratorToken_       = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
          lheEventProductToken_ = consumes<LHEEventProduct> (edm::InputTag("externalLHEProducer", "", "GEN"));
          //std::cout << "Getting the PDF weight tokens." << std::endl;
          //pdfWeightToken_ = consumes<std::vector<float>>(edm::InputTag("PDFweights")); // calculated with PDFRecalculator
@@ -397,13 +401,13 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       }
       
    }
-   PUfile_path    = iConfig.getParameter<edm::FileInPath>("PUfile_path");
+   PUfile_path        = iConfig.getParameter<edm::FileInPath>("PUfile_path");
    JECUncert_AK8_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK8_path");
    JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
 
    // prefiring weights
-   prefweight_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProb"));
-   prefweightup_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
+   prefweight_token     = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProb"));
+   prefweightup_token   = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
    prefweightdown_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbDown"));
 
    doPUID = iConfig.getParameter<bool>("doPUID");
@@ -463,7 +467,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    if(year == "2018")
    {
       //deepJet_wp_loose = 0.0490;
-      //deepJet_wp_med   = 0.2783;
+      deepJet_wp_med   = 0.2783;
       deepjet_wp_tight = 0.7100;
       lumiTag = "Collisions18_UltraLegacy_goldenJSON";
       triggers = {"HLT_PFJet500_v", "HLT_PFHT1050_v"};
@@ -471,7 +475,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    else if(year == "2017")
    {
       //deepJet_wp_loose = 0.0532;
-      //deepJet_wp_med   = 0.3040;
+      deepJet_wp_med   = 0.3040;
       deepjet_wp_tight = 0.7476;
       lumiTag = "Collisions17_UltraLegacy_goldenJSON";
       triggers = {"HLT_PFJet500_v", "HLT_PFHT1050_v"};
@@ -479,18 +483,18 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    else if(year == "2016")
    {
       //deepJet_wp_loose = 0.0480;
-      //deepJet_wp_med   = 0.2489;
+      deepJet_wp_med   = 0.2489;
       deepjet_wp_tight = 0.6377;
       lumiTag = "Collisions16_UltraLegacy_goldenJSON";
-      triggers  = {"HLT_PFHT900_v", "HLT_PFJet450_v"};
+      triggers  = {"HLT_PFJet450_v","HLT_PFHT900_v"};
    }
    else if(year == "2015")
    {
       //deepJet_wp_loose = 0.0508;
-      //deepJet_wp_med   = 0.2598;
+      deepJet_wp_med   = 0.2598;
       deepjet_wp_tight = 0.6502;
       lumiTag = "Collisions16_UltraLegacy_goldenJSON";
-      triggers = {"HLT_PFHT900_v", "HLT_PFJet450_v"};
+      triggers = {"HLT_PFJet450_v","HLT_PFHT900_v"};
    }
    else
    {
@@ -628,6 +632,11 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    ////////// init tree branches /////////
    ///////////////////////////////////////
 
+
+
+   tree->Branch("passesPFHT", &passesPFHT  , "passesPFHT/O");
+   tree->Branch("passesPFJet", &passesPFJet  , "passesPFJet/O");
+
    tree->Branch("nfatjets", &nfatjets, "nfatjets/I");
 
    tree->Branch("nAK4", &nAK4, "nAK4/I");
@@ -636,7 +645,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    tree->Branch("nSuperJets", &nSuperJets, "nSuperJets/I");
    tree->Branch("tot_nAK4_50", &tot_nAK4_50, "tot_nAK4_50/I");             //total #AK4 jets (E>50 GeV) for BOTH superjets
    tree->Branch("tot_nAK4_70", &tot_nAK4_70, "tot_nAK4_70/I");
-   //tree->Branch("eventBetaCOM",&eventBetaCOM, "eventBetaCOM/D");
    tree->Branch("diSuperJet_mass",&diSuperJet_mass, "diSuperJet_mass/D");
    tree->Branch("diSuperJet_mass_100",&diSuperJet_mass_100, "diSuperJet_mass_100/D");
    tree->Branch("nfatjet_pre",&nfatjet_pre, "nfatjet_pre/I");
@@ -751,7 +759,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       tree->Branch("AK42_nsubjets", AK42_nsubjets, "AK42_nsubjets[nSuperJets]/I");
 
       tree->Branch("nAK4_uncut", &nAK4_uncut, "nAK4_uncut/I");
-      tree->Branch("btag_score_uncut", btag_score_uncut, "btag_score_uncut[nAK4_uncut]/D");
+      //tree->Branch("btag_score_uncut", btag_score_uncut, "btag_score_uncut[nAK4_uncut]/D");
       tree->Branch("AK4_ptot", AK4_ptot  , "AK4_ptot[lab_nAK4]/D");
 
 
@@ -1206,7 +1214,6 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
       sumP += abs(sqrt(pow(iP_->pz(),2) + pow(iP_->px(),2)+ pow(iP_->py(),2)));
    }
 
-
    ///reclustering SuperJet that is now boosted into the SJ COM frame
    double R = 0.4;
 
@@ -1214,7 +1221,6 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, R);
    fastjet::ClusterSequence cs_jet(boostedSuperJetPart, jet_def); 
    std::vector<fastjet::PseudoJet> jetsFJ_jet = fastjet::sorted_by_E(cs_jet.inclusive_jets(0.0));
-
 
    double SJ_25_px = 0, SJ_25_py=0,SJ_25_pz=0,SJ_25_E=0;
    double SJ_50_px = 0, SJ_50_py=0,SJ_50_pz=0,SJ_50_E=0;
@@ -1248,7 +1254,7 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    {
 
       // fix this some day to allow for the case of 3 pseudojets
-      return false;
+      return false; // RETURN CUT
       std::cout << "A pseudojet vector has a size smaller than 4 - not reclustering many jets from whole pool of particles - " << jetsFJ_jet.size() << std::endl;
       treeVars["AK44_px"] = 0;
       treeVars["AK44_py"] = 0;
@@ -1313,9 +1319,7 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
          {
             AK44_parts.push_back(TLorentzVector(iPart->px(),iPart->py(),iPart->pz(),iPart->E()));
             AK44_px+=iPart->px();AK44_py+=iPart->py();AK44_pz+=iPart->pz();AK44_E+=iPart->E();
-
          }
-
       }
 
       if(iPJ->E()>1.)  SJ_nAK4_1++;   // this is just used for a fraction calculation
@@ -2010,37 +2014,40 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    ///////// Apply Triggers /////////
    //////////////////////////////////
 
-   if ((runType.find("data") != std::string::npos) )  // run trigger ONLY for data, NOT for MC
+
+   edm::Handle<edm::TriggerResults> triggerBits;
+   iEvent.getByToken(triggerBits_, triggerBits);
+
+   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+   
+   for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
    {
-      edm::Handle<edm::TriggerResults> triggerBits;
-      iEvent.getByToken(triggerBits_, triggerBits);
+      std::string trigname = *iT;
+      if(debug)std::cout << "Looking for the " << trigname << " trigger." << std::endl; 
 
-      const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-      
-      for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
+      //bool pass = false;
+      for (unsigned int i = 0; i < triggerBits->size(); ++i) 
       {
-         std::string trigname = *iT;
-         if(debug)std::cout << "Looking for the " << trigname << " trigger." << std::endl; 
-
-         bool pass = false;
-         for (unsigned int i = 0; i < triggerBits->size(); ++i) 
+         const std::string name = names.triggerName(i);
+         const bool accept = triggerBits->accept(i);
+         if ((name.find(trigname) != std::string::npos) &&(accept))
          {
-            const std::string name = names.triggerName(i);
-            const bool accept = triggerBits->accept(i);
-            if ((name.find(trigname) != std::string::npos) &&(accept))
-            {
-               if(debug)std::cout << "Found the " << *iT << " trigger." << std::endl;
-               pass =true;
-            }
-         } 
-         if(!pass)
-         {  
-             return; // if any of the triggers aren't found, skip event   return CUT
+
+            //std::cout << "trigname is " << trigname << std::endl;
+            if( ( trigname == "HLT_PFJet500_v") || (trigname == "HLT_PFJet450_v") ) passesPFJet = true;
+            else if( ( trigname == "HLT_PFHT900_v") || (trigname == "HLT_PFHT1050_v") ) passesPFHT = true;
+
+            if(debug)std::cout << "Found the " << *iT << " trigger." << std::endl;
+            //pass =true;
          }
-      }
+      } 
+      //if(!pass)
+      //{  
+      //    return; // if any of the triggers aren't found, skip event   return CUT
+      //}
    }
 
-   
+
 
    if(_verbose)std::cout << "In analyze" << std::endl;
 
@@ -2232,14 +2239,13 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       pat::Jet corrJet(*iJet);
       LorentzVector corrJetP4(AK4_sf_total*iJet->px(),AK4_sf_total*iJet->py(),AK4_sf_total*iJet->pz(),AK4_sf_total*iJet->energy());
       corrJet.setP4(corrJetP4);
-      if (_verbose)std::cout << "The PU id bool is " << bool(corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1) )<< std::endl;
-      btag_score_uncut[nAK4_uncut] = corrJet.bDiscriminator("pfDeepCSVJetTags:probb") + corrJet.bDiscriminator("pfDeepCSVJetTags:probbb");
+      if(_verbose)std::cout << "The PU id bool is " << bool(corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1) )<< std::endl;
+      //btag_score_uncut[nAK4_uncut] = corrJet.bDiscriminator("pfDeepCSVJetTags:probb") + corrJet.bDiscriminator("pfDeepCSVJetTags:probbb");
       nAK4_uncut++;
 
       //measure event HT
       if((corrJet.pt() > 30.)&&(abs(corrJet.eta()) < 2.5)  )totHT+= abs(corrJet.pt() );
       
-
       // apply AK4 jet selection (post JEC and JER)
       bool PUID = true;  // assumed true if not applying this
       if(doPUID)
@@ -2249,7 +2255,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),PUID, corrJet.pt() )) ) continue;
       
-      if( isHEM(corrJet.eta(), corrJet.phi()))return;  //RETURN CUT - if a jet is in the HEM (=bad) region, don't use this event
+      //if( isHEM(corrJet.eta(), corrJet.phi()))return;  //RETURN CUT - if a jet is in the HEM (=bad) region, don't use this event
 
       double deepJetScore = corrJet.bDiscriminator("pfDeepFlavourJetTags:probb") + corrJet.bDiscriminator("pfDeepFlavourJetTags:probbb")+ corrJet.bDiscriminator("pfDeepFlavourJetTags:problepb");
       JEC_uncert_AK4[nAK4] = AK4_JEC_corr_factor;
@@ -2320,21 +2326,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                SF_up_med   = cset_corrector_light->evaluate({"up_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
                SF_down_med = cset_corrector_light->evaluate({"down_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
 
-               if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
-               if(deepJetScore > deepjet_wp_tight)
+
+               //////// MED WP SCALE FACTOR ////////
+               if( deepJetScore > deepJet_wp_med)
                {
-
-                  // tight WP
-                  MC_tagged *= bTag_eff_value;
-                  data_tagged *= SF*bTag_eff_value;
-                  data_tagged_up *= SF_up*bTag_eff_value;
-                  data_tagged_down *= SF_down*bTag_eff_value;
-
-                  data_tagged_light_up   *= SF_up*bTag_eff_value;   // this is a light jet, shift by uncertainty
-                  data_tagged_light_down *= SF_down*bTag_eff_value; // this is a light jet, shift by uncertainty
-                  data_tagged_bc_up   *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
-                  data_tagged_bc_down *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
-
                   // med WP
                   MC_tagged_med *= bTag_eff_value_med;
                   data_tagged_med *= SF_med*bTag_eff_value_med;
@@ -2350,6 +2345,63 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                }
                else
                {
+                  // med WP
+
+                  // perform some checks here:
+                  if ( (1 - bTag_eff_value_med) < 0 ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0) std::cout << "(1 - SF_med*bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_up_med*bTag_eff_value_med) < 0) std::cout << "(1 - SF_up_med*bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_down_med*bTag_eff_value_med) < 0 ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+
+                  if ( (1 - SF_up_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_down_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+
+
+                  MC_notTagged_med *= (1 - bTag_eff_value_med);
+                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
+                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
+                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_up_med   *= (1 - SF_up_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
+                  data_notTagged_light_down_med *= (1 - SF_down_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
+                  data_notTagged_bc_up_med      *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
+                  data_notTagged_bc_down_med    *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
+               }
+
+               //////// TIGHT WP SCALE FACTOR ///////
+               if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
+               if(deepJetScore > deepjet_wp_tight)
+               {
+
+                  // tight WP
+                  MC_tagged *= bTag_eff_value;
+                  data_tagged *= SF*bTag_eff_value;
+                  data_tagged_up *= SF_up*bTag_eff_value;
+                  data_tagged_down *= SF_down*bTag_eff_value;
+
+                  data_tagged_light_up   *= SF_up*bTag_eff_value;   // this is a light jet, shift by uncertainty
+                  data_tagged_light_down *= SF_down*bTag_eff_value; // this is a light jet, shift by uncertainty
+                  data_tagged_bc_up   *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
+                  data_tagged_bc_down *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
+               }
+
+               else
+               {
+
+                  // perform some checks here:
+                  if ( (1 - bTag_eff_value) < 0 ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0) std::cout << "(1 - SF*bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_up*bTag_eff_value) < 0) std::cout << "(1 - SF_up*bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_down*bTag_eff_value) < 0 ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+
+                  if ( (1 - SF_up*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_down*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+
+
                   // tight WP
                   MC_notTagged *= (1 - bTag_eff_value);
                   data_notTagged *= (1 - SF*bTag_eff_value);
@@ -2361,16 +2413,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_bc_up      *= (1 - SF*bTag_eff_value); // this is a light jet, leave bc at nom
                   data_notTagged_bc_down    *= (1 - SF*bTag_eff_value); // this is a light jet, leave bc at nom
 
-                  // med WP
-                  MC_notTagged_med *= (1 - bTag_eff_value_med);
-                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
-                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
-                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
-
-                  data_notTagged_light_up_med   *= (1 - SF_up_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
-                  data_notTagged_light_down_med *= (1 - SF_down_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
-                  data_notTagged_bc_up_med      *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
-                  data_notTagged_bc_down_med    *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
 
                   if(_verbose)std::cout << "untagged light jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
@@ -2396,6 +2438,47 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                SF_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
+               //////// MED WP SCALE FACTOR ////////
+               if(deepJetScore > deepJet_wp_med)
+               {
+                  // med WP
+                  MC_tagged_med  *= bTag_eff_value_med;
+                  data_tagged_med *= SF_med*bTag_eff_value_med;
+                  data_tagged_up_med *= SF_up_med*bTag_eff_value_med;
+                  data_tagged_down_med *= SF_down_med*bTag_eff_value_med;
+
+                  data_tagged_light_up_med    *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_light_down_med  *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_bc_up_med       *= SF_up_med*bTag_eff_value_med;   //this is a c jet, shift bc uncertainty by sigma
+                  data_tagged_bc_down_med     *= SF_down_med*bTag_eff_value_med; //this is a c jet, shift bc uncertainty by sigma
+               }
+               else
+               {
+
+                  // perform some checks here:
+                  if ( (1 - bTag_eff_value_med) < 0 ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0) std::cout << "(1 - SF_med*bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_up_med*bTag_eff_value_med) < 0) std::cout << "(1 - SF_up_med*bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_down_med*bTag_eff_value_med) < 0 ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+
+                  if ( (1 - SF_up_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_down_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+
+                  // med WP
+                  MC_notTagged_med *= (1 - bTag_eff_value_med);
+                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
+                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
+                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_up_med     *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_up_med        *= (1 - SF_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_down_med      *= (1 - SF_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+               }
+
+               //////// TIGHT WP SCALE FACTOR ////////
                if(deepJetScore > deepjet_wp_tight)
                {
                   // tight WP
@@ -2409,21 +2492,22 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged_bc_up       *= SF_up*bTag_eff_value;   //this is a c jet, shift bc uncertainty by sigma
                   data_tagged_bc_down     *= SF_down*bTag_eff_value; //this is a c jet, shift bc uncertainty by sigma
 
-                  // med WP
-                  MC_tagged_med  *= bTag_eff_value_med;
-                  data_tagged_med *= SF_med*bTag_eff_value_med;
-                  data_tagged_up_med *= SF_up_med*bTag_eff_value_med;
-                  data_tagged_down_med *= SF_down_med*bTag_eff_value_med;
-
-                  data_tagged_light_up_med    *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
-                  data_tagged_light_down_med  *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
-                  data_tagged_bc_up_med       *= SF_up_med*bTag_eff_value_med;   //this is a c jet, shift bc uncertainty by sigma
-                  data_tagged_bc_down_med     *= SF_down_med*bTag_eff_value_med; //this is a c jet, shift bc uncertainty by sigma
-
                   if(_verbose)std::cout << "tagged c jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
                }
                else
                {
+
+                  // perform some checks here:
+                  if ( (1 - bTag_eff_value) < 0 ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0) std::cout << "(1 - SF*bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_up*bTag_eff_value) < 0) std::cout << "(1 - SF_up*bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_down*bTag_eff_value) < 0 ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+
+                  if ( (1 - SF_up*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_down*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+
                   // tight WP
                   MC_notTagged *= (1 - bTag_eff_value);
                   data_notTagged *= (1 - SF*bTag_eff_value);
@@ -2434,18 +2518,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_light_down   *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
                   data_notTagged_bc_up        *= (1 - SF_up*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
                   data_notTagged_bc_down      *= (1 - SF_down*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
-
-                  // med WP
-                  MC_notTagged_med *= (1 - bTag_eff_value_med);
-                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
-                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
-                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
-
-                  data_notTagged_light_up_med     *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
-                  data_notTagged_light_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
-                  data_notTagged_bc_up_med        *= (1 - SF_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
-                  data_notTagged_bc_down_med      *= (1 - SF_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
-
 
                   if(_verbose)std::cout << "untagged c jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
@@ -2473,6 +2545,47 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
+               //////// MED WP SCALE FACTOR ////////
+               if(deepJetScore > deepJet_wp_med)
+               {
+                  // med WP
+                  MC_tagged_med  *= bTag_eff_value_med;
+                  data_tagged_med *= SF_med*bTag_eff_value_med;
+                  data_tagged_up_med *= SF_up_med*bTag_eff_value_med;
+                  data_tagged_down_med *= SF_down_med*bTag_eff_value_med;
+
+                  data_tagged_light_up_med    *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_light_down_med  *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_bc_up_med       *= SF_up_med*bTag_eff_value_med;   //this is a b jet, shift bc uncertainty by sigma
+                  data_tagged_bc_down_med     *= SF_down_med*bTag_eff_value_med; //this is a b jet, shift bc uncertainty by sigma
+               }
+               else
+               {
+
+                  // perform some checks here:
+                  if ( (1 - bTag_eff_value_med) < 0 ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0) std::cout << "(1 - SF_med*bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_up_med*bTag_eff_value_med) < 0) std::cout << "(1 - SF_up_med*bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_down_med*bTag_eff_value_med) < 0 ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+
+                  if ( (1 - SF_up_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_down_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+                  if ( (1 - SF_med*bTag_eff_value_med) < 0   ) std::cout << "(1 - bTag_eff_value_med) less than 0" << std::endl;
+
+                  // med WP
+                  MC_notTagged_med *= (1 - bTag_eff_value_med);
+                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
+                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
+                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_up_med     *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_up_med        *= (1 - SF_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_down_med      *= (1 - SF_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+               }
+
+               //////// TIGHT WP SCALE FACTOR ////////
                if(deepJetScore > deepjet_wp_tight)
                {
                   // tight WP
@@ -2485,23 +2598,22 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged_light_down  *= SF*bTag_eff_value;      // this is a b jet, so leave light jet SF as nom
                   data_tagged_bc_up       *= SF_up*bTag_eff_value;   //this is a b jet, shift bc uncertainty by sigma
                   data_tagged_bc_down     *= SF_down*bTag_eff_value; //this is a b jet, shift bc uncertainty by sigma
-
-                  // med WP
-                  MC_tagged_med  *= bTag_eff_value_med;
-                  data_tagged_med *= SF_med*bTag_eff_value_med;
-                  data_tagged_up_med *= SF_up_med*bTag_eff_value_med;
-                  data_tagged_down_med *= SF_down_med*bTag_eff_value_med;
-
-                  data_tagged_light_up_med    *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
-                  data_tagged_light_down_med  *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
-                  data_tagged_bc_up_med       *= SF_up_med*bTag_eff_value_med;   //this is a b jet, shift bc uncertainty by sigma
-                  data_tagged_bc_down_med     *= SF_down_med*bTag_eff_value_med; //this is a b jet, shift bc uncertainty by sigma
-
                   if(_verbose)std::cout << "tagged b jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
-
                }
                else
                {  
+
+                  // perform some checks here:
+                  if ( (1 - bTag_eff_value) < 0 ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0) std::cout << "(1 - SF*bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_up*bTag_eff_value) < 0) std::cout << "(1 - SF_up*bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_down*bTag_eff_value) < 0 ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+
+                  if ( (1 - SF_up*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF_down*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+                  if ( (1 - SF*bTag_eff_value) < 0   ) std::cout << "(1 - bTag_eff_value) less than 0" << std::endl;
+
                   // tight WP
                   MC_notTagged *= (1 - bTag_eff_value);
                   data_notTagged *= (1 - SF*bTag_eff_value);
@@ -2512,21 +2624,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_light_down   *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
                   data_notTagged_bc_up        *= (1 - SF_up*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
                   data_notTagged_bc_down      *= (1 - SF_down*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
-
-                  // med WP
-                  MC_notTagged_med *= (1 - bTag_eff_value_med);
-                  data_notTagged_med *= (1 - SF_med*bTag_eff_value_med);
-                  data_notTagged_up_med *= (1 - SF_up_med*bTag_eff_value_med);
-                  data_notTagged_down_med *= (1 - SF_down_med*bTag_eff_value_med);
-
-                  data_notTagged_light_up_med     *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
-                  data_notTagged_light_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
-                  data_notTagged_bc_up_med        *= (1 - SF_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
-                  data_notTagged_bc_down_med      *= (1 - SF_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
-
-
                   if(_verbose)std::cout << "untagged b jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
-
                }
             }
             else
@@ -2594,11 +2692,21 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       bTag_eventWeight_bc_M_up  =  (data_tagged_bc_up_med*data_notTagged_bc_up_med) / (MC_tagged_med*MC_notTagged_med);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
       bTag_eventWeight_bc_M_down = (data_tagged_bc_down_med*data_notTagged_bc_down_med) / (MC_tagged_med*MC_notTagged_med);   
 
-      if ((bTag_eventWeight_T_nom != bTag_eventWeight_T_nom) || (std::isinf(bTag_eventWeight_T_nom)) || (bTag_eventWeight_T_nom < 1e-9))
+      if ((bTag_eventWeight_T_nom != bTag_eventWeight_T_nom) || (std::isinf(bTag_eventWeight_T_nom)) || (bTag_eventWeight_T_nom < 0.))
       {
          //std::cout << "BAD BTAG SF: " << bTag_eventWeight_T_nom << std::endl;
          if(_verbose)std::cout << "data_tagged_up/data_notTagged_up/MC_tagged/MC_notTagged: " <<data_tagged << "/" <<data_notTagged << "/" << MC_notTagged<< "/" << MC_notTagged<<  std::endl;
       } 
+
+
+      if ((bTag_eventWeight_M_nom != bTag_eventWeight_M_nom) || (std::isinf(bTag_eventWeight_M_nom)) || (bTag_eventWeight_M_nom < 0.))
+      {
+         //std::cout << "BAD BTAG SF: " << bTag_eventWeight_T_nom << std::endl;
+         if(_verbose)std::cout << "data_tagged_med/data_notTagged__med/MC_tagged__med/MC_notTagged_med: " <<data_tagged_med << "/" <<data_notTagged_med << "/" << MC_notTagged_med<< "/" << MC_notTagged_med<<  std::endl;
+      } 
+
+
+
    }
 
    lab_nAK4 = nAK4;
@@ -2704,6 +2812,9 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    //diAK8Jet_mass
    double tot_jet_px=0,tot_jet_py=0,tot_jet_pz=0, tot_jet_E=0;
 
+
+   int nJets_M30 = 0; // number of AK8 jets with M>30 GeV
+   int nJets_M20 = 0; // number of AK8 jets with M>20 GeV
 
 
    // loop over AK8 jets, save information for event selection, grab particles to create superjets
@@ -2822,12 +2933,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
          nfatjet_pre++;
       }
+      //if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 30.)) nJets_M30++;
+      //if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 20.))  nJets_M20++;
+      
+
       if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
       
       if(isHEM(corrJet.eta(),corrJet.phi()))
       {
          jet_isHEM[nfatjets] = true;
-         return; // RETURN CUT - do not want events that have jets in the HEM (=bad) region
+         //return; // RETURN CUT - do not want events that have jets in the HEM (=bad) region
       } 
       else{jet_isHEM[nfatjets] = false;}
 
@@ -2917,14 +3032,27 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    ////////////////////////////////
    ///////// Select events ////////
-   ////////////////////////////////
+   ////////////////////////////////  
+   /*
+   std::cout << "------------------------------------------------------------------" << std::endl;
+   if(nJets_M30 < 1) { nLowMassJetCR_M30++;    }
+   if(nJets_M20 < 1){ nLowMassJetCR_M20++;     }
+   if(nfatjet_pre < 1) { nLowMassJetCR_M45++;     }
+   if(nfatjet_pre > 1) { nEventsHighMass++;       }
+   std::cout << "------------------------------------------------------------------" << std::endl;
+
+   std::cout << "There have been " << nLowMassJetCR_M30 << " events with no jets with M_puppi > 30 GeV" << std::endl; 
+   std::cout << "There have been " << nLowMassJetCR_M20 << " events with no jets with M_puppi > 20 GeV" << std::endl;
+   std::cout << "There have been " << nLowMassJetCR_M45 << " events with no jets with M_puppi > 45 GeV" << std::endl;
+   std::cout << "There have been " << nEventsHighMass << " events with high mass (signal region where > 45 GeV)" << std::endl;
+   */
 
    if(slimmedSelection)
+
    {
       if  (  (nfatjets < 3) ||   ((nfatjet_pre < 2) && ((dijetMassOne < 1000.) || (dijetMassTwo < 1000.)  )  )  )  return;  // RETURN cut
    }
    else if ((nfatjets < 2) || (nfatjet_pre < 1) )return; // RETURN cut
-
 
 
    /////////////////////////////////////////////////
@@ -3508,7 +3636,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          double SJ2_AK43_px, SJ2_AK43_py, SJ2_AK43_pz, SJ2_AK43_E;
          double SJ2_AK44_px, SJ2_AK44_py, SJ2_AK44_pz, SJ2_AK44_E;
       */
-
 
       SJ_nAK4_50[nSuperJets] = 0,  SJ_nAK4_70[nSuperJets] =0,SJ_nAK4_100[nSuperJets] = 0,SJ_nAK4_125[nSuperJets] = 0,SJ_nAK4_150[nSuperJets] = 0,SJ_nAK4_200[nSuperJets] = 0,SJ_nAK4_300[nSuperJets] = 0,SJ_nAK4_400[nSuperJets] = 0,SJ_nAK4_1000[nSuperJets] = 0;
       SJ_nAK4_600[nSuperJets] = 0, SJ_nAK4_800[nSuperJets] = 0;

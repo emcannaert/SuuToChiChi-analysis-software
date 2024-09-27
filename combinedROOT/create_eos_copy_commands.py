@@ -230,18 +230,18 @@ if __name__=="__main__":
 
 	]
 
-	signal_samples_pkl = open('../signal_samples.pkl', 'r')
+	signal_samples_pkl = open('../data/pkl/signal_samples.pkl', 'r')
   	signal_samples     = pickle.load(signal_samples_pkl)
 	signal_samples = np.array(signal_samples)
 
-  	signal_nCommands_pkl = open('../signal_nCommands.pkl', 'r')
+  	signal_nCommands_pkl = open('../data/pkl/signal_nCommands.pkl', 'r')
   	signal_nCommands     = pickle.load(signal_nCommands_pkl)
 	signal_nCommands["2015"]["SuuToChiChi"] = {'JEC':0,'JER':0,'nom':0  }
 	signal_nCommands["2016"]["SuuToChiChi"] = {'JEC':0,'JER':0,'nom':0  }
 	signal_nCommands["2017"]["SuuToChiChi"] = {'JEC':0,'JER':0,'nom':0  }
 	signal_nCommands["2018"]["SuuToChiChi"] = {'JEC':0,'JER':0,'nom':0  }
 
-	signal_files_made_pkl = open('../signal_files_made.pkl', 'r')
+	signal_files_made_pkl = open('../data/pkl/signal_files_made.pkl', 'r')
   	signal_files_made     = pickle.load(signal_files_made_pkl)
 
   	signal_files_made["2015"]["SuuToChiChi"] = { 'JEC':[],'JER':[],'nom':[]  }
