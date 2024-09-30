@@ -39,6 +39,7 @@ allAltCrabCfgs/*.sh
 allAltCrabCfgs/signalCfgs/*.sh
 btagging/cfgs/crab/*.sh
 utils/
+allAltCrabCfgs/signalCfgs/crab_clusteringAnalyzer*
 utils/calcXS/
 utils/LHEWeightsReader/
 utils/jsonpog-integration/

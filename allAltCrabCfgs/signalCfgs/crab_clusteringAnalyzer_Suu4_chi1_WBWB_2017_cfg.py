@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config
 config = config()
 config.General.requestName = 'clustAlg_Suu4_chi1_WBWB_2017_nom_AltDatasets_000'
-config.General.workArea = 'crab_projects_sideband'
+config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.pluginName = 'Analysis'
@@ -10,6 +10,7 @@ config.Data.inputDataset = '/SuuToChiChiToWBWBToJets_MSuu-4000_MChi-1000_TuneCP5
 config.Data.publication = False
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
+config.JobType.maxMemoryMB = 3500 
 config.Data.outputDatasetTag = 'clustAlg_Suu4_chi1_WBWB_2017_nom'
-config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024716_122143_sideband'
+config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2024927_193854'
 config.Site.storageSite = 'T3_US_FNALLPC'

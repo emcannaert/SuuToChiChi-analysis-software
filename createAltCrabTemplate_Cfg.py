@@ -51,14 +51,26 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	else:
 		newCfg.write("config.Data.unitsPerJob = 1\n")
 
-	if "QCD" in sample:
-		if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
+	if systematic == "JEC" and "Suu" not in sample:
+		newCfg.write("config.JobType.maxMemoryMB = 4000 \n")
+
+	else:
+		if "Suu" in sample:
+			if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 5000 \n")
+			else:	newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+
+		elif "QCD" in sample:
+			if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
+			elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
+			else: newCfg.write("config.JobType.maxMemoryMB = 3500 # might be necessary for some of the QCD jobs\n")
+		elif "TTJets" in sample or "TTTo" in sample:
+			if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
 		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 3000 # might be necessary for some of the QCD jobs\n")
-		else: newCfg.write("config.JobType.maxMemoryMB = 2500 # might be necessary for some of the QCD jobs\n")
-	if "data" in sample:
-		if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
-		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 3500 # might be necessary for some of the QCD jobs\n")
-		else: newCfg.write("config.JobType.maxMemoryMB = 3000 # might be necessary for some of the QCD jobs\n")
+
+		if "data" in sample:
+			if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
+			elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
+			else: newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
 	#### lumimask info: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2#2018
 	if "data" in sample:
 		if year=="2015":
@@ -300,8 +312,9 @@ def main():
 			for systematic in systematics:
 				num_files_created+=1
 				if "Suu" in sample:
+					if systematic == "JER": continue
 					try:
-						makeAltCrabCfg(sample, year, "nom", datasets_signal[year][sample],dateTimeString)   # need a different dataset for signal mass points, only make a single signal cfg file to
+						makeAltCrabCfg(sample, year, systematic, datasets_signal[year][sample],dateTimeString)   # need a different dataset for signal mass points, only make a single signal cfg file to
 					except:
 						print("Failed for sample %s."%sample)
 				else:

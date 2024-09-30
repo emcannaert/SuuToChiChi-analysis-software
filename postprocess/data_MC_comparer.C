@@ -107,15 +107,28 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     std::string processedFilePaths = "../combinedROOT/processedFiles_selectionStudy/";
     std::string output_path        = "plots/dataMC/selectionStudy/";
     std::string folderName = histName;
-
+    std::string saveStr    = region + "_";
     if (runControlRegions)
     {
-        std::cout << "Inside runControlRegions clause" << std::endl;
+
+        std::cout << "----------------- Creating control region plots ------------------ " << std::endl;
         if(runSideband) processedFilePaths = "../combinedROOT/sideband_processedFiles/";
         else{ processedFilePaths = "../combinedROOT/processedFiles/"; }
 
+        std::cout << "Using files in " << processedFilePaths << std::endl;
+
         output_path        = "plots/dataMC/controlRegions/";
         folderName = "nom/" + histName + "_" + region;
+
+        if ((histName == "h_nAK4_all") || (histName == "h_nfatjets")  || (histName == "h_totHT")  || (histName == "h_nfatjets_pre"))
+        {
+            folderName = "nom/" + histName;
+            saveStr    = ""; 
+        }
+
+
+
+
 
         std::cout << "folderName is "  << folderName << " processedFilePaths is " << processedFilePaths << std::endl;
     }
@@ -282,40 +295,40 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
 
 
         hBackgrounds[0]->Draw("HIST");
-        c->SaveAs( (output_path+ histName+  "_QCDMC1000to1500_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName+  "_QCDMC1000to1500_" + saveStr + year +".png").c_str()   );
 
         hBackgrounds[1]->Draw("HIST");
-        c->SaveAs( (output_path+  histName + "_QCDMC1500to2000_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+  histName + "_QCDMC1500to2000_" + saveStr + year +".png").c_str()   );
         
         hBackgrounds[2]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_TTJetsMCHT800to1200_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName + "_TTJetsMCHT800to1200_" + saveStr + year +".png").c_str()   );
 
         hBackgrounds[3]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_TTJetsMCHT1200to2500_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName + "_TTJetsMCHT1200to2500_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[4]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_t_channel_top_inclMC_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName + "_ST_t_channel_top_inclMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[5]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_TST_t_channel_antitop_inclMC_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName + "_ST_t_channel_antitop_inclMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[6]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_s_channel_hadronsMC_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName + "_ST_s_channel_hadronsMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[7]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_s_channel_leptonsMC_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName + "_ST_s_channel_leptonsMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[8]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_tW_antiTop_inclMC_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName + "_ST_tW_antiTop_inclMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[9]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_tW_top_inclMC_" + region + "_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ histName + "_ST_tW_top_inclMC_" + saveStr + year +".png").c_str()   );
 
 
         QCD_combined = (TH1F*)hBackgrounds[0]->Clone("QCD_combined");
@@ -384,7 +397,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     hRatio->GetYaxis()->SetTitle("data/MC");
     hRatio->Divide(MC_BR_combined);   // this might be incorrect ...
     hRatio->SetMinimum(0.25); // Set y-axis range for ratio plot
-    hRatio->SetMaximum(2.0);
+    hRatio->SetMaximum(3.0);
     hRatio->SetMarkerStyle(20);
     hRatio->Draw("E1");
 
@@ -440,8 +453,10 @@ void data_MC_comparer()
 
 
     ///// SELECTION STUDY PORTION (creates data/MC plots for loose region, NOT SR/CR/AT/SB regions)
-    std::vector<std::string> hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre"};
-    std::vector<std::string> years = {"2016","2017","2018"};
+    std::vector<std::string> hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_jet_pt", "h_jet_mass", "h_lab_AK4_pt", "h_AK4_mass", "h_lab_nAK4"};
+
+
+    std::vector<std::string> years = {"2015","2016","2017","2018"};
     for(auto year = years.begin(); year != years.end(); year++)
     {
         for(auto hist_name = hist_names.begin();hist_name!=hist_names.end();hist_name++)
@@ -459,7 +474,8 @@ void data_MC_comparer()
     {
 
         std::vector<std::string> regions;
-        hist_names = { "h_disuperjet_mass",  "h_SJ_mass"};
+        hist_names = { "h_disuperjet_mass",  "h_SJ_mass", "h_nAK4_all", "h_nfatjets","h_totHT","h_nfatjets_pre"};
+
         if(runSideband) 
         {
             regions    = {"SB1b", "SB0b"};
@@ -479,7 +495,7 @@ void data_MC_comparer()
         }
         // run over AT regions
         runSideband = false;
-        regions    = {"AT1b","AT0b"};        
+        regions    = {"SR","CR","AT1b","AT0b"};        
 
         for(auto year = years.begin(); year != years.end(); year++)
         {   

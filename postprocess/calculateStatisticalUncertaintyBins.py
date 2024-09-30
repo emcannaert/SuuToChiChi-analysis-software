@@ -737,6 +737,8 @@ if __name__=="__main__":
 
 	regions = ["SR","CR", "SB1b", "SB0b"] 
 
+	#regions = [ "ADT1b", "ADT0b"] 
+
 	hist_names = ["h_MSJ_mass_vs_MdSJ_","h_MSJ_mass_vs_MdSJ_NN_"]
 	output_strs = ["", "NN_"]
 	technique_strs = ["cut-based", "NN-based"]
