@@ -24,6 +24,11 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    int totEventsUncut = 0;
    bool verbose = true;
 
+
+	bool jet_isHEM[100], jet_pre_isHEM[100], fatjet_isHEM[100]; 
+	bool AK8_fails_veto_map[100], AK4_fails_veto_map[100];
+
+
    bool passesPFHT = false, passesPFJet = false;
 
    const char *_inFilename = inFileName.c_str();
@@ -187,7 +192,16 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("AK8_is_near_highE_CA4", AK8_is_near_highE_CA4); 
          t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
 
+         t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
 
+         t1->SetBranchAddress("jet_pre_isHEM", jet_pre_isHEM); 
+         t1->SetBranchAddress("jet_isHEM", jet_isHEM); 
+         t1->SetBranchAddress("fatjet_isHEM", fatjet_isHEM); 
+
+         t1->SetBranchAddress("AK8_fails_veto_map", AK8_fails_veto_map); 
+         t1->SetBranchAddress("AK4_fails_veto_map", AK4_fails_veto_map); 
+
+         t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
          t1->SetBranchAddress("eventNumber", &eventNumber); 
 
          double looseDeepCSV_DeepJet;
@@ -229,6 +243,16 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          int tot_nAK4_light = 0,  tot_nAK4_c = 0, tot_nAK4_b = 0;
 
          totEventsUncut = 0;
+
+
+        std::cout << "=========================================" << std::endl;
+        std::cout << "=========================================" << std::endl;
+
+        std::cout << " WARNING: FIX VETO MAPS AFTER NEXT RUN" << std::endl;
+
+        std::cout << "=========================================" << std::endl;
+        std::cout << "=========================================" << std::endl;
+
          for (Int_t i=0;i<nentries;i++) 
          {  
             t1->GetEntry(i);
@@ -284,6 +308,29 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             {
                if ((totHT > 1600) || (totHT < 1200))continue;
             }
+
+
+
+            // check hem and jet veto maps  
+            for(int iii = 0; iii < nfatjets; iii++)
+            {
+            	// CHANGE THIS TO   	if(  (fatjet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue;
+
+            	if(  (jet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue;
+            }
+            for(int iii =0;iii < nAK4; iii++)
+            {
+            	// change this to if(  (jet_isHEM[iii] )  || (AK4_fails_veto_map[iii]) )continue;
+            	if(   (AK4_fails_veto_map[iii]) )continue;
+            }
+            for(int iii =0;iii < nfatjet_pre; iii++)
+            {
+            	if(  jet_pre_isHEM[iii])continue;
+            }  
+
+            
+
+
             nHTcut+=eventWeight;
             if( (nfatjets < 3)   ) continue;
             nAK8JetCut+=eventWeight;
@@ -484,12 +531,12 @@ void readTreeApplySelection()
    bool runData       = false;
    bool runSignal     = false;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
-   bool runDataBR     = true;
+   bool runDataBR     = false;
    bool runTTbar      = false;
    bool runSelection  = false;
    bool runSingleFile = false;
    bool runExtras     = false;
-   bool runSideband   = false;
+   bool runSideband   = true;
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
    //years = {"2018","2017","2016","2015"};  
    std::vector<std::string> systematics = {"nom", "JEC", "JER",  };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too

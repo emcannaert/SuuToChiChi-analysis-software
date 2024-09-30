@@ -25,7 +25,6 @@
 <use name="PhysicsTools/Heppy"/>
 <use name="lhapdf"/>
 <use name="rootmath"/>
-<use name="TreeMaker/Reflex"/>
 <use   name="RecoParticleFlow/PFProducer"/>
 <use name="SimDataFormats/GeneratorProducts"/>
 <Flags LDFLAGS="`correction config --cflags --ldflags --rpath`"/>

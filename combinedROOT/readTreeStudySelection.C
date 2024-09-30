@@ -141,8 +141,15 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
       //////////////////////////////////////////////////
 
       TH1F* h_totHT  = new TH1F("h_totHT","Total Event HT;H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
-      TH1I* h_nfatjets_pre  = new TH1I("h_nfatjets_pre","Number of AK8 Jets (p_{T} > 500 GeV, M_{PUPPI} > 45 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
-      TH1I* h_nfatjets = new TH1I("h_nfatjets","Number of AK8 Jets (E_{T} > 300 GeV per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nfatjets_pre  = new TH1F("h_nfatjets_pre","Number of AK8 Jets (p_{T} > 500 GeV, M_{PUPPI} > 45 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nfatjets = new TH1F("h_nfatjets","Number of AK8 Jets (E_{T} > 300 GeV per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+
+
+      TH1F* h_jet_pt  = new TH1F("h_jet_pt","Lab AK8 jet p_{T}; jet p_{T} [GeV]; Events / 60 GeV",50,0.,3000);
+      TH1F* h_lab_nAK4  = new TH1F("h_lab_nAK4","Number of lab AK4 Jets (p_{T} > 30 GeV |eta| < 2.5) per Event ;nAK4 Jets; Events",16,-0.5,15.5);
+      TH1F* h_lab_AK4_pt = new TH1F("h_lab_AK4_pt","Lab AK4 jet p_{T}; jet p_{T} [GeV]; Events / 40 GeV",50,0.,2000);
+      TH1F* h_jet_mass  = new TH1F("h_jet_mass","AK8 jet mass; jet mass [GeV]; Events / 40 GeV",25,0.,1000);
+      TH1F* h_AK4_mass = new TH1F("h_AK4_mass","AK4 jet mass; jet mass [GeV]; Events / 40 GeV",20,0.,800);
 
 
 
@@ -177,6 +184,14 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
 
       t1->SetBranchAddress("PU_eventWeight_nom", &PU_eventWeight);
       t1->SetBranchAddress("prefiringWeight_nom", &prefiringWeight);
+
+
+
+
+
+
+
+
 
       pdf_weight = 1.0; 
       scale_weight = 1.0; 
@@ -311,8 +326,6 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
          eventScaleFactor *= prefiringWeight;   // these are the non-MC-only systematics
 
 
-         eventScaleFactor = 1.0;
-
          if ((eventScaleFactor != eventScaleFactor) || (std::isinf(eventScaleFactor)) ||  (std::isnan(eventScaleFactor)) || (abs(eventScaleFactor) > 100) || (abs(eventScaleFactor) < 0.001)  )
          {
             std::cout << "ERROR: failed event scale factor on " << systematic << "_" << *systematic_suffix << ": value is " << eventScaleFactor << std::endl;
@@ -326,18 +339,29 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
             continue;
          }
 
+         for(int iii = 0 ; iii< nfatjets; iii++)
+         {
+            h_jet_pt->Fill( jet_pt[iii],eventScaleFactor);
+            h_jet_mass->Fill( jet_mass[iii],eventScaleFactor);
 
+         }
+         for(int iii = 0 ; iii< nAK4; iii++)
+         {
+            h_lab_AK4_pt->Fill(AK4_pt[iii] ,eventScaleFactor);
+            h_AK4_mass->Fill(AK4_mass[iii] ,eventScaleFactor);
+         }
 
+         h_lab_nAK4->Fill( 1.0*nAK4,eventScaleFactor);
 
          h_totHT->Fill(totHT,eventScaleFactor);
 
          if( totHT > 1600)
          {
 
-            h_nfatjets->Fill(nfatjets,eventScaleFactor);
+            h_nfatjets->Fill(1.0*nfatjets,eventScaleFactor);
             if(nfatjets > 2)
             {  
-               h_nfatjets_pre->Fill(nfatjet_pre,eventScaleFactor);
+               h_nfatjets_pre->Fill(1.0*nfatjet_pre,eventScaleFactor);
             }
          }
          // fill a few histograms 
@@ -367,8 +391,8 @@ void readTreeStudySelection()
    bool allHTBins    = true;
    bool runData      = false;
    bool runBR        = false;
-   bool runDataBR    = false;
-   bool runSelection = true;
+   bool runDataBR    = true;
+   bool runSelection = false;
    bool runSideband = false;
    int nFailedFiles = 0;
    std::string failedFiles = "";

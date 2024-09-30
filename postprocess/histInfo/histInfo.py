@@ -539,6 +539,8 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 			hist_path = processed_file_path + "%s_%s_processed.root"%(dataset_type,self.year)
 		#print("hist_path", hist_path)
 		hist_name = "h_MSJ_mass_vs_MdSJ_%s%s"%(self.technique_str,self.region)   # need to find what the name of this histogram
+		print("hist name is: %s in file %s"%(hist_name,hist_path)  )
+
 		#print("hist_name", hist_name)
 
 		TH2_file = ROOT.TFile.Open(hist_path,"READ")

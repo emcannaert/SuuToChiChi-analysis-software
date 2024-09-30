@@ -198,16 +198,11 @@ private:
 
    bool passesPFJet = false, passesPFHT = false;
 
-   /////////// (1) Add grid variables here ///////////
+   // variables to create a control region
 
-
-
-
-
-
-
-
-
+   int nHeavyAK8_pt400_M10 = 0, nHeavyAK8_pt400_M20 = 0, nHeavyAK8_pt400_M30 = 0;
+   int nHeavyAK8_pt300_M10 = 0, nHeavyAK8_pt300_M20 = 0, nHeavyAK8_pt300_M30 = 0; 
+   int nHeavyAK8_pt200_M10 = 0, nHeavyAK8_pt200_M20 = 0, nHeavyAK8_pt200_M30 = 0; 
 
    ///////////////////////////////////////////////
 
@@ -416,13 +411,15 @@ selectionStudier::selectionStudier(const edm::ParameterSet& iConfig)
 
    /////////// (2) Add grid variables here ///////////
 
-
-
-
-
-
-
-
+   tree->Branch("nHeavyAK8_pt400_M10",  &nHeavyAK8_pt400_M10, "nHeavyAK8_pt400_M10/I");
+   tree->Branch("nHeavyAK8_pt400_M20",  &nHeavyAK8_pt400_M20, "nHeavyAK8_pt400_M20/I");
+   tree->Branch("nHeavyAK8_pt400_M30",  &nHeavyAK8_pt400_M30, "nHeavyAK8_pt400_M30/I");
+   tree->Branch("nHeavyAK8_pt300_M10",  &nHeavyAK8_pt300_M10, "nHeavyAK8_pt300_M10/I");
+   tree->Branch("nHeavyAK8_pt300_M20",  &nHeavyAK8_pt300_M20, "nHeavyAK8_pt300_M20/I");
+   tree->Branch("nHeavyAK8_pt300_M30",  &nHeavyAK8_pt300_M30, "nHeavyAK8_pt300_M30/I");
+   tree->Branch("nHeavyAK8_pt200_M10",  &nHeavyAK8_pt200_M10, "nHeavyAK8_pt200_M10/I");
+   tree->Branch("nHeavyAK8_pt200_M20",  &nHeavyAK8_pt200_M20, "nHeavyAK8_pt200_M20/I");
+   tree->Branch("nHeavyAK8_pt200_M30",  &nHeavyAK8_pt200_M30, "nHeavyAK8_pt200_M30/I");
 
 
    ///////////////////////////////////////////////
@@ -514,13 +511,9 @@ double selectionStudier::top_pt_SF(double top_pt)
 // main analyzer function: pre-select events, recluster superjets, calculate all variables from superjets
 void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-
    if(_verbose)std::cout << " -----------------Starting Event ----------------- " << std::endl;
 
    edm::Handle< std::vector<reco::GenParticle> > genPartCollection; // this will be used several times throughout the code
-
-
-
 
    ////////////////////////////////// 
    ///////// Apply Triggers /////////
@@ -532,6 +525,9 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
    
+   passesPFJet = false;
+   passesPFHT  = false;
+
    for(auto iT = triggers.begin(); iT != triggers.end(); iT++)
    {
       std::string trigname = *iT;
@@ -647,7 +643,7 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
       double AK4_sf_total = 1.0;
 
-      if( (iJet->pt() < 15. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;   //don't even bother with these jets, lost causes
+      if( (iJet->pt() < 10. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;   //don't even bother with these jets, lost causes
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
@@ -942,7 +938,7 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    /////////////////////////////////
 
 
-   // if( totHT < 1300) return; // normal HT cut
+    if( totHT < 1600) return; // normal HT cut
 
 
 
@@ -1000,19 +996,9 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
    /////////// (4) set grid variable variable counters to zero (ex. nAK8_Et250 = 0;) ///////////
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+   nHeavyAK8_pt400_M10 = 0; nHeavyAK8_pt400_M20 = 0; nHeavyAK8_pt400_M30 = 0;
+   nHeavyAK8_pt300_M10 = 0; nHeavyAK8_pt300_M20 = 0; nHeavyAK8_pt300_M30 = 0; 
+   nHeavyAK8_pt200_M10 = 0; nHeavyAK8_pt200_M20 = 0; nHeavyAK8_pt200_M30 = 0; 
 
 
    /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1097,20 +1083,18 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
       /////////// (5) calculate grid variables here ///////////
 
+ 
+      if((corrJet.pt() > 400.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 10.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt400_M10++;
+      if((corrJet.pt() > 400.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 20.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt400_M20++;
+      if((corrJet.pt() > 400.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 30.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt400_M30++;
 
+      if((corrJet.pt() > 300.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 10.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt300_M10++;
+      if((corrJet.pt() > 300.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 20.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt300_M20++;
+      if((corrJet.pt() > 300.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 30.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt300_M30++;
 
-
-
-
-
-
-
-
-
-
-
-
-
+      if((corrJet.pt() > 200.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 10.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt200_M10++;
+      if((corrJet.pt() > 200.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 20.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt200_M20++;
+      if((corrJet.pt() > 200.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 30.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt200_M30++;
 
 
       ///////////////////////////////////////////////////////
@@ -1174,36 +1158,12 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    }
 
 
-
-   ////////////////////////////////
-   ///////// Select events ////////
-   ////////////////////////////////
-
-   ////////// (6) APPLY LOOSE (=looser than any of your grid points) SELECTION HERE ////////
+   if ((nfatjets < 2) || ((nfatjet_pre < 1  )  ) )return; // RETURN cut     ///   ((dijetMassOne < 800.) || (dijetMassTwo < 800.) // normal selection
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-   ///////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-   //if ((nfatjets < 2) || ((nfatjet_pre < 1  )  ) )return; // RETURN cut     ///   ((dijetMassOne < 800.) || (dijetMassTwo < 800.) // normal selection
 
 
    tree->Fill();

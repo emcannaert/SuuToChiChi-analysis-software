@@ -19,7 +19,14 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       isSignal = True
    systematic_ = [systematic__]
    if "Suu" in sample:
-      systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC" ]        #all_systematics
+      if systematic__ == "JER": return  ## JER is included in nom/""
+      elif systematic__ == "JEC": systematic_ = ["JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"]
+      elif systematic__ == "": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER" ]        #all_systematics
+      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER" ]        #all_systematics
+      else: 
+         print("ERROR: Suu systematic is neither JEC nor nom.")
+         return
+
    elif systematic__ == "JEC":
       systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"]
    elif systematic__ == "JER":
@@ -42,7 +49,10 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    else:
       output_dir = "allCfgs"
    if isSignal:
-      newCfg = open("%s/clusteringAnalyzer_%s_%s_cfg.py"%(output_dir,sample,year),"w")
+      if systematic__ == "JEC":
+         newCfg = open("%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic__),"w")
+      else: 
+         newCfg = open("%s/clusteringAnalyzer_%s_%s_cfg.py"%(output_dir,sample,year),"w")
    elif systematic__ == "":
       newCfg = open("%s/clusteringAnalyzer_%s_%s_%scfg.py"%(output_dir,sample,year, systematic__),"w")
    elif systematic__ == "nom":
@@ -986,7 +996,6 @@ def main():
 
             if "Suu" in sample:
                try:
-
                   JEC_sample = sample
                   if "Suu" in sample:
                      JEC_sample = "signal"
