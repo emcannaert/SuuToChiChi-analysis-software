@@ -11,6 +11,12 @@ sideband_str = ""
 if do_sideband: sideband_str = "_sideband"
 
 def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
+
+	## SKIP DOING JEC FOR TTTo datasets (COULD WANT TO CHANGE THIS SOME DAY)
+	#if "TTTo" in sample and "JEC" in systematic: return
+	if "Suu" in sample and "JEC2" in systematic: return
+
+
 	file_base = ""
 	path_backtrack = ""
 	extra_cfg_folderr = ""
@@ -36,41 +42,55 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 	newCfg.write("config.Data.inputDataset = '%s'\n"%dataset.strip())
 	newCfg.write("config.Data.publication = False\n")
-	#if "data" in sample:
-		#newCfg.write("config.Data.splitting = 'Automatic'\n")
+	if "data" in sample:
+		newCfg.write("config.Data.splitting = 'Automatic'\n")
+	else:
+		newCfg.write("config.Data.splitting = 'FileBased'\n")
+		if "TTTo" in sample or "TTJets" in sample:
+			newCfg.write("config.Data.unitsPerJob = 3\n")
+		elif "ST_" in sample:
+			newCfg.write("config.Data.unitsPerJob = 5\n")
+		elif "WJets_" in sample:
+			newCfg.write("config.Data.unitsPerJob = 10\n")
+		elif "WW" in sample or "ZZ" in sample:
+			newCfg.write("config.Data.unitsPerJob = 10\n")
+		else:
+			newCfg.write("config.Data.unitsPerJob = 1\n")
+
+	#if systematic == "JEC" and "Suu" not in sample:
+	#	newCfg.write("config.JobType.maxMemoryMB = 4000 \n")
+
 	#else:
-	newCfg.write("config.Data.splitting = 'FileBased'\n")
-	if "TTTo" in sample or "TTJets" in sample:
-		newCfg.write("config.Data.unitsPerJob = 2\n")
-	elif "ST_" in sample:
-		newCfg.write("config.Data.unitsPerJob = 5\n")
-	elif "WJets_" in sample:
-		newCfg.write("config.Data.unitsPerJob = 10\n")
-	elif "WW" in sample or "ZZ" in sample:
-		newCfg.write("config.Data.unitsPerJob = 10\n")
-	else:
-		newCfg.write("config.Data.unitsPerJob = 1\n")
 
-	if systematic == "JEC" and "Suu" not in sample:
-		newCfg.write("config.JobType.maxMemoryMB = 4000 \n")
+	if "Suu" in sample:
+		if "JEC" in systematic : newCfg.write("config.JobType.maxMemoryMB = 5000 \n")
+		else:	newCfg.write("config.JobType.maxMemoryMB = 4000 \n")
 
-	else:
-		if "Suu" in sample:
-			if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 5000 \n")
-			else:	newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+	elif "QCD" in sample:
+		if "JEC" in systematic: 
+			if "2000toInf" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+			elif "1500to2000" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3250 \n")
+			elif "1000to1500" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
+		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
+		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
+	elif "TTJets" in sample or "TTTo" in sample:
+		if "JEC" in systematic: 
+			if "800to1200" in sample: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+			elif "1200to2500" in sample: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+			elif "2500toInf" in sample: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
+		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
+	elif "ST" in sample:
+		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
+	elif "data" in sample:
+		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
+		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
 
-		elif "QCD" in sample:
-			if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
-			elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
-			else: newCfg.write("config.JobType.maxMemoryMB = 3500 # might be necessary for some of the QCD jobs\n")
-		elif "TTJets" in sample or "TTTo" in sample:
-			if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
-		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 3000 # might be necessary for some of the QCD jobs\n")
+	#if "data" not in sample:
+	#	newCfg.write("config.JobType.maxJobRuntimeMin = 420 \n")
 
-		if "data" in sample:
-			if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
-			elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
-			else: newCfg.write("config.JobType.maxMemoryMB = 4000 # might be necessary for some of the QCD jobs\n")
+			#elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
 	#### lumimask info: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2#2018
 	if "data" in sample:
 		if year=="2015":
@@ -102,7 +122,7 @@ def main():
 
    #systematics = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JER_eta193", "JER_193eta25",  "JEC","JER","nom" ]
 
-	systematics = [  "JEC","JER","nom" ]
+	systematics = [  "JEC1", "JEC2", "JER","nom" ]
 
 	datasets = {    '2015': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
 							  'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
@@ -123,7 +143,7 @@ def main():
 							  'dataC-HIPM': '/JetHT/Run2016C-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
 							  'dataD-HIPM': '/JetHT/Run2016D-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
 							  'dataE-HIPM': '/JetHT/Run2016E-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
-								  'dataF-HIPM': '/JetHT/Run2016F-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
+							  'dataF-HIPM': '/JetHT/Run2016F-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
 								  "WJetsMC_LNu-HT800to1200":  "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM"    ,
 							   "WJetsMC_LNu-HT1200to2500": "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM"  ,
 							   "WJetsMC_LNu-HT2500toInf":  "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v2/MINIAODSIM"  ,
@@ -150,7 +170,7 @@ def main():
 							  'dataF': '/JetHT/Run2016F-UL2016_MiniAODv2-v2/MINIAOD',
 							  'dataG': '/JetHT/Run2016G-UL2016_MiniAODv2-v2/MINIAOD',
 							  'dataH': '/JetHT/Run2016H-UL2016_MiniAODv2-v2/MINIAOD',
-								"WJetsMC_LNu-HT800to1200": "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM"     ,
+							   "WJetsMC_LNu-HT800to1200": "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM"     ,
 							   "WJetsMC_LNu-HT1200to2500": "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM"  ,
 							   "WJetsMC_LNu-HT2500toInf": "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v2/MINIAODSIM"   ,
 							   "WJetsMC_QQ-HT800toInf": "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v2/MINIAODSIM"   ,
@@ -317,6 +337,8 @@ def main():
 						makeAltCrabCfg(sample, year, systematic, datasets_signal[year][sample],dateTimeString)   # need a different dataset for signal mass points, only make a single signal cfg file to
 					except:
 						print("Failed for sample %s."%sample)
+				elif "data" in sample and (systematic == "JER" or "JEC" in systematic): continue  # do NOT need to do these. Tons of extra calculations
+				elif "TTTo" in  sample and (systematic == "JER" or "JEC" in systematic): continue  # don't run these right now
 				else:
 					makeAltCrabCfg(sample, year, systematic, datasets[year][sample],dateTimeString)   
 	print("Created %i cfg files."%num_files_created)

@@ -24,6 +24,8 @@ class linearized_plot:
 	n_bins_x = 22
 	n_bins_y = 20
 
+	ROOT.TH1.SetDefaultSumw2()
+	ROOT.TH2.SetDefaultSumw2()
 
 	def __init__(self, year,mass_point, technique_str):
 
@@ -53,8 +55,8 @@ class linearized_plot:
 		self.data_systematic_names = ["nom", "CMS_L1Prefiring"]
 
 		#self.systematics = ["nom","JER","JEC"] ### NEEDS TO BE CHANGED BACK
-		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight", "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",   "JER",        "JER_eta193",     "JER_193eta25",       "JEC_FlavorQCD",    "JEC_RelativeBal",      "JEC_HF",     "JEC_BBEC1",     "JEC_EC2",     "JEC_Absolute",     "JEC_BBEC1_year",     "JEC_EC2_year",    "JEC_Absolute_year",       "JEC_HF_year",    "JEC_RelativeSample_year",    "PUSF",    "topPt",     "L1Prefiring",     "pdf",     "renorm",     "fact" ]   ## systematic namings as used in analyzer     "bTagSF", 
-		self.systematic_names = ["nom",  "CMS_bTagSF_M" ,  "CMS_bTagSF_T",    "CMS_bTagSF_bc_T",       "CMS_bTagSF_light_T",       "CMS_bTagSF_bc_M",       "CMS_bTagSF_light_M",      "CMS_bTagSF_bc_T_year",        "CMS_bTagSF_light_T_year",      "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",    "CMS_jer",    "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact"]  ## systematic namings for cards   "CMS_btagSF",
+		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight", "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",   "JER",        "JER_eta193",     "JER_193eta25",    "JEC",       "JEC_FlavorQCD",    "JEC_RelativeBal",      "JEC_HF",     "JEC_BBEC1",     "JEC_EC2",     "JEC_Absolute",     "JEC_BBEC1_year",     "JEC_EC2_year",    "JEC_Absolute_year",       "JEC_HF_year",    "JEC_RelativeSample_year",    "PUSF",    "topPt",     "L1Prefiring",     "pdf",     "renorm",     "fact" ]   ## systematic namings as used in analyzer     "bTagSF", 
+		self.systematic_names = ["nom",  "CMS_bTagSF_M" ,  "CMS_bTagSF_T",    "CMS_bTagSF_bc_T",       "CMS_bTagSF_light_T",       "CMS_bTagSF_bc_M",       "CMS_bTagSF_light_M",      "CMS_bTagSF_bc_T_year",        "CMS_bTagSF_light_T_year",      "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",    "CMS_jer",    "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact"]  ## systematic namings for cards   "CMS_btagSF",
 		self.uncorrelated_systematics = [ "CMS_pu",  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
 		self.QCD_hist_SR = []
 		self.TTbar_hist_SR 	= []
@@ -164,27 +166,43 @@ class linearized_plot:
 					self.all_combined_hists_SB1b[-1].append(self.QCD_hist_SB1b[-1][iii].Clone())
 					self.all_combined_hists_SB0b[-1].append(self.QCD_hist_SB0b[-1][iii].Clone())
 
+
+				self.all_combined_hists_SR[-1][iii].Sumw2()
+				self.TTbar_hist_SR[-1][iii].Sumw2()
+				self.ST_hist_SR[-1][iii].Sumw2()
 				self.all_combined_hists_SR[-1][iii].Add(self.TTbar_hist_SR[-1][iii].Clone())
 				self.all_combined_hists_SR[-1][iii].Add(self.ST_hist_SR[-1][iii].Clone())
 				self.all_combined_hists_SR[-1][iii].SetName("allBR_%s"%(systematic+ sys_str))
 				self.all_combined_hists_SR[-1][iii].SetName("Combined Backgrounds (%s) (SR) (%s)"%(year, systematic+ sys_str))
 
+				self.TTbar_hist_CR[-1][iii].Sumw2()
+				self.ST_hist_CR[-1][iii].Sumw2()
 				self.all_combined_hists_CR[-1][iii].Add(self.TTbar_hist_CR[-1][iii].Clone())
 				self.all_combined_hists_CR[-1][iii].Add(self.ST_hist_CR[-1][iii].Clone())
 				self.all_combined_hists_CR[-1][iii].SetName("allBR_%s"%(systematic+ sys_str))
 				self.all_combined_hists_CR[-1][iii].SetName("Combined Backgrounds (%s) (CR) (%s)"%(year, systematic+ sys_str))
 
+				self.TTbar_hist_AT1b[-1][iii].Sumw2()
+				self.ST_hist_AT1b[-1][iii].Sumw2()
 				self.all_combined_hists_AT1b[-1][iii].Add(self.TTbar_hist_AT1b[-1][iii].Clone())
 				self.all_combined_hists_AT1b[-1][iii].Add(self.ST_hist_AT1b[-1][iii].Clone())
 				self.all_combined_hists_AT1b[-1][iii].SetName("allBR_%s"%(systematic+ sys_str))
 				self.all_combined_hists_AT1b[-1][iii].SetName("Combined Backgrounds (%s) (AT1b) (%s)"%(year, systematic+ sys_str))
 
+
+				self.TTbar_hist_AT0b[-1][iii].Sumw2()
+				self.ST_hist_AT0b[-1][iii].Sumw2()
 				self.all_combined_hists_AT0b[-1][iii].Add(self.TTbar_hist_AT0b[-1][iii].Clone())
 				self.all_combined_hists_AT0b[-1][iii].Add(self.ST_hist_AT0b[-1][iii].Clone())
 				self.all_combined_hists_AT0b[-1][iii].SetName("allBR_%s"%(systematic+ sys_str))
 				self.all_combined_hists_AT0b[-1][iii].SetName("Combined Backgrounds (%s) (AT0b) (%s)"%(year, systematic+ sys_str))
 
 				if self.doSideband:
+
+					self.TTbar_hist_SB1b[-1][iii].Sumw2()
+					self.ST_hist_SB1b[-1][iii].Sumw2()
+					self.TTbar_hist_SB0b[-1][iii].Sumw2()
+					self.ST_hist_SB0b[-1][iii].Sumw2()
 					self.all_combined_hists_SB1b[-1][iii].Add(self.TTbar_hist_SB1b[-1][iii].Clone())
 					self.all_combined_hists_SB1b[-1][iii].Add(self.ST_hist_SB1b[-1][iii].Clone())
 					self.all_combined_hists_SB1b[-1][iii].SetName("allBR_%s"%(systematic+ sys_str))
@@ -282,7 +300,7 @@ class linearized_plot:
 
 			if systematic_ in self.uncorrelated_systematics:
 				if year == "2015":
-					year_str = "16preVFP"
+					year_str = "16preAPV"
 				else:
 					year_str =  year[-2:]
 
@@ -337,7 +355,7 @@ class linearized_plot:
 			systematic = systematic_
 			if systematic_ in self.uncorrelated_systematics:
 				if year == "2015":
-					year_str = "16"
+					year_str = "16preAPV"
 				else:
 					year_str =  year[-2:]
 
@@ -732,6 +750,8 @@ class linearized_plot:
 			
 			return combined_hist
 	def load_signal_hist(self,region,systematic, forStats=False):
+		ROOT.TH2.SetDefaultSumw2()
+		ROOT.TH1.SetDefaultSumw2()
 
 		use_filepath = self.MC_root_file_home
 		if region in ["SB1b", "SB0b"]: use_filepath      = os.getenv('CMSSW_BASE') + "/src/combinedROOT/sideband_processedFiles/"
@@ -946,15 +966,9 @@ class linearized_plot:
 				total_counts = 0
 				for _tuple in superbin:
 
- 
 					if (_hist[iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0): ### need to verify if these need the +1 ...
 						print("ERROR: negative histogram contribution when adding up superbins (bin = %s/%s, counts = %s)"%(_tuple[0]+1, _tuple[1]+1,_hist[iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)))
 					total_counts+=_hist[iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
-
-
-					#if BR_type == "sig" and "SB" in region:
-					#   print("Tuple %s yield is %f"%(_tuple, _hist[iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)))
-				#if BR_type == "sig" and "SB" in region:  print("------ superbin %s yield is %f"%(superbin_index,total_counts))
 
 				#print("%s/%s/%s/%s ---- Superbin %s counts: %s"%(self.year, BR_type, region, systematic,superbin_index,  total_counts))
 				linear_plot.SetBinContent(superbin_index+1,total_counts)
@@ -1377,14 +1391,14 @@ if __name__=="__main__":
 	for year in years:
 		for mass_point in mass_points:
 			for iii,technique_str in enumerate(technique_strs):
-				#try:
-				print("Running for %s/%s/%s"%(year,mass_point,technique_str))
-				final_plot = linearized_plot(year, mass_point, technique_str)
-				#print("final_plot value for QCD %s %s : %s"%(year, region,final_plot.QCD_hist.GetBinContent( final_plot.QCD_hist.GetMaximumBin() )) )
-				#print("final_plot value for TTbar %s %s : %s"%(year, region,final_plot.TTbar_hist.GetBinContent( final_plot.TTbar_hist.GetMaximumBin() ))   )
-				#print("%s/%s/%s: the superbin indices have size %s"%(technique_descr[iii],year, mass_point,len(final_plot.superbin_indices)))
-				#except:
-				#	print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
+				try:
+					print("Running for %s/%s/%s"%(year,mass_point,technique_str))
+					final_plot = linearized_plot(year, mass_point, technique_str)
+					#print("final_plot value for QCD %s %s : %s"%(year, region,final_plot.QCD_hist.GetBinContent( final_plot.QCD_hist.GetMaximumBin() )) )
+					#print("final_plot value for TTbar %s %s : %s"%(year, region,final_plot.TTbar_hist.GetBinContent( final_plot.TTbar_hist.GetMaximumBin() ))   )
+					#print("%s/%s/%s: the superbin indices have size %s"%(technique_descr[iii],year, mass_point,len(final_plot.superbin_indices)))
+				except:
+					print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
 	print("Script took %ss to run."%(	np.round(time.time() - start_time,4 )) )
 
 # create one root file for each year containing all the systematics = another level of folders

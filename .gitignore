@@ -1,3 +1,7 @@
+allAltCrabCfgs/signalCfgs/*.py
+postprocess/plots/*
+allAltCrabCfgs/signalCfgs/*.pyc
+*.png
 *.root
 *.h5
 #data/

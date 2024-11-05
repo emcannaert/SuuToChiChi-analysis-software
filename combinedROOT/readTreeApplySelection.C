@@ -25,6 +25,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    bool verbose = true;
 
 
+
 	bool jet_isHEM[100], jet_pre_isHEM[100], fatjet_isHEM[100]; 
 	bool AK8_fails_veto_map[100], AK4_fails_veto_map[100];
 
@@ -204,6 +205,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
          t1->SetBranchAddress("eventNumber", &eventNumber); 
 
+
          double looseDeepCSV_DeepJet;
          double medDeepCSV_DeepJet;
          double tightDeepCSV_DeepJet;
@@ -244,14 +246,6 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
          totEventsUncut = 0;
 
-
-        std::cout << "=========================================" << std::endl;
-        std::cout << "=========================================" << std::endl;
-
-        std::cout << " WARNING: FIX VETO MAPS AFTER NEXT RUN" << std::endl;
-
-        std::cout << "=========================================" << std::endl;
-        std::cout << "=========================================" << std::endl;
 
          for (Int_t i=0;i<nentries;i++) 
          {  
@@ -314,22 +308,15 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             // check hem and jet veto maps  
             for(int iii = 0; iii < nfatjets; iii++)
             {
-            	// CHANGE THIS TO   	if(  (fatjet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue;
-
-            	if(  (jet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue;
+            	if(  (fatjet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue; //CHANGED FROM if(  (jet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue;
             }
             for(int iii =0;iii < nAK4; iii++)
             {
-            	// change this to if(  (jet_isHEM[iii] )  || (AK4_fails_veto_map[iii]) )continue;
-            	if(   (AK4_fails_veto_map[iii]) )continue;
+            	// change this to 
+            	if(  (jet_isHEM[iii] )  || (AK4_fails_veto_map[iii]) )continue; //CHANGED FROM if(   (AK4_fails_veto_map[iii]) )continue;
             }
-            for(int iii =0;iii < nfatjet_pre; iii++)
-            {
-            	if(  jet_pre_isHEM[iii])continue;
-            }  
 
             
-
 
             nHTcut+=eventWeight;
             if( (nfatjets < 3)   ) continue;
@@ -383,7 +370,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                }
 
             }
-            if ( (nTightBTags > 0)  )
+            if ( (nMedBTags > 0)  )
             {
 
 
@@ -531,15 +518,15 @@ void readTreeApplySelection()
    bool runData       = false;
    bool runSignal     = false;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
-   bool runDataBR     = false;
+   bool runDataBR     = true;
    bool runTTbar      = false;
    bool runSelection  = false;
    bool runSingleFile = false;
    bool runExtras     = false;
-   bool runSideband   = true;
+   bool runSideband   = false;
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
    //years = {"2018","2017","2016","2015"};  
-   std::vector<std::string> systematics = {"nom", "JEC", "JER",  };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
+   std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER",  };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
 
    int yearNum = 0;
    int nFailedFiles = 0;
@@ -772,35 +759,45 @@ void readTreeApplySelection()
 
             if (dataBlock->find("Suu") != std::string::npos) 
             {
-               if((*systematic != "nom") && (*systematic != "JEC")) continue; // only need to run once for signal
+               if((*systematic != "nom") && (*systematic != "JEC1") && (*systematic != "JEC") ) continue; // only need to run once for signal
                //std::cout << "Running as signal." << std::endl;
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
                if((*systematic == "nom") ) 
                {
-                  use_systematics = {"nom","JER_eta193", "JER_193eta25", "JER"};
+                  use_systematics = {"nom", "JER_eta193", "JER_193eta25", "JER", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute" };
                   inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
                   outFileName= (*dataBlock + year + "_SKIMMED.root").c_str();
-
                }
                else if(*systematic == "JEC")
                {
                   use_systematics = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year"};
                   inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
                   outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
+                   
+               }
+               else if( *systematic == "JEC1" != std::string::npos)
+               {
+                  use_systematics = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"};
+                  inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
+                  outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
                }
                
             }
-            else if (*systematic == "JEC")  // JEC systematics comprise a large amount of sub-systematics 
+            else if ( systematic->find("JEC") != std::string::npos)  // JEC systematics comprise a large amount of sub-systematics 
             {
                //std::cout << "Running JEC uncertainties." << std::endl;
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
-               use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"};    // should be list of all JEC uncertainties 
+
+               if     (systematic == "JEC") use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"};   
+               else if(systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"}; 
+               else if(systematic == "JEC2") use_systematics = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; 
+
                inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_JEC_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
                // if the JEC file has not yet been opened, delete the file so that it is being started from fresh 
                outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
 
             }  
-            else if ( (*systematic == "JER") && !(dataBlock->find("data") != std::string::npos))  // JEC systematics comprise a large amount of sub-systematics 
+            else if ( (systematic == "JER") && !(dataBlock->find("data") != std::string::npos))  // JEC systematics comprise a large amount of sub-systematics 
             {
                //std::cout << "Running JER uncertainties." << std::endl;
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;

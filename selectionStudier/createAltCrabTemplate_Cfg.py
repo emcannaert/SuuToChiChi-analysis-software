@@ -29,32 +29,47 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	newCfg.write("config.General.transferOutputs = True\n")
 	newCfg.write("config.JobType.allowUndistributedCMSSW = True\n")
 	newCfg.write("config.JobType.pluginName = 'Analysis'\n")
+
+
+	##### NEW STUFF ADDED TO PREVENT BLOCKS FROM BEING SKIPPED
+
+
+	newCfg.write("config.Site.whitelist = []\n")
+	newCfg.write("config.Site.blacklist = []\n")
+	#newCfg.write("config.Site.allowNonProductionCMSSW = True\n")
+
 	if systematic == "nom": 
 		newCfg.write("config.JobType.psetName = '%s../allCfgs/%sselectionStudier_%s_%s_cfg.py'\n"%(path_backtrack, file_base,sample,year))
 	else:
 		newCfg.write("config.JobType.psetName = '%s../allCfgs/%sselectionStudier_%s_%s_%s_cfg.py'\n"%(path_backtrack, file_base,sample,year, systematic))
 
+
+	
+
 	newCfg.write("config.Data.inputDataset = '%s'\n"%dataset.strip())
 	newCfg.write("config.Data.publication = False\n")
-	#if "data" in sample:
-		#newCfg.write("config.Data.splitting = 'Automatic'\n")
-	#else:
-	newCfg.write("config.Data.splitting = 'FileBased'\n")
-	if "TTTo" in sample or "TTJets" in sample:
-		newCfg.write("config.Data.unitsPerJob = 2\n")
-	elif "ST_" in sample:
-		newCfg.write("config.Data.unitsPerJob = 5\n")
-	elif "WJets_" in sample:
-		newCfg.write("config.Data.unitsPerJob = 10\n")
-	elif "WW" in sample or "ZZ" in sample:
-		newCfg.write("config.Data.unitsPerJob = 10\n")
+	if "data" in sample:
+		newCfg.write("config.Data.splitting = 'Automatic'\n")
 	else:
-		newCfg.write("config.Data.unitsPerJob = 1\n")
+		newCfg.write("config.Data.splitting = 'FileBased'\n")
+		if "TTTo" in sample or "TTJets" in sample:
+			newCfg.write("config.Data.unitsPerJob = 10\n")
+		elif "TTJets" in sample or "TTJets" in sample:
+			newCfg.write("config.Data.unitsPerJob = 4\n")
+		elif "ST_" in sample:
+			newCfg.write("config.Data.unitsPerJob = 10\n")
+		elif "WJets_" in sample:
+			newCfg.write("config.Data.unitsPerJob = 10\n")
+		elif "WW" in sample or "ZZ" in sample:
+			newCfg.write("config.Data.unitsPerJob = 10\n")
+		else:
+			newCfg.write("config.Data.unitsPerJob = 2\n")
+		newCfg.write("config.JobType.maxJobRuntimeMin = 200 \n")
 
 	if "QCD" in sample:
 		if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 2500 # might be necessary for some of the QCD jobs\n")
-		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 # might be necessary for some of the QCD jobs\n")
-		else: newCfg.write("config.JobType.maxMemoryMB = 2500 # might be necessary for some of the QCD jobs\n")
+		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2000 # might be necessary for some of the QCD jobs\n")
+		else: newCfg.write("config.JobType.maxMemoryMB = 2000 # might be necessary for some of the QCD jobs\n")
 	if "data" in sample:
 		if systematic == "JEC": newCfg.write("config.JobType.maxMemoryMB = 2500 # might be necessary for some of the QCD jobs\n")
 		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 # might be necessary for some of the QCD jobs\n")
