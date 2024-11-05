@@ -6,13 +6,13 @@
 
 
 using namespace std;
-bool doThings(std::string inFileName, std::string outFileName, double eventScaleFactor, std::string dataYear,std::string systematic, std::string dataBlock, std::string runType)
+bool doThings(std::string inFileName, std::string outFileName, std::string dataYear,std::string systematic, std::string dataBlock, std::string runType)
 {
 
 
    TH1::SetDefaultSumw2();
    TH2::SetDefaultSumw2();
-   double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
+   double jet_pt[100], jet_eta[100], jet_phi[100],jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
    double AK4_mass_20[100],AK4_mass_30[100],AK4_mass_50[100],AK4_mass_70[100],AK4_mass_100[100],SJ_mass_150[100],SJ_mass_600[100],SJ_mass_800[100],SJ_mass_1000[100];
    double SJ_mass_50[100], SJ_mass_70[100],superJet_mass[100],SJ_AK4_50_mass[100],SJ_AK4_70_mass[100];
    int nSuperJets;
@@ -38,8 +38,11 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
    double pdf_weight = 1.0,factWeight=1.0, renormWeight = 1.0, scale_weight = 1.0,topPtWeight=1.0;
    std::vector<std::string> systematic_suffices;
 
+   bool passesPFJet,  passesPFHT;
+   int nHeavyAK8_pt400_M10 =0,nHeavyAK8_pt400_M20=0,nHeavyAK8_pt400_M30=0,nHeavyAK8_pt300_M10=0, nHeavyAK8_pt300_M20=0,nHeavyAK8_pt300_M30=0,nHeavyAK8_pt200_M10=0,nHeavyAK8_pt200_M20=0;
+   int nHeavyAK8_pt200_M30=0, nAK8_pt200=0, nAK8_pt300=0, nAK8_pt150=0, nAK8_pt500 =0, nHeavyAK8_pt500_M45=0, nAK8_pt200_noCorr=0, nAK8_pt300_noCorr =0,nAK8_pt150_noCorr=0, nAK8_pt500_noCorr=0, nHeavyAK8_pt500_M45_noCorr=0;
 
-
+   bool jet_isHEM[100];
    int total_1b = 0, total_0b = 0;
 
    int totEventsUncut;
@@ -79,7 +82,7 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
    }
    TFile outFile(_outFilename,"UPDATE");
 
-
+   /*
    std::cout << "----------------------------------------------------- " << std::endl;
    std::cout << "----------------------------------------------------- " << std::endl;
    std::cout << "----------------------------------------------------- " << std::endl;
@@ -89,7 +92,7 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
    std::cout << "----------------------------------------------------- " << std::endl;
    std::cout << "----------------------------------------------------- " << std::endl;
    std::cout << "----------------------------------------------------- " << std::endl;
-
+   */
    for(auto systematic_suffix = systematic_suffices.begin(); systematic_suffix < systematic_suffices.end();systematic_suffix++)
    {
 
@@ -142,16 +145,43 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
 
       TH1F* h_totHT  = new TH1F("h_totHT","Total Event HT;H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
       TH1F* h_nfatjets_pre  = new TH1F("h_nfatjets_pre","Number of AK8 Jets (p_{T} > 500 GeV, M_{PUPPI} > 45 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
-      TH1F* h_nfatjets = new TH1F("h_nfatjets","Number of AK8 Jets (E_{T} > 300 GeV per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nfatjets = new TH1F("h_nfatjets","Number of AK8 Jets (E_{T} > 200) GeV per Event ;nAK8 Jets; Events",10,-0.5,9.5);
 
 
-      TH1F* h_jet_pt  = new TH1F("h_jet_pt","Lab AK8 jet p_{T}; jet p_{T} [GeV]; Events / 60 GeV",50,0.,3000);
-      TH1F* h_lab_nAK4  = new TH1F("h_lab_nAK4","Number of lab AK4 Jets (p_{T} > 30 GeV |eta| < 2.5) per Event ;nAK4 Jets; Events",16,-0.5,15.5);
-      TH1F* h_lab_AK4_pt = new TH1F("h_lab_AK4_pt","Lab AK4 jet p_{T}; jet p_{T} [GeV]; Events / 40 GeV",50,0.,2000);
-      TH1F* h_jet_mass  = new TH1F("h_jet_mass","AK8 jet mass; jet mass [GeV]; Events / 40 GeV",25,0.,1000);
+      TH1F* h_AK8_pt  = new TH1F("h_AK8_pt","Lab AK8 jet p_{T}; jet p_{T} [GeV]; Events / 60 GeV",50,0.,3000);
+      TH1F* h_AK8_eta  = new TH1F("h_AK8_eta","Lab AK8 jet #eta; jet #eta; Events",40,-3.0,3.0);
+      TH1F* h_AK8_phi  = new TH1F("h_AK8_phi","Lab AK8 jet #phi; jet #phi; Events",40,-3.2,3.2);
+
+      TH1F* h_AK4_eta  = new TH1F("h_AK4_eta","Lab AK4 jet #eta; jet #eta; Events",40,-3.0,3.0);
+      TH1F* h_AK4_phi  = new TH1F("h_AK4_phi","Lab AK4 jet #phi; jet #phi; Events",40,-3.2,3.2);
+      TH1F* h_nAK4  = new TH1F("h_nAK4","Number of lab AK4 Jets (p_{T} > 30 GeV |eta| < 2.5) per Event ;nAK4 Jets; Events",16,-0.5,15.5);
+      TH1F* h_AK4_pt = new TH1F("h_AK4_pt","Lab AK4 jet p_{T}; jet p_{T} [GeV]; Events / 40 GeV",50,0.,2000);
+
+      TH1F* h_AK8_mass  = new TH1F("h_AK8_mass","AK8 jet mass; jet mass [GeV]; Events / 40 GeV",25,0.,1000);
       TH1F* h_AK4_mass = new TH1F("h_AK4_mass","AK4 jet mass; jet mass [GeV]; Events / 40 GeV",20,0.,800);
 
 
+      TH1F* h_nHeavyAK8_pt400_M10  = new TH1F("h_nHeavyAK8_pt400_M10","Number of AK8 Jets (p_{T} > 400 GeV, M_{SD} > 10) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt400_M20  = new TH1F("h_nHeavyAK8_pt400_M20","Number of AK8 Jets (p_{T} > 400 GeV, M_{SD} > 20) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt400_M30  = new TH1F("h_nHeavyAK8_pt400_M30","Number of AK8 Jets (p_{T} > 400 GeV, M_{SD} > 30) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt300_M10  = new TH1F("h_nHeavyAK8_pt300_M10","Number of AK8 Jets (p_{T} > 300 GeV, M_{SD} > 10) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt300_M20  = new TH1F("h_nHeavyAK8_pt300_M20","Number of AK8 Jets (p_{T} > 300 GeV, M_{SD} > 20) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt300_M30  = new TH1F("h_nHeavyAK8_pt300_M30","Number of AK8 Jets (p_{T} > 300 GeV, M_{SD} > 30) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt200_M10  = new TH1F("h_nHeavyAK8_pt200_M10","Number of AK8 Jets (p_{T} > 200 GeV, M_{SD} > 10) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt200_M20  = new TH1F("h_nHeavyAK8_pt200_M20","Number of AK8 Jets (p_{T} > 200 GeV, M_{SD} > 20) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt200_M30  = new TH1F("h_nHeavyAK8_pt200_M30","Number of AK8 Jets (p_{T} > 200 GeV, M_{SD} > 30) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+
+      TH1F* h_nAK8_pt200  = new TH1F("h_nAK8_pt200","Number of AK8 Jets (p_{T} > 200 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nAK8_pt300  = new TH1F("h_nAK8_pt300","Number of AK8 Jets (p_{T} > 300 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nAK8_pt150  = new TH1F("h_nAK8_pt150","Number of AK8 Jets (p_{T} > 150 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nAK8_pt500  = new TH1F("h_nAK8_pt500","Number of AK8 Jets (p_{T} > 500 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nAK8_pt200_noCorr    = new TH1F("h_nAK8_pt200_noCorr","Number of AK8 Jets (no JER, p_{T} > 200 GeV )per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nAK8_pt300_noCorr    = new TH1F("h_nAK8_pt300_noCorr","Number of AK8 Jets (no JER, p_{T} > 300 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nAK8_pt150_noCorr    = new TH1F("h_nAK8_pt150_noCorr","Number of AK8 Jets (no JER, p_{T} > 150 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nAK8_pt500_noCorr    = new TH1F("h_nAK8_pt500_noCorr","Number of AK8 Jets (no JER, p_{T} > 500 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+
+      TH1F* h_nHeavyAK8_pt500_M45  = new TH1F("h_nHeavyAK8_pt500_M45","Number of AK8 Jets (p_{T} > 500 GeV, M_{SD} > 45 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
+      TH1F* h_nHeavyAK8_pt500_M45_noCorr = new TH1F("h_nHeavyAK8_pt500_M45_noCorr","Number of AK8 Jets (no JER, p_{T} > 500 GeV, M_{SD} > 45 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
 
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,6 +191,8 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
       t1->SetBranchAddress("nfatjet_pre", &nfatjet_pre); 
       t1->SetBranchAddress("jet_pt", jet_pt);   
       t1->SetBranchAddress("jet_eta", jet_eta);   
+      t1->SetBranchAddress("jet_phi", jet_phi);   
+
       t1->SetBranchAddress("jet_mass", jet_mass);   
 
       t1->SetBranchAddress("totHT", &totHT);
@@ -185,12 +217,28 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
       t1->SetBranchAddress("PU_eventWeight_nom", &PU_eventWeight);
       t1->SetBranchAddress("prefiringWeight_nom", &prefiringWeight);
 
-
-
-
-
-
-
+      t1->SetBranchAddress("jet_isHEM", jet_isHEM);
+      t1->SetBranchAddress("passesPFJet", &passesPFJet);
+      t1->SetBranchAddress("passesPFHT", &passesPFHT);
+      t1->SetBranchAddress("nHeavyAK8_pt400_M10", &nHeavyAK8_pt400_M10);
+      t1->SetBranchAddress("nHeavyAK8_pt400_M20", &nHeavyAK8_pt400_M20);
+      t1->SetBranchAddress("nHeavyAK8_pt400_M30", &nHeavyAK8_pt400_M30);
+      t1->SetBranchAddress("nHeavyAK8_pt300_M10", &nHeavyAK8_pt300_M10);
+      t1->SetBranchAddress("nHeavyAK8_pt300_M20", &nHeavyAK8_pt300_M20);
+      t1->SetBranchAddress("nHeavyAK8_pt300_M30", &nHeavyAK8_pt300_M30);
+      t1->SetBranchAddress("nHeavyAK8_pt200_M10", &nHeavyAK8_pt200_M10);
+      t1->SetBranchAddress("nHeavyAK8_pt200_M20", &nHeavyAK8_pt200_M20);
+      t1->SetBranchAddress("nHeavyAK8_pt200_M30", &nHeavyAK8_pt200_M30);
+      t1->SetBranchAddress("nAK8_pt200", &nAK8_pt200);
+      t1->SetBranchAddress("nAK8_pt300", &nAK8_pt300);
+      t1->SetBranchAddress("nAK8_pt150", &nAK8_pt150);
+      t1->SetBranchAddress("nAK8_pt500", &nAK8_pt500);
+      t1->SetBranchAddress("nHeavyAK8_pt500_M45", &nHeavyAK8_pt500_M45);
+      t1->SetBranchAddress("nAK8_pt200_noCorr", &nAK8_pt200_noCorr);
+      t1->SetBranchAddress("nAK8_pt300_noCorr", &nAK8_pt300_noCorr);
+      t1->SetBranchAddress("nAK8_pt150_noCorr", &nAK8_pt150_noCorr);
+      t1->SetBranchAddress("nAK8_pt500_noCorr", &nAK8_pt500_noCorr);
+      t1->SetBranchAddress("nHeavyAK8_pt500_M45_noCorr", &nHeavyAK8_pt500_M45_noCorr);
 
 
       pdf_weight = 1.0; 
@@ -241,56 +289,92 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
 
          t1->GetEntry(i);
          
+
+         if ( (!passesPFHT) && (!passesPFJet)) continue; // needs to pass at least one of these 
+
+
+         h_nHeavyAK8_pt400_M10->Fill(nHeavyAK8_pt400_M10);
+         h_nHeavyAK8_pt400_M20->Fill(nHeavyAK8_pt400_M20);
+         h_nHeavyAK8_pt400_M30->Fill(nHeavyAK8_pt400_M30);
+         h_nHeavyAK8_pt300_M10->Fill(nHeavyAK8_pt300_M10);
+         h_nHeavyAK8_pt300_M20->Fill(nHeavyAK8_pt300_M20);
+         h_nHeavyAK8_pt300_M30->Fill(nHeavyAK8_pt300_M30);
+         h_nHeavyAK8_pt200_M10->Fill(nHeavyAK8_pt200_M10);
+         h_nHeavyAK8_pt200_M20->Fill(nHeavyAK8_pt200_M20);
+         h_nHeavyAK8_pt200_M30->Fill(nHeavyAK8_pt200_M30);
+         h_nAK8_pt200->Fill(nAK8_pt200);
+         h_nAK8_pt300->Fill(nAK8_pt300);
+         h_nAK8_pt150->Fill(nAK8_pt150);
+         h_nAK8_pt500->Fill(nAK8_pt500);
+         h_nHeavyAK8_pt500_M45->Fill(nHeavyAK8_pt500_M45);
+         h_nAK8_pt200_noCorr->Fill(nAK8_pt200_noCorr);
+         h_nAK8_pt300_noCorr->Fill(nAK8_pt300_noCorr);
+         h_nAK8_pt150_noCorr->Fill(nAK8_pt150_noCorr);
+         h_nAK8_pt500_noCorr->Fill(nAK8_pt500_noCorr);
+         h_nHeavyAK8_pt500_M45_noCorr->Fill(nHeavyAK8_pt500_M45_noCorr);
+
+
+
+
+         
+
          prefiringWeight = 1.0;
 
          // check to make sure none of the AK4 or AK8 jets are in the veto region
          bool fails_veto_map = false;
+         bool fails_HEM      = false;
          for(int iii=0;iii<nfatjets;iii++)
          {
+
+            h_AK8_eta->Fill(jet_eta[iii]);
+            h_AK8_phi->Fill(jet_phi[iii]);
+            if(jet_isHEM[iii]) fails_HEM = true;
             if (AK8_fails_veto_map[iii]) fails_veto_map = true;
          }
          for(int iii = 0;iii<nAK4;iii++)
          {
+            h_AK4_eta->Fill(AK4_eta[iii]);
+            h_AK4_phi->Fill(AK4_phi[iii]);
             if (AK4_fails_veto_map[iii]) fails_veto_map = true;
          }
 
-         //if(fails_veto_map)continue;
+         if(fails_veto_map || fails_HEM)continue;
 
 
-         eventScaleFactor = 1.0;
+         double eventScaleFactor = 1.0;
 
 
          if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos)  )
          {
 
             ////// check MC systematics
-            if ((bTag_eventWeight_T != bTag_eventWeight_T) || (std::isinf(bTag_eventWeight_T)) || (std::isnan(bTag_eventWeight_T)) || (abs(bTag_eventWeight_T) > 100) || (abs(bTag_eventWeight_T) < 0.001)  )
+            if ((bTag_eventWeight_T != bTag_eventWeight_T) || (std::isinf(bTag_eventWeight_T)) || (std::isnan(bTag_eventWeight_T)) || (abs(bTag_eventWeight_T) > 100) )
             {
                bTag_eventWeight_T = 1.0;
                num_bad_btagSF++;
             }
 
             ////// check MC systematics
-            if ((bTag_eventWeight_M != bTag_eventWeight_M) || (std::isinf(bTag_eventWeight_M)) || (std::isnan(bTag_eventWeight_M)) || (abs(bTag_eventWeight_M) > 100) || (abs(bTag_eventWeight_M) < 0.001)  )
+            if ((bTag_eventWeight_M != bTag_eventWeight_M) || (std::isinf(bTag_eventWeight_M)) || (std::isnan(bTag_eventWeight_M)) || (abs(bTag_eventWeight_M) > 100)   )
             {
                bTag_eventWeight_M = 1.0;
                num_bad_btagSF++;
             }
 
-            if ((PU_eventWeight != PU_eventWeight) || (std::isinf(PU_eventWeight))|| (std::isnan(PU_eventWeight)) || (abs(PU_eventWeight) > 100) || (abs(PU_eventWeight) < 0.001)   )
+            if ((PU_eventWeight != PU_eventWeight) || (std::isinf(PU_eventWeight))|| (std::isnan(PU_eventWeight)) || (abs(PU_eventWeight) > 100)  )
             {
                PU_eventWeight = 1.0;
                num_bad_PUSF++;
             }
 
-            if ((factWeight != factWeight) || (std::isinf(factWeight))  || (std::isnan(factWeight)) || (abs(factWeight) > 100) || (abs(factWeight) < 0.001) )
+            if ((factWeight != factWeight) || (std::isinf(factWeight))  || (std::isnan(factWeight)) || (abs(factWeight) > 100)  )
             {
                factWeight = 1.0;
               // num_bad_scale++;
                //std::cout << "BAD factorization weight during " << systematic << "_" << *systematic_suffix << ": " << factWeight << std::endl;
             }
 
-            if ((renormWeight != renormWeight) || (std::isinf(renormWeight))  || (std::isnan(renormWeight)) || (abs(renormWeight) > 100) || (abs(renormWeight) < 0.001))
+            if ((renormWeight != renormWeight) || (std::isinf(renormWeight))  || (std::isnan(renormWeight)) || (abs(renormWeight) > 100))
             {
                renormWeight = 1.0;
               //std::cout << "BAD renormalization weight during " << systematic << "_" << *systematic_suffix << ": " << renormWeight << std::endl;
@@ -298,14 +382,14 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
 
             scale_weight = renormWeight*factWeight;  
 
-            if ((topPtWeight != topPtWeight) || (std::isinf(topPtWeight)) || (std::isnan(topPtWeight)) || (abs(topPtWeight) > 100) || (abs(topPtWeight) < 0.001))
+            if ((topPtWeight != topPtWeight) || (std::isinf(topPtWeight)) || (std::isnan(topPtWeight)) || (abs(topPtWeight) > 100))
             {
                topPtWeight = 1.0;
                num_bad_topPt++;
             }
             
 
-            if ((pdf_weight != pdf_weight) || (std::isinf(pdf_weight)) || (std::isnan(pdf_weight)) || (abs(pdf_weight) > 100) || (abs(pdf_weight) < 0.001)  )
+            if ((pdf_weight != pdf_weight) || (std::isinf(pdf_weight)) || (std::isnan(pdf_weight)) || (abs(pdf_weight) > 100)   )
             {
                pdf_weight = 1.0;
                num_bad_pdf++;
@@ -326,7 +410,7 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
          eventScaleFactor *= prefiringWeight;   // these are the non-MC-only systematics
 
 
-         if ((eventScaleFactor != eventScaleFactor) || (std::isinf(eventScaleFactor)) ||  (std::isnan(eventScaleFactor)) || (abs(eventScaleFactor) > 100) || (abs(eventScaleFactor) < 0.001)  )
+         if ((eventScaleFactor != eventScaleFactor) || (std::isinf(eventScaleFactor)) ||  (std::isnan(eventScaleFactor)) || (abs(eventScaleFactor) > 100) )
          {
             std::cout << "ERROR: failed event scale factor on " << systematic << "_" << *systematic_suffix << ": value is " << eventScaleFactor << std::endl;
             if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos)) std::cout << "PU/pdf/topPt/fact/renorm/btagging med/btagging tight";
@@ -341,18 +425,17 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
 
          for(int iii = 0 ; iii< nfatjets; iii++)
          {
-            h_jet_pt->Fill( jet_pt[iii],eventScaleFactor);
-            h_jet_mass->Fill( jet_mass[iii],eventScaleFactor);
+            h_AK8_pt->Fill( jet_pt[iii],eventScaleFactor);
+            h_AK8_mass->Fill( jet_mass[iii],eventScaleFactor);
 
          }
          for(int iii = 0 ; iii< nAK4; iii++)
          {
-            h_lab_AK4_pt->Fill(AK4_pt[iii] ,eventScaleFactor);
+            h_AK4_pt->Fill(AK4_pt[iii] ,eventScaleFactor);
             h_AK4_mass->Fill(AK4_mass[iii] ,eventScaleFactor);
          }
 
-         h_lab_nAK4->Fill( 1.0*nAK4,eventScaleFactor);
-
+         h_nAK4->Fill( 1.0*nAK4,eventScaleFactor);
          h_totHT->Fill(totHT,eventScaleFactor);
 
          if( totHT > 1600)
@@ -368,13 +451,8 @@ bool doThings(std::string inFileName, std::string outFileName, double eventScale
 
       }
 
-      
       outFile.Write();
-
-
       delete h_totHT; delete h_nfatjets; delete h_nfatjets_pre;
-
-
    }
 
    std::cout << "--------- Finished file " << inFileName << std::endl;
@@ -535,7 +613,6 @@ void readTreeStudySelection()
       for(auto systematic = systematics.begin();systematic<systematics.end();systematic++)
       {
 
-         double eventScaleFactor = 1; 
          std::cout << "------------ Looking at systematic: " << *systematic << " --------------" << std::endl;
 
          for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
@@ -562,7 +639,7 @@ void readTreeStudySelection()
             std::cout << "Reading File " << inFileName << " for year,sample,systematic " << year << "/" <<*dataBlock << "/" << *systematic<< std::endl;
             //try
             //{
-               if (!doThings(inFileName,outFileName, eventScaleFactor, *dataYear,*systematic, *dataBlock,runType ))
+               if (!doThings(inFileName,outFileName, *dataYear,*systematic, *dataBlock,runType ))
                {
 
                   std::cout << "ERROR: Failed for year/sample/systematic" << year<< "/" << *dataBlock << "/" << *systematic << std::endl;

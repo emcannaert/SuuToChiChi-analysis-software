@@ -30,8 +30,8 @@ class combineHistBins:
 		self.region = region
 		self.technique_str = technique_str
 		self.dryRun = dryRun
-		self.max_stat_uncert = 0.25  ## maximum statistical uncertainty
-		self.min_bin_counts   = 8.0   ## the minimum number of scaled events required to be in each bin
+		self.max_stat_uncert = 0.30  ## maximum statistical uncertainty
+		self.min_bin_counts   = 5.0   ## the minimum number of scaled events required to be in each bin
 
 		self.n_bins_x = 22
 		self.n_bins_y = 20
@@ -790,7 +790,7 @@ if __name__=="__main__":
 					out_txt_file.write("%s/%s/number of bins = %s/%s\n"%(year,region, len(testCase.superbin_indices), testCase.superbin_indices))
 
 
-					c = ROOT.TCanvas("c", "canvas", 1200, 1250)
+					c = ROOT.TCanvas("c", "canvas", 1250, 1000)
 
 					ROOT.gStyle.SetOptStat(0)
 					bin_map_hist.GetZaxis().SetRangeUser(0,10000)

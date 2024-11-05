@@ -1,3 +1,42 @@
+void write_cms_text(double CMS_label_pos, double SIM_label_pos, TCanvas * canvas) {
+    // do all the fancy formatting 
+    //gStyle->SetOptStat(0);
+    
+    TText *CMSLabel = new TText();
+    CMSLabel->SetNDC();
+    CMSLabel->SetTextFont(1);
+    CMSLabel->SetTextColor(1);
+    CMSLabel->SetTextSize(0.0385);
+    CMSLabel->SetTextAlign(22);
+    CMSLabel->SetTextAngle(0);
+    CMSLabel->DrawText(CMS_label_pos, 0.92, "CMS");
+    CMSLabel->Draw();
+    
+    TText *simLabel = new TText();
+    simLabel->SetNDC();
+    simLabel->SetTextFont(52);
+    simLabel->SetTextColor(1);
+    simLabel->SetTextSize(0.024);
+    simLabel->SetTextAlign(22);
+    simLabel->SetTextAngle(0);
+    simLabel->DrawText(SIM_label_pos, 0.92, "Simulation Preliminary");
+    simLabel->Draw();
+    
+    TLatex *latex = new TLatex();
+    TString lumistuff = "(13 TeV)";
+    latex->SetNDC();
+    latex->SetTextAngle(0);
+    latex->SetTextColor(kBlack);  
+    latex->SetTextFont(42);
+    latex->SetTextAlign(31);
+    latex->SetTextSize(0.030); 
+    latex->DrawLatex(0.88, 0.91, lumistuff.Data());
+    //latex->DrawLatex(0.89, 0.91, lumistuff.Data()) ;
+    canvas->Update();
+    delete CMSLabel;
+    delete simLabel;
+    delete latex;
+}
 
 double return_BR_SF(std::string year, std::string sample)
 {
@@ -41,7 +80,7 @@ double return_BR_SF(std::string year, std::string sample)
 template <typename T> std::vector<T> get_histograms(std::vector<std::string> fnames, std::string hist_name)
 {
 
-
+    TH1::SetDefaultSumw2();
     TH1::AddDirectory(false);
 
 
@@ -54,6 +93,7 @@ template <typename T> std::vector<T> get_histograms(std::vector<std::string> fna
 
       TFile * f1 = new TFile((*iii).c_str(), "READ" ); // open TFile for each fname
       return_files.push_back( (T) f1->Get(  (hist_name).c_str() )  );
+      std::cout << "Found histogram " << hist_name << " in " << (*iii).c_str() << ", Total number of events in histogram: " << ((T) f1->Get(  (hist_name).c_str() ))->Integral() << std::endl;
       f1->Close();
       delete f1;
       //std::cout << "File: " << typeid((T)(*iii)->Get( ("nom_/" + hist_name).c_str() )).name() << " " << std::endl;
@@ -68,7 +108,7 @@ template <typename T> T combine_histograms(std::vector<T> _hists, double weights
 {
 
 
-
+  TH1::SetDefaultSumw2();
   TH1::AddDirectory(false);
 
   T first_hist_scaled = T(_hists[0]);
@@ -95,10 +135,54 @@ template <typename T> T combine_histograms(std::vector<T> _hists, double weights
   return comb_hist;
 }
 
+// given a histogram and some x_threshold, this masks histograms by replacing all values above the threshold by 0
+void mask_histogram(TH1* hist, double x_threshold=1e10) {
+    // Get the number of bins in the histogram
+    int n_bins = hist->GetNbinsX();
+    TH1::SetDefaultSumw2();
+    // Loop over all bins
+    for (int i = 1; i <= n_bins; ++i) {  // Bin index starts at 1 in ROOT
+        // Get the x-axis bin center
+        double x_value = hist->GetBinCenter(i);
+        
+        // If the x-value exceeds the threshold, set the bin content and error to 0
+        if (x_value > x_threshold) {
+            hist->SetBinContent(i, 0);
+            hist->SetBinError(i, 0);  // Optionally, also reset the bin error to 0
+        }
+    }
+}
 
-
-void make_plot(std::string year, std::string histName, bool runControlRegions = false , bool runSideband = false, std::string region = "") 
+void make_plot(std::string year, std::string histName, bool runControlRegions = false , bool runSideband = false, std::string region = "", bool doMasking=false) 
 {
+
+    double CMS_label_pos = 0.125;
+    double SIM_label_pos = 0.225;
+
+    TH1::SetDefaultSumw2();
+
+    bool necessaryToMask = doMasking;
+    if( (region == "AT1b") || (region== "AT0b") || (region == "SB1b") || (region == "SB0b"))necessaryToMask = false; // these don't need to be masked
+    else if (( histName == "h_nAK4_all")   ||  (histName == "h_nfatjets") || (histName == "h_nfatjets_pre") || (histName == "h_nCA4_300_1b") || (histName == "h_nCA4_300_0b")   )necessaryToMask = false; // these don't need to be masked
+    else if ( (histName == "h_nfatjets")  || (histName == "h_nfatjets_pre") || (histName== "h_AK4_pt") || (histName == "h_nAK4") || (histName == "h_AK4_pt") || (histName == "h_AK8_mass") || (histName== "h_AK4_mass"))necessaryToMask = false;
+    
+    std::vector<std::string> nonMaskedHists = {"h_nHeavyAK8_pt400_M10", "h_nHeavyAK8_pt400_M20", "h_nHeavyAK8_pt400_M30", "h_nHeavyAK8_pt300_M10", "h_nHeavyAK8_pt300_M20", "h_nHeavyAK8_pt300_M30",
+     "h_nHeavyAK8_pt200_M10", "h_nHeavyAK8_pt200_M20", "h_nHeavyAK8_pt200_M30",
+    "h_nAK8_pt200", "h_nAK8_pt300", "h_nAK8_pt150", "h_nAK8_pt500",
+    "h_nAK8_pt200_noCorr", "h_nAK8_pt300_noCorr", "h_nAK8_pt150_noCorr", "h_nAK8_pt500_noCorr", "h_nHeavyAK8_pt500_M45", "h_nHeavyAK8_pt500_M45_noCorr","h_AK4_eta", "h_AK4_phi", "h_AK8_eta", "h_AK8_phi"};
+
+    if (std::find(nonMaskedHists.begin(), nonMaskedHists.end(), histName) != nonMaskedHists.end()) necessaryToMask = false;
+
+
+    std::string year_str = year;
+
+    if (year == "2015") year_str = "2016preAPV";
+    else if (year == "2016") year_str = "2016postAPV";
+
+    std::map<std::string, double> maskValues = {  {"h_disuperjet_mass", 4000   } ,  {"h_SJ_mass", 3500  }, {"h_totHT", 3500} , {"h_dijet_mass", 1000} , {"h_AK8_jet_mass", 1000} , {"h_AK8_jet_pt",2000} } ; // mask threshold for various histogram types
+
+    std::string histTitleDataMC = histName + " - data vs combined BR (" + year_str  + ") ";
+    if (region != "") histTitleDataMC += Form(" (%s)", region.c_str());
 
 
 
@@ -107,9 +191,22 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     std::string processedFilePaths = "../combinedROOT/processedFiles_selectionStudy/";
     std::string output_path        = "plots/dataMC/selectionStudy/";
     std::string folderName = histName;
-    std::string saveStr    = region + "_";
+
+    std::string saveStr    = ""; 
+
+    //saveStr = region + "_";
+
     if (runControlRegions)
     {
+
+        folderName = "nom/" + histName + "_" + region;
+
+        if (saveStr == "") saveStr    = "";
+        if ( !(histName == "h_disuperjet_mass") && !(histName == "h_SJ_mass")  )
+        {
+            folderName = "nom/" + histName;
+            saveStr    = ""; 
+        }
 
         std::cout << "----------------- Creating control region plots ------------------ " << std::endl;
         if(runSideband) processedFilePaths = "../combinedROOT/sideband_processedFiles/";
@@ -118,17 +215,6 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
         std::cout << "Using files in " << processedFilePaths << std::endl;
 
         output_path        = "plots/dataMC/controlRegions/";
-        folderName = "nom/" + histName + "_" + region;
-
-        if ((histName == "h_nAK4_all") || (histName == "h_nfatjets")  || (histName == "h_totHT")  || (histName == "h_nfatjets_pre"))
-        {
-            folderName = "nom/" + histName;
-            saveStr    = ""; 
-        }
-
-
-
-
 
         std::cout << "folderName is "  << folderName << " processedFilePaths is " << processedFilePaths << std::endl;
     }
@@ -178,7 +264,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     double ST_t_channel_top_inclMC_SF       = return_BR_SF(year, "ST_t_channel_top_inclMC" );
     double ST_t_channel_antitop_inclMC_SF   = return_BR_SF(year, "ST_t_channel_antitop_inclMC" );
     double ST_s_channel_hadronsMC_SF        = return_BR_SF(year, "ST_s_channel_hadronsMC" );
-    double ST_s_channel_leptonsMC_SF         = return_BR_SF(year, "ST_s_channel_leptonsMC" );
+    double ST_s_channel_leptonsMC_SF        = return_BR_SF(year, "ST_s_channel_leptonsMC" );
     double ST_tW_antiTop_inclMC_SF          = return_BR_SF(year, "ST_tW_antiTop_inclMC" );
     double ST_tW_top_inclMC_SF              = return_BR_SF(year, "ST_tW_top_inclMC" );
 
@@ -186,8 +272,11 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     double data_weights[10] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
 
     std::vector<TH1F*>  h_data_hists    = get_histograms<TH1F*>(dataFileNames, folderName);
-    TH1F*  h_data_combined    = combine_histograms<TH1F*>(h_data_hists,data_weights);
 
+
+    std::cout << "Got data histograms for " << year << "/" <<  histName << "/"<< region << std::endl;
+    TH1F*  h_data_combined    = combine_histograms<TH1F*>(h_data_hists,data_weights);
+    h_data_combined->Sumw2();
     std::cout << "For " << year << ", the total number of DATA events is " << h_data_combined->Integral() << std::endl;
 
     // Open background files and get histograms
@@ -223,23 +312,37 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
         hBackgrounds[5]->Scale(TTToLeptonic_SF);
 
 
+        hBackgrounds[0]->SetTitle( (histName + " - QCDMCHT1000to1500 (" + year  + ") ").c_str()    );
+        hBackgrounds[1]->SetTitle( (histName + " - QCDMCHT1500to2000 (" + year  + ") ").c_str() );
+        hBackgrounds[2]->SetTitle( (histName + " - QCDMCHT2000toInf (" + year  + ") ").c_str() );
+        hBackgrounds[3]->SetTitle( (histName + " - TTToHadronicMC (" + year  + ") ").c_str() );
+        hBackgrounds[4]->SetTitle( (histName + " - TTToSemiLeptonicMC (" + year  + ") ").c_str() );
+        hBackgrounds[5]->SetTitle( (histName + " - TTToLeptonicMC (" + year  + ") ").c_str() );
+
+
         hBackgrounds[0]->Draw("HIST");
-        c->SaveAs( (output_path+ histName+  "_QCDMC1000to1500_" + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/"+ histName+  "_QCDMC1000to1500_" + year +".png").c_str()   );
 
         hBackgrounds[1]->Draw("HIST");
-        c->SaveAs( (output_path+  histName + "_QCDMC1500to2000_" + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+  "backgrounds/"+histName + "_QCDMC1500to2000_" + year +".png").c_str()   );
         
         hBackgrounds[2]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_QCDMC2000toInf_" + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/"+histName + "_QCDMC2000toInf_" + year +".png").c_str()   );
 
         hBackgrounds[3]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_TTToHadronic_" + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTToHadronic_" + year +".png").c_str()   );
 
         hBackgrounds[4]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_TTToSemiLeptonic_" + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTToSemiLeptonic_" + year +".png").c_str()   );
 
         hBackgrounds[5]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_TTToLeptonic_" + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTToLeptonic_" + year +".png").c_str()   );
 
 
         QCD_combined = (TH1F*)hBackgrounds[0]->Clone("QCD_combined");
@@ -295,40 +398,50 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
 
 
         hBackgrounds[0]->Draw("HIST");
-        c->SaveAs( (output_path+ histName+  "_QCDMC1000to1500_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" + histName+  "_QCDMC1000to1500_" + saveStr + year +".png").c_str()   );
 
         hBackgrounds[1]->Draw("HIST");
-        c->SaveAs( (output_path+  histName + "_QCDMC1500to2000_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" + histName + "_QCDMC1500to2000_" + saveStr + year +".png").c_str()   );
         
         hBackgrounds[2]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_TTJetsMCHT800to1200_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" +histName + "_TTJetsMCHT800to1200_" + saveStr + year +".png").c_str()   );
 
         hBackgrounds[3]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_TTJetsMCHT1200to2500_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" +histName + "_TTJetsMCHT1200to2500_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[4]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_t_channel_top_inclMC_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" +histName + "_ST_t_channel_top_inclMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[5]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_t_channel_antitop_inclMC_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" +histName + "_ST_t_channel_antitop_inclMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[6]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_s_channel_hadronsMC_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path + "backgrounds/" +histName + "_ST_s_channel_hadronsMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[7]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_s_channel_leptonsMC_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" +histName + "_ST_s_channel_leptonsMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[8]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_tW_antiTop_inclMC_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" +histName + "_ST_tW_antiTop_inclMC_" + saveStr + year +".png").c_str()   );
 
 
         hBackgrounds[9]->Draw("HIST");
-        c->SaveAs( (output_path+ histName + "_ST_tW_top_inclMC_" + saveStr + year +".png").c_str()   );
+        write_cms_text(CMS_label_pos,SIM_label_pos, c);
+        c->SaveAs( (output_path+ "backgrounds/" +histName + "_ST_tW_top_inclMC_" + saveStr + year +".png").c_str()   );
 
 
         QCD_combined = (TH1F*)hBackgrounds[0]->Clone("QCD_combined");
@@ -354,20 +467,23 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
 
 
 
+    ///  do data / MC comparison
 
     TTbar_combined->SetFillColor(kYellow);
 
 
     TH1F * MC_BR_combined = (TH1F*)QCD_combined->Clone("MC_BR_combined");
+    MC_BR_combined->Sumw2();
     MC_BR_combined->Add(TTbar_combined);
     if(runSideband)MC_BR_combined->Add(ST_combined);
     // Create a THStack and add all histograms
-    THStack* hs = new THStack("hs", ("Combined BR (QCD+TTbar) (" + year + ")").c_str()  );
+    THStack* hs = new THStack("hs", ("Combined BR (QCD+TTbar) (" + year_str + ")").c_str()  );
     hs->Add(QCD_combined);
     hs->Add(TTbar_combined);
     if(runSideband)hs->Add(ST_combined);
 
 
+    hs->SetMinimum(1e-2);
 
     // Create canvas and pads
     gStyle->SetOptStat(0);
@@ -384,22 +500,37 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     // Draw the stack and data on the upper pad
     pad1->cd();
 
-    h_data_combined->Draw();
+        
+    hs->SetTitle(histTitleDataMC.c_str());
+    h_data_combined->SetTitle(histTitleDataMC.c_str());
 
-    hs->Draw("SAME,HIST");
+    //if (h_data_combined->GetMaximum() < MC_BR_combined->GetMaximum())
+    //{
+    h_data_combined->SetMaximum(1.25*MC_BR_combined->GetMaximum());
+    //}
+
+    hs->Draw("HIST");
+
+    h_data_combined->Draw("SAME");
+    write_cms_text(CMS_label_pos,SIM_label_pos, c);
+
     h_data_combined->SetMarkerStyle(20);
+
+    if(necessaryToMask ) mask_histogram(h_data_combined, maskValues[histName]); // mask this histogram if necessary (= region is SR/CR, hist is a sensitive one)
 
 
     // Draw ratio plot on the lower pad
     pad2->cd();
     TH1* hRatio = (TH1*)h_data_combined->Clone("hRatio");
+    hRatio->Sumw2();
     hRatio->SetTitle("");
     hRatio->GetYaxis()->SetTitle("data/MC");
     hRatio->Divide(MC_BR_combined);   // this might be incorrect ...
     hRatio->SetMinimum(0.25); // Set y-axis range for ratio plot
     hRatio->SetMaximum(3.0);
     hRatio->SetMarkerStyle(20);
-    hRatio->Draw("E1");
+    hRatio->SetFillColor(kGray);
+    hRatio->Draw("E2");
 
 
     // Get the x-axis range for the lines
@@ -427,8 +558,45 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     hRatio->GetXaxis()->SetTitleSize(0.08); // Increase title font size
     hRatio->GetYaxis()->SetLabelSize(0.08); // Increase label font size
     hRatio->GetYaxis()->SetTitleSize(0.08); // Increase title font size
-    if(!runControlRegions)  c->SaveAs( (output_path+ histName + "_dataMC_" + year +".png").c_str()  );
-    else {    c->SaveAs( (output_path+ histName + "_dataMC_" + region + "_" + year +".png").c_str()  ) ; }
+
+
+
+    if(necessaryToMask)
+    {
+
+        // Get x and y range for the box, covering the full histogram range
+        double x_min = maskValues[histName];
+        double x_max = h_data_combined->GetXaxis()->GetXmax();
+        double y_min = 0.0;  // Starting from zero on the y-axis, adjust if needed
+        double y_max = h_data_combined->GetMaximum() * 1.05; // Extend slightly above max for visibility
+
+        // Create the box to mask the data
+        TBox* maskedBox = new TBox(x_min, y_min, x_max, y_max);
+        maskedBox->SetFillColor(kGray + 2);  // Gray color for mask
+        maskedBox->SetFillStyle(3004);       // Semi-transparent fill with crosshatch pattern
+
+        // Draw the histogram first
+        pad1->cd();
+
+        // Draw the mask box on top of the histogram
+        maskedBox->Draw("same");
+
+        // Calculate the center position for the text
+        double x_center = (x_min + x_max) / 2.0;
+        double y_center = (y_min + y_max) / 2.0;
+
+        // Create and draw the text in the middle of the box
+        TLatex* maskedText = new TLatex(x_center, y_center, "data masked");
+        maskedText->SetTextAlign(22);  // Center alignment
+        maskedText->SetTextSize(0.05); // Adjust text size as needed
+        maskedText->SetTextColor(kBlack); // Text color
+        maskedText->Draw("SAME");
+
+    }
+
+
+    if(!runControlRegions)  c->SaveAs( (output_path+ "dataMC/" + histName + "_dataMC_" + year +".png").c_str()  );
+    else {    c->SaveAs( (output_path+ "dataMC/" + histName + "_dataMC_" + region + "_" + year +".png").c_str()  ) ; }
 
 
     int nFiles = 6;
@@ -448,12 +616,16 @@ void data_MC_comparer()
 {   
 
 
-    bool runControlRegions = true;  // flag to run the normal processed root files as opposed to the selectionStudy ones
-    bool runSideband  = true;       // flag to run over the sideband region (if these files are processed)
+    bool runControlRegions = false;  // flag to run the normal processed root files as opposed to the selectionStudy ones
+    bool runSideband  = false;       // flag to run over the sideband region (if these files are processed)
 
+    bool doMasking = true; // mask sensitive regions of SR/CR
 
     ///// SELECTION STUDY PORTION (creates data/MC plots for loose region, NOT SR/CR/AT/SB regions)
-    std::vector<std::string> hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_jet_pt", "h_jet_mass", "h_lab_AK4_pt", "h_AK4_mass", "h_lab_nAK4"};
+    std::vector<std::string> hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_AK4_pt", "h_nAK4", "h_AK4_pt", "h_AK8_mass", "h_AK4_mass",  
+    "h_nHeavyAK8_pt400_M10", "h_nHeavyAK8_pt400_M20", "h_nHeavyAK8_pt400_M30", "h_nHeavyAK8_pt300_M10", "h_nHeavyAK8_pt300_M20", "h_nHeavyAK8_pt300_M30",
+     "h_nHeavyAK8_pt200_M10", "h_nHeavyAK8_pt200_M20", "h_nHeavyAK8_pt200_M30",
+    "h_nAK8_pt200", "h_nAK8_pt300", "h_nAK8_pt150", "h_nAK8_pt500", "h_AK4_eta", "h_AK4_phi", "h_AK8_eta", "h_AK8_phi"};
 
 
     std::vector<std::string> years = {"2015","2016","2017","2018"};
@@ -463,18 +635,21 @@ void data_MC_comparer()
         {
 
             std::cout << "Running selection study for " << *year << "/" << *hist_name << std::endl;
-            make_plot(*year, *hist_name, false, false,"");
+            make_plot(*year, *hist_name, false, false,"", doMasking);
         }
     }
 
 
     ///// CONTROL REGION STUDY PORTION (creates data/MC plot comparing data/MC for SB1b, SB0b, and AT0b regions)
+    hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_nAK4_all", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b" };
 
     if(runControlRegions)
     {
 
+
+
         std::vector<std::string> regions;
-        hist_names = { "h_disuperjet_mass",  "h_SJ_mass", "h_nAK4_all", "h_nfatjets","h_totHT","h_nfatjets_pre"};
+        hist_names = { "h_disuperjet_mass",  "h_SJ_mass"};  // removed theese "h_nAK4_all", "h_nfatjets","h_totHT","h_nfatjets_pre", "h_dijet_mass", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b" 
 
         if(runSideband) 
         {
@@ -488,7 +663,7 @@ void data_MC_comparer()
                     for(auto hist_name = hist_names.begin();hist_name!=hist_names.end();hist_name++)
                     {
                         std::cout << "Running control region for " << *year << "/" << *region << "/" << *hist_name << std::endl;
-                        make_plot(*year, *hist_name, runControlRegions, runSideband, *region);
+                        make_plot(*year, *hist_name, runControlRegions, runSideband, *region, doMasking);
                     }
                 }
             }
@@ -504,7 +679,7 @@ void data_MC_comparer()
                 for(auto hist_name = hist_names.begin();hist_name!=hist_names.end();hist_name++)
                 {
                     std::cout << "Running control region for " << *year << "/" << *region << "/" << *hist_name << std::endl;
-                    make_plot(*year, *hist_name, runControlRegions, runSideband, *region);
+                    make_plot(*year, *hist_name, runControlRegions, runSideband, *region, doMasking);
                 }
             }
         }

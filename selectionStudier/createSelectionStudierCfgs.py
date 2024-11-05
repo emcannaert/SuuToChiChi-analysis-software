@@ -113,7 +113,7 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
    
    newCfg.write("################# JEC ################\n")
    ######### AK8 jets #########
-   newCfg.write("corrLabels = ['L2Relative']\n")  ## ,'L3Absolute' -> should these be included?
+   newCfg.write("corrLabels = ['L2Relative', 'L3Absolute']\n")  ## ,'L3Absolute' -> should these be included?
    newCfg.write("if isData:\n")
    newCfg.write("	corrLabels.append('L2L3Residual')\n")
    newCfg.write("from PhysicsTools.PatAlgos.tools.jetTools import *\n")
@@ -127,10 +127,9 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
    newCfg.write(" printWarning = False\n")
    newCfg.write(")\n")
    ######### AK4 jets #########
-   newCfg.write("corrLabels_AK4 = ['L1FastJet','L2Relative']\n") # 'L3Absolute'
+   newCfg.write("corrLabels_AK4 = ['L1FastJet', 'L2Relative', 'L3Absolute']\n") # 'L3Absolute'
    newCfg.write("if isData:\n")
    newCfg.write(" corrLabels_AK4.append('L2L3Residual')\n")
-
    newCfg.write("updateJetCollection(\n")
    newCfg.write(" process,\n")
    newCfg.write(" jetSource = cms.InputTag('slimmedJets'),\n")
@@ -153,7 +152,7 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
          newCfg.write('from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_106X_UL18\n')
       newCfg.write('process.load("RecoJets.JetProducers.PileupJetID_cfi")\n')
       newCfg.write('process.pileupJetIdUpdated = process.pileupJetId.clone( \n')
-      newCfg.write('jets=cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),  #should be the name of the post-JEC jet collection\n')
+      newCfg.write('jets=cms.InputTag("updatedPatJetsAK4UpdatedJEC"),  #should be the name of the post-JEC jet collection\n')
       newCfg.write('inputIsCorrected=True,\n')
       newCfg.write('applyJec=False,\n')
       newCfg.write('vertexes=cms.InputTag("offlineSlimmedPrimaryVertices"),\n')
@@ -171,7 +170,7 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
       newCfg.write('updateJetCollection(    # running in unscheduled mode, need to manually update collection\n')
       newCfg.write(' process,\n')
       newCfg.write(' labelName = "PileupJetID",\n')
-      newCfg.write(' jetSource = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+      newCfg.write(' jetSource = cms.InputTag("updatedPatJetsAK4UpdatedJEC"),\n')
       newCfg.write(')\n')
       newCfg.write('process.updatedPatJetsPileupJetID.userData.userInts.src = ["pileupJetIdUpdated:fullId"]\n')
 
@@ -205,7 +204,7 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
 
    newCfg.write("from PhysicsTools.PatUtils.l1PrefiringWeightProducer_cfi import l1PrefiringWeightProducer\n")
    newCfg.write("process.prefiringweight = l1PrefiringWeightProducer.clone(\n")
-   newCfg.write("TheJets = cms.InputTag('selectedUpdatedPatJetsAK4UpdatedJEC'), #this should be the slimmedJets collection with up to date JECs \n")
+   newCfg.write("TheJets = cms.InputTag('updatedPatJetsAK4UpdatedJEC'), #this should be the slimmedJets collection with up to date JECs \n")
    newCfg.write("DataEraECAL = cms.string('%s'), #Use 2016BtoH for 2016\n"%prefire_ecal_era)
    newCfg.write("DataEraMuon = cms.string('%s'), #Use 2016 for 2016\n"%prefire_muon_era)
    newCfg.write("UseJetEMPt = cms.bool(False),\n")
@@ -272,11 +271,11 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
             elif year == "2018":
                newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2018_UL/btagging.json'),\n")
 
-         newCfg.write(' fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
+         newCfg.write(' fatJetCollection = cms.InputTag("updatedPatJetsAK8UpdatedJEC"),\n')
          if apply_pu_ID:
-            newCfg.write(' jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
+            newCfg.write(' jetCollection = cms.InputTag("updatedPatJetsPileupJetID"),\n')
          else:
-            newCfg.write(' jetCollection = cms.InputTag("selectedUpdatedPatJetsAK4UpdatedJEC"),\n')
+            newCfg.write(' jetCollection = cms.InputTag("updatedPatJetsAK4UpdatedJEC"),\n')
          newCfg.write(' muonCollection= cms.InputTag("slimmedMuons"),\n')
          newCfg.write(' electronCollection = cms.InputTag("slimmedElectrons"),\n')
          newCfg.write(' metCollection = cms.InputTag("slimmedMETs"),\n')

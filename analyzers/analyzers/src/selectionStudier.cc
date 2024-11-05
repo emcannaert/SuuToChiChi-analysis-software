@@ -105,9 +105,12 @@ public:
    explicit selectionStudier(const edm::ParameterSet&);
 private:
    virtual void analyze(const edm::Event&, const edm::EventSetup&);
-   bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, bool jetPUid, const float iJet_pt);
-   bool isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets);
-   bool isHEM(const float jet_eta, const float jet_phi);
+   bool isgoodjet(double eta, double NHF,double NEMF, const size_t NumConst,double CHF,const int CHM, double MUF, double CEMF, double iJet_pt);
+   bool isgoodjet(double eta, double NHF,double NEMF, const size_t NumConst,double CHF,const int CHM, double MUF, double CEMF, int nfatjets);
+
+   bool isgoodjet(double eta, double NHF,double NEMF, const size_t NumConst,double CHF,const int CHM, double MUF, double CEMF);   // overloaded AK8 jet version of isGoodJet for cross-checks 
+
+   bool isHEM(double jet_eta, double jet_phi);
    double top_pt_SF(double top_pt);
    std::map<std::string, std::map<std::string, std::string>> file_map;
 
@@ -170,7 +173,7 @@ private:
    double lab_AK4_pt[100];
    double diAK8Jet_mass[100];
 
-
+   bool passesJetPUID[100];
    double fourAK8JetMass;
    //double btag_score_uncut[100];
    double AK4_eta[100], AK4_phi[100];
@@ -203,6 +206,12 @@ private:
    int nHeavyAK8_pt400_M10 = 0, nHeavyAK8_pt400_M20 = 0, nHeavyAK8_pt400_M30 = 0;
    int nHeavyAK8_pt300_M10 = 0, nHeavyAK8_pt300_M20 = 0, nHeavyAK8_pt300_M30 = 0; 
    int nHeavyAK8_pt200_M10 = 0, nHeavyAK8_pt200_M20 = 0, nHeavyAK8_pt200_M30 = 0; 
+
+
+
+
+   int nAK8_pt200 = 0, nAK8_pt300 = 0, nAK8_pt150 = 0, nHeavyAK8_pt500_M45 = 0, nAK8_pt500 = 0;   // |eta| < 2.4, tight jet ID, NO other cuts
+   int nAK8_pt200_noCorr = 0, nAK8_pt300_noCorr = 0, nAK8_pt150_noCorr = 0, nHeavyAK8_pt500_M45_noCorr = 0, nAK8_pt500_noCorr = 0;   // these variables don't have weird eta cuts applied to them,
 
    ///////////////////////////////////////////////
 
@@ -381,7 +390,14 @@ selectionStudier::selectionStudier(const edm::ParameterSet& iConfig)
 
    tree->Branch("nfatjets", &nfatjets, "nfatjets/I");
 
+   
+
+   tree->Branch("passesPFJet", &passesPFJet, "passesPFJet/O");
+   tree->Branch("passesPFHT", &passesPFHT, "passesPFHT/O");
+
    tree->Branch("nAK4", &nAK4, "nAK4/I");
+   tree->Branch("passesJetPUID", passesJetPUID, "passesJetPUID[nAK4]/O");
+
    tree->Branch("AK4_DeepJet_disc", AK4_DeepJet_disc, "AK4_DeepJet_disc[nAK4]/D");
 
    tree->Branch("nfatjet_pre",&nfatjet_pre, "nfatjet_pre/I");
@@ -421,6 +437,22 @@ selectionStudier::selectionStudier(const edm::ParameterSet& iConfig)
    tree->Branch("nHeavyAK8_pt200_M20",  &nHeavyAK8_pt200_M20, "nHeavyAK8_pt200_M20/I");
    tree->Branch("nHeavyAK8_pt200_M30",  &nHeavyAK8_pt200_M30, "nHeavyAK8_pt200_M30/I");
 
+   tree->Branch("nAK8_pt200",  &nAK8_pt200, "nAK8_pt200/I");
+   tree->Branch("nAK8_pt300",  &nAK8_pt300, "nAK8_pt300/I");
+   tree->Branch("nAK8_pt150",  &nAK8_pt150, "nAK8_pt150/I");
+   tree->Branch("nAK8_pt150",  &nAK8_pt150, "nAK8_pt150/I");
+   tree->Branch("nAK8_pt500",  &nAK8_pt500, "nAK8_pt500/I");
+
+   tree->Branch("nHeavyAK8_pt500_M45",  &nHeavyAK8_pt500_M45, "nHeavyAK8_pt500_M45/I");
+
+   tree->Branch("nAK8_pt200_noCorr",  &nAK8_pt200_noCorr, "nAK8_pt200_noCorr/I");
+   tree->Branch("nAK8_pt300_noCorr",  &nAK8_pt300_noCorr, "nAK8_pt300_noCorr/I");
+   tree->Branch("nAK8_pt150_noCorr",  &nAK8_pt150_noCorr, "nAK8_pt150_noCorr/I");
+   tree->Branch("nAK8_pt500_noCorr",  &nAK8_pt500_noCorr, "nAK8_pt500_noCorr/I");
+
+   tree->Branch("nHeavyAK8_pt500_M45_noCorr",  &nHeavyAK8_pt500_M45_noCorr, "nHeavyAK8_pt500_M45_noCorr/I");
+
+
 
    ///////////////////////////////////////////////
 
@@ -451,7 +483,7 @@ selectionStudier::selectionStudier(const edm::ParameterSet& iConfig)
 
 
 // returns bool if jet (or more generally, object) is within the HEM region
-bool selectionStudier::isHEM(const float jet_eta, const float jet_phi)
+bool selectionStudier::isHEM(double jet_eta, double jet_phi)
 {
    if(year != "2018") return false; // HEM is only relevant for 2018
 
@@ -464,34 +496,40 @@ bool selectionStudier::isHEM(const float jet_eta, const float jet_phi)
 }
 
 // bool corresponding to if AK4 jet passes tight ID
-bool selectionStudier::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF,bool jetPUid, const float iJet_pt)
+bool selectionStudier::isgoodjet(double eta, double NHF,double NEMF, const size_t NumConst,double CHF,const int CHM, double MUF, double CEMF, double iJet_pt)
 {
-   if( (abs(eta) > 2.4)) return false;
+   if( (abs(eta) > 2.4)) return false; 
 
-   // only apply to AK4 jets
    // apply the MEDIUM PU jet id https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetIDUL
-   if( (!jetPUid) && (iJet_pt < 50.0)) return false;
+   //if( (!jetPUid) && (iJet_pt < 50.0)) return false; // jet PU ID is only relevant for AK4 jets with pt < 50 GeV
 
-   if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
-   {
-         return false;
-   }
-   else
-   {
-      return true;
-   }
+   // apply the tight jet ID
+   if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) return false;
+   
+
+   return true;
 
 }
-// checks AK8 jet (tight) ID
-bool selectionStudier::isgoodjet(const float eta, const float NHF,const float NEMF, const size_t NumConst,const float CHF,const int CHM, const float MUF, const float CEMF, int nfatjets)
+// checks AK8 jet (tight) ID and applies some eta conditions
+bool selectionStudier::isgoodjet(double eta, double NHF,double NEMF, const size_t NumConst,double CHF,const int CHM, double MUF, double CEMF, int nfatjets)
 {
    if ( (nfatjets < 2) && (abs(eta) > 2.4) ) return false;
    else if ( (nfatjets >= 2) && (abs(eta) > 1.4) ) return false;
 
+   if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) return false;
+   return true;
+}
+
+
+// checks AK8 jet (tight) ID
+bool selectionStudier::isgoodjet(double eta, double NHF,double NEMF, const size_t NumConst,double CHF,const int CHM, double MUF, double CEMF)
+{
+   if ( abs(eta) > 2.4 ) return false;
+
    if ((NHF>0.9) || (NEMF>0.9) || (NumConst<1) || (CHF<0.) || (CHM<0) || (MUF > 0.8) || (CEMF > 0.8)) 
-      {
-         return false;
-      }
+   {
+      return false;
+   }
    else{ return true;}
 
 }
@@ -549,10 +587,6 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
             //pass =true;
          }
       } 
-      //if(!pass)
-      //{  
-      //    return; // if any of the triggers aren't found, skip event   return CUT
-      //}
    }
    
 
@@ -643,7 +677,10 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
       double AK4_sf_total = 1.0;
 
-      if( (iJet->pt() < 10. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;   //don't even bother with these jets, lost causes
+
+
+      // this code was removed with most recent test!!!x
+      //if( (iJet->pt() < 10. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;   //don't even bother with these jets, lost causes
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
@@ -683,13 +720,12 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
                randomNum->SetSeed( abs(static_cast<int>(iJet->phi()*1e4)) );
                double JERrand = randomNum->Gaus(0.0, sigmaJER);
                //double JERrand = 1.0 + sigmaJER;
-               AK4_JER_corr_factor = max(0., 1 + JERrand*sqrt(max(pow(sJER,2)-1,0.)));   //want to make sure this is truncated at 0
+               AK4_JER_corr_factor = std::max(0., 1 + JERrand*sqrt(std::max(pow(sJER,2)-1,0.)));   //want to make sure this is truncated at 0
             }
             if(_verbose)std::cout << "finished with JER" << std::endl;
             AK4_sf_total*= AK4_JER_corr_factor;
 
          }
-
       }
 
 
@@ -711,7 +747,7 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
          PUID = bool( (corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1)) || (corrJet.pt() > 50.) );
       }
 
-      if (  ( corrJet.pt()  < 30. ) ||  (!(corrJet.isPFJet()))  ||  (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),PUID, corrJet.pt() ))   ) continue;
+      if (  ( corrJet.pt()  < 30. ) ||  (!(corrJet.isPFJet()))  ||  (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(), corrJet.pt() ))   ) continue;
 
       //if( isHEM(corrJet.eta(), corrJet.phi()))return;  //RETURN CUT - if a jet is in the HEM (=bad) region, don't use this event
 
@@ -895,7 +931,7 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       AK4_mass[nAK4] = corrJet.mass();
       AK4_eta[nAK4] = corrJet.eta();
       AK4_phi[nAK4] = corrJet.phi();
-
+      if(doPUID) passesJetPUID[nAK4] = PUID;
       AK4_DeepJet_disc[nAK4] = deepJetScore;
 
 
@@ -938,7 +974,7 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    /////////////////////////////////
 
 
-    if( totHT < 1600) return; // normal HT cut
+    if( totHT < 1400) return; // normal HT cut
 
 
 
@@ -991,9 +1027,6 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    nfatjet_pre = 0;
 
 
-
-
-
    /////////// (4) set grid variable variable counters to zero (ex. nAK8_Et250 = 0;) ///////////
 
    nHeavyAK8_pt400_M10 = 0; nHeavyAK8_pt400_M20 = 0; nHeavyAK8_pt400_M30 = 0;
@@ -1001,8 +1034,10 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    nHeavyAK8_pt200_M10 = 0; nHeavyAK8_pt200_M20 = 0; nHeavyAK8_pt200_M30 = 0; 
 
 
-   /////////////////////////////////////////////////////////////////////////////////////////////
+   nAK8_pt200 = 0 ; nAK8_pt300 = 0; nAK8_pt150 = 0; nHeavyAK8_pt500_M45 = 0, nAK8_pt500 = 0;
+   nAK8_pt200_noCorr = 0; nAK8_pt300_noCorr = 0; nAK8_pt150_noCorr = 0; nHeavyAK8_pt500_M45_noCorr = 0, nAK8_pt500_noCorr = 0;
 
+   /////////////////////////////////////////////////////////////////////////////////////////////
 
 
    std::vector<TLorentzVector> leadAK8Jets;
@@ -1012,8 +1047,28 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    for(auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++)    
    {
 
+      // this was removed for the most recent update!!
+      //if( (sqrt(pow(iJet->mass(),2)+pow(iJet->pt(),2)) < 25.) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.4 )) continue;   //don't even bother with these jets
 
-      if( (sqrt(pow(iJet->mass(),2)+pow(iJet->pt(),2)) < 25.) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.4 )) continue;   //don't even bother with these jets
+      int vetoMap_xbin = (int)((iJet->eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;
+      int vetoMap_ybin = (int)((iJet->phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // pt(b) = b*(range / # bins) + b0 -> (pt(b) - b0)*(# bins / range)
+      bool AK8_fails_veto_map_unCorr = false;
+      if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0.) AK8_fails_veto_map_unCorr = true;
+
+
+      // cross-check stuff 
+      if ( (iJet->isPFJet() ) && ( abs(iJet->eta()) < 2.4 ) && (    isgoodjet(iJet->eta(),iJet->neutralHadronEnergyFraction(), iJet->neutralEmEnergyFraction(),iJet->numberOfDaughters(),iJet->chargedHadronEnergyFraction(),iJet->chargedMultiplicity(),iJet->muonEnergyFraction(),iJet->chargedEmEnergyFraction() ) ) )
+      {
+         if(!isHEM(iJet->eta(),iJet->phi()) && ( !AK8_fails_veto_map_unCorr ))
+         {
+            if( iJet->pt() > 150.) nAK8_pt150_noCorr++;
+            if( (iJet->pt() > 200.) ) nAK8_pt200_noCorr++;
+            if( (iJet->pt() > 300.) ) nAK8_pt300_noCorr++;
+            if( (iJet->pt() > 500.) ) nAK8_pt500_noCorr++;
+            if( (iJet->pt() > 500.)  && (iJet->userFloat("ak8PFJetsPuppiSoftDropMass") > 45.)  ) nHeavyAK8_pt500_M45_noCorr++;
+         }
+
+      }
 
       double AK8_sf_total = 1.0;     // this scales jet/particle 4-vectors, compounds all scale factors
 
@@ -1070,6 +1125,28 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       LorentzVector corrJetP4(AK8_sf_total*iJet->px(),AK8_sf_total*iJet->py(),AK8_sf_total*iJet->pz(),AK8_sf_total*iJet->energy());
       corrJet.setP4(corrJetP4);
 
+
+
+      vetoMap_xbin = (int)((corrJet.eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;
+      vetoMap_ybin = (int)((corrJet.phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // pt(b) = b*(range / # bins) + b0 -> (pt(b) - b0)*(# bins / range)
+      bool AK8_fails_veto_map_ = false;
+      if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0.) AK8_fails_veto_map_ = true;
+
+
+      if ( (corrJet.isPFJet() ) && ( abs(corrJet.eta()) < 2.4 ) && (    isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction() ) ) )
+      {
+
+         if(!isHEM(corrJet.eta(),corrJet.phi()) && ( !AK8_fails_veto_map_ ))
+         {
+            if( corrJet.pt() > 150.) nAK8_pt150++;
+            if( (corrJet.pt() > 200.) ) nAK8_pt200++;
+            if( (corrJet.pt() > 300.) ) nAK8_pt300++;
+            if( (corrJet.pt() > 500.) ) nAK8_pt500++;
+            if( (corrJet.pt() > 500.)  && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 45.)  ) nHeavyAK8_pt500_M45++;
+         }
+      }
+
+
       if(_verbose)  std::cout << "nominal p4: " << iJet->px()<< "," <<iJet->py() << "," << iJet->pz()<< "," << iJet->energy()<< std::endl;
       if(_verbose)  std::cout << "corrected p4: " << corrJet.px()<< "," <<corrJet.py() << "," << corrJet.pz()<< "," << corrJet.energy()<< std::endl;
 
@@ -1101,24 +1178,22 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
       if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
       
-      if(isHEM(corrJet.eta(),corrJet.phi()))
-      {
-         jet_isHEM[nfatjets] = true;
-      } 
+
+      ////// HEM and jet veto map stuff //////
+
+      AK8_fails_veto_map[nfatjets] = AK8_fails_veto_map_;
+
+      if(isHEM(corrJet.eta(),corrJet.phi())) jet_isHEM[nfatjets] = true;
       else{jet_isHEM[nfatjets] = false;}
 
-      if(nfatjets < 4)
-      {
-         leadAK8Jets.push_back(TLorentzVector(corrJet.px(),corrJet.py(),corrJet.pz(),corrJet.energy()));
-      }
+      ////////////////////////////////////////
 
-      int vetoMap_xbin = (int)((corrJet.eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;
-      int vetoMap_ybin = (int)((corrJet.phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // pt(b) = b*(range / # bins) + b0 -> (pt(b) - b0)*(# bins / range)
-      AK8_fails_veto_map[nfatjets] = false;
-      if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0.)
-      {
-         AK8_fails_veto_map[nfatjets] = true;
-      }
+      if(nfatjets < 4)leadAK8Jets.push_back(TLorentzVector(corrJet.px(),corrJet.py(),corrJet.pz(),corrJet.energy()));
+
+      AK8_fails_veto_map[nfatjets] = AK8_fails_veto_map_;
+
+      if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0.) AK8_fails_veto_map[nfatjets] = true;
+
       jet_pt[nfatjets] = corrJet.pt();
       jet_phi[nfatjets] = iJet->phi();  
       jet_eta[nfatjets] = corrJet.eta();
@@ -1158,6 +1233,7 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    }
 
 
+   // could use uncorrected variables for this selection? 
    if ((nfatjets < 2) || ((nfatjet_pre < 1  )  ) )return; // RETURN cut     ///   ((dijetMassOne < 800.) || (dijetMassTwo < 800.) // normal selection
 
 
