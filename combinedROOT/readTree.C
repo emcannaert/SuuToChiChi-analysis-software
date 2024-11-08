@@ -35,6 +35,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
    //have to multiply these by scale factors  
    double daughter_mass_comb[100];
    int nGenBJets_AK4[100], AK4_partonFlavour[100],AK4_HadronFlavour[100];
+   int eventNumber;
 
    double _eventWeightPU,_puWeightDown,_puWeightUp;
    int eventTTbarCRFlag =0;
@@ -368,7 +369,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+      t1->SetBranchAddress("eventNumber", &eventNumber); 
 		t1->SetBranchAddress("passesPFHT", &passesPFHT); 
 		t1->SetBranchAddress("passesPFJet", &passesPFJet); 
 
@@ -604,18 +605,15 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 	    std::cout << "=========================================" << std::endl;
 
 
-
-	    std::cout << "=========================================" << std::endl;
-	    std::cout << "=========================================" << std::endl;
-	    std::cout << " WARNING: Uncommented some selection" << std::endl;
-	    std::cout << "=========================================" << std::endl;
-	    std::cout << "=========================================" << std::endl;
-
-
 		for (Int_t i=0;i<nentries;i++) 
 		{  
 			t1->GetEntry(i);
 
+
+			if ((dataBlock.find("Suu") != std::string::npos))
+			{
+				if( eventNumber%10 > 2) continue; // should only be for signal
+			}
 
 		  ///// APPLY TRIGGER 
 		  if ( (!passesPFHT) && (!passesPFJet) ) continue; // skip events that don't pass at least one trigger
@@ -629,21 +627,22 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			h_nfatjets->Fill(nfatjets_double,eventScaleFactor);
 			h_totHT->Fill(totHT,eventScaleFactor);
 
-
-			// CHANGE BACK (uncomment out)
-			/*
+	
+			// JET VETO MAPS AND HEM VETOES	
 			bool fails_veto_map = false;
+			bool fails_HEM      = false;
 			for(int iii=0;iii<nfatjets;iii++) // a non-zero value is a bad thing from AK8_fails_veto_map 
 			{
-				if(  (fatjet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
+				if( fatjet_isHEM[iii]  )	  fails_HEM = true; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
+				if( AK8_fails_veto_map[iii]) fails_veto_map = true;
 			}
 			for(int iii = 0;iii<nAK4;iii++)
 			{   
-				if(  (jet_isHEM[iii] )  || (AK4_fails_veto_map[iii]) )continue; // CHANGED FROM if (AK4_fails_veto_map[iii]) fails_veto_map = true;
+				if( jet_isHEM[iii]  ) fails_HEM = true; // CHANGED FROM if (AK4_fails_veto_map[iii]) fails_veto_map = true;
+				if(AK4_fails_veto_map[iii]) fails_veto_map = true;
 			}
 
-			if(fails_veto_map)continue;
-			*/
+			if(fails_veto_map || fails_HEM) continue; // skip event if there are bad jets in HEM or veto map regions
 
 
 			double nAK4_recount = 0;
@@ -1336,7 +1335,11 @@ void readTree()
    // CHANGE THIS
 	//systematics = {"nom"};
 
+   std::vector<std::string> JEC1_ucerts = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"}; // the types of JEC uncertainties stored in the "JEC1" file for BR/data
+   std::vector<std::string> JEC1_ucerts = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; // the types of JEC uncertainties stored in the "JEC1" file for bR/data
 
+   std::vector<std::string> sig_JEC1_ucerts = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"}; // the types of uncertainties stored in the "JEC1" file for signal
+   std::vector<std::string> sig_nom_ucerts =  {"nom", "JER_eta193", "JER_193eta25", "JER", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute"}; // the types of JEC uncertainties stored in the "nom" file for signal
 
 
 
@@ -1577,9 +1580,21 @@ void readTree()
 				std::string systematic_str;  
 
 				if ((*systematic == "nom" ) || (*systematic == "bTagSF_tight" ) || (*systematic == "bTagSF_med") || (*systematic == "bTagSF")|| (*systematic == "PUSF" ) || (*systematic == "pdf") || (*systematic == "L1Prefiring") || (*systematic == "pdf") || (*systematic == "topPt")|| (*systematic == "scale")|| (*systematic == "renorm") || (*systematic == "fact")  ||  (*systematic=="bTag_eventWeight_bc_T") ||  (*systematic=="bTag_eventWeight_light_T") || (*systematic =="bTag_eventWeight_bc_M") || (*systematic ==  "bTag_eventWeight_light_M") || (*systematic=="bTag_eventWeight_bc_T_year") ||  (*systematic=="bTag_eventWeight_light_T_year") || (*systematic =="bTag_eventWeight_bc_M_year") || (*systematic ==  "bTag_eventWeight_light_M_year") ) systematic_str = "nom";
-				else if ( systematic->find("JEC") != std::string::npos ) systematic_str = "JEC";
+				else if ( std::find(JEC1_ucerts.begin(), JEC1_ucerts.end(), *systematic) != JEC1_ucerts.end() ) systematic_str = "JEC1";
+				else if ( std::find(JEC2_ucerts.begin(), JEC2_ucerts.end(), *systematic) != JEC2_ucerts.end() ) systematic_str = "JEC2";
 				else if ( systematic->find("JER") != std::string::npos ) systematic_str = "JER";
 				else {systematic_str = *systematic;}
+
+
+
+				// find the correct systematic_str for signal
+				if(  (*dataBlock).find("Suu")!= std::string::npos  )
+				{
+					if ( std::find(sig_JEC1_ucerts.begin(), sig_JEC1_ucerts.end(), *systematic) != sig_JEC1_ucerts.end() ) systematic_str = "JEC1";
+					else if ( std::find(sig_nom_ucerts.begin(), sig_nom_ucerts.end(), *systematic) != sig_nom_ucerts.end() ) systematic_str = "nom";
+					else { systematic_str = "nom"; }
+				}
+
 
 
 				if(debug) std::cout << "@@@@@@@@@@@@@ WARNING: YOU ARE IN DEBUG MODE. NOT ALL FILES WILL BE RUN. @@@@@@@@@@@@@@" << std::endl;

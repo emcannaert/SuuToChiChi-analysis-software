@@ -254,6 +254,27 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             ///// APPLY TRIGGER 
             if ((!passesPFHT) || (!passesPFJet) ) continue; // skip events that don't pass both triggers
 		
+
+   
+            // JET VETO MAPS AND HEM VETOES  
+            bool fails_veto_map = false;
+            bool fails_HEM      = false;
+            for(int iii=0;iii<nfatjets;iii++) // a non-zero value is a bad thing from AK8_fails_veto_map 
+            {
+               if( fatjet_isHEM[iii]  )     fails_HEM = true; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
+               if( AK8_fails_veto_map[iii]) fails_veto_map = true;
+            }
+            for(int iii = 0;iii<nAK4;iii++)
+            {   
+               if( jet_isHEM[iii]  ) fails_HEM = true; // CHANGED FROM if (AK4_fails_veto_map[iii]) fails_veto_map = true;
+               if(AK4_fails_veto_map[iii]) fails_veto_map = true;
+            }
+
+            if(fails_veto_map || fails_HEM) continue; // skip event if there are bad jets in HEM or veto map regions
+
+
+
+
             totEventsUncut++;
             if ((dataBlock.find("Suu") != std::string::npos))
             {
@@ -748,7 +769,7 @@ void readTreeApplySelection()
          for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
          {
 
-            if(( dataBlock->find("data") != std::string::npos  ) && ( (systematic->find("JER") != std::string::npos) ) ) continue; // there are no JER files for data,   || ((systematic->find("JEC") != std::string::npos)      
+            if(( dataBlock->find("data") != std::string::npos  ) && ( (systematic->find("JER") != std::string::npos)  || (systematic->find("JEC") != std::string::npos)   ) ) continue; // there are no JER files for data,   || ((systematic->find("JEC") != std::string::npos)      
             std::string year           = *datayear;
             std::string systematic_str = *systematic;
 
@@ -775,7 +796,7 @@ void readTreeApplySelection()
                   outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
                    
                }
-               else if( *systematic == "JEC1" != std::string::npos)
+               else if( *systematic == "JEC1")
                {
                   use_systematics = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"};
                   inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
@@ -788,16 +809,16 @@ void readTreeApplySelection()
                //std::cout << "Running JEC uncertainties." << std::endl;
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
 
-               if     (systematic == "JEC") use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"};   
-               else if(systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"}; 
-               else if(systematic == "JEC2") use_systematics = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; 
+               if     (*systematic == "JEC") use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"};   
+               else if(*systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"}; 
+               else if(*systematic == "JEC2") use_systematics = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; 
 
-               inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_JEC_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
+               inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_" + *systematic + "_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
                // if the JEC file has not yet been opened, delete the file so that it is being started from fresh 
-               outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
+               outFileName= (*dataBlock + year + "_" + *systematic + "_SKIMMED.root").c_str();
 
             }  
-            else if ( (systematic == "JER") && !(dataBlock->find("data") != std::string::npos))  // JEC systematics comprise a large amount of sub-systematics 
+            else if ( (*systematic == "JER") && !(dataBlock->find("data") != std::string::npos))  // JEC systematics comprise a large amount of sub-systematics 
             {
                //std::cout << "Running JER uncertainties." << std::endl;
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
@@ -855,8 +876,6 @@ void readTreeApplySelection()
                {
                   std::cout << "Done moving file " << outFileName + " to " + skimmedFiles_eos_path << "."<< std::endl;
                }
-
-
             }
             std::cout << "-------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
             std::cout << "---  Finished with "<< inFileName << " (" << year << ") (" << systematic_str << ") (" << *dataBlock << ")   -- " << std::endl;

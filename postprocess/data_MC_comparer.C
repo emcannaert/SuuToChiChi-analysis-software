@@ -186,7 +186,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
 
 
 
-    TCanvas* c = new TCanvas("c", "", 1200, 1000);
+    TCanvas* c = new TCanvas("c", "", 1250, 1000);
 
     std::string processedFilePaths = "../combinedROOT/processedFiles_selectionStudy/";
     std::string output_path        = "plots/dataMC/selectionStudy/";
@@ -286,7 +286,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     TH1F * QCD_combined;
     TH1F * TTbar_combined;
     TH1F * ST_combined;
-
+    std::string hStack_yaxis_title = "";
     if (!runSideband) 
     {
         bgFiles[0] = TFile::Open(QCD1000to1500_filename.c_str()); 
@@ -319,6 +319,8 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
         hBackgrounds[4]->SetTitle( (histName + " - TTToSemiLeptonicMC (" + year  + ") ").c_str() );
         hBackgrounds[5]->SetTitle( (histName + " - TTToLeptonicMC (" + year  + ") ").c_str() );
 
+
+        hStack_yaxis_title = hBackgrounds[0]->GetYaxis()->GetTitle();
 
         hBackgrounds[0]->Draw("HIST");
         write_cms_text(CMS_label_pos,SIM_label_pos, c);
@@ -480,6 +482,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     THStack* hs = new THStack("hs", ("Combined BR (QCD+TTbar) (" + year_str + ")").c_str()  );
     hs->Add(QCD_combined);
     hs->Add(TTbar_combined);
+
     if(runSideband)hs->Add(ST_combined);
 
 
@@ -510,6 +513,8 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     //}
 
     hs->Draw("HIST");
+    hs->GetYaxis()->SetTitle( hStack_yaxis_title.c_str() );
+    hs->GetYaxis()->SetLabelOffset(0.02);
 
     h_data_combined->Draw("SAME");
     write_cms_text(CMS_label_pos,SIM_label_pos, c);
@@ -528,6 +533,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     hRatio->Divide(MC_BR_combined);   // this might be incorrect ...
     hRatio->SetMinimum(0.25); // Set y-axis range for ratio plot
     hRatio->SetMaximum(3.0);
+    hRatio->GetYaxis()->SetLabelOffset(1.5);
     hRatio->SetMarkerStyle(20);
     hRatio->SetFillColor(kGray);
     hRatio->Draw("E2");
@@ -558,7 +564,6 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     hRatio->GetXaxis()->SetTitleSize(0.08); // Increase title font size
     hRatio->GetYaxis()->SetLabelSize(0.08); // Increase label font size
     hRatio->GetYaxis()->SetTitleSize(0.08); // Increase title font size
-
 
 
     if(necessaryToMask)
@@ -616,13 +621,13 @@ void data_MC_comparer()
 {   
 
 
-    bool runControlRegions = false;  // flag to run the normal processed root files as opposed to the selectionStudy ones
+    bool runControlRegions = true;  // flag to run the normal processed root files as opposed to the selectionStudy ones
     bool runSideband  = false;       // flag to run over the sideband region (if these files are processed)
 
     bool doMasking = true; // mask sensitive regions of SR/CR
 
     ///// SELECTION STUDY PORTION (creates data/MC plots for loose region, NOT SR/CR/AT/SB regions)
-    std::vector<std::string> hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_AK4_pt", "h_nAK4", "h_AK4_pt", "h_AK8_mass", "h_AK4_mass",  
+    std::vector<std::string> hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_AK8_pt", "h_nAK4", "h_AK4_pt", "h_AK8_mass", "h_AK4_mass",  
     "h_nHeavyAK8_pt400_M10", "h_nHeavyAK8_pt400_M20", "h_nHeavyAK8_pt400_M30", "h_nHeavyAK8_pt300_M10", "h_nHeavyAK8_pt300_M20", "h_nHeavyAK8_pt300_M30",
      "h_nHeavyAK8_pt200_M10", "h_nHeavyAK8_pt200_M20", "h_nHeavyAK8_pt200_M30",
     "h_nAK8_pt200", "h_nAK8_pt300", "h_nAK8_pt150", "h_nAK8_pt500", "h_AK4_eta", "h_AK4_phi", "h_AK8_eta", "h_AK8_phi"};
