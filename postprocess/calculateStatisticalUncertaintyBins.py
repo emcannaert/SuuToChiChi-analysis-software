@@ -31,7 +31,7 @@ class combineHistBins:
 		self.technique_str = technique_str
 		self.dryRun = dryRun
 		self.max_stat_uncert = 0.30  ## maximum statistical uncertainty
-		self.min_bin_counts   = 5.0   ## the minimum number of scaled events required to be in each bin
+		self.min_unscaled_QCD_bin_counts   = 2.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
 
 		self.n_bins_x = 22
 		self.n_bins_y = 20
@@ -168,7 +168,7 @@ class combineHistBins:
 				if self.all_hist_values.get_bin_total_uncert(self.superbin_indices[iii])  > self.max_stat_uncert:    # 1.0/sqrt(self.counts_in_superbin( iii ) )
 					return False
 				### check that the total bin yields
-				if self.all_hist_values.get_scaled_superbin_counts(self.superbin_indices[iii])  < self.min_bin_counts: 
+				if self.all_hist_values.get_unscaled_QCD_superbin_counts(self.superbin_indices[iii])  < self.min_unscaled_QCD_bin_counts: 
 					return False
 			else:
 				return False
@@ -433,7 +433,7 @@ class combineHistBins:
 				bad_superbins.append(iii)
 				#print("Stat uncertainty in bin %s is %s."%(iii,self.all_hist_values.get_bin_total_uncert(superbin)))
 			### check that the total bin yields are not less than defined minimum bin count threshold
-			elif self.all_hist_values.get_scaled_superbin_counts(superbin)  < self.min_bin_counts: 
+			elif self.all_hist_values.get_unscaled_QCD_superbin_counts(superbin)  < self.min_unscaled_QCD_bin_counts: 
 				bad_superbins.append(iii)
 
 			num_superbins+=1
@@ -449,6 +449,21 @@ class combineHistBins:
 				fewest_counts = self.all_hist_values.get_scaled_superbin_counts( self.superbin_indices[superbin_number]   )
 
 		return index_fewest_counts
+
+	def get_highest_stat_uncert_neighbor(self, superbin_numbers):    ## takes in a list of superbin numbers and returns superbin number that has the fewest overall scaled counts 
+		index_highest_uncert = None
+		highest_uncert = -1e15
+		for superbin_number in superbin_numbers:
+			#print("################    Checking counts: superbin number = %s, superbin_indices = %s, counts = %s, fewest counts = %s"%(superbin_number, self.superbin_indices[superbin_number],self.all_hist_values.get_scaled_superbin_counts( self.superbin_indices[superbin_number]   ), fewest_counts))
+			if self.all_hist_values.get_bin_total_uncert( self.superbin_indices[superbin_number]   ) > highest_uncert:
+				index_highest_uncert = superbin_number
+				highest_uncert = self.all_hist_values.get_bin_total_uncert( self.superbin_indices[superbin_number]   )
+
+		return index_highest_uncert
+
+
+
+
 
 	def do_bin_merging(self):
 		all_bins_good = False
@@ -489,11 +504,22 @@ class combineHistBins:
 			#print("Nearby superbins: ", nearby_superbins)
 			## find superbin with fewest overall scaled counts
 
-			lowest_count_neighbor_index = self.get_lowest_count_neighbor( nearby_superbins) 
+
+
+
+			### CHANGED 
+			#lowest_count_neighbor_index = self.get_lowest_count_neighbor( nearby_superbins) 
 			#print("Found lowest count neighbor_index, %s, with %s counts."%(lowest_count_neighbor_index, self.all_hist_values.get_scaled_superbin_counts(  self.superbin_indices[lowest_count_neighbor_index] )  ))
+ 
+			highest_stat_uncert_neighbor_index = self.get_highest_stat_uncert_neighbor(nearby_superbins)
 
 			### merge with neighbor with fewest overall counts
-			self.superbin_indices[lowest_count_neighbor_index].extend( self.superbin_indices[random_bad_superbin]   )
+
+			### CHANGED
+			#self.superbin_indices[lowest_count_neighbor_index].extend( self.superbin_indices[random_bad_superbin]   )
+			highest_stat_uncert_neighbor_index
+			self.superbin_indices[highest_stat_uncert_neighbor_index].extend( self.superbin_indices[random_bad_superbin]   )
+
 			#print("extending superbins", self.superbin_indices)
 			self.superbin_indices.remove( self.superbin_indices[random_bad_superbin] )
 			#print("removing superbins", self.superbin_indices)
