@@ -287,6 +287,9 @@ if __name__=="__main__":
 			continue
 		#print("num/year/sys/sample = %s/%s/%s/%s"%(num_str,year_str,sys_str,sample_str))
 		if "Suu" in sample_str:
+			#print("year_str/sample_str/sys_str are %s/%s/%s"%(year_str,sample_str,sys_str))
+			#print("signal_nCommands looks like ", signal_nCommands) 	
+			#print("signal_nCommands has keys",signal_nCommands.keys())
 			num_str = "%s"%(signal_nCommands[year_str][sample_str][sys_str])
 			#print("num/year/sys/sample = %s/%s/%s/%s"%(num_str,year_str,sys_str,sample_str))
 			signal_files_made[year_str][sample_str][sys_str].append("%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))

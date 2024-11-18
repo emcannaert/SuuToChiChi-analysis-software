@@ -324,8 +324,12 @@ def create_superimposed_SJ_mass_plot_combined(year, MSuu, tagging_type, tagging_
 	inFile_dir = "../combinedROOT/processedFiles/"
 	plot_dir   = "plots/signal_mass_plots/all_signal_mass_superimposed/"
 	
+	#inFileName = inFile_dir + "%s_%s_%s_processed.root"%(mass_point,decays[0],year)
+
 	c = ROOT.TCanvas("","", 1200,1000)
-	sig_file = ROOT.TFile(inFileName,"READ")
+	#sig_file = ROOT.TFile(inFileName,"READ")
+
+
 	folder_name = "nom/"
 
 	all_hists = []  # all histograms for a given year, decay, and mass point
@@ -593,7 +597,7 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str ):
 	h_SJ_mass_CR.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_pos, SIM_label_pos)
 	legend_SJ_mass_CR.Draw()
-	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_CR%s.png%s"%(mass_point,year,tagging_type))
+	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
 
 	h_diSuperjet_mass_CR.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_pos, SIM_label_pos)

@@ -545,7 +545,7 @@ void make_combined_sample_plots()
 
 
   };
-  std::vector<bool> makeLog2 = {false,false,false,false,false,false,false,false};
+  std::vector<bool> makeLog2 = {true,true,true,true,true,true,true,true};
   std::vector<bool> noStats2 = {true,true,true,true,true,true,true,true};
 
   std::vector<std::string> plot_descriptions_2D = 
@@ -733,7 +733,7 @@ void make_combined_sample_plots()
     std::string nomFolderName = "nom/";
     // I think the processed files will be within systematic folders, so plot names will have to have folder strings attached
 
-    counter = 0;
+    int counter = 0;
     for(auto histName = histNames_proc .begin(); histName < histNames_proc.end(); histName++)
     {
 

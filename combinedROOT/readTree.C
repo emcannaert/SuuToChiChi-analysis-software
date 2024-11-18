@@ -85,9 +85,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
    const char *_inFilename = inFileName.c_str();
    const char *_outFilename = outFileName.c_str();
 
-   std::cout << "---------  Reading file: " << _inFilename << std::endl;
+   //std::cout << "---------  Reading file: " << _inFilename << std::endl;
 
-   TFile *f = TFile::Open(_inFilename);
+   TFile *f = TFile::Open(_inFilename,"READ");
 
    if ((f == nullptr)||(f->IsZombie()) )
    {
@@ -95,23 +95,36 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		delete f;
 		return false;
    }
-   TFile outFile(_outFilename,"UPDATE");
+   TFile * outFile = TFile::Open(_outFilename,"UPDATE");
 
 
    
    for(auto systematic_suffix = systematic_suffices.begin(); systematic_suffix < systematic_suffices.end();systematic_suffix++)
    {
 
-		outFile.cd();   // return to outer directory
+		outFile->cd();   // return to outer directory
 		if(systematic == "nom" )
 		{
-			gDirectory->mkdir( systematic.c_str()  );   //create directory for this systematic
-			outFile.cd( systematic.c_str() );   // go inside the systematic directory 
+
+         TDirectory* dir = outFile->GetDirectory(systematic.c_str()); // CHANGE
+         if (!dir)   
+         {
+            dir = outFile->mkdir( "nom" ); // CHANGE
+         }
+         dir->cd();
+			//outFile.cd( systematic.c_str() );   // go inside the systematic directory 
 		}
 		else
 		{
-			gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
-			outFile.cd( (systematic+"_"+*systematic_suffix).c_str() );   // go inside the systematic directory 
+
+         TDirectory* dir = outFile->GetDirectory((systematic+"_"+ *systematic_suffix).c_str() ); // CHANGE
+         if (!dir)   
+         {
+            dir = outFile->mkdir( (systematic+"_"+ *systematic_suffix).c_str() ); // CHANGE
+         }
+         dir->cd();
+			//gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
+			//outFile.cd( (systematic+"_"+*systematic_suffix).c_str() );   // go inside the systematic directory 
 		}
 	
 		std::string tree_name;
@@ -147,7 +160,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			delete f;
 			return false;
 		}
-		std::cout << "Successfully got tree." << std::endl;
+		std::cout << "Successfully got tree " << tree_name  + "/skimmedTree_"+ tree_name << std::endl;
 		
 
 		//////////////////////////////////////////////////h_AK8_jet_mass
@@ -636,11 +649,11 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				if( fatjet_isHEM[iii]  )	  fails_HEM = true; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
 				if( AK8_fails_veto_map[iii]) fails_veto_map = true;
 			}
-			for(int iii = 0;iii<nAK4;iii++)
+			/*for(int iii = 0;iii<nAK4;iii++)
 			{   
 				if( jet_isHEM[iii]  ) fails_HEM = true; // CHANGED FROM if (AK4_fails_veto_map[iii]) fails_veto_map = true;
 				if(AK4_fails_veto_map[iii]) fails_veto_map = true;
-			}
+			}*/
 
 			if(fails_veto_map || fails_HEM) continue; // skip event if there are bad jets in HEM or veto map regions
 
@@ -1269,7 +1282,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		}
 
 		
-		outFile.Write();
+		outFile->Write();
 		//std::cout << "The average event scale factors were " << sum_eventSF_SR/nEvents_unscaled_SR  << "/" <<sum_eventSF_CR/nEvents_unscaled_CR << "/" <<sum_eventSF_0b_antiTag/nEvents_unscaled_0b_antiTag << "/" << sum_eventSF_1b_antiTag/nEvents_unscaled_1b_antiTag<<  "in the signal/control/0b-antiTag/1b-antiTag regions" << std::endl;
 		//std::cout << "This can be further broken down - average b-tag SF is " << sum_eventSF_SR/nEvents_unscaled_SR  << "/" <<sum_eventSF_CR/nEvents_unscaled_CR << "/" <<sum_eventSF_0b_antiTag/nEvents_unscaled_0b_antiTag << "/" << sum_eventSF_1b_antiTag/nEvents_unscaled_1b_antiTag<<  "in the signal/control/0b-antiTag/1b-antiTag regions" << std::endl;
 		//std::cout << "The number of bad btag and PU SFs was " << num_bad_btagSF << " and " << num_bad_PUSF << std::endl;
@@ -1292,14 +1305,15 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		delete  h_nfatjets_SR;delete  h_nfatjets_CR;delete  h_nAK4_SR;delete  h_nAK4_CR;delete  h_AK4_partonFlavour;delete  h_AK4_DeepJet_disc;delete  h_AK4_DeepJet_disc_all;delete  h_nAK4;delete  h_MSJ1_vs_MSJ2_SR;
 		delete  h_MSJ1_vs_MSJ2_CR;delete  h_nAK4_all;delete  h_MSJ_mass_vs_MdSJ_AT0b;delete h_SJ_mass_AT0b;delete  h_disuperjet_mass_AT0b;delete h_SJ_mass_NN_SR;
 		delete h_disuperjet_mass_NN_SR; delete h_MSJ_mass_vs_MdSJ_NN_SR; delete h_SJ_mass_NN_CR;delete h_disuperjet_mass_NN_CR;delete h_MSJ_mass_vs_MdSJ_NN_CR;delete h_SJ_mass_NN_AT1b;delete h_disuperjet_mass_NN_AT1b;
-		delete h_MSJ_mass_vs_MdSJ_NN_AT1b; delete h_SJ_mass_NN_AT0b; delete h_disuperjet_mass_NN_AT0b;delete h_MSJ_mass_vs_MdSJ_NN_AT0b;
+		delete h_MSJ_mass_vs_MdSJ_NN_AT1b; delete h_SJ_mass_NN_AT0b; delete h_disuperjet_mass_NN_AT0b;delete h_MSJ_mass_vs_MdSJ_NN_AT0b; 
 
 
 	}
 
-   //outFile.Close();
+   outFile->Close();
    std::cout << "--------- Finished file " << inFileName << std::endl;
    delete f;
+   delete outFile;
    return true;
 }
 
@@ -1313,8 +1327,8 @@ void readTree()
    bool runData			= false;
    bool runSignal    	= false;
    bool runBR	  			= false;
-   bool runAll	 			= false;
-   bool runDataBR    	= true;
+   bool runAll	 			= true;
+   bool runDataBR    	= false;
    bool runSelection 	= false;
    bool runSingleFile 	= false;
    bool runSideband 		= false;
@@ -1328,15 +1342,15 @@ void readTree()
 
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
-   if(runSelection) dataYears = {"2015","2016","2017","2018"};
+   if(runSelection) dataYears = {"2015"};
 
-   std::vector<std::string> systematics = {"nom", "bTagSF_med", "bTagSF_tight",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring", "pdf","renorm", "fact" };  // "scale"
+   std::vector<std::string> systematics = {"nom", "bTagSF_med", "bTagSF_tight",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "Absolute", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring", "pdf","renorm", "fact" };  // "scale"
 
    // CHANGE THIS
 	//systematics = {"nom"};
 
    std::vector<std::string> JEC1_ucerts = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"}; // the types of JEC uncertainties stored in the "JEC1" file for BR/data
-   std::vector<std::string> JEC1_ucerts = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; // the types of JEC uncertainties stored in the "JEC1" file for bR/data
+   std::vector<std::string> JEC2_ucerts = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; // the types of JEC uncertainties stored in the "JEC1" file for bR/data
 
    std::vector<std::string> sig_JEC1_ucerts = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"}; // the types of uncertainties stored in the "JEC1" file for signal
    std::vector<std::string> sig_nom_ucerts =  {"nom", "JER_eta193", "JER_193eta25", "JER", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute"}; // the types of JEC uncertainties stored in the "nom" file for signal
@@ -1367,10 +1381,10 @@ void readTree()
 		// delete existing processed files 
 		if((runDataBR)||(runBR)||(runAll) ) 
 		{
-			delete_result *= system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combimedROOT/"+outputFolder +  "*QCD*" + *dataYear+ "*.root").c_str() ) ;
-			delete_result *= system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combimedROOT/"+outputFolder +  "*ST_*" + *dataYear+ "*.root").c_str() ) ;
-			delete_result *= system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combimedROOT/"+outputFolder +  "*TTTo*" + *dataYear+ "*.root").c_str() ) ;
-			delete_result *= system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combimedROOT/"+outputFolder +  "*TTJets*" + *dataYear+ "*.root").c_str() ) ;
+			delete_result *= system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/"+outputFolder +  "*QCD*" + *dataYear+ "*.root").c_str() ) ;
+			delete_result *= system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/"+outputFolder +  "*ST_*" + *dataYear+ "*.root").c_str() ) ;
+			delete_result *= system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/"+outputFolder +  "*TTTo*" + *dataYear+ "*.root").c_str() ) ;
+			delete_result *= system( ("rm /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/"+outputFolder +  "*TTJets*" + *dataYear+ "*.root").c_str() ) ;
 		}
 		if((runSignal)||(runAll) ) 
 		{
@@ -1475,7 +1489,9 @@ void readTree()
 			}
 			else if(runSelection)
 			{
-				dataBlocks = {"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
+
+				dataBlocks = {"Suu4_chi1_HTHT_" , "Suu5_chi1_WBHT_", "Suu8_chi2_HTZT_"} ; 
+				//dataBlocks = {"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
 			}
 			else if ( runSingleFile)
 			{
@@ -1564,12 +1580,13 @@ void readTree()
 
 			for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
 			{
-				if(( (*dataBlock).find("Suu")!= std::string::npos ) &&( *systematic == "JEC" )) continue;
+				//if(( (*dataBlock).find("Suu")!= std::string::npos ) &&( *systematic == "JER" )) continue; // why am I doing this?
 
 				if ((*dataBlock).find("data")!= std::string::npos)
 				{  
 					// these are MC-only systematics 
-					if ((*systematic == "bTagSF_tight") || (*systematic == "bTagSF_med") || (*systematic == "bTagSF") || (*systematic == "PUSF") || (*systematic == "JER")  || (*systematic == "JER_eta193") || (*systematic == "JER_193eta25") ||  (*systematic == "topPt") || (*systematic == "pdf") || (*systematic == "scale") || (*systematic == "fact") || (*systematic == "renorm") || (*systematic=="bTag_eventWeight_bc_T") ||  (*systematic=="bTag_eventWeight_light_T") || (*systematic =="bTag_eventWeight_bc_M") || (*systematic ==  "bTag_eventWeight_light_M") || (*systematic=="bTag_eventWeight_bc_T_year") ||  (*systematic=="bTag_eventWeight_light_T_year") || (*systematic =="bTag_eventWeight_bc_M_year") || (*systematic ==  "bTag_eventWeight_light_M_year") ) continue;
+					if(*systematic != "nom") continue; // don't do any variations for data_obs
+					//if ((*systematic == "bTagSF_tight") || (*systematic == "bTagSF_med") || (*systematic == "bTagSF") || (*systematic == "PUSF") || (*systematic == "JER")  || (*systematic == "JER_eta193") || (*systematic == "JER_193eta25") ||  (*systematic == "topPt") || (*systematic == "pdf") || (*systematic == "scale") || (*systematic == "fact") || (*systematic == "renorm") || (*systematic=="bTag_eventWeight_bc_T") ||  (*systematic=="bTag_eventWeight_light_T") || (*systematic =="bTag_eventWeight_bc_M") || (*systematic ==  "bTag_eventWeight_light_M") || (*systematic=="bTag_eventWeight_bc_T_year") ||  (*systematic=="bTag_eventWeight_light_T_year") || (*systematic =="bTag_eventWeight_bc_M_year") || (*systematic ==  "bTag_eventWeight_light_M_year") ) continue;
 				}
 				
 				double nEvents = 0, nHTcut  = 0, nAK8JetCut = 0, nHeavyAK8Cut = 0, nBtagCut = 0, nDoubleTagged = 0, nNoBjets = 0;
@@ -1590,7 +1607,7 @@ void readTree()
 				// find the correct systematic_str for signal
 				if(  (*dataBlock).find("Suu")!= std::string::npos  )
 				{
-					if ( std::find(sig_JEC1_ucerts.begin(), sig_JEC1_ucerts.end(), *systematic) != sig_JEC1_ucerts.end() ) systematic_str = "JEC1";
+					if ( std::find(sig_JEC1_ucerts.begin(), sig_JEC1_ucerts.end(), *systematic) != sig_JEC1_ucerts.end() ) systematic_str = "JEC";
 					else if ( std::find(sig_nom_ucerts.begin(), sig_nom_ucerts.end(), *systematic) != sig_nom_ucerts.end() ) systematic_str = "nom";
 					else { systematic_str = "nom"; }
 				}
@@ -1610,7 +1627,7 @@ void readTree()
 
 				if (!doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag, eventScaleFactor,nZeroBtagAntiTag, nOneBtagAntiTag, nNN_SR, nNN_CR, nNN_AT1b, nNN_AT0b, *dataYear,*systematic, *dataBlock,runType ))
 				{
-					std::cout << "ERROR: Failed for year/sample/systematic" << year<< "/" << *dataBlock << "/" << *systematic << std::endl;
+					std::cout << "ERROR: Failed for year/sample/systematic: " << year<< "/" << *dataBlock << "/" << *systematic << std::endl;
 					if( !(failedFiles.find( (*dataBlock +"/" + year ).c_str()  ) != std::string::npos)) // don't copy this multiple times
 					{
 						failedFiles+= (", "+ *dataBlock +"/" + year +"/"  + systematic_str ).c_str();

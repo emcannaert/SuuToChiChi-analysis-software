@@ -1234,7 +1234,7 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 
    // could use uncorrected variables for this selection? 
-   if ((nfatjets < 2) || ((nfatjet_pre < 1  )  ) )return; // RETURN cut     ///   ((dijetMassOne < 800.) || (dijetMassTwo < 800.) // normal selection
+   if ((nAK8_pt150_noCorr < 2) || ((nHeavyAK8_pt400_M30 < 1  )  ) )return; // RETURN cut     ///   ((dijetMassOne < 800.) || (dijetMassTwo < 800.) // normal selection
 
 
 

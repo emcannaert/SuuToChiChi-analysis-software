@@ -18,7 +18,7 @@ from math import isnan
 ### loop over each superbin and add together the corresponding histogram bins, this becomes an entry in a 1D ( 22x20 = 440 bin) distribution for each contribution that goes to Combine
 ### in the end there will be a histogram for QCD, TTbar, signal MC, and then data 
 
-
+ROOT.gErrorIgnoreLevel = ROOT.kError
 ### change the lists to instead be dictionaries?
 class linearized_plot:
 	n_bins_x = 22
@@ -33,11 +33,12 @@ class linearized_plot:
 		self.BR_SF_scale = 1.0
 		self.sig_SF_scale = 1.0
 		self.technique_str = technique_str
+		print("The technique string is %s"%technique_str)
 		self.year   = year
 		self.MC_root_file_home      = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home    =   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 
-		self.doSideband = True
+		self.doSideband = False
 		if "NN" in self.technique_str: self.doSideband = False
 		self.index_file_home     = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
 		self.output_file_home    = os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFiles"
@@ -50,13 +51,13 @@ class linearized_plot:
 
 		self.mass_point = mass_point   # label for the signal mass point
 
-		self.non_data_systematics = [ "PUSF", "JER", "topPt", "pdf", "renorm", "fact"] # "bTagSF", ### removed BtagSF until other files are processed 
-		self.data_systematics = ["nom", "L1Prefiring"]
-		self.data_systematic_names = ["nom", "CMS_L1Prefiring"]
+		self.non_data_systematics  = [ "PUSF", "JER", "topPt", "pdf", "renorm", "fact"] # "bTagSF", ### removed BtagSF until other files are processed 
+		self.data_systematics 	   = ["nom"]
+		self.data_systematic_names = ["nom"]
 
 		#self.systematics = ["nom","JER","JEC"] ### NEEDS TO BE CHANGED BACK
-		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight", "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",   "JER",        "JER_eta193",     "JER_193eta25",    "JEC",       "JEC_FlavorQCD",    "JEC_RelativeBal",      "JEC_HF",     "JEC_BBEC1",     "JEC_EC2",     "JEC_Absolute",     "JEC_BBEC1_year",     "JEC_EC2_year",    "JEC_Absolute_year",       "JEC_HF_year",    "JEC_RelativeSample_year",    "PUSF",    "topPt",     "L1Prefiring",     "pdf",     "renorm",     "fact" ]   ## systematic namings as used in analyzer     "bTagSF", 
-		self.systematic_names = ["nom",  "CMS_bTagSF_M" ,  "CMS_bTagSF_T",    "CMS_bTagSF_bc_T",       "CMS_bTagSF_light_T",       "CMS_bTagSF_bc_M",       "CMS_bTagSF_light_M",      "CMS_bTagSF_bc_T_year",        "CMS_bTagSF_light_T_year",      "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",    "CMS_jer",    "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact"]  ## systematic namings for cards   "CMS_btagSF",
+		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight", "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",        "JER_eta193",     "JER_193eta25",    "JEC",       "JEC_FlavorQCD",    "JEC_RelativeBal",      "JEC_HF",     "JEC_BBEC1",     "JEC_EC2",     "Absolute",     "JEC_BBEC1_year",     "JEC_EC2_year",    "JEC_Absolute_year",       "JEC_HF_year",    "JEC_RelativeSample_year",    "PUSF",    "topPt",     "L1Prefiring",     "pdf",     "renorm",     "fact",    "AbsoluteCal",     "AbsoluteTheory",      "AbsolutePU" ]   ## systematic namings as used in analyzer     "bTagSF",   "JER", 
+		self.systematic_names = ["nom",  "CMS_bTagSF_M" ,  "CMS_bTagSF_T",    "CMS_bTagSF_bc_T",       "CMS_bTagSF_light_T",       "CMS_bTagSF_bc_M",       "CMS_bTagSF_light_M",      "CMS_bTagSF_bc_T_year",        "CMS_bTagSF_light_T_year",      "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",         "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",  "CMS_jer",  
 		self.uncorrelated_systematics = [ "CMS_pu",  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
 		self.QCD_hist_SR = []
 		self.TTbar_hist_SR 	= []
@@ -573,7 +574,7 @@ class linearized_plot:
 				TH2_hist_2000toInf.Scale(self.BR_SF_scale*SF_2000toInf[self.year])
 
 			if region in ["SB1b", "SB0b"] : combined_QCD_hist = ROOT.TH2F("combined_QCD_%s%s"%(self.technique_str ,sys_str), ("QCD (HT1000-Inf) Events in the %s (%s) (%s)"%(region, year, sys_str)), 15 ,0.0, 8000, 12, 0.0, 2500)
-			else: combined_QCD_hist = ROOT.TH2F("combined_QCD_%s%s"%(self.technique_str ,sys_str), ("QCD (HT1000-Inf) Events in the %s (%s) (%s)"%(region, year, sys_str)), 22,1250., 10000, 20, 500, 4000)
+			else: combined_QCD_hist = ROOT.TH2F("combined_QCD_%s%s"%(self.technique_str ,sys_str), ("QCD (HT1000-Inf) Events in the %s (%s) (%s)"%(region, year, sys_str)), 22,1250., 10000, 20, 500, 5000)
 			combined_QCD_hist.Add(TH2_hist_1000to1500)
 			combined_QCD_hist.Add(TH2_hist_1500to2000)
 			if region not in ["SB1b", "SB0b"] : combined_QCD_hist.Add(TH2_hist_2000toInf)
@@ -704,6 +705,7 @@ class linearized_plot:
 
 			try:
 				f1 = ROOT.TFile(file_names[iii],"r")
+
 				combined_hist = f1.Get(folder_name)
 				#print("Original histogram integral: %s with weight %s"%(combined_hist.Integral(), weights[iii])  )
 				#print("Looking for %s in %s."%(folder_name,file_names[0]) )
@@ -780,6 +782,7 @@ class linearized_plot:
 				TH2_hist_signal = self.get_combined_histogram(file_paths, hist_name_signal, "nom", sig_weights, "nom",region)
 			else:
 				TH2_hist_signal = self.get_combined_histogram(file_paths, hist_name_signal, sys_str, sig_weights,systematic,region)
+
 			TH2_hist_signal.SetDirectory(0)   # histograms lose their references when the file destructor is called
 			TH2_hist_signal.SetTitle("combined Signal MC (%s) (%s) (%s)"%(self.year,region, sys_str))
 			all_combined_signal_hist.append(TH2_hist_signal)
@@ -866,7 +869,7 @@ class linearized_plot:
 			TH2_hist_ST_tW_top_5f.SetDirectory(0)   # histograms lose their references when the file destructor is called
 
 			if region in ["SB1b", "SB0b"]: combined_ST_hist = ROOT.TH2F("combined_ST_%s"%region,"combined linearized Single Top (%s) (%s) (%s)"%(self.year,region,sys_str),15 ,0.0, 8000, 12, 0.0, 2500);  
-			else: combined_ST_hist = ROOT.TH2F("combined_ST_%s"%region,"combined linearized Single Top (%s) (%s) (%s)"%(self.year,region,sys_str),22,1250., 10000, 20, 500, 4000)
+			else: combined_ST_hist = ROOT.TH2F("combined_ST_%s"%region,"combined linearized Single Top (%s) (%s) (%s)"%(self.year,region,sys_str),22,1250., 10000, 20, 500, 5000)
 			combined_ST_hist.Add(TH2_hist_ST_t_channel_top_5f)
 			combined_ST_hist.Add(TH2_hist_ST_t_channel_antitop_5f)
 			combined_ST_hist.Add(TH2_hist_ST_s_channel_4f_hadrons)
@@ -905,7 +908,7 @@ class linearized_plot:
 			#print("Loading data hist %s/%s/%s"%(region,systematic,self.year))
 
 			if region in ["SB1b","SB0b"]: combined_data_hist = ROOT.TH2F("combined_data_%s"%sys_str, ("data events in the %s (%s)"%(year,region)), 15 ,0.0, 8000, 12, 0.0, 2500)
-			else:  combined_data_hist = ROOT.TH2F("combined_data_%s"%sys_str, ("data events in the %s (%s)"%(year,region)), 22,1250., 10000, 20, 500, 4000)
+			else:  combined_data_hist = ROOT.TH2F("combined_data_%s"%sys_str, ("data events in the %s (%s)"%(year,region)), 22,1250., 10000, 20, 500, 5000)
 			#JetHT_"+ *dataBlock+"_"+*year+"_processed.root   -> naming scheme
 			for data_block in data_blocks:
 				#print("Looking for %s/%s/%s/%s"%(data_block,self.year,sys_str,region))
@@ -1382,23 +1385,23 @@ if __name__=="__main__":
 	mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1","Suu5_chi1p5","Suu5_chi2","Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1",
    "Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"]
 	years = ["2015","2016","2017","2018"]
+	#years = ["2016"]
 	regions = ["SR","CR","SB1b","SB0b"] # 
 
-	technique_strs = ["","NN_"]
-	technique_strs = [""]
+	technique_strs = ["","NN_"] 
 
 	technique_descr = ["cut-based", "NN-based"]
 	for year in years:
 		for mass_point in mass_points:
 			for iii,technique_str in enumerate(technique_strs):
-				try:
-					print("Running for %s/%s/%s"%(year,mass_point,technique_str))
-					final_plot = linearized_plot(year, mass_point, technique_str)
+				#try:
+				print("Running for %s/%s/%s"%(year,mass_point,technique_str))
+				final_plot = linearized_plot(year, mass_point, technique_str)
 					#print("final_plot value for QCD %s %s : %s"%(year, region,final_plot.QCD_hist.GetBinContent( final_plot.QCD_hist.GetMaximumBin() )) )
 					#print("final_plot value for TTbar %s %s : %s"%(year, region,final_plot.TTbar_hist.GetBinContent( final_plot.TTbar_hist.GetMaximumBin() ))   )
 					#print("%s/%s/%s: the superbin indices have size %s"%(technique_descr[iii],year, mass_point,len(final_plot.superbin_indices)))
-				except:
-					print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
+				#except:
+				#	print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
 	print("Script took %ss to run."%(	np.round(time.time() - start_time,4 )) )
 
 # create one root file for each year containing all the systematics = another level of folders

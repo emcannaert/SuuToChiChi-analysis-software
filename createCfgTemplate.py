@@ -22,7 +22,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       if  systematic__ == "JEC2": return 
       elif systematic__ == "JER": return 
       elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"]
-      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute" ]        #all_systematics
+      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute" ]        #all_systematics
       else:        #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER" ]        #all_systematics
          print("ERROR: Suu systematic is neither JEC nor nom.")
          return
@@ -30,7 +30,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    elif systematic__ == "JEC1":
       systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"]
    elif systematic__ == "JEC2":  
-      systematic_ = ["JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"]
+      systematic_ = ["JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute", "JEC"]
    elif systematic__ == "JER":
       systematic_ = [  "JER_eta193", "JER_193eta25", "JER"] ## we aren't using JERs for eta > 2.5, so no need for the other 4 uncertainties
 
@@ -213,7 +213,12 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    newCfg.write("from PhysicsTools.PatUtils.l1PrefiringWeightProducer_cfi import l1PrefiringWeightProducer\n")
    newCfg.write("process.prefiringweight = l1PrefiringWeightProducer.clone(\n")
-   newCfg.write("TheJets = cms.InputTag('updatedPatJetsAK4UpdatedJEC'), #this should be the slimmedJets collection with up to date JECs \n")
+
+   if apply_pu_ID:
+      newCfg.write("TheJets = cms.InputTag('updatedPatJetsPileupJetID'), #updatedPatJetsAK4UpdatedJEC \n")
+   else:
+      newCfg.write("TheJets = cms.InputTag('updatedPatJetsAK4UpdatedJEC'), #updatedPatJetsAK4UpdatedJEC \n")
+   
    newCfg.write("DataEraECAL = cms.string('%s'), #Use 2016BtoH for 2016\n"%prefire_ecal_era)
    newCfg.write("DataEraMuon = cms.string('%s'), #Use 2016 for 2016\n"%prefire_muon_era)
    newCfg.write("UseJetEMPt = cms.bool(False),\n")

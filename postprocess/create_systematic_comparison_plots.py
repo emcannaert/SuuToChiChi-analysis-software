@@ -319,7 +319,7 @@ def create_signal_systematic_comparison_plot(hist_name, hist_type, systematic, y
 if __name__== "__main__":
 
 	years 	= ["2015","2016","2017","2018"]
-	systematics = [ "PUSF", "JEC", "JER", "topPt", "L1Prefiring", "pdf", "fact", "renorm", "JER_eta193", "JER_193eta25", "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC", "bTagSF" ]  # , "bTagSF_tight", "bTagSF_med" 
+	systematics = [ "PUSF", "JEC", "JER", "topPt", "L1Prefiring", "pdf", "fact", "renorm", "JER_eta193", "JER_193eta25", "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC", "bTagSF",  "Absolute", "AbsoluteCal","AbsoluteTheory", "AbsolutePU" ]  # , "bTagSF_tight", "bTagSF_med" 
 
 	hist_names = ["h_SJ_mass_SR", "h_disuperjet_mass_SR","h_SJ_mass_NN_SR", "h_disuperjet_mass_NN_SR"]  #histogram name for Getting
 	hist_types = ["superjet mass (cut-based)", "diSuperjet mass (cut-based)", "superjet mass (NN-based)", "diSuperjet mass (NN-based)"]   # description of histogram
