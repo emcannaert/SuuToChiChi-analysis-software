@@ -18,7 +18,7 @@ print_file_info() {
 
 	for path in "$@"; do
 	    echo "Adding eos information from: $path"
-	    xrdfs root://cmseos.fnal.gov ls -l -R /store/user/ecannaer/$path | grep -v root >> all_eos_crab_files.txt
+	    xrdfs root://cmseos.fnal.gov ls -l -R /store/user/ecannaer/$path | grep -v root > all_eos_crab_files.txt
 	done
 
 	python check_missing_eos.py

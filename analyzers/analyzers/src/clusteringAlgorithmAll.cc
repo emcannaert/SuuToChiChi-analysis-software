@@ -2564,7 +2564,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
 
-
+      if(isHEM(corrJet.eta(),corrJet.phi()))
+      {
+         jet_isHEM[nfatjets] = true;
+      } 
+      else{jet_isHEM[nfatjets] = false;}
       // passesJetPUID
       lab_AK4_pt[nAK4] = corrJet.pt();
       AK4_mass[nAK4] = corrJet.mass();

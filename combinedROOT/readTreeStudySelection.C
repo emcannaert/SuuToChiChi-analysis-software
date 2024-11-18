@@ -51,6 +51,17 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
    int SJ1_decision, SJ2_decision;
 
 
+   double nEvents = 0, nHTcut = 0, nAK8JetCut = 0, nHeavyAK8Cut = 0;
+
+   double nBtagCut = 0, nSJEnergyCut = 0,  nZeroBtag = 0,  nZeroBtagnSJEnergyCut = 0, nAT1b = 0, nAT0b = 0, nNN_tagged_SR = 0,nNN_tagged_CR=0,nNN_tagged_AT1b=0,nNN_tagged_AT0b=0;
+
+
+
+
+
+
+
+
    if(systematic == "nom")
    {
       // want to run only once with the 
@@ -335,11 +346,13 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
          {
             h_AK4_eta->Fill(AK4_eta[iii]);
             h_AK4_phi->Fill(AK4_phi[iii]);
-            if (AK4_fails_veto_map[iii]) fails_veto_map = true;
+            //if (AK4_fails_veto_map[iii]) fails_veto_map = true;
          }
 
          if(fails_veto_map || fails_HEM)continue;
 
+
+         nEvents++;
 
          double eventScaleFactor = 1.0;
 
@@ -437,21 +450,36 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
 
          h_nAK4->Fill( 1.0*nAK4,eventScaleFactor);
          h_totHT->Fill(totHT,eventScaleFactor);
-
+         
          if( totHT > 1600)
          {
-
+            nHTcut+=eventScaleFactor;
             h_nfatjets->Fill(1.0*nfatjets,eventScaleFactor);
             if(nfatjets > 2)
             {  
+               nAK8JetCut+=eventScaleFactor;
                h_nfatjets_pre->Fill(1.0*nfatjet_pre,eventScaleFactor);
+               if ((nfatjet_pre > 1) || ( (dijetMassOne > 1000. ) && ( dijetMassOne > 1000.)  ))nHeavyAK8Cut+=eventScaleFactor;   
             }
          }
+
+
          // fill a few histograms 
 
       }
 
       outFile.Write();
+
+      std::cout << "Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nSJEnergyCut << std::endl;
+      std::cout << "Control Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  dataYear << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT0b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nZeroBtagnSJEnergyCut << std::endl;
+      std::cout << "AT1b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  dataYear << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nBtagCut: - "  <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nAT1b << std::endl;
+      std::cout << "AT0b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  dataYear << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT1b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nAT0b << std::endl;
+
+      std::cout << "NN_SR for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear << " and " << tree_string << " " <<  nNN_tagged_SR << std::endl;
+      std::cout << "NN_CR for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear << " and " << tree_string << " " << nNN_tagged_CR << std::endl;
+      std::cout << "NN_AT1b for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear << " and " << tree_string << " " <<  nNN_tagged_AT1b << std::endl;
+      std::cout << "NN_AT0b for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear << " and " << tree_string <<  " " << nNN_tagged_AT0b << std::endl;
+
       delete h_totHT; delete h_nfatjets; delete h_nfatjets_pre;
    }
 
@@ -482,7 +510,6 @@ void readTreeStudySelection()
 
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
-
    std::vector<std::string> systematics = {"nom"}; 
 
 
@@ -543,26 +570,26 @@ void readTreeStudySelection()
          }
          else if(runBR)
          {  
-           dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_"};
+           dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_", "TTJetsMCHT800to1200_",  "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"};
          }
          else if(runDataBR)
          {
             std::cout << "Running as data+BR" << std::endl;
             if(*dataYear == "2015")
             {
-               dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_"}; 
+               dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_","TTJetsMCHT800to1200_",  "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
             }
             else if(*dataYear == "2016")
             {
-               dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_"};
+               dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_","TTJetsMCHT800to1200_",  "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"};
             }
             else if(*dataYear == "2017")
             {
-               dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_"};
+               dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_","TTJetsMCHT800to1200_",  "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"};
             }
             else if(*dataYear == "2018")
             {
-               dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_"};
+               dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_","TTJetsMCHT800to1200_",  "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"};
             }   
          }
          else if(runSelection)

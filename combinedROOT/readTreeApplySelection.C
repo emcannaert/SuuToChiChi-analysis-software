@@ -109,28 +109,44 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          else
          {
             newTreeDirectory = systematic + "_" + *systematic_suffix; // Ex. JER + _ + up
-         }
-         
+         } 
+         if(verbose)std::cout << "year/systematic/sample: " << year << "/" << systematic<< "/" << dataBlock << std::endl;
          if(verbose)std::cout << "looking for tree name: " << oldTreeName<< std::endl;
          if(verbose)std::cout << "naming new tree " << newTreeName << std::endl;
 
          outFile->cd();   // return to outer directory
+
+         TDirectory* dir = outFile->GetDirectory(newTreeDirectory.c_str()); // CHANGE
+         if (!dir)   
+         {
+            dir = outFile->mkdir(newTreeDirectory.c_str()); // CHANGE
+         }
+         dir->cd(); // CHANGE
          //gDirectory->mkdir( (systematic+"_"+ *systematic_suffix).c_str()  );   //create directory for this systematic
-         gDirectory->mkdir( newTreeDirectory.c_str()  );   //create directory for this systematic
-         outFile->cd( newTreeDirectory.c_str() );   // go inside the systematic directory 
+         //gDirectory->mkdir( newTreeDirectory.c_str()  );   //create directory for this systematic // CHANGE
+         //outFile->cd( newTreeDirectory.c_str() );   // go inside the systematic directory  // CHANGE
 
          TTree *t1;
-         TTree *t2;
+         
          //try 
          //{
          t1 = (TTree*)f->Get( oldTreeName.c_str()   ); 
          if(t1 == nullptr)
          {
             std::cout << "ERROR: Tree " <<oldTreeName << " not found - skipping!!!. " << std::endl;
+            delete t1;
+            std::cout << "deleted t1" << std::endl;
+
+            delete dir;
+            std::cout << "deleted directory" << std::endl;
+
             return false;
          } 
+         TTree *t2;
          t2 = t1->CloneTree(0);
-         std::cout << "Successfully found tree "<< oldTreeName << std::endl;
+         t2->SetName(   newTreeName.c_str() );
+
+         if(verbose)std::cout << "Successfully found tree "<< oldTreeName << std::endl;
 
          //}
 
@@ -140,7 +156,6 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             return false;
          } */
 
-         t2->SetName(   newTreeName.c_str() );
          const Int_t nentries = t1->GetEntries();
 
 
@@ -246,13 +261,28 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
          totEventsUncut = 0;
 
+         int nFailed_triggers = 0;
+         int nFailed_veto_maps = 0;
+         int nFailed_hem = 0;
+         int nFailed_eventNum = 0;
+         int nFailed_HT = 0;
+         int nFailed_nAK8 = 0;
+         int nFailed_nHeavyAK8 = 0;
 
+         int totalEvents = 0;
+         int passedEvents = 0;
+
+         std::cout << "Looping over tree ... " << std::endl;
          for (Int_t i=0;i<nentries;i++) 
          {  
             t1->GetEntry(i);
-
+            totalEvents++;
             ///// APPLY TRIGGER 
-            if ((!passesPFHT) || (!passesPFJet) ) continue; // skip events that don't pass both triggers
+            if ((!passesPFHT) && (!passesPFJet) )
+            {
+               nFailed_triggers++;
+               continue; // skip events that don't pass both triggers
+            } 
 		
 
    
@@ -264,20 +294,30 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                if( fatjet_isHEM[iii]  )     fails_HEM = true; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
                if( AK8_fails_veto_map[iii]) fails_veto_map = true;
             }
-            for(int iii = 0;iii<nAK4;iii++)
+            
+            /*for(int iii = 0;iii<nAK4;iii++)
             {   
                if( jet_isHEM[iii]  ) fails_HEM = true; // CHANGED FROM if (AK4_fails_veto_map[iii]) fails_veto_map = true;
                if(AK4_fails_veto_map[iii]) fails_veto_map = true;
+            } */
+
+            if(fails_veto_map)
+            {  
+               nFailed_veto_maps++;
+               continue;
+            } 
+
+            if (fails_HEM) 
+            {
+               nFailed_hem++;
+               continue; // skip event if there are bad jets in HEM or veto map regions
             }
-
-            if(fails_veto_map || fails_HEM) continue; // skip event if there are bad jets in HEM or veto map regions
-
-
 
 
             totEventsUncut++;
             if ((dataBlock.find("Suu") != std::string::npos))
             {
+               nFailed_eventNum++;
                if( eventNumber%10 > 2) continue; // should only be for signal
             }
             eventWeight = 1.0;
@@ -317,7 +357,11 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             nEvents+=eventWeight;
             if (runType == "main-band")
             {
-               if (totHT < 1600.) continue; 
+               if (totHT < 1600.) 
+               {
+                  nFailed_HT++;
+                  continue; 
+               }
             }
             else if( runType == "side-band")
             {
@@ -340,11 +384,21 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             
 
             nHTcut+=eventWeight;
-            if( (nfatjets < 3)   ) continue;
+            if( (nfatjets < 3)   ) 
+            {
+               nFailed_nAK8++;
+               continue;
+            }
             nAK8JetCut+=eventWeight;
-            if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))continue;
+            if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))
+            {
+               nFailed_nHeavyAK8++;
+               continue;
+            }
             nHeavyAK8Cut+=eventWeight;
 
+
+            passedEvents++;
             int nTightBTags = 0, nMedBTags = 0;
             for(int iii = 0;iii< nAK4; iii++)
             {
@@ -472,33 +526,43 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             }
             t2->Fill();
          }
-         outFile->Write();
+         std::cout << "Writing to tree  "<< newTreeName.c_str()  << std::endl;
 
-         std::cout << "--------------------------------------   new systematic --------------------------------------" << std::endl;
+         //outFile->Write();
+         t2->Write(); // CHANGE
+         if(verbose) std::cout << "Wrote out to tree " << newTreeName.c_str() << std::endl;
+         //delete t2; delete t1; delete dir;
+         if(verbose)
+         {
+            std::cout << "--------------------------------------   new systematic --------------------------------------" << std::endl;
 
-         std::cout << "Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nSJEnergyCut << std::endl;
-         std::cout << "Control Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT0b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nZeroBtagnSJEnergyCut << std::endl;
-         std::cout << "AT1b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nBtagCut: - "  <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nAT1b << std::endl;
-         std::cout << "AT0b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT1b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nAT0b << std::endl;
+            std::cout << "Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nSJEnergyCut << std::endl;
+            std::cout << "Control Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT0b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nZeroBtagnSJEnergyCut << std::endl;
+            std::cout << "AT1b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nBtagCut: - "  <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nBtagCut << "-" << nAT1b << std::endl;
+            std::cout << "AT0b    Region for " << systematic+ "_" + *systematic_suffix << " " <<dataBlock << ", "<<  year << " and " << tree_string << ": total/HTcut/AK8jetCut/heavyAK8JetCut/nZeroBtag/nAT1b: - " <<nEvents << "-" << nHTcut << "-" << nAK8JetCut<< "-" << nHeavyAK8Cut<< "-" << nZeroBtag << "-" << nAT0b << std::endl;
 
-         std::cout << "NN_SR for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " <<  nNN_tagged_SR << std::endl;
-         std::cout << "NN_CR for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " << nNN_tagged_CR << std::endl;
-         std::cout << "NN_AT1b for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " <<  nNN_tagged_AT1b << std::endl;
-         std::cout << "NN_AT0b for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string <<  " " << nNN_tagged_AT0b << std::endl;
+            std::cout << "NN_SR for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " <<  nNN_tagged_SR << std::endl;
+            std::cout << "NN_CR for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " << nNN_tagged_CR << std::endl;
+            std::cout << "NN_AT1b for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string << " " <<  nNN_tagged_AT1b << std::endl;
+            std::cout << "NN_AT0b for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  year << " and " << tree_string <<  " " << nNN_tagged_AT0b << std::endl;
 
-         //std::cout << "There were a total of " << total_btags << " tight b-tagged jets in this sample." << std::endl; 
-         //std::cout << "The average bTagSF was " << average_bTagSF/total_events_unscaled << ", the average PUSF was " << average_PUSF/total_events_unscaled << std::endl; 
-         //std::cout << "WARNING: The btag SF is set to 1. Change this when not testing "  << std::endl;
+            //std::cout << "There were a total of " << total_btags << " tight b-tagged jets in this sample." << std::endl; 
+            //std::cout << "The average bTagSF was " << average_bTagSF/total_events_unscaled << ", the average PUSF was " << average_PUSF/total_events_unscaled << std::endl; 
+            //std::cout << "WARNING: The btag SF is set to 1. Change this when not testing "  << std::endl;
 
-         std::cout << "TotalEvents/TotalPassed: Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/" << nSR << std::endl;
-         std::cout << "TotalEvents/TotalPassed: Control Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nCR  <<std::endl;
-         std::cout << "TotalEvents/TotalPassed: AT1b    Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nAT1b_noScale <<std::endl;
-         std::cout << "TotalEvents/TotalPassed: AT0b    Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nAT0b_noScale <<std::endl;
+            std::cout << "TotalEvents/TotalPassed: Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/" << nSR << std::endl;
+            std::cout << "TotalEvents/TotalPassed: Control Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nCR  <<std::endl;
+            std::cout << "TotalEvents/TotalPassed: AT1b    Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nAT1b_noScale <<std::endl;
+            std::cout << "TotalEvents/TotalPassed: AT0b    Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << " "<<  year << " " << totEventsUncut << "/"<< nAT0b_noScale <<std::endl;
 
-         std::cout << "Number of bad events (due to b-tagging and PU): " << nBadEvents << std::endl;
-         std::cout << "------------- b tagging flavour stuff ------------" << std::endl;
-         std::cout << "rate at which light/c/b AK4 jets are found near high-energy reclustered CA4 jets: " << (1.0*nAK4FoundNearHighECA4_light)/tot_nAK4_light<< "/" << (1.0*nAK4FoundNearHighECA4_c)/tot_nAK4_c<< "/" << (1.0*nAK4FoundNearHighECA4_b)/tot_nAK4_b<< std::endl;
-         std::cout << "rate at which light/c/b AK4 jets are inside tagged superjets: " << ( 1.0*nAK4FoundInTaggedSJ_light)/tot_nAK4_light << "/" << ( 1.0*nAK4FoundInTaggedSJ_c)/tot_nAK4_c << "/" << (1.0*nAK4FoundInTaggedSJ_b)/tot_nAK4_b<< std::endl;
+            std::cout << "Number of bad events (due to b-tagging and PU): " << nBadEvents << std::endl;
+            std::cout << "------------- b tagging flavour stuff ------------" << std::endl;
+            std::cout << "rate at which light/c/b AK4 jets are found near high-energy reclustered CA4 jets: " << (1.0*nAK4FoundNearHighECA4_light)/tot_nAK4_light<< "/" << (1.0*nAK4FoundNearHighECA4_c)/tot_nAK4_c<< "/" << (1.0*nAK4FoundNearHighECA4_b)/tot_nAK4_b<< std::endl;
+            std::cout << "rate at which light/c/b AK4 jets are inside tagged superjets: " << ( 1.0*nAK4FoundInTaggedSJ_light)/tot_nAK4_light << "/" << ( 1.0*nAK4FoundInTaggedSJ_c)/tot_nAK4_c << "/" << (1.0*nAK4FoundInTaggedSJ_b)/tot_nAK4_b<< std::endl;
+         }
+
+         ////////
+         std::cout << "passed/total= : " << (1.0*passedEvents)/totalEvents <<   "----------- passedEvents: " << passedEvents << ", totalEvents: " << totalEvents << ",  nFailed_triggers/nFailed_veto_maps/nFailed_hem/nFailed_eventNum -------------  nFailed_HT/nFailed_nAK8/nFailed_nHeavyAK8: " <<nFailed_triggers << "/" <<nFailed_veto_maps << "/" << nFailed_hem<< "/" <<nFailed_eventNum << " ------------------- " << nFailed_HT<< "/" << nFailed_nAK8<< "/" <<nFailed_nHeavyAK8 << std::endl;
 
       }
 
@@ -506,6 +570,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    f->Close();
    outFile->Close();
    delete f;
+   delete outFile;
    return true;
 
 }
@@ -537,17 +602,16 @@ void readTreeApplySelection()
    // you must change these ........
    bool runAll        = false;
    bool runData       = false;
-   bool runSignal     = false;
+   bool runSignal     = true;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
-   bool runDataBR     = true;
+   bool runDataBR     = false;
    bool runTTbar      = false;
    bool runSelection  = false;
    bool runSingleFile = false;
    bool runExtras     = false;
    bool runSideband   = false;
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
-   //years = {"2018","2017","2016","2015"};  
-   std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER",  };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
+   std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
 
    int yearNum = 0;
    int nFailedFiles = 0;
@@ -556,7 +620,7 @@ void readTreeApplySelection()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   if (runSelection) years = {"2015","2016","2017","2018"};  // single year to run over 
+   if (runSelection) years = {"2017"};  // single year to run over 
 
    if(runSingleFile)
    {
@@ -666,7 +730,12 @@ void readTreeApplySelection()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"};  
+         dataBlocks = {"Suu7_chi1_WBWB_","Suu7_chi1p5_WBWB_","Suu7_chi2_WBWB_","Suu7_chi2p5_WBWB_","Suu7_chi3_WBWB_","Suu8_chi1_WBWB_","Suu8_chi1p5_WBWB_","Suu8_chi2_WBWB_",
+"Suu8_chi2p5_WBWB_","Suu8_chi3_WBWB_","Suu4_chi1_WBZT_","Suu4_chi1p5_WBZT_","Suu5_chi1_WBZT_","Suu5_chi1p5_WBZT_","Suu5_chi2_WBZT_","Suu6_chi1_WBZT_","Suu6_chi1p5_WBZT_",
+"Suu6_chi2_WBZT_","Suu6_chi2p5_WBZT_","Suu7_chi1_WBZT_","Suu7_chi1p5_WBZT_","Suu7_chi2_WBZT_","Suu7_chi2p5_WBZT_","Suu7_chi3_WBZT_","Suu8_chi1_WBZT_","Suu8_chi1p5_WBZT_",
+"Suu8_chi2_WBZT_","Suu8_chi2p5_WBZT_","Suu8_chi3_WBZT_","Suu4_chi1_ZTZT_","Suu4_chi1p5_ZTZT_","Suu5_chi1_ZTZT_","Suu5_chi1p5_ZTZT_","Suu5_chi2_ZTZT_","Suu6_chi1_ZTZT_",
+"Suu6_chi1p5_ZTZT_","Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
+"Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_"};  
       }
       else if(runExtras)
       {
@@ -764,7 +833,6 @@ void readTreeApplySelection()
       }
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
       {
-         bool JEC_has_been_opened = false;
          std::vector<std::string> use_systematics;
          for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
          {

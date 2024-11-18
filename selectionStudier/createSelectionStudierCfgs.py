@@ -111,11 +111,11 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
 
 
    
+   
    newCfg.write("################# JEC ################\n")
    ######### AK8 jets #########
-   newCfg.write("corrLabels = ['L2Relative', 'L3Absolute']\n")  ## ,'L3Absolute' -> should these be included?
-   newCfg.write("if isData:\n")
-   newCfg.write("	corrLabels.append('L2L3Residual')\n")
+   if "data" in sample: newCfg.write("corrLabels = ['L2Relative', 'L3Absolute', 'L2L3Residual']\n")  ## ,'L3Absolute' -> should these be included?
+   else: newCfg.write("corrLabels = ['L2Relative', 'L3Absolute']\n")  ## ,'L3Absolute' -> should these be included?
    newCfg.write("from PhysicsTools.PatAlgos.tools.jetTools import *\n")
    newCfg.write("from RecoBTag.ONNXRuntime.pfDeepBoostedJet_cff import *\n")
    newCfg.write("updateJetCollection(\n")
@@ -127,9 +127,8 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
    newCfg.write(" printWarning = False\n")
    newCfg.write(")\n")
    ######### AK4 jets #########
-   newCfg.write("corrLabels_AK4 = ['L1FastJet', 'L2Relative', 'L3Absolute']\n") # 'L3Absolute'
-   newCfg.write("if isData:\n")
-   newCfg.write(" corrLabels_AK4.append('L2L3Residual')\n")
+   if "data" in sample:  newCfg.write("corrLabels_AK4 = ['L1FastJet', 'L2Relative', 'L3Absolute','L2L3Residual']\n") # 'L3Absolute'
+   else: newCfg.write("corrLabels_AK4 = ['L1FastJet', 'L2Relative', 'L3Absolute']\n") # 'L3Absolute'
    newCfg.write("updateJetCollection(\n")
    newCfg.write(" process,\n")
    newCfg.write(" jetSource = cms.InputTag('slimmedJets'),\n")
@@ -138,6 +137,9 @@ def makeACfg(sample, year, systematic__, datafile, all_systematics):
    newCfg.write(" postfix = 'UpdatedJEC',\n")
    newCfg.write(" printWarning = False\n")
    newCfg.write(")  \n")
+
+
+
 
 
 

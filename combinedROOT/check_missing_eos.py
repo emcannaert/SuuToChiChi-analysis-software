@@ -113,11 +113,11 @@ if __name__ == "__main__":
 		use_samples.extend(data_samples[year])
 		use_samples.extend( signal_samples )
 		for sample in use_samples:
-			systematics = ["nom","JEC","JER"]
+			systematics = ["nom","JEC1", "JEC2", "JER"]
 			if "data" in sample:
-				systematics = ["nom","JEC"]
+				systematics = ["nom"]
 			elif "Suu" in sample:
-				systematics = ["nom","JEC"]
+				systematics = ["nom","JEC1"]
 			for systematic in systematics:
 				total_files_crab+=1
 				if "Suu" in sample:
@@ -161,11 +161,11 @@ if __name__ == "__main__":
 		use_samples.extend(data_samples[year])
 		use_samples.extend( signal_samples )
 		for sample in use_samples:
-			systematics = ["nom","JEC","JER"]
+			systematics = ["nom","JEC1","JEC2", "JER"]
 			if "data" in sample:
-				systematics = ["nom","JEC"]
+				systematics = ["nom"]
 			if "Suu" in sample:
-				systematics = ["nom","JEC"]
+				systematics = ["nom","JEC1"]
 			for systematic in systematics:
 				total_files_combined+=1
 				combined_file  = "%s_%s_%s_combined.root"%(sample, year, systematic)
@@ -217,14 +217,15 @@ if __name__ == "__main__":
 		use_samples.extend( signal_samples )
 		use_samples.extend(data_samples[year])
 		for sample in use_samples:
-			systematics = ["nom","JEC","JER"]
+			systematics = ["nom","JEC1", "JEC2","JER"]
 			if "data" in sample:
-				systematics = ["nom","JEC"]
+				systematics = ["nom"]
 			if "Suu" in sample:
 				systematics = ["nom","JEC"]
 			for systematic in systematics:
 				total_files_skimmed+=1
 				skimmed_file   = "%s_%s_%s_SKIMMED.root"%(sample, year, systematic)
+				if systematic == "nom" and "Suu" in sample: skimmed_file   = "%s_%s_SKIMMED.root"%(sample, year)
 				if len([file for file in all_files_skimmed if skimmed_file in file and convert_to_bytes(file.split()[4]) > 1000 ]) == 0:
 					output_file.write("MISSING: %s\n"%skimmed_file)
 					missing_files_list_skimmed.append(skimmed_file)
@@ -249,7 +250,7 @@ if __name__ == "__main__":
 
 
 
-
+	"""
 	####### check cutflow files 
 	print("Checking cutflow files.")
 	output_file.write("####################  CUTFLOW FILES ###################  \n")
@@ -299,7 +300,7 @@ if __name__ == "__main__":
 	output_file.write("\n")
 	output_file.write("\n")
 	output_file.write("\n")
-
+	"""
 
 
 

@@ -533,7 +533,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     hRatio->Divide(MC_BR_combined);   // this might be incorrect ...
     hRatio->SetMinimum(0.25); // Set y-axis range for ratio plot
     hRatio->SetMaximum(3.0);
-    hRatio->GetYaxis()->SetLabelOffset(1.5);
+    hRatio->GetYaxis()->SetLabelOffset(0.05);
     hRatio->SetMarkerStyle(20);
     hRatio->SetFillColor(kGray);
     hRatio->Draw("E2");
@@ -632,9 +632,8 @@ void data_MC_comparer()
      "h_nHeavyAK8_pt200_M10", "h_nHeavyAK8_pt200_M20", "h_nHeavyAK8_pt200_M30",
     "h_nAK8_pt200", "h_nAK8_pt300", "h_nAK8_pt150", "h_nAK8_pt500", "h_AK4_eta", "h_AK4_phi", "h_AK8_eta", "h_AK8_phi"};
 
-
     std::vector<std::string> years = {"2015","2016","2017","2018"};
-    for(auto year = years.begin(); year != years.end(); year++)
+    /*for(auto year = years.begin(); year != years.end(); year++)
     {
         for(auto hist_name = hist_names.begin();hist_name!=hist_names.end();hist_name++)
         {
@@ -644,7 +643,7 @@ void data_MC_comparer()
         }
     }
 
-
+*/
     ///// CONTROL REGION STUDY PORTION (creates data/MC plot comparing data/MC for SB1b, SB0b, and AT0b regions)
     hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_nAK4_all", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b" };
 

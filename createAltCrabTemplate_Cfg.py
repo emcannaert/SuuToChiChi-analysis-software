@@ -336,7 +336,7 @@ def main():
 					try:
 						makeAltCrabCfg(sample, year, systematic, datasets_signal[year][sample],dateTimeString)   # need a different dataset for signal mass points, only make a single signal cfg file to
 					except:
-						print("Failed for sample %s."%sample)
+						print("Failed for sample/year/systematic: %s/%s/%s."%(sample,year,systematic))
 				elif "data" in sample and (systematic == "JER" or "JEC" in systematic): continue  # do NOT need to do these. Tons of extra calculations
 				elif "TTTo" in  sample and (systematic == "JER" or "JEC" in systematic): continue  # don't run these right now
 				else:
