@@ -30,8 +30,8 @@ class combineHistBins:
 		self.region = region
 		self.technique_str = technique_str
 		self.dryRun = dryRun
-		self.max_stat_uncert = 0.30  ## maximum statistical uncertainty
-		self.min_unscaled_QCD_bin_counts   = 2.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
+		self.max_stat_uncert = 0.20  ## maximum statistical uncertainty
+		self.min_unscaled_QCD_bin_counts   = 4.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
 
 		self.n_bins_x = 22
 		self.n_bins_y = 20
@@ -42,7 +42,7 @@ class combineHistBins:
 		self.all_hist_values =  histInfo.histInfo(year,region, self.n_bins_x, self.n_bins_y, self.technique_str, debug)    #histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
 		self.superbin_indices = self.init_superbin_indices()     
 		
-		if not self.dryRun: self.plot_before_syst_plot()   # plot the "before" image of counts and syst uncertainty 
+		#if not self.dryRun: self.plot_before_syst_plot()   # plot the "before" image of counts and syst uncertainty 
  
 		print("Starting the process of merging bins.")
 		self.do_bin_merging()
@@ -724,12 +724,12 @@ class combineHistBins:
 	def plot_before_syst_plot(self):
 		# go over all_hist_values and plot them
 		plot_path =  os.getenv('CMSSW_BASE') + "/src/postprocess/plots/statUncertaintyPlots/preMergedPlots"
-		hist_expected_counts_unmerged = ROOT.TH2F("hist_expected_counts_unmerged_%s%s_%s"%(self.technique_str,region,year), ("Expected Background bin in the %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year)), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 4000)  # 375 * 125
+		hist_expected_counts_unmerged = ROOT.TH2F("hist_expected_counts_unmerged_%s%s_%s"%(self.technique_str,region,year), ("Expected Background bin in the %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year)), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 5000)  # 375 * 125
 		for iii in range(0, self.n_bins_x):
 			for jjj in range(0, self.n_bins_y):
 				hist_expected_counts_unmerged.SetBinContent(iii+1,jjj+1, self.counts_in_superbin(self.get_superbin_number( (iii,jjj))))
 
-		hist_unmerged_systUncert = ROOT.TH2F("hist_unmerged_systUncert_%s%s_%s"%(self.technique_str,region,year), ("Systematic Uncertainty per bin in the %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year)), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 4000)  # 375 * 125
+		hist_unmerged_systUncert = ROOT.TH2F("hist_unmerged_systUncert_%s%s_%s"%(self.technique_str,region,year), ("Systematic Uncertainty per bin in the %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year)), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 5000)  # 375 * 125
 
 		for superbin in self.superbin_indices:
 			for _tuple in superbin:
@@ -775,6 +775,15 @@ if __name__=="__main__":
 
 				text_output_path = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
 				
+				if dryRun: 
+					print("===============================================================================")
+					print("===============================================================================")
+					print("===============================================================================")
+					print("===========================     WARNING !!    =================================")
+					print("=========================   THIS IS A DRY RUN !!!!!   =========================")
+					print("===============================================================================")
+					print("===============================================================================")
+					print("===============================================================================")
 
 				if not dryRun:  out_txt_file = open("%s/superbin_indices%s_%s.txt"%(text_output_path,output_strs[iii],year),"a")
 				print("Creating maps for %s/%s"%(region,year))
@@ -793,9 +802,9 @@ if __name__=="__main__":
 				testCase = combineHistBins(year, region, output_strs[iii], debug,dryRun)
 				#create a dummy histogram with dimensions 20x22
 				merged_bins = testCase.superbin_indices
-				bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Map of how bins were merged in %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 4000)  # 375 * 125
-				stat_uncert_hist = ROOT.TH2F("stat_uncert_hist%s"%output_strs[iii], ("Statistical Uncertainty (post bin merging) in the %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 4000)  # 375 * 125
-				merged_hist_count = ROOT.TH2F("merged_hist_count%s"%output_strs[iii], ("Unscaled Bin Counts (post bin merging) in the %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 4000)  # 375 * 125
+				bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Map of how bins were merged in %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				stat_uncert_hist = ROOT.TH2F("stat_uncert_hist%s"%output_strs[iii], ("Statistical Uncertainty (post bin merging) in the %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				merged_hist_count = ROOT.TH2F("merged_hist_count%s"%output_strs[iii], ("Unscaled Bin Counts (post bin merging) in the %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
 				R = ROOT.TRandom3()
 				for superbin_index, superbin in enumerate(merged_bins):
 					random.seed(12345)
@@ -814,26 +823,26 @@ if __name__=="__main__":
 
 				if not dryRun:  
 					out_txt_file.write("%s/%s/number of bins = %s/%s\n"%(year,region, len(testCase.superbin_indices), testCase.superbin_indices))
-
-
-					c = ROOT.TCanvas("c", "canvas", 1250, 1000)
-
-					ROOT.gStyle.SetOptStat(0)
-					bin_map_hist.GetZaxis().SetRangeUser(0,10000)
-					bin_map_hist.Write()
-					bin_map_hist.Draw("colz")
-					#bin_map_hist.Print()
-					c.SaveAs( os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/bin_map_%s%s_%s.png"%(output_strs[iii],region,year)) 
-					
-					stat_uncert_hist.Write()
-					stat_uncert_hist.Draw("colz")
-					#bin_map_hist.Print()
-					c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/stat_uncert_%s%s_%s.png"%(output_strs[iii],region,year)) 
-					
-					merged_hist_count.Write()
-					merged_hist_count.Draw("colz")
-					#bin_map_hist.Print()
-					c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/bin_counts_%s%s_%s.png"%(output_strs[iii],region,year)) 
 					out_txt_file.close()
+
+				c = ROOT.TCanvas("c", "canvas", 1250, 1000)
+
+				ROOT.gStyle.SetOptStat(0)
+				bin_map_hist.GetZaxis().SetRangeUser(0,10000)
+				#bin_map_hist.Write()
+				bin_map_hist.Draw("colz")
+				#bin_map_hist.Print()
+				c.SaveAs( os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/bin_map_%s%s_%s.png"%(output_strs[iii],region,year)) 
+				
+				#stat_uncert_hist.Write()
+				stat_uncert_hist.Draw("colz")
+				#bin_map_hist.Print()
+				c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/stat_uncert_%s%s_%s.png"%(output_strs[iii],region,year)) 
+				
+				#merged_hist_count.Write()
+				merged_hist_count.Draw("colz")
+				#bin_map_hist.Print()
+				c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/bin_counts_%s%s_%s.png"%(output_strs[iii],region,year)) 
+				
 
 

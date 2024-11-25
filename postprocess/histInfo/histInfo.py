@@ -156,7 +156,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 	def fill_dummy_data(self,sample,mean_x,mean_y,sigma_x,sigma_y,nentries):
 		ROOT.TH1.AddDirectory(False)
 
-		hist = ROOT.TH2F("total_counts_%s_%s_%s"%(sample,self.year,self.region), "Total Counts (%s) (%s) (%s)"%(sample,self.region,self.year), self.n_bins_x, 1250., 10000, self.n_bins_y, 500, 4000);
+		hist = ROOT.TH2F("total_counts_%s_%s_%s"%(sample,self.year,self.region), "Total Counts (%s) (%s) (%s)"%(sample,self.region,self.year), self.n_bins_x, 1250., 10000, self.n_bins_y, 500, 5000);
 
 		gaussian_func = ROOT.TF2("gaussian_func", "TMath::Gaus(x, [0], [1])*TMath::Gaus(y, [2], [3])",-5, 5, -5, 5)
 		gaussian_func.SetParameters(mean_x, sigma_x, mean_y, sigma_y)
@@ -253,7 +253,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 	def get_bin_total_uncert(self, superbin):   # give a list of tuples that represent all the bins in your superbin
 
-
+		### calculates the bin stat uncertainty as the sum of weights / total scaled bin yield
 
 		total_1000to1500 = 0
 		total_1500to2000 = 0
@@ -615,7 +615,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 
 		processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
-		combined_data = ROOT.TH2F("data_combined_%s"%(self.region),"Double Tagged Superjet mass vs diSuperjet mass (%s) (data combined) (%s); diSuperjet mass [GeV];superjet mass"%(self.region, self.year), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 4000) #375 * 125
+		combined_data = ROOT.TH2F("data_combined_%s"%(self.region),"Double Tagged Superjet mass vs diSuperjet mass (%s) (data combined) (%s); diSuperjet mass [GeV];superjet mass"%(self.region, self.year), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 5000) #375 * 125
 
 		if self.region in ["SB1b", "SB0b"]: 
 			processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/sideband_processedFiles/"

@@ -47,28 +47,29 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     # Get the histograms
     sig_hist   = root_file.Get(sig_hist_name)
     sig_hist.SetLineStyle(2)
-    sig_hist.SetLineWidth(4)
+    sig_hist.SetLineWidth(6)
     sig_hist.SetLineColor(ROOT.kBlack)
+    #sig_hist.SetFillColor(ROOT.kBlack)
+
     allBR_hist = root_file.Get(allBR_hist_name)
     #allBR_hist.SetLineColor(ROOT.kRed)
-    allBR_hist.SetLineWidth(2)
+    #allBR_hist.SetLineWidth(2)
 
     QCD_hist = root_file.Get(QCD_hist_name)
-    QCD_hist.SetLineWidth(2)
+    #QCD_hist.SetLineWidth(2)
     TTbar_hist = root_file.Get(TTbar_hist_name)
-    TTbar_hist.SetLineWidth(2)
+    #TTbar_hist.SetLineWidth(2)
     ST_hist = root_file.Get(ST_hist_name)
-    ST_hist.SetLineWidth(2)
+    #ST_hist.SetLineWidth(2)
 
-    QCD_hist.SetLineColor(ROOT.kBlack)
-    TTbar_hist.SetLineColor(ROOT.kBlack)
-    ST_hist.SetLineColor(ROOT.kBlack)
+    QCD_hist.SetLineColor(ROOT.kRed)
+    TTbar_hist.SetLineColor(ROOT.kYellow)
+    ST_hist.SetLineColor(ROOT.kGreen)
 
     # Set colors for each sub-histogram in the stack
     QCD_hist.SetFillColor(ROOT.kRed)
     TTbar_hist.SetFillColor(ROOT.kYellow)
     ST_hist.SetFillColor(ROOT.kGreen)
-
     # Create a THStack and add the sub-histograms
     hs = ROOT.THStack("h_stack", "Linearized Background vs Signal (%s) (%s) (%s) (%s)"%(mass_point, region,year, technique_str))
     hs.Add(TTbar_hist)
@@ -115,10 +116,12 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
 
     # Determine which histogram has a larger maximum
     if sig_hist.GetMaximum() > allBR_hist.GetMaximum():
-        sig_hist.Draw("HIST")
-        hs.Draw("HIST,same")
-    else:
+        
+        hs.SetMaximum(1.1*sig_hist.GetMaximum())
+        hs.Draw("HIST")
+        sig_hist.Draw("HIST,SAME")
 
+    else:
         hs.Draw("HIST")
         sig_hist.Draw("HIST,same")
         
@@ -185,8 +188,18 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     output_file = "plots/linearized_sigBR/sig_vs_BR_%s_%s%s_%s.png"%(mass_point,technique_type,region,year)
     c.SaveAs(output_file)
 
+
+
+
+    sig_hist.Draw("HIST")
+    output_file = "plots/linearized_sig/linearized_sig_%s_%s%s_%s.png"%(mass_point,technique_type,region,year)
+    c.SaveAs(output_file)
+
+
+
     # Close the ROOT file
     root_file.Close()
+
 
     del sig_hist
     del allBR_hist
@@ -262,6 +275,23 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     # Save the canvas as an image
     output_file = "plots/linearized_background/linearized_BR_%s%s_%s.png"%(technique_type,region,year)
     c.SaveAs(output_file)
+
+    output_file = "plots/linearized_background/linearized_QCD_%s%s_%s.png"%(technique_type,region,year)
+    QCD_hist.SetLineWidth(4)
+    QCD_hist.Draw("HIST")
+    c.SaveAs(output_file)
+
+    output_file = "plots/linearized_background/linearized_TTbar_%s%s_%s.png"%(technique_type,region,year)
+    TTbar_hist.SetLineWidth(4)
+    TTbar_hist.Draw("HIST")
+    c.SaveAs(output_file)
+
+    output_file = "plots/linearized_background/linearized_ST_%s%s_%s.png"%(technique_type,region,year)
+    ST_hist.SetLineWidth(4)
+    ST_hist.Draw("HIST")
+    c.SaveAs(output_file)
+
+
 
     # Close the ROOT file
     root_file.Close()

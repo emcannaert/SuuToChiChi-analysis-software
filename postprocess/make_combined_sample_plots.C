@@ -353,6 +353,19 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
   if(!makeStack)
   {
 
+
+
+      if( (histName.find("h_MSJ_mass_vs_MdSJ") != std::string::npos)   ) 
+      {
+        TH2F * dummy_h2 = (TH2F*)h_all_QCD_MC;
+        SetLogScaleZAxis(h_all_TTbar_MC, c1);
+        SetLogScaleZAxis(h_all_QCD_MC, c1);
+        SetLogScaleZAxis(h_all_ST_MC, c1);
+
+        SetLogScaleZAxis(dummy_h2, c1);
+      }
+
+
       h_all_TTbar_MC->Draw("colz");
       write_cms_text(CMS_label_pos,SIM_label_pos, c1, noStats);
       c1->SaveAs( (plot_home + plotName +"_TTbar_combined_"+ year+".png").c_str());
@@ -373,7 +386,8 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
       if( (histName.find("h_MSJ_mass_vs_MdSJ") != std::string::npos)   ) 
       {
         TH2F * dummy_h2 = (TH2F*)h_allBR;
-        SetLogScaleZAxis(dummy_h2, c1);
+        SetLogScaleZAxis(h_allBR, c1);
+	      SetLogScaleZAxis(dummy_h2, c1);
       }
       h_allBR->Draw("colz");
       write_cms_text(CMS_label_pos,SIM_label_pos, c1, noStats);
@@ -383,6 +397,7 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
   }
   else
   {    
+
 
       setDynamicXScale( h_all_TTbar_MC );
       h_all_TTbar_MC->Draw("HIST");
@@ -545,7 +560,7 @@ void make_combined_sample_plots()
 
 
   };
-  std::vector<bool> makeLog2 = {true,true,true,true,true,true,true,true};
+  std::vector<bool> makeLog2 = {false,false,false,false,false,false,false,false};
   std::vector<bool> noStats2 = {true,true,true,true,true,true,true,true};
 
   std::vector<std::string> plot_descriptions_2D = 
