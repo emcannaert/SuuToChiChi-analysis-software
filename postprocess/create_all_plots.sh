@@ -1,5 +1,5 @@
-python calculateStatisticalUncertaintyBins.py
-python linearize_final_plots.py
+#python calculateStatisticalUncertaintyBins.py
+#python linearize_final_plots.py
 
 root make_combined_sample_plots.C
 python create_signal_mass_plots.py

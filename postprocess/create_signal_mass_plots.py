@@ -12,9 +12,9 @@ import math
 
 ## (3) make superimpose of signal and BR for SJ mass, diSJ mass, and 2D mass
 
-
-
+bad_files = []
 import ROOT
+ROOT.gErrorIgnoreLevel = ROOT.kError;
 
 def take_square_root(hist):
     n_bins = hist.GetNbinsX()  # Get the number of bins along the X-axis
@@ -74,7 +74,7 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 
 	for iii in range(0,len(decays)):
 		inFileName2 = inFile_dir + "%s_%s_%s_processed.root"%(mass_point,decays[iii],year)
-		print("Looking for %s"%inFileName2)
+		#print("Looking for %s"%inFileName2)
 		decay_SF = return_signal_SF.return_signal_SF(year,mass_point,decays[iii])
 
 		try:
@@ -92,7 +92,7 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 
 		except: 
 			print("ERROR: Failed finding histogram %s in file %s for %s/%s/%s/%s"%(hist_path,decays[iii], mass_point,year,region,tagging_str))
-
+			if inFileName2 not in bad_files: bad_files.append(inFileName2)
 
 	# Create the title using \mbox to separate math and text
 	title = r"\mbox{Avg. SJ mass for Signal and Combined Backgrounds } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)}; Mass [GeV]; Events / 125 GeV" % (mass_point_str[mass_point], year_str, region, tagging_str.replace("_", "\\_"))
@@ -467,27 +467,31 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str ):
 	legend_diSJ_mass_AT0b = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
 
 
-
+	print("Running year/mass_point/tagging_type/tagging_str:  %s/%s/%s/%s"%( year, mass_point,tagging_type, tagging_str) )
 	for iii in range(0,len(decays)):
-
 
 		decay_SF = return_signal_SF.return_signal_SF(year,mass_point,decays[iii])
 		inFileName2 = inFile_dir + "%s_%s_%s_processed.root"%(mass_point,decays[iii],year)
+		
 		f2 = ROOT.TFile(inFileName2,"r")
 
+		if not f2 or not f2.IsOpen(): continue
 
-		h2_SJ_mass_SR = f2.Get(folder_name+"h_SJ_mass%s_SR"%tagging_type).Clone()
-		h2_diSuperjet_mass_SR 	= f2.Get(folder_name+"h_disuperjet_mass%s_SR"%tagging_type).Clone()
+		try:
+			h2_SJ_mass_SR = f2.Get(folder_name+"h_SJ_mass%s_SR"%tagging_type).Clone()
+			h2_diSuperjet_mass_SR 	= f2.Get(folder_name+"h_disuperjet_mass%s_SR"%tagging_type).Clone()
 
-		h2_SJ_mass_CR 			= f2.Get(folder_name+"h_SJ_mass%s_CR"%tagging_type).Clone()
-		h2_diSuperjet_mass_CR   = f2.Get(folder_name+"h_disuperjet_mass%s_CR"%tagging_type).Clone()
+			h2_SJ_mass_CR 			= f2.Get(folder_name+"h_SJ_mass%s_CR"%tagging_type).Clone()
+			h2_diSuperjet_mass_CR   = f2.Get(folder_name+"h_disuperjet_mass%s_CR"%tagging_type).Clone()
 
-		h2_SJ_mass_AT1b 		 = f2.Get(folder_name+"h_SJ_mass%s_AT1b"%tagging_type).Clone()
-		h2_diSuperjet_mass_AT1b  = f2.Get(folder_name+"h_disuperjet_mass%s_AT1b"%tagging_type).Clone()
+			h2_SJ_mass_AT1b 		 = f2.Get(folder_name+"h_SJ_mass%s_AT1b"%tagging_type).Clone()
+			h2_diSuperjet_mass_AT1b  = f2.Get(folder_name+"h_disuperjet_mass%s_AT1b"%tagging_type).Clone()
 
-		h2_SJ_mass_AT0b 		 = f2.Get(folder_name+"h_SJ_mass%s_AT0b"%tagging_type).Clone()
-		h2_diSuperjet_mass_AT0b  = f2.Get(folder_name+"h_disuperjet_mass%s_AT0b"%tagging_type).Clone()
-
+			h2_SJ_mass_AT0b 		 = f2.Get(folder_name+"h_SJ_mass%s_AT0b"%tagging_type).Clone()
+			h2_diSuperjet_mass_AT0b  = f2.Get(folder_name+"h_disuperjet_mass%s_AT0b"%tagging_type).Clone()
+		except:
+			print("failed for decay %s"%decays[iii])
+			continue
 		h2_SJ_mass_SR.SetDirectory(0)   # histograms lose their references when the file destructor is called
 		h2_diSuperjet_mass_SR.SetDirectory(0)
 		h2_SJ_mass_CR.SetDirectory(0)
@@ -772,7 +776,7 @@ if __name__=="__main__":
 	decays = ["WBWB","HTHT","ZTZT","WBHT","WBZT","HTZT"]
 	#mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5", "Suu6_chi2", "Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3" ]   ## copy this from the LPC 
 
-	mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu6_chi1p5", "Suu6_chi2", "Suu7_chi1", "Suu7_chi2p5", "Suu8_chi1p5","Suu8_chi3" ]   ## use smaller list so you don't crash pc
+	mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1",  "Suu6_chi1p5", "Suu6_chi2", "Suu6_chi2p5", "Suu7_chi1", "Suu7_chi2", "Suu7_chi2p5",  "Suu8_chi1", "Suu8_chi2", "Suu8_chi3" ]   ## use smaller list so you don't crash pc
 
 	Suu_masses = ["4","5","6","7","8"]
 	#### need to change this to open up the processed files
@@ -802,13 +806,13 @@ if __name__=="__main__":
 						make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str[iii], hist_name, region )
  
 				# create combined Suu mass plots (all decay modes)
-				try:
-					make_combined_plots(year, mass_point, tagging_type, tagging_str[iii] ) 
-				except:
-					print("ERROR: Failed to create the combined plot for %s + %s"%(mass_point,year))
+				#try:
+				make_combined_plots(year, mass_point, tagging_type, tagging_str[iii] ) 
+				#except:
+				#	print("ERROR: Failed to create the combined plot for %s + %s"%(mass_point,year))
 				
 
-
+		"""
 		#uncomment this out when testing is done
 		for MSuu in Suu_masses:   # create the superimposed SJ mass plots for multiple mass points
 			for iii, tagging_type in enumerate(tagging_types):
@@ -818,6 +822,9 @@ if __name__=="__main__":
 				except:
 					print("ERROR: failed create_superimposed_SJ_mass_plot_combined with %s/%s/%s/%s"%(year, MSuu, tagging_type, tagging_str[iii]))
 
-
-
-
+		"""
+	bad_files_file = open('files_create_signal_mass_plots_did_not_find.txt','w')
+	for bad_file in bad_files:
+		bad_files_file.write("%s\n"%bad_file)
+	bad_files_file.close()
+	

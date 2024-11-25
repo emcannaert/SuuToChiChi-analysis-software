@@ -212,6 +212,11 @@ private:
    double SJ1_BEST_scores[3],SJ2_BEST_scores[3];
    double bTag_eventWeight_T_nom, bTag_eventWeight_T_up, bTag_eventWeight_T_down, bTag_eventWeight_bc_T_up, bTag_eventWeight_bc_T_down, bTag_eventWeight_light_T_up, bTag_eventWeight_light_T_down;
    double bTag_eventWeight_M_nom, bTag_eventWeight_M_up, bTag_eventWeight_M_down, bTag_eventWeight_bc_M_up, bTag_eventWeight_bc_M_down, bTag_eventWeight_light_M_up, bTag_eventWeight_light_M_down;
+
+   double  bTag_eventWeight_T_corr_up, bTag_eventWeight_T_corr_down, bTag_eventWeight_bc_T_corr_up, bTag_eventWeight_bc_T_corr_down, bTag_eventWeight_light_T_corr_up, bTag_eventWeight_light_T_corr_down;
+   double  bTag_eventWeight_M_corr_up, bTag_eventWeight_M_corr_down, bTag_eventWeight_bc_M_corr_up, bTag_eventWeight_bc_M_corr_down, bTag_eventWeight_light_M_corr_up, bTag_eventWeight_light_M_corr_down;
+
+
    bool _htWb,_htZt,_ZtWb,_WbWb,_htht,_ZtZt;
    //BES variables
    double AK4_m1[2], AK4_m2[2],AK4_m3[2],AK4_m4[2], AK41_E_tree[2],AK42_E_tree[2],AK43_E_tree[2],AK44_E_tree[2], AK4_m12[2],AK4_m13[2],AK4_m14[2],AK4_m23[2],AK4_m24[2],AK4_m34[2];
@@ -532,9 +537,13 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
 
    else {std::cout << "Running uncertainty " << systematicType << std::endl;}
+
+
+
+   /// does this need to run for every event .... 
+
    // get jet corrector maps   
    if(_verbose)std::cout << "Getting JEC correction maps for AK4 and AK8 jets." << std::endl;
-
    for(const auto &uncertainty_source: uncertainty_sources)
    {
 
@@ -553,13 +562,42 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       if(_verbose)std::cout << "AK8: JEC_source_text_AK8.fullPath().c_str() is " << JEC_source_text_AK8.fullPath().c_str() << std::endl;
       if(_verbose)std::cout << "uncertainty_source is " << uncertainty_source << std::endl;
       JetCorrectorParameters source_parameters_reduced_AK8(JEC_source_text_AK8.fullPath().c_str(), uncertainty_source);
+
+
+      ///    JEC DEBUGGING std::cout << "using the file  " << JEC_source_text_AK8.fullPath().c_str() << " for AK8 PUPPI JECs for uncertainty source  " << uncertainty_source  << ". This is unceertainty source number " << source_counter << std::endl;
       if(_verbose)std::cout <<  "AK8: creating the pointer for JetCorrectionUncertainty" << std::endl;
       std::unique_ptr<JetCorrectionUncertainty> source_uncertainty_reduced_AK8(new JetCorrectionUncertainty(source_parameters_reduced_AK8));
       if(_verbose)std::cout <<  "AK8: adding the uncertainty object to the JEC map" << std::endl;
       JEC_map_AK8.emplace(uncertainty_source, std::move(source_uncertainty_reduced_AK8));
       if(_verbose)std::cout <<  "AK8: added the uncertainty object to the JEC map" << std::endl;
 
+
+
+         
+
+      // do a test over the contents of the source file
+      /*
+      std::cout << "-------------  For uncertainty type @@@@@@@@@@@@ " <<  systematicType  << " @@@@@@@@@@@@ and source $$$$$$$$$$  " << uncertainty_source << " $$$$$$$$$$$, reading from the file " <<  JEC_source_text_AK8.fullPath().c_str()<< std::endl;
+      for(int iii =0; iii< 200; iii++) // pt
+      {
+         double pt = iii*20.0;  
+         for(int jjj=-24; jjj < 24; jjj ++)  // eta
+         {
+            double eta = jjj*0.1; 
+
+   
+            double source_value = -999.; 
+            JEC_map_AK8[uncertainty_source]->setJetEta( eta );
+            JEC_map_AK8[uncertainty_source]->setJetPt( pt );
+
+            source_value = fabs(JEC_map_AK8[uncertainty_source]->getUncertainty(true));
+
+            std::cout << "For uncertainty type " << systematicType << " and source " << uncertainty_source << " with pt/eta = " <<  pt << "/" << eta << ", the uncertainty value is " << source_value << std::endl;
+            
+         }
+      } */
    }
+
 
 
    if(_verbose)
@@ -872,19 +910,37 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             tree->Branch("bTag_eventWeight_T_up", &bTag_eventWeight_T_up  , "bTag_eventWeight_T_up/D");
             tree->Branch("bTag_eventWeight_T_down", &bTag_eventWeight_T_down  , "bTag_eventWeight_T_down/D");
 
+            tree->Branch("bTag_eventWeight_T_corr_up", &bTag_eventWeight_T_corr_up  , "bTag_eventWeight_T_corr_up/D");
+            tree->Branch("bTag_eventWeight_T_corr_down", &bTag_eventWeight_T_corr_down  , "bTag_eventWeight_T_corr_down/D");
+
+
             tree->Branch("bTag_eventWeight_bc_T_up", &bTag_eventWeight_bc_T_up  , "bTag_eventWeight_bc_T_up/D");
             tree->Branch("bTag_eventWeight_bc_T_down", &bTag_eventWeight_bc_T_down  , "bTag_eventWeight_bc_T_down/D");
             tree->Branch("bTag_eventWeight_light_T_up", &bTag_eventWeight_light_T_up  , "bTag_eventWeight_light_T_up/D");
             tree->Branch("bTag_eventWeight_light_T_down", &bTag_eventWeight_light_T_down  , "bTag_eventWeight_light_T_down/D");
+            // CORRELATED versions of the uncertainty
+            tree->Branch("bTag_eventWeight_bc_T_corr_up", &bTag_eventWeight_bc_T_corr_up  , "bTag_eventWeight_bc_T_corr_up/D");
+            tree->Branch("bTag_eventWeight_bc_T_corr_down", &bTag_eventWeight_bc_T_corr_down  , "bTag_eventWeight_bc_T_corr_down/D");
+            tree->Branch("bTag_eventWeight_light_T_corr_up", &bTag_eventWeight_light_T_corr_up  , "bTag_eventWeight_light_T_corr_up/D");
+            tree->Branch("bTag_eventWeight_light_T_corr_down", &bTag_eventWeight_light_T_corr_down  , "bTag_eventWeight_light_T_corr_down/D");
 
             // med WP event weight
             tree->Branch("bTag_eventWeight_M_up", &bTag_eventWeight_M_up  , "bTag_eventWeight_M_up/D");
             tree->Branch("bTag_eventWeight_M_down", &bTag_eventWeight_M_down  , "bTag_eventWeight_M_down/D");
 
+            tree->Branch("bTag_eventWeight_M_corr_up", &bTag_eventWeight_M_corr_up  , "bTag_eventWeight_M_corr_up/D");
+            tree->Branch("bTag_eventWeight_M_corr_down", &bTag_eventWeight_M_corr_down  , "bTag_eventWeight_M_corr_down/D");
+
+
             tree->Branch("bTag_eventWeight_bc_M_up", &bTag_eventWeight_bc_M_up  , "bTag_eventWeight_bc_M_up/D");
             tree->Branch("bTag_eventWeight_bc_M_down", &bTag_eventWeight_bc_M_down  , "bTag_eventWeight_bc_M_down/D");
             tree->Branch("bTag_eventWeight_light_M_up", &bTag_eventWeight_light_M_up  , "bTag_eventWeight_light_M_up/D");
             tree->Branch("bTag_eventWeight_light_M_down", &bTag_eventWeight_light_M_down  , "bTag_eventWeight_light_M_down/D");
+
+            tree->Branch("bTag_eventWeight_bc_M_corr_up", &bTag_eventWeight_bc_M_corr_up  , "bTag_eventWeight_bc_M_corr_up/D");
+            tree->Branch("bTag_eventWeight_bc_M_corr_down", &bTag_eventWeight_bc_M_corr_down  , "bTag_eventWeight_bc_M_corr_down/D");
+            tree->Branch("bTag_eventWeight_light_M_corr_up", &bTag_eventWeight_light_M_corr_up  , "bTag_eventWeight_light_M_corr_up/D");
+            tree->Branch("bTag_eventWeight_light_M_corr_down", &bTag_eventWeight_light_M_corr_down  , "bTag_eventWeight_light_M_corr_down/D");
 
          }
          if(doPDFWeights)
@@ -1005,6 +1061,7 @@ std::string clusteringAnalyzerAll::returnJECFile(std::string year, std::string s
    }  
    // Summer19UL16APV_V9_MC/RegroupedV2_Summer19UL16APV_V9_MC_UncertaintySources_AK4PFchs.txt
    if (data_type.find("data") != std::string::npos ) return  ("data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str();
+
    else { return  ("data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str(); }
 
 }
@@ -1045,6 +1102,7 @@ double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type,
          JEC_map_AK8[*uncert_source]->setJetPt( pt );
          double AK8_JEC_uncertainty = fabs(JEC_map_AK8[*uncert_source]->getUncertainty(true));
          if(_verbose)std::cout << "Source: " << *uncert_source << ", value:  " << AK8_JEC_uncertainty << std::endl;
+          ///    JEC DEBUGGINGstd::cout << "Main uncertainty is " <<  systematicType << ", Uncertainty source is " << *uncert_source << " and value is " << uncert << ". This is uncertainty number " << uncertainty_number<< std::endl;
          uncert+=AK8_JEC_uncertainty;
          uncertainty_names += (*uncert_source + ", ");
       }
@@ -2119,26 +2177,49 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
    //// tight b-tag WP variables
-   double MC_tagged = 1.0,  MC_notTagged = 1.0, data_tagged = 1.0, data_notTagged = 1.0; //these are for the bTagging SFs
-   double data_tagged_up = 1.0, data_notTagged_up = 1.0; //these are for the bTagging SFs
-   double data_tagged_down = 1.0, data_notTagged_down = 1.0; //these are for the bTagging SFs
+   double MC_tagged = 1.0,  MC_notTagged = 1.0, data_tagged = 1.0, data_notTagged = 1.0; 
+   double data_tagged_up = 1.0, data_notTagged_up = 1.0; 
+   double data_tagged_down = 1.0, data_notTagged_down = 1.0; 
 
-   double data_tagged_bc_up = 1.0, data_notTagged_bc_up = 1.0; //these are for the bTagging SFs
-   double data_tagged_bc_down = 1.0, data_notTagged_bc_down = 1.0; //these are for the bTagging SFs
+   double data_tagged_bc_up = 1.0, data_notTagged_bc_up = 1.0; 
+   double data_tagged_bc_down = 1.0, data_notTagged_bc_down = 1.0; 
 
-   double data_tagged_light_up = 1.0, data_notTagged_light_up = 1.0; //these are for the bTagging SFs
-   double data_tagged_light_down = 1.0, data_notTagged_light_down = 1.0; //these are for the bTagging SFs
+   double data_tagged_light_up = 1.0, data_notTagged_light_up = 1.0; 
+   double data_tagged_light_down = 1.0, data_notTagged_light_down = 1.0; 
 
    //// med b-tag WP variables
-   double MC_tagged_med = 1.0,  MC_notTagged_med = 1.0, data_tagged_med = 1.0, data_notTagged_med = 1.0; //these are for the bTagging SFs
-   double data_tagged_up_med = 1.0, data_notTagged_up_med = 1.0; //these are for the bTagging SFs
-   double data_tagged_down_med = 1.0, data_notTagged_down_med = 1.0; //these are for the bTagging SFs
+   double MC_tagged_med = 1.0,  MC_notTagged_med = 1.0, data_tagged_med = 1.0, data_notTagged_med = 1.0; 
+   double data_tagged_up_med = 1.0, data_notTagged_up_med = 1.0; 
+   double data_tagged_down_med = 1.0, data_notTagged_down_med = 1.0; 
 
-   double data_tagged_bc_up_med = 1.0, data_notTagged_bc_up_med = 1.0; //these are for the bTagging SFs
-   double data_tagged_bc_down_med = 1.0, data_notTagged_bc_down_med = 1.0; //these are for the bTagging SFs
+   double data_tagged_bc_up_med = 1.0, data_notTagged_bc_up_med = 1.0; 
+   double data_tagged_bc_down_med = 1.0, data_notTagged_bc_down_med = 1.0; 
 
-   double data_tagged_light_up_med = 1.0, data_notTagged_light_up_med = 1.0; //these are for the bTagging SFs
-   double data_tagged_light_down_med = 1.0, data_notTagged_light_down_med = 1.0; //these are for the bTagging SFs
+   double data_tagged_light_up_med = 1.0, data_notTagged_light_up_med = 1.0; 
+   double data_tagged_light_down_med = 1.0, data_notTagged_light_down_med = 1.0; 
+
+   ////////////////////////////////
+   ////////////////////////////////
+
+   //// tight b-tag WP variables
+   double data_tagged_corr_up = 1.0, data_notTagged_corr_up = 1.0; 
+   double data_tagged_corr_down = 1.0, data_notTagged_corr_down = 1.0; 
+
+   double data_tagged_bc_corr_up = 1.0, data_notTagged_bc_corr_up = 1.0; 
+   double data_tagged_bc_corr_down = 1.0, data_notTagged_bc_corr_down = 1.0; 
+
+   double data_tagged_light_corr_up = 1.0, data_notTagged_light_corr_up = 1.0; 
+   double data_tagged_light_corr_down = 1.0, data_notTagged_light_corr_down = 1.0; 
+
+   //// med b-tag WP variables
+   double data_tagged_corr_up_med = 1.0, data_notTagged_corr_up_med = 1.0; 
+   double data_tagged_corr_down_med = 1.0, data_notTagged_corr_down_med = 1.0; 
+
+   double data_tagged_bc_corr_up_med = 1.0, data_notTagged_bc_corr_up_med = 1.0; 
+   double data_tagged_bc_corr_down_med = 1.0, data_notTagged_bc_corr_down_med = 1.0; 
+
+   double data_tagged_light_corr_up_med = 1.0, data_notTagged_light_corr_up_med = 1.0; 
+   double data_tagged_light_corr_down_med = 1.0, data_notTagged_light_corr_down_med = 1.0; 
 
    nTrue_light_AK4 = 0;
    nTrue_b_AK4 = 0;
@@ -2293,6 +2374,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             if(debug) std::cout << "bTagEffMap_nPtBins/bTagEffMap_PtRange/bTagEffMap_Eta_low/bTagEffMap_nEtaBins/bTagEffMap_Eta_high:" <<bTagEffMap_nPtBins << "/"  <<bTagEffMap_PtRange << "/" <<bTagEffMap_Eta_low << "/" <<bTagEffMap_nEtaBins << "/" <<bTagEffMap_Eta_high << std::endl;
             double SF, SF_up, SF_down;
             double SF_med, SF_up_med, SF_down_med;
+
+            double SF_corr_up_med, SF_corr_down_med, SF_corr_up, SF_corr_down;
             double bTag_eff_value, bTag_eff_value_med;
 
             if(corrJet.hadronFlavour() == 0)   //light jets
@@ -2304,17 +2387,22 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                SF     = cset_corrector_light->evaluate({"central", "T", 0, std::abs(corrJet.eta()), corrJet.pt()}); /// tight WP SF
                SF_med = cset_corrector_light->evaluate({"central", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
 
+               SF_corr_up_med       = cset_corrector_light->evaluate({"up_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_down_med     = cset_corrector_light->evaluate({"down_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_up     = cset_corrector_light->evaluate({"up_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_down   = cset_corrector_light->evaluate({"down_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+
                jet_bTagSF_light_T[nTrue_light_AK4] = SF;
                jet_bTagSF_light_M[nTrue_light_AK4] = SF_med;
 
                nTrue_light_AK4++;
 
-               // tight WP
-               SF_up   = cset_corrector_light->evaluate({"up_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_light->evaluate({"down_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               // tight WP uncorrelated
+               SF_up   = cset_corrector_light->evaluate({"up_uncorrelated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down = cset_corrector_light->evaluate({"down_uncorrelated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
                // med WP
-               SF_up_med   = cset_corrector_light->evaluate({"up_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down_med = cset_corrector_light->evaluate({"down_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up_med   = cset_corrector_light->evaluate({"up_uncorrelated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down_med = cset_corrector_light->evaluate({"down_uncorrelated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
 
 
                //////// MED WP SCALE FACTOR ////////
@@ -2331,6 +2419,17 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged_bc_up_med   *= SF_med*bTag_eff_value_med;   // this is a light jet, leave bc at nom
                   data_tagged_bc_down_med *= SF_med*bTag_eff_value_med;   // this is a light jet, leave bc at nom
 
+                  // correlated
+                  data_tagged_corr_up_med   *= SF_corr_up_med*bTag_eff_value_med;
+                  data_tagged_corr_down_med *= SF_corr_down_med*bTag_eff_value_med;
+
+                  data_tagged_light_corr_up_med   *= SF_corr_up_med*bTag_eff_value_med;   // this is a light jet, shift by uncertainty
+                  data_tagged_light_corr_down_med *= SF_corr_down_med*bTag_eff_value_med; // this is a light jet, shift by uncertainty
+                  data_tagged_bc_corr_up_med   *= SF_med*bTag_eff_value_med;   // this is a light jet, leave bc at nom
+                  data_tagged_bc_corr_down_med *= SF_med*bTag_eff_value_med;   // this is a light jet, leave bc at nom
+
+
+
                   if(_verbose)std::cout << "tagged light jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
                }
                else
@@ -2345,6 +2444,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_light_down_med *= (1 - SF_down_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
                   data_notTagged_bc_up_med      *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
                   data_notTagged_bc_down_med    *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
+
+                  // correlated 
+                  data_notTagged_corr_up_med   *= (1 - SF_corr_up_med*bTag_eff_value_med);
+                  data_notTagged_corr_down_med *= (1 - SF_corr_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_corr_up_med   *= (1 - SF_corr_up_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
+                  data_notTagged_light_corr_down_med *= (1 - SF_corr_down_med*bTag_eff_value_med); // this is a light jet, shift by uncertainty
+                  data_notTagged_bc_corr_up_med      *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
+                  data_notTagged_bc_corr_down_med    *= (1 - SF_med*bTag_eff_value_med); // this is a light jet, leave bc at nom
+
                }
 
                //////// TIGHT WP SCALE FACTOR ///////
@@ -2361,6 +2470,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged_light_down *= SF_down*bTag_eff_value; // this is a light jet, shift by uncertainty
                   data_tagged_bc_up      *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
                   data_tagged_bc_down    *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
+
+                  // correlated
+                  data_tagged_corr_up    *= SF_corr_up*bTag_eff_value;
+                  data_tagged_corr_down  *= SF_corr_down*bTag_eff_value;
+
+                  data_tagged_light_corr_up   *= SF_corr_up*bTag_eff_value;   // this is a light jet, shift by uncertainty
+                  data_tagged_light_corr_down *= SF_corr_down*bTag_eff_value; // this is a light jet, shift by uncertainty
+                  data_tagged_bc_corr_up      *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
+                  data_tagged_bc_corr_down    *= SF*bTag_eff_value;   // this is a light jet, leave bc at nom
                }
 
                else
@@ -2375,6 +2493,17 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_light_down *= (1 - SF_down*bTag_eff_value); // this is a light jet, shift by uncertainty
                   data_notTagged_bc_up      *= (1 - SF*bTag_eff_value); // this is a light jet, leave bc at nom
                   data_notTagged_bc_down    *= (1 - SF*bTag_eff_value); // this is a light jet, leave bc at nom
+
+
+                  // correlated
+                  data_notTagged_corr_up    *= (1 - SF_corr_up*bTag_eff_value);
+                  data_notTagged_corr_down  *= (1 - SF_corr_down*bTag_eff_value);
+
+                  data_notTagged_light_corr_up   *= (1 - SF_corr_up*bTag_eff_value); // this is a light jet, shift by uncertainty
+                  data_notTagged_light_corr_down *= (1 - SF_corr_down*bTag_eff_value); // this is a light jet, shift by uncertainty
+                  data_notTagged_bc_corr_up      *= (1 - SF*bTag_eff_value); // this is a light jet, leave bc at nom
+                  data_notTagged_bc_corr_down    *= (1 - SF*bTag_eff_value); // this is a light jet, leave bc at nom
+
 
                   if(_verbose)std::cout << "untagged light jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
@@ -2391,13 +2520,24 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                jet_bTagSF_c_M[nTrue_c_AK4] = SF_med;
 
                nTrue_c_AK4++;
+
+               //uncorrelated
                // tight WP
-               SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up = cset_corrector_bc->evaluate({"up_uncorrelated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down = cset_corrector_bc->evaluate(   {"down_uncorrelated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
 
                // med WP
-               SF_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up_med = cset_corrector_bc->evaluate({"up_uncorrelated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down_med = cset_corrector_bc->evaluate(   {"down_uncorrelated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+
+               // correlated
+               // tight WP
+               SF_corr_up = cset_corrector_bc->evaluate({"up_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+
+               // med WP
+               SF_corr_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
                //////// MED WP SCALE FACTOR ////////
@@ -2413,6 +2553,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged_light_down_med  *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
                   data_tagged_bc_up_med       *= SF_up_med*bTag_eff_value_med;   //this is a c jet, shift bc uncertainty by sigma
                   data_tagged_bc_down_med     *= SF_down_med*bTag_eff_value_med; //this is a c jet, shift bc uncertainty by sigma
+
+                  //correlated
+                  data_tagged_corr_up_med      *= SF_corr_up_med*bTag_eff_value_med;
+                  data_tagged_corr_down_med    *= SF_corr_down_med*bTag_eff_value_med;
+
+                  data_tagged_light_corr_up_med    *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_light_corr_down_med  *= SF_med*bTag_eff_value_med;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_bc_corr_up_med       *= SF_corr_up_med*bTag_eff_value_med;   //this is a c jet, shift bc uncertainty by sigma
+                  data_tagged_bc_corr_down_med     *= SF_corr_down_med*bTag_eff_value_med; //this is a c jet, shift bc uncertainty by sigma
                }
                else
                {
@@ -2427,6 +2576,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_light_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
                   data_notTagged_bc_up_med        *= (1 - SF_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
                   data_notTagged_bc_down_med      *= (1 - SF_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+
+                  // correlated 
+                  data_notTagged_corr_up_med   *= (1 - SF_corr_up_med*bTag_eff_value_med);
+                  data_notTagged_corr_down_med *= (1 - SF_corr_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_corr_up_med     *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_corr_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_corr_up_med        *= (1 - SF_corr_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_corr_down_med      *= (1 - SF_corr_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
                }
 
                //////// TIGHT WP SCALE FACTOR ////////
@@ -2442,6 +2600,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged_light_down  *= SF*bTag_eff_value;      // this is a c jet, so leave light jet SF as nom
                   data_tagged_bc_up       *= SF_up*bTag_eff_value;   //this is a c jet, shift bc uncertainty by sigma
                   data_tagged_bc_down     *= SF_down*bTag_eff_value; //this is a c jet, shift bc uncertainty by sigma
+
+                  // correlated
+                  data_tagged_corr_up    *= SF_corr_up*bTag_eff_value;
+                  data_tagged_corr_down  *= SF_corr_down*bTag_eff_value;
+
+                  data_tagged_light_corr_up    *= SF*bTag_eff_value;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_light_corr_down  *= SF*bTag_eff_value;      // this is a c jet, so leave light jet SF as nom
+                  data_tagged_bc_corr_up       *= SF_corr_up*bTag_eff_value;   //this is a c jet, shift bc uncertainty by sigma
+                  data_tagged_bc_corr_down     *= SF_corr_down*bTag_eff_value; //this is a c jet, shift bc uncertainty by sigma
 
                   if(_verbose)std::cout << "tagged c jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
                }
@@ -2459,6 +2626,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_bc_up        *= (1 - SF_up*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
                   data_notTagged_bc_down      *= (1 - SF_down*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
 
+                  // correlated
+                  data_notTagged_corr_up    *= (1 - SF_corr_up*bTag_eff_value);
+                  data_notTagged_corr_down  *= (1 - SF_corr_down*bTag_eff_value);
+
+                  data_notTagged_light_corr_up     *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_corr_down   *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_corr_up        *= (1 - SF_corr_up*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_corr_down      *= (1 - SF_corr_down*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
+
                   if(_verbose)std::cout << "untagged c jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
             }
@@ -2475,13 +2651,24 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
                nTrue_b_AK4++;
 
+               //uncorrelated
                // tight WP
-               SF_up = cset_corrector_bc->evaluate({"up_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up = cset_corrector_bc->evaluate({"up_uncorrelated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down = cset_corrector_bc->evaluate(   {"down_uncorrelated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
 
                // med WP
-               SF_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up_med = cset_corrector_bc->evaluate({"up_uncorrelated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_down_med = cset_corrector_bc->evaluate(   {"down_uncorrelated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
+
+
+               // correlated
+               // tight WP
+               SF_corr_up = cset_corrector_bc->evaluate({"up_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+
+               // med WP
+               SF_corr_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
 
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
@@ -2498,6 +2685,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged_light_down_med  *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
                   data_tagged_bc_up_med       *= SF_up_med*bTag_eff_value_med;   //this is a b jet, shift bc uncertainty by sigma
                   data_tagged_bc_down_med     *= SF_down_med*bTag_eff_value_med; //this is a b jet, shift bc uncertainty by sigma
+
+                  // correlated
+                  data_tagged_corr_up_med   *= SF_corr_up_med*bTag_eff_value_med;
+                  data_tagged_corr_down_med *= SF_corr_down_med*bTag_eff_value_med;
+
+                  data_tagged_light_corr_up_med    *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_light_corr_down_med  *= SF_med*bTag_eff_value_med;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_bc_corr_up_med       *= SF_corr_up_med*bTag_eff_value_med;   //this is a b jet, shift bc uncertainty by sigma
+                  data_tagged_bc_corr_down_med     *= SF_corr_down_med*bTag_eff_value_med; //this is a b jet, shift bc uncertainty by sigma
                }
                else
                {
@@ -2512,6 +2708,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_light_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
                   data_notTagged_bc_up_med        *= (1 - SF_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
                   data_notTagged_bc_down_med      *= (1 - SF_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+
+                  //correlated
+                  data_notTagged_corr_up_med   *= (1 - SF_corr_up_med*bTag_eff_value_med);
+                  data_notTagged_corr_down_med *= (1 - SF_corr_down_med*bTag_eff_value_med);
+
+                  data_notTagged_light_corr_up_med     *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_corr_down_med   *= (1 - SF_med*bTag_eff_value_med); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_corr_up_med        *= (1 - SF_corr_up_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_corr_down_med      *= (1 - SF_corr_down_med*bTag_eff_value_med); //this is a c jet, shift bc uncertainty by sigma
                }
 
                //////// TIGHT WP SCALE FACTOR ////////
@@ -2527,6 +2732,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_tagged_light_down  *= SF*bTag_eff_value;      // this is a b jet, so leave light jet SF as nom
                   data_tagged_bc_up       *= SF_up*bTag_eff_value;   //this is a b jet, shift bc uncertainty by sigma
                   data_tagged_bc_down     *= SF_down*bTag_eff_value; //this is a b jet, shift bc uncertainty by sigma
+
+                  // correlated
+                  data_tagged_corr_up   *= SF_corr_up*bTag_eff_value;
+                  data_tagged_corr_down *= SF_corr_down*bTag_eff_value;
+
+                  data_tagged_light_corr_up    *= SF*bTag_eff_value;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_light_corr_down  *= SF*bTag_eff_value;      // this is a b jet, so leave light jet SF as nom
+                  data_tagged_bc_corr_up       *= SF_corr_up*bTag_eff_value;   //this is a b jet, shift bc uncertainty by sigma
+                  data_tagged_bc_corr_down     *= SF_corr_down*bTag_eff_value; //this is a b jet, shift bc uncertainty by sigma
                   if(_verbose)std::cout << "tagged b jet: MC_tagged/data_tagged: " << bTag_eff_value << ":" << SF*bTag_eff_value << std::endl;
                }
                else
@@ -2542,6 +2756,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   data_notTagged_light_down   *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
                   data_notTagged_bc_up        *= (1 - SF_up*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
                   data_notTagged_bc_down      *= (1 - SF_down*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
+
+                  //correlated
+                  data_notTagged_corr_up   *= (1 - SF_corr_up*bTag_eff_value);
+                  data_notTagged_corr_down *= (1 - SF_corr_down*bTag_eff_value);
+
+                  data_notTagged_light_corr_up     *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_light_corr_down   *= (1 - SF*bTag_eff_value); // this is a c jet, so leave light jet SF as nom
+                  data_notTagged_bc_corr_up        *= (1 - SF_corr_up*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
+                  data_notTagged_bc_corr_down      *= (1 - SF_corr_down*bTag_eff_value); //this is a c jet, shift bc uncertainty by sigma
                   if(_verbose)std::cout << "untagged b jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
             }
@@ -2596,6 +2819,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    ///////////////////// calculate b tag event weights //////////////////////
    if(doBtagSF)
    {
+      //uncorrelated
+
       // tight WP
       bTag_eventWeight_T_nom =  (data_tagged*data_notTagged) / (MC_tagged*MC_notTagged);
       bTag_eventWeight_T_up  =  (data_tagged_up*data_notTagged_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
@@ -2617,6 +2842,31 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       bTag_eventWeight_bc_M_up  =  (data_tagged_bc_up_med*data_notTagged_bc_up_med) / (MC_tagged_med*MC_notTagged_med);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
       bTag_eventWeight_bc_M_down = (data_tagged_bc_down_med*data_notTagged_bc_down_med) / (MC_tagged_med*MC_notTagged_med);   
+
+
+
+      // correlated
+
+      //tight WP
+      bTag_eventWeight_T_corr_up  =  (data_tagged_corr_up*data_notTagged_corr_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_T_corr_down = (data_tagged_corr_down*data_notTagged_corr_down) / (MC_tagged*MC_notTagged);   
+
+      bTag_eventWeight_light_T_corr_up  =  (data_tagged_light_corr_up*data_notTagged_light_corr_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_light_T_corr_down = (data_tagged_light_corr_down*data_notTagged_light_corr_down) / (MC_tagged*MC_notTagged);   
+
+      bTag_eventWeight_bc_T_corr_up  =  (data_tagged_bc_corr_up*data_notTagged_bc_corr_up) / (MC_tagged*MC_notTagged);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_bc_T_corr_down = (data_tagged_bc_corr_down*data_notTagged_bc_corr_down) / (MC_tagged*MC_notTagged);   
+
+      // med WP
+      bTag_eventWeight_M_corr_up  =  (data_tagged_corr_up_med*data_notTagged_corr_up_med) / (MC_tagged_med*MC_notTagged_med);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_M_corr_down = (data_tagged_corr_down_med*data_notTagged_corr_down_med) / (MC_tagged_med*MC_notTagged_med);   
+
+      bTag_eventWeight_light_M_corr_up  =  (data_tagged_light_corr_up_med*data_notTagged_light_corr_up_med) / (MC_tagged_med*MC_notTagged_med);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_light_M_corr_down = (data_tagged_light_corr_down_med*data_notTagged_light_corr_down_med) / (MC_tagged_med*MC_notTagged_med);   
+
+      bTag_eventWeight_bc_M_corr_up  =  (data_tagged_bc_corr_up_med*data_notTagged_bc_corr_up_med) / (MC_tagged_med*MC_notTagged_med);    // MC portion doesn't contain any scale factor portion, so there is no "up" or "down"
+      bTag_eventWeight_bc_M_corr_down = (data_tagged_bc_corr_down_med*data_notTagged_bc_corr_down_med) / (MC_tagged_med*MC_notTagged_med);   
+
 
       if ((bTag_eventWeight_T_nom != bTag_eventWeight_T_nom) || (std::isinf(bTag_eventWeight_T_nom)) || (bTag_eventWeight_T_nom < 0.))
       {
@@ -2756,6 +3006,19 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    //diAK8Jet_mass
    double tot_jet_px=0,tot_jet_py=0,tot_jet_pz=0, tot_jet_E=0;
 
+    ///    JEC DEBUGGINGstd::cout << "---------- NEW EVENT ----------" << std::endl;
+    ///    JEC DEBUGGINGstd::cout << "The systematic is " << systematicType << ", and the sources are: " << std::endl;
+    ///    JEC DEBUGGINGfor (const auto& source : uncertainty_sources) 
+    ///    JEC DEBUGGING{
+    ///    JEC DEBUGGING     std::cout << source << std::endl;
+    ///    JEC DEBUGGING}
+    ///    JEC DEBUGGINGstd::cout << "The objects inside the JEC uncertainty are: " << std::endl;
+
+    ///    JEC DEBUGGINGfor (const auto& pair : JEC_map_AK8) 
+    ///    JEC DEBUGGING{
+    ///    JEC DEBUGGING  std::cout << "AK8 Key: " << pair.first << std::endl;
+    ///    JEC DEBUGGING}
+
 
    // loop over AK8 jets, save information for event selection, grab particles to create superjets
    for(auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++)    
@@ -2778,6 +3041,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          //jecUnc_AK8->setJetPt( iJet->pt() );
          // JECs are already applied in cfg with updateJetCollection, this is for getting the uncertainties 
          //double AK8_JEC_uncertainty = jecUnc_AK8->getUncertainty(true);
+         ///    JEC DEBUGGING    std::cout << "---------- NEW JET ----------" << std::endl;
         double  AK8_JEC_uncertainty = getJECUncertaintyFromSources("AK8",  iJet->pt(), iJet->eta());
 
          if (systematicType.find("_up") != std::string::npos)      

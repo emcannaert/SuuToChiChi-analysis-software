@@ -1085,7 +1085,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					h_nCA4_300_1b->Fill(SJ_nAK4_300[0], eventScaleFactor);
 					h_nCA4_300_1b->Fill(SJ_nAK4_300[1], eventScaleFactor);
 
-					if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse*=bTag_eventWeight_T;
+					if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse*=bTag_eventWeight_M;
 
 					h_MSJ_mass_vs_MdSJ_dijet->Fill(fourAK8JetMass, (diAK8Jet_mass[0]+diAK8Jet_mass[1])/2.,eventWeightToUse);
 
@@ -1270,9 +1270,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					h_disuperjet_mass_SB0b->Fill(diSuperJet_mass,eventWeightToUse);
 					h_MSJ_mass_vs_MdSJ_SB0b->Fill(diSuperJet_mass,(    superJet_mass[1]+superJet_mass[0])/2 ,eventWeightToUse );
 				}
-				else if ( (nTightBTags > 0)  )
+				else if ( (nMedBTags > 0)  )
 				{
-					if((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse*=bTag_eventWeight_T;
+					if((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse*=bTag_eventWeight_M;
 					h_SJ_mass_SB1b->Fill((superJet_mass[0]+superJet_mass[1])/2. ,eventWeightToUse);
 					h_disuperjet_mass_SB1b->Fill(diSuperJet_mass,eventWeightToUse);
 					h_MSJ_mass_vs_MdSJ_SB1b->Fill(diSuperJet_mass,(    superJet_mass[1]+superJet_mass[0])/2 ,eventWeightToUse );
