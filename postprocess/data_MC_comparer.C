@@ -79,9 +79,10 @@ double return_BR_SF(std::string year, std::string sample)
 ////   looks for histograms named according to this format :    (hist_name).c_str()
 template <typename T> std::vector<T> get_histograms(std::vector<std::string> fnames, std::string hist_name)
 {
-
+    TH2::SetDefaultSumw2();
     TH1::SetDefaultSumw2();
     TH1::AddDirectory(false);
+    TH2::AddDirectory(false);
 
 
     std::vector<T> return_files;
@@ -92,7 +93,10 @@ template <typename T> std::vector<T> get_histograms(std::vector<std::string> fna
       std::cout << "looking for histogram " << (hist_name).c_str() << " in " << *iii <<std::endl;
 
       TFile * f1 = new TFile((*iii).c_str(), "READ" ); // open TFile for each fname
-      return_files.push_back( (T) f1->Get(  (hist_name).c_str() )  );
+      T grabbed_hist = (T) f1->Get(  (hist_name).c_str() );
+
+      grabbed_hist->SetDirectory(nullptr);
+      return_files.push_back(grabbed_hist   );
       std::cout << "Found histogram " << hist_name << " in " << (*iii).c_str() << ", Total number of events in histogram: " << ((T) f1->Get(  (hist_name).c_str() ))->Integral() << std::endl;
       f1->Close();
       delete f1;
@@ -108,8 +112,11 @@ template <typename T> T combine_histograms(std::vector<T> _hists, double weights
 {
 
 
-  TH1::SetDefaultSumw2();
-  TH1::AddDirectory(false);
+    TH2::SetDefaultSumw2();
+    TH1::SetDefaultSumw2();
+    TH1::AddDirectory(false);
+    TH2::AddDirectory(false);
+
 
   T first_hist_scaled = T(_hists[0]);
   double original_events = first_hist_scaled->Integral();
@@ -136,7 +143,8 @@ template <typename T> T combine_histograms(std::vector<T> _hists, double weights
 }
 
 // given a histogram and some x_threshold, this masks histograms by replacing all values above the threshold by 0
-void mask_histogram(TH1* hist, double x_threshold=1e10) {
+void mask_histogram(TH1* hist, double x_threshold=1e10) 
+{
     // Get the number of bins in the histogram
     int n_bins = hist->GetNbinsX();
     TH1::SetDefaultSumw2();
@@ -159,7 +167,11 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     double CMS_label_pos = 0.125;
     double SIM_label_pos = 0.225;
 
+    TH2::SetDefaultSumw2();
     TH1::SetDefaultSumw2();
+    TH1::AddDirectory(false);
+    TH2::AddDirectory(false);
+
 
     bool necessaryToMask = doMasking;
     if( (region == "AT1b") || (region== "AT0b") || (region == "SB1b") || (region == "SB0b"))necessaryToMask = false; // these don't need to be masked
@@ -167,8 +179,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     else if ( (histName == "h_nfatjets")  || (histName == "h_nfatjets_pre") || (histName== "h_AK4_pt") || (histName == "h_nAK4") || (histName == "h_AK4_pt") || (histName == "h_AK8_mass") || (histName== "h_AK4_mass"))necessaryToMask = false;
     
     std::vector<std::string> nonMaskedHists = {"h_nHeavyAK8_pt400_M10", "h_nHeavyAK8_pt400_M20", "h_nHeavyAK8_pt400_M30", "h_nHeavyAK8_pt300_M10", "h_nHeavyAK8_pt300_M20", "h_nHeavyAK8_pt300_M30",
-     "h_nHeavyAK8_pt200_M10", "h_nHeavyAK8_pt200_M20", "h_nHeavyAK8_pt200_M30",
-    "h_nAK8_pt200", "h_nAK8_pt300", "h_nAK8_pt150", "h_nAK8_pt500",
+     "h_nHeavyAK8_pt200_M10", "h_nHeavyAK8_pt200_M20", "h_nHeavyAK8_pt200_M30", "h_nAK8_pt200", "h_nAK8_pt300", "h_nAK8_pt150", "h_nAK8_pt500", "h_AK8_pt", "h_nCA4_300_0b", "h_nCA4_300_1b", "h_nTightBTags", "h_nMidBTags"
     "h_nAK8_pt200_noCorr", "h_nAK8_pt300_noCorr", "h_nAK8_pt150_noCorr", "h_nAK8_pt500_noCorr", "h_nHeavyAK8_pt500_M45", "h_nHeavyAK8_pt500_M45_noCorr","h_AK4_eta", "h_AK4_phi", "h_AK8_eta", "h_AK8_phi"};
 
     if (std::find(nonMaskedHists.begin(), nonMaskedHists.end(), histName) != nonMaskedHists.end()) necessaryToMask = false;
@@ -276,6 +287,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
 
     std::cout << "Got data histograms for " << year << "/" <<  histName << "/"<< region << std::endl;
     TH1F*  h_data_combined    = combine_histograms<TH1F*>(h_data_hists,data_weights);
+
     h_data_combined->Sumw2();
     std::cout << "For " << year << ", the total number of DATA events is " << h_data_combined->Integral() << std::endl;
 
@@ -599,7 +611,6 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
 
     }
 
-
     if(!runControlRegions)  c->SaveAs( (output_path+ "dataMC/" + histName + "_dataMC_" + year +".png").c_str()  );
     else {    c->SaveAs( (output_path+ "dataMC/" + histName + "_dataMC_" + region + "_" + year +".png").c_str()  ) ; }
 
@@ -609,10 +620,25 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     std::cout << "Finished with " << year << "/" << region << "/" << histName  << std::endl;  ;
     for (int i = 0; i < nFiles; ++i) 
     {
+        if( !(bgFiles[i]->IsZombie()) ) bgFiles[i]->Close();
         delete bgFiles[i];
+        delete hBackgrounds[i];
     }
     delete hs; delete pad1; delete pad2;
     delete c;
+
+    // Ensure all TFiles are properly closed and deleted
+    TIter nextFile(gROOT->GetListOfFiles());
+    TFile* openFile;
+    while ((openFile = (TFile*)nextFile())) 
+    {
+        std::cout << "Closing lingering file: " << openFile->GetName() << std::endl;
+        openFile->Close();
+        delete openFile;
+    }
+
+
+
 }
 
 
@@ -633,7 +659,7 @@ void data_MC_comparer()
     "h_nAK8_pt200", "h_nAK8_pt300", "h_nAK8_pt150", "h_nAK8_pt500", "h_AK4_eta", "h_AK4_phi", "h_AK8_eta", "h_AK8_phi"};
 
     std::vector<std::string> years = {"2015","2016","2017","2018"};
-    /*for(auto year = years.begin(); year != years.end(); year++)
+    for(auto year = years.begin(); year != years.end(); year++)
     {
         for(auto hist_name = hist_names.begin();hist_name!=hist_names.end();hist_name++)
         {
@@ -643,9 +669,9 @@ void data_MC_comparer()
         }
     }
 
-*/
+
     ///// CONTROL REGION STUDY PORTION (creates data/MC plot comparing data/MC for SB1b, SB0b, and AT0b regions)
-    hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_nAK4_all", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b" };
+    hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_nAK4_all", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b","h_nMidBTags", "h_nTightBTags", };
 
     if(runControlRegions)
     {
@@ -653,7 +679,7 @@ void data_MC_comparer()
 
 
         std::vector<std::string> regions;
-        hist_names = { "h_disuperjet_mass",  "h_SJ_mass"};  // removed theese "h_nAK4_all", "h_nfatjets","h_totHT","h_nfatjets_pre", "h_dijet_mass", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b" 
+        //hist_names = { "h_disuperjet_mass",  "h_SJ_mass"};  // removed theese "h_nAK4_all", "h_nfatjets","h_totHT","h_nfatjets_pre", "h_dijet_mass", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b" 
 
         if(runSideband) 
         {

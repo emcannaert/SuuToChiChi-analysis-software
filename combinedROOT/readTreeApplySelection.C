@@ -610,6 +610,7 @@ void readTreeApplySelection()
    bool runSingleFile = false;
    bool runExtras     = false;
    bool runSideband   = false;
+
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
    std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
 
@@ -620,7 +621,7 @@ void readTreeApplySelection()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   if (runSelection) years = {"2017"};  // single year to run over 
+   if (runSelection) years = {"2015"};  // single year to run over 
 
    if(runSingleFile)
    {
@@ -730,12 +731,7 @@ void readTreeApplySelection()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"Suu7_chi1_WBWB_","Suu7_chi1p5_WBWB_","Suu7_chi2_WBWB_","Suu7_chi2p5_WBWB_","Suu7_chi3_WBWB_","Suu8_chi1_WBWB_","Suu8_chi1p5_WBWB_","Suu8_chi2_WBWB_",
-"Suu8_chi2p5_WBWB_","Suu8_chi3_WBWB_","Suu4_chi1_WBZT_","Suu4_chi1p5_WBZT_","Suu5_chi1_WBZT_","Suu5_chi1p5_WBZT_","Suu5_chi2_WBZT_","Suu6_chi1_WBZT_","Suu6_chi1p5_WBZT_",
-"Suu6_chi2_WBZT_","Suu6_chi2p5_WBZT_","Suu7_chi1_WBZT_","Suu7_chi1p5_WBZT_","Suu7_chi2_WBZT_","Suu7_chi2p5_WBZT_","Suu7_chi3_WBZT_","Suu8_chi1_WBZT_","Suu8_chi1p5_WBZT_",
-"Suu8_chi2_WBZT_","Suu8_chi2p5_WBZT_","Suu8_chi3_WBZT_","Suu4_chi1_ZTZT_","Suu4_chi1p5_ZTZT_","Suu5_chi1_ZTZT_","Suu5_chi1p5_ZTZT_","Suu5_chi2_ZTZT_","Suu6_chi1_ZTZT_",
-"Suu6_chi1p5_ZTZT_","Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
-"Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_"};  
+         dataBlocks = {"WJetsMC_LNu-HT1200to2500_"};  
       }
       else if(runExtras)
       {
@@ -853,7 +849,12 @@ void readTreeApplySelection()
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
                if((*systematic == "nom") ) 
                {
-                  use_systematics = {"nom", "JER_eta193", "JER_193eta25", "JER", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute" };
+
+                  // BELOW WAS CHANGED FROM THIS 
+                  //use_systematics = {"nom", "JER_eta193", "JER_193eta25", "JER", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute" };
+
+                   use_systematics = {"nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_AbsoluteMPFBias","JEC_RelativeFSR"};
+
                   inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
                   outFileName= (*dataBlock + year + "_SKIMMED.root").c_str();
                }
@@ -866,7 +867,12 @@ void readTreeApplySelection()
                }
                else if( *systematic == "JEC1")
                {
-                  use_systematics = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"};
+
+                  // BELOW WAS CHANGED FROM THIS
+                  //use_systematics = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"};
+
+                   use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_BBEC1_year",  "JEC_Absolute_year", "JEC_RelativeSample_year", "JEC", "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteTheory"};
+
                   inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
                   outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
                }
@@ -878,8 +884,13 @@ void readTreeApplySelection()
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
 
                if     (*systematic == "JEC") use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"};   
-               else if(*systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"}; 
-               else if(*systematic == "JEC2") use_systematics = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; 
+               
+               // the below lines were changed from this
+               //else if(*systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"}; 
+               //else if(*systematic == "JEC2") use_systematics = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; 
+
+               else if(*systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal","JEC_BBEC1_year",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR","JEC_AbsoluteTheory"}; 
+               else if(*systematic == "JEC2") use_systematics = {"JEC_Absolute_year",  "JEC_RelativeSample_year", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC"}; 
 
                inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_" + *systematic + "_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
                // if the JEC file has not yet been opened, delete the file so that it is being started from fresh 

@@ -30,7 +30,7 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     if "NN" in technique_type:
         technique_str = "NN-based"
 
-    file_name = "finalCombineFiles/combine_%s%s_%s.root"%(technique_type, year, mass_point)
+    file_name = "finalCombineFilesNewStats/combine_%s%s_%s.root"%(technique_type, year, mass_point)
     
     root_file = ROOT.TFile.Open(file_name)
     if not root_file:
@@ -221,7 +221,7 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     if "NN" in technique_type:
         technique_str = "NN-based"
 
-    file_name = "finalCombineFiles/combine_%s%s_%s.root"%(technique_type, year, mass_point)
+    file_name = "finalCombineFilesNewStats/combine_%s%s_%s.root"%(technique_type, year, mass_point)
     
     root_file = ROOT.TFile.Open(file_name)
 
@@ -305,7 +305,7 @@ if __name__=="__main__":
     years = ["2015","2016","2017","2018"]
     mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1","Suu5_chi1p5","Suu5_chi2","Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1",
     "Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"] 
-    regions = ["SR","CR","AT0b", "AT1b"]
+    regions = ["SR","CR","AT0b", "AT1b", "AT1tb", "AT0tb"]
     technique_types = ["", "NN_"]
 
     for year in years:

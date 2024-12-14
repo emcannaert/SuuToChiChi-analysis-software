@@ -6,14 +6,17 @@ import pickle
 ### this can be updated to create the different cfgs for each systematic
 def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, all_systematics):
 
+
    includeAllBranches = False
    slimmedSelection  = True
    verbose        = False
    runSideband    = False
    doPDF = True
+
+   if runSideband: print("WARNING: RUNNING SIDEBAND REGION.")
+
    if "data" in sample:
       doPDF = False
-
    isSignal = False
    if "Suu" in sample:
       isSignal = True
@@ -21,18 +24,30 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    if "Suu" in sample:
       if  systematic__ == "JEC2": return 
       elif systematic__ == "JER": return 
-      elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"]
-      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute" ]        #all_systematics
+      #elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"]
+      #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute" ]        #all_systematics
+
+
+      ### COMMENT OUT THESE EVENTUALLY
+      #elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"]
+      #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute" ]        #all_systematics
+
+      ### AND REPLACE WITH THESE
+      elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_BBEC1_year",  "JEC_Absolute_year", "JEC_RelativeSample_year", "JEC", "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteTheory"]
+      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_AbsoluteMPFBias","JEC_RelativeFSR" ]        #all_systematics
+
       else:        #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER" ]        #all_systematics
          print("ERROR: Suu systematic is neither JEC nor nom.")
          return
 
-   elif systematic__ == "JEC1":
-      systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"]
-   elif systematic__ == "JEC2":  
-      systematic_ = ["JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute", "JEC"]
-   elif systematic__ == "JER":
-      systematic_ = [  "JER_eta193", "JER_193eta25", "JER"] ## we aren't using JERs for eta > 2.5, so no need for the other 4 uncertainties
+   ## comment these out eventually 
+   #elif systematic__ == "JEC1": systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"]
+   #elif systematic__ == "JEC2":   systematic_ = ["JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute", "JEC"]
+
+   # and replace with these 
+   elif systematic__ == "JEC1": systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal","JEC_BBEC1_year",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR","JEC_AbsoluteTheory" ]
+   elif systematic__ == "JEC2": systematic_ =   [ "JEC_Absolute_year",  "JEC_RelativeSample_year", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC"]
+   elif systematic__ == "JER":  systematic_ =   [  "JER_eta193", "JER_193eta25", "JER"] ## we aren't using JERs for eta > 2.5, so no need for the other 4 uncertainties
 
    apply_pu_ID = True
    doTopPtReweight = False
