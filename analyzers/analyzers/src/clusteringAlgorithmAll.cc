@@ -519,23 +519,34 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    }
 
    else if ((systematicType.find("BBEC1_year") != std::string::npos) )   uncertainty_sources = {"RelativeJEREC1","RelativePtEC1","RelativeStatEC"};
-   else if ((systematicType.find("EC2_year") != std::string::npos) )     uncertainty_sources = {"RelativeJEREC2","RelativePtEC2"};
    else if ((systematicType.find("Absolute_year") != std::string::npos) )  uncertainty_sources = {"AbsoluteStat","RelativeStatFSR","TimePtEta"};
-   else if ((systematicType.find("HF_year") != std::string::npos) )      uncertainty_sources = {"RelativeStatHF"};
    else if ((systematicType.find("RelativeSample_year") != std::string::npos))  uncertainty_sources = {"RelativeSample"};
    else if ((systematicType.find("FlavorQCD") != std::string::npos) )    uncertainty_sources = {"FlavorQCD"};
    else if ((systematicType.find("RelativeBal") != std::string::npos))  uncertainty_sources = {"RelativeBal"};
-   else if ((systematicType.find("HF") != std::string::npos) )           uncertainty_sources = {"PileUpPtHF", "RelativeJERHF","RelativePtHF"};
-   else if ((systematicType.find("BBEC1") != std::string::npos) )        uncertainty_sources = {"PileUpPtBB", "PileUpPtEC1", "RelativePtBB"};
-   else if ((systematicType.find("EC2") != std::string::npos) )          uncertainty_sources = {"PileUpPtEC2"};
 
    // this has been changed to split the absolute uncertainty into 2 new sources
    else if ((systematicType.find("AbsoluteCal") != std::string::npos) )     uncertainty_sources = {"SinglePionECAL","SinglePionHCAL"};
-   else if ((systematicType.find("AbsoluteTheory") != std::string::npos) )     uncertainty_sources = {"AbsoluteScale", "Fragmentation","AbsoluteMPFBias","RelativeFSR"};
    else if ((systematicType.find("AbsolutePU") != std::string::npos) )     uncertainty_sources = { "PileUpDataMC","PileUpPtRef"};
    else if ((systematicType.find("Absolute") != std::string::npos) )     uncertainty_sources = {"AbsoluteMPFBias", "AbsoluteScale", "Fragmentation","PileUpDataMC","PileUpPtRef","RelativeFSR","SinglePionECAL","SinglePionHCAL"};
 
+   // ONES THAT DO NOT CONTRIBUTE ( all scale factors in eta range are 0 )
+   // will comment out this
+   else if ((systematicType.find("AbsoluteTheory") != std::string::npos) )     uncertainty_sources = {"AbsoluteScale", "Fragmentation","AbsoluteMPFBias","RelativeFSR"};
 
+   // AT SOME POINT WILL WANT TO REMOVE THESE
+   else if ((systematicType.find("HF") != std::string::npos) )           uncertainty_sources = {"PileUpPtHF", "RelativeJERHF","RelativePtHF"};
+   else if ((systematicType.find("EC2_year") != std::string::npos) )     uncertainty_sources = {"RelativeJEREC2","RelativePtEC2"};
+   else if ((systematicType.find("BBEC1") != std::string::npos) )        uncertainty_sources = {"PileUpPtBB", "PileUpPtEC1", "RelativePtBB"};
+   else if ((systematicType.find("EC2") != std::string::npos) )          uncertainty_sources = {"PileUpPtEC2"};
+   else if ((systematicType.find("HF_year") != std::string::npos) )      uncertainty_sources = {"RelativeStatHF"};
+
+   // AND REPLACE THEM WITH THESE
+   else if ((systematicType.find("AbsoluteScale") != std::string::npos) )     uncertainty_sources = {"AbsoluteScale"};
+   else if ((systematicType.find("Fragmentation") != std::string::npos) )     uncertainty_sources = {"Fragmentation"};
+   else if ((systematicType.find("AbsoluteMPFBias") != std::string::npos) )   uncertainty_sources = {"AbsoluteMPFBias"};
+   else if ((systematicType.find("RelativeFSR") != std::string::npos) )       uncertainty_sources = {"RelativeFSR"};
+
+   
    else {std::cout << "Running uncertainty " << systematicType << std::endl;}
 
 
@@ -595,7 +606,8 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             std::cout << "For uncertainty type " << systematicType << " and source " << uncertainty_source << " with pt/eta = " <<  pt << "/" << eta << ", the uncertainty value is " << source_value << std::endl;
             
          }
-      } */
+      } 
+      */
    }
 
 
@@ -931,7 +943,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             tree->Branch("bTag_eventWeight_M_corr_up", &bTag_eventWeight_M_corr_up  , "bTag_eventWeight_M_corr_up/D");
             tree->Branch("bTag_eventWeight_M_corr_down", &bTag_eventWeight_M_corr_down  , "bTag_eventWeight_M_corr_down/D");
 
-
             tree->Branch("bTag_eventWeight_bc_M_up", &bTag_eventWeight_bc_M_up  , "bTag_eventWeight_bc_M_up/D");
             tree->Branch("bTag_eventWeight_bc_M_down", &bTag_eventWeight_bc_M_down  , "bTag_eventWeight_bc_M_down/D");
             tree->Branch("bTag_eventWeight_light_M_up", &bTag_eventWeight_light_M_up  , "bTag_eventWeight_light_M_up/D");
@@ -1080,7 +1091,7 @@ double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type,
    for(auto uncert_source = uncertainty_sources.begin(); uncert_source!=uncertainty_sources.end();uncert_source++)
    {
       /// get the uncertainty from the JetCorrector object
-      double AK4_JEC_uncertainty;
+      double AK4_JEC_uncertainty = -999;
       if(_verbose)std::cout << "Uncertainty number " << uncertainty_number << ". The uncertainty source is " << *uncert_source << std::endl;
 
       if( jet_type == "AK4")
@@ -1091,7 +1102,7 @@ double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type,
          JEC_map_AK4[*uncert_source]->setJetPt( pt );
          AK4_JEC_uncertainty = fabs(JEC_map_AK4[*uncert_source]->getUncertainty(true));
          if(_verbose)std::cout << "Source: " << *uncert_source << ", value:  " << AK4_JEC_uncertainty << std::endl;
-         uncert+=AK4_JEC_uncertainty;
+         uncert+= pow(AK4_JEC_uncertainty,2);
          uncertainty_names += (*uncert_source + " ");
       }
       else if(jet_type == "AK8")
@@ -1103,14 +1114,14 @@ double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type,
          double AK8_JEC_uncertainty = fabs(JEC_map_AK8[*uncert_source]->getUncertainty(true));
          if(_verbose)std::cout << "Source: " << *uncert_source << ", value:  " << AK8_JEC_uncertainty << std::endl;
           ///    JEC DEBUGGINGstd::cout << "Main uncertainty is " <<  systematicType << ", Uncertainty source is " << *uncert_source << " and value is " << uncert << ". This is uncertainty number " << uncertainty_number<< std::endl;
-         uncert+=AK8_JEC_uncertainty;
+         uncert+= pow(AK8_JEC_uncertainty,2);  // assuming all sources are uncorrelated to each other, so WILL ADD IN QUADRATURE
          uncertainty_names += (*uncert_source + ", ");
       }
       uncertainty_number++;
    }
    if(_verbose)std::cout << "Total uncertainty: " << uncert << " from uncertainties: " << uncertainty_names << "(" << uncertainty_number << " total sources)."  << std::endl;
 
-   return uncert;
+   return sqrt(uncert);  // sqrt because these are added in quadrature
 }  
 
 // return the JER scale factor for a given uncertainty source and jet eta
@@ -2815,6 +2826,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       nAK4++;
 
    }
+
 
    ///////////////////// calculate b tag event weights //////////////////////
    if(doBtagSF)

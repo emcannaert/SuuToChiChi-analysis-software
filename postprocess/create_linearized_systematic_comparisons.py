@@ -81,7 +81,7 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 
 	ROOT.TH1.AddDirectory(False)
 
-	output_dir = "plots/systematics/systematic_comparisons/"
+	output_dir = "plots/linearized_systematic_comparisons/"
 	if run_corrected: output_dir+= "correctedSystematics/"
 
 	output_plot_name = output_dir+"background/%s/linearized_%s%s_%s_SysComparison_RatioPlot_%s_%s.png"%(region,technique_str,hist_type,region, systematic,year)
@@ -221,13 +221,16 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 
 def create_systematic_comparison_plot(year, mass_point,histname,systematic, year_str, technique_str,region, run_corrected = False ):
 
+	if systematic == "CMS_topPt" and histname not in ["allBR", "TTbar"]: return # skip these
+	if systematic == "stat" and histname == "sig": return
+
 	technique_desc = "cut-based"
 	if technique_str == "_NN":
 		technique_desc = "NN-based"
 
-	inputFile = "finalCombineFiles/combine_%s%s_%s.root"%(technique_str, year,mass_point) 
+	inputFile = "finalCombineFilesNewStats/combine_%s%s_%s.root"%(technique_str, year,mass_point) 
 
-	if run_corrected: inputFile = "finalCombineFiles/correctedFinalCombineFiles/combine_%s%s_%s.root"%(technique_str, year,mass_point) 
+	if run_corrected: inputFile = "finalCombineFilesNewStats/correctedFinalCombineFiles/combine_%s%s_%s.root"%(technique_str, year,mass_point) 
 
 	print("Opening file %s"%(inputFile))
 
@@ -246,7 +249,7 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 			break """
 
 
-	uncorrelated_systematics = [ "CMS_pu",  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
+	uncorrelated_systematics = [ "CMS_pu",  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
 
 	year_str = ""			
 	if systematic in uncorrelated_systematics:
@@ -275,6 +278,10 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 	histname_nom = histname 
 	histname_down = histname + "_" + systematic + year_str + "Down"
 
+	#print("up histogram name is %s"%histname_up)
+	#print("nom histogram name is %s"%histname_nom)
+	#print("down histogram name is %s"%histname_down)
+	#print("Running for year/mass_point/histname/systematic/technique_str/region: %s/%s/%s/%s/%s%s"%(year,mass_point,histname,systematic,technique_str,region))
 
 	#print("Getting up histogram ", histname_up )
 	up_hist = finput.Get(region+"/"+histname_up)
@@ -301,7 +308,7 @@ def create_2_hist_ratio_plot(year, technique_str,sample_type):   #### hist1 will
 	# Create a canvas
 
 
-	input_path = "finalCombineFiles/" 
+	input_path = "finalCombineFilesNewStats/" 
 	output_path = "plots/SRCR_shape_comparisons/"
 	inputFile = input_path+ "combine_%s%s_Suu4_chi1.root"%(technique_str, year) 
 	finput = ROOT.TFile(inputFile)
@@ -424,12 +431,15 @@ def create_linear_SRCR_plots(year, technique_str ):
 
 if __name__== "__main__":
 
+	###########
+	debug = False
+	###########
 	#systematics = ["btagSFbc", "jec" ,"jer","pu", "pdf","fact", "renorm" ]
 	#"nom",  
 	systematics = ["CMS_bTagSF_M" ,  "CMS_bTagSF_T",    "CMS_bTagSF_bc_T",       "CMS_bTagSF_light_T",       "CMS_bTagSF_bc_M",       "CMS_bTagSF_light_M",      "CMS_bTagSF_bc_T_year",        "CMS_bTagSF_light_T_year",      "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",    "CMS_jer",    "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU", "stat"]  ## systematic namings for cards   "CMS_btagSF",
-
 	regions = ["SR","CR","AT1b","AT0b"]
-	histnames = ["allBR","sig","QCD"]
+
+	histnames = ["allBR","sig","QCD","TTbar"] ## "ST"
 	#mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5", "Suu6_chi2", "Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"]
 	mass_points = ["Suu4_chi1",  "Suu4_chi1p5", "Suu5_chi1p5","Suu5_chi2","Suu6_chi1", "Suu6_chi2", "Suu7_chi2p5", "Suu8_chi2","Suu8_chi3"]
 
@@ -439,6 +449,13 @@ if __name__== "__main__":
 	technique_strs = [""]
 
 
+	if debug:
+		histnames = ["QCD"] ## "ST"
+		mass_points = ["Suu4_chi1"]
+		years = ["2017"]
+		year_str = ["17"]
+		systematics = ["CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",
+		regions = ["SR"]
 	for iii,year in enumerate(years):
 		for technique_str in technique_strs:
 			create_linear_SRCR_plots(year,technique_str)
@@ -455,8 +472,14 @@ if __name__== "__main__":
 					for systematic in systematics:
 						for region in regions:
 							try:
+								if debug:
+									print("============================================")
+									print("============================================")
+									print("========== WARNING: in debug mode ==========")
+									print("============================================")
+									print("============================================")
 
-								if histname in ["allBR","QCD"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
+								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
 								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region, True )
 							except:
 								print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region))
@@ -470,11 +493,16 @@ if __name__== "__main__":
 					for systematic in systematics:
 						for region in regions:
 							try:
-
-								if histname in ["allBR","QCD"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
+								if debug:
+									print("============================================")
+									print("============================================")
+									print("========== WARNING: in debug mode ==========")
+									print("============================================")
+									print("============================================")
+								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
 								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region )
 							except:
-								print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region))
+								print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region)) 
 
 
 

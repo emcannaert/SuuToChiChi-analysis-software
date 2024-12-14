@@ -12,6 +12,8 @@ if do_sideband: sideband_str = "_sideband"
 
 def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
+	if do_sideband: print("WARNING: RUNNING SIDEBAND REGION.")
+
 	## SKIP DOING JEC FOR TTTo datasets (COULD WANT TO CHANGE THIS SOME DAY)
 	#if "TTTo" in sample and "JEC" in systematic: return
 	if "Suu" in sample and "JEC2" in systematic: return
@@ -47,7 +49,7 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	else:
 		newCfg.write("config.Data.splitting = 'FileBased'\n")
 		if "TTTo" in sample or "TTJets" in sample:
-			newCfg.write("config.Data.unitsPerJob = 3\n")
+			newCfg.write("config.Data.unitsPerJob = 5\n")
 		elif "ST_" in sample:
 			newCfg.write("config.Data.unitsPerJob = 5\n")
 		elif "WJets_" in sample:
@@ -83,6 +85,10 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	elif "ST" in sample:
 		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
+	elif "WJets" in sample:
+		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+		if "JER" in systematic: newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
+		else: newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
 	elif "data" in sample:
 		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
@@ -338,7 +344,7 @@ def main():
 					except:
 						print("Failed for sample/year/systematic: %s/%s/%s."%(sample,year,systematic))
 				elif "data" in sample and (systematic == "JER" or "JEC" in systematic): continue  # do NOT need to do these. Tons of extra calculations
-				elif "TTTo" in  sample and (systematic == "JER" or "JEC" in systematic): continue  # don't run these right now
+				#elif "TTTo" in  sample and (systematic == "JER" or "JEC" in systematic): continue  # don't run these right now
 				else:
 					makeAltCrabCfg(sample, year, systematic, datasets[year][sample],dateTimeString)   
 	print("Created %i cfg files."%num_files_created)
