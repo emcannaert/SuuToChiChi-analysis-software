@@ -75,11 +75,11 @@ class linearized_plot:
 		self.data_systematic_names = ["nom"]
 
 		## this was replaced by the below
-		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",	  "JER",	 "JEC",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",	   "Absolute",	 "JEC_BBEC1_year",		"JEC_Absolute_year",	  "JEC_RelativeSample_year",	"PUSF",	"topPt",	 "L1Prefiring",	       "pdf",	 "renorm",	 "fact",	  "AbsoluteCal",		    "AbsoluteTheory",	     "AbsolutePU"     ]   ## systematic namings as used in analyzer   removed:  "bTagSF",			  "JEC_HF",	 "JEC_BBEC1",	 "JEC_EC2",	 "JEC_EC2_year",		 "JEC_HF_year",	"bTagSF_med_corr",   "bTagSF_tight_corr"
-		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",	   "CMS_bTagSF_light_T",	   "CMS_bTagSF_bc_M",	   "CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		"CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_Absolute_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",  "CMS_jer",	 "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2",   "CMS_jec_EC2_year",   "CMS_jec_HF_year",   
+		#self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",	  "JER",	 "JEC",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",	   "Absolute",	 "JEC_BBEC1_year",		"JEC_Absolute_year",	  "JEC_RelativeSample_year",	"PUSF",	"topPt",	 "L1Prefiring",	       "pdf",	 "renorm",	 "fact",	  "AbsoluteCal",		    "AbsoluteTheory",	     "AbsolutePU"     ]   ## systematic namings as used in analyzer   removed:  "bTagSF",			  "JEC_HF",	 "JEC_BBEC1",	 "JEC_EC2",	 "JEC_EC2_year",		 "JEC_HF_year",	"bTagSF_med_corr",   "bTagSF_tight_corr"
+		#self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",	   "CMS_bTagSF_light_T",	   "CMS_bTagSF_bc_M",	   "CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		"CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_Absolute_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",  "CMS_jer",	 "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2",   "CMS_jec_EC2_year",   "CMS_jec_HF_year",   
 		
-		#self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",   "JER",	 "JEC", "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		  "Absolute",	 "JEC_BBEC1_year",		 "JEC_Absolute_year",		    "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",	   "JEC_AbsolutePU",	   "JEC_AbsoluteScale",		  "JEC_Fragmentation",	  "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ]   ## systematic namings as used in analyzer	 "bTagSF",   
-		#self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",	   "CMS_bTagSF_light_T",	   "CMS_bTagSF_bc_M",	   "CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR"]  ## systematic namings for cards   "CMS_btagSF", 
+		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",	   "JEC_AbsolutePU",	   "JEC_AbsoluteScale",		  "JEC_Fragmentation",	     "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ]   ## systematic namings as used in analyzer	 "bTagSF",   
+		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR"]  ## systematic namings for cards   "CMS_btagSF", 
 
 		
 		self.uncorrelated_systematics = [ "CMS_pu",  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
@@ -506,7 +506,7 @@ class linearized_plot:
 			self.ST_tW_top_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_tW_top"))
 
 
-			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SR.append(self.load_TTbar_hists("SR",systematic,False,"TTJetsMCHT800to1200" ))
+			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SR.append(self.load_ttbar_hist("SR",systematic,False,"TTJets800to1200" ))
 			if self.includeTTTo:
 				self.TTToHadronicMC_SR.append(self.load_TTTo_hists("SR",systematic, False,"TTToHadronicMC"))
 				self.TTToSemiLeptonicMC_SR.append(self.load_TTTo_hists("SR",systematic, False, "TTToSemiLeptonicMC"))
@@ -514,7 +514,7 @@ class linearized_plot:
 			if self.includeWJets:
 				self.WJetsMC_LNu_HT800to1200_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu_HT800to1200"))
 				self.WJetsMC_LNu_HT1200to2500_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-				self.WJetsMC_LNu_HT2500toInf_SR.append(self.load_WJetshists("SR",systematic, False, "WJetsMC_LNu_HT2500toInf"))
+				self.WJetsMC_LNu_HT2500toInf_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu_HT2500toInf"))
 				self.WJetsMC_QQ_HT800toInf_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_QQ_HT800toInf"))
 
 			self.signal_WBWB_hist_SR.append(self.load_signal_hist("SR",systematic, False , "WBWB"))
@@ -540,7 +540,7 @@ class linearized_plot:
 			self.ST_tW_antitop_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_tW_antitop"))
 			self.ST_tW_top_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_tW_top"))
 
-			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_CR.append(self.load_TTbar_hists("CR",systematic,False,"TTJetsMCHT800to1200" ))
+			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_CR.append(self.load_ttbar_hist("CR",systematic,False,"TTJets800to1200" ))
 			if self.includeTTTo:
 				self.TTToHadronicMC_CR.append(self.load_TTTo_hists("CR",systematic, False,"TTToHadronicMC"))
 				self.TTToSemiLeptonicMC_CR.append(self.load_TTTo_hists("CR",systematic, False, "TTToSemiLeptonicMC"))
@@ -548,7 +548,7 @@ class linearized_plot:
 			if self.includeWJets:
 				self.WJetsMC_LNu_HT800to1200_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu_HT800to1200"))
 				self.WJetsMC_LNu_HT1200to2500_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-				self.WJetsMC_LNu_HT2500toInf_CR.append(self.load_WJetshists("CR",systematic, False, "WJetsMC_LNu_HT2500toInf"))
+				self.WJetsMC_LNu_HT2500toInf_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu_HT2500toInf"))
 				self.WJetsMC_QQ_HT800toInf_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_QQ_HT800toInf"))
 
 
@@ -576,7 +576,7 @@ class linearized_plot:
 			self.ST_tW_antitop_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_tW_antitop"))
 			self.ST_tW_top_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_tW_top"))
 
-			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT1b.append(self.load_TTbar_hists("AT1b",systematic,False,"TTJetsMCHT800to1200" ))
+			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT1b.append(self.load_ttbar_hist("AT1b",systematic,False,"TTJets800to1200" ))
 			if self.includeTTTo:
 				self.TTToHadronicMC_AT1b.append(self.load_TTTo_hists("AT1b",systematic, False,"TTToHadronicMC"))
 				self.TTToSemiLeptonicMC_AT1b.append(self.load_TTTo_hists("AT1b",systematic, False, "TTToSemiLeptonicMC"))
@@ -584,7 +584,7 @@ class linearized_plot:
 			if self.includeWJets:
 				self.WJetsMC_LNu_HT800to1200_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu_HT800to1200"))
 				self.WJetsMC_LNu_HT1200to2500_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-				self.WJetsMC_LNu_HT2500toInf_AT1b.append(self.load_WJetshists("AT1b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
+				self.WJetsMC_LNu_HT2500toInf_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
 				self.WJetsMC_QQ_HT800toInf_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_QQ_HT800toInf"))
 
 			self.signal_WBWB_hist_AT1b.append(self.load_signal_hist("AT1b",systematic, False , "WBWB"))
@@ -609,7 +609,7 @@ class linearized_plot:
 			self.ST_tW_antitop_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_tW_antitop"))
 			self.ST_tW_top_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_tW_top"))
 			
-			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT0b.append(self.load_TTbar_hists("AT0b",systematic,False,"TTJetsMCHT800to1200" ))
+			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT0b.append(self.load_ttbar_hist("AT0b",systematic,False,"TTJets800to1200" ))
 			if self.includeTTTo:
 				self.TTToHadronicMC_AT0b.append(self.load_TTTo_hists("AT0b",systematic, False,"TTToHadronicMC"))
 				self.TTToSemiLeptonicMC_AT0b.append(self.load_TTTo_hists("AT0b",systematic, False, "TTToSemiLeptonicMC"))
@@ -617,7 +617,7 @@ class linearized_plot:
 			if self.includeWJets:
 				self.WJetsMC_LNu_HT800to1200_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu_HT800to1200"))
 				self.WJetsMC_LNu_HT1200to2500_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-				self.WJetsMC_LNu_HT2500toInf_AT0b.append(self.load_WJetshists("AT0b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
+				self.WJetsMC_LNu_HT2500toInf_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
 				self.WJetsMC_QQ_HT800toInf_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_QQ_HT800toInf"))
 
 			self.signal_WBWB_hist_AT0b.append(self.load_signal_hist("AT0b",systematic, False , "WBWB"))
@@ -644,7 +644,7 @@ class linearized_plot:
 				self.ST_tW_antitop_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_tW_antitop"))
 				self.ST_tW_top_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_tW_top"))
 
-				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT1tb.append(self.load_TTbar_hists("AT1tb",systematic,False,"TTJetsMCHT800to1200" ))
+				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT1tb.append(self.load_ttbar_hist("AT1tb",systematic,False,"TTJets800to1200" ))
 				if self.includeTTTo:
 					self.TTToHadronicMC_AT1tb.append(self.load_TTTo_hists("AT1tb",systematic, False,"TTToHadronicMC"))
 					self.TTToSemiLeptonicMC_AT1tb.append(self.load_TTTo_hists("AT1tb",systematic, False, "TTToSemiLeptonicMC"))
@@ -652,7 +652,7 @@ class linearized_plot:
 				if self.includeWJets:
 					self.WJetsMC_LNu_HT800to1200_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu_HT800to1200"))
 					self.WJetsMC_LNu_HT1200to2500_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-					self.WJetsMC_LNu_HT2500toInf_AT1tb.append(self.load_WJetshists("AT1tb",systematic, False, "WJetsMC_LNu_HT2500toInf"))
+					self.WJetsMC_LNu_HT2500toInf_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu_HT2500toInf"))
 					self.WJetsMC_QQ_HT800toInf_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_QQ_HT800toInf"))
 
 					self.signal_WBWB_hist_AT1tb.append(self.load_signal_hist("AT1tb",systematic, False , "WBWB"))
@@ -677,7 +677,7 @@ class linearized_plot:
 				self.ST_tW_antitop_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_tW_antitop"))
 				self.ST_tW_top_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_tW_top"))
 
-				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT0tb.append(self.load_TTbar_hists("AT0tb",systematic,False,"TTJetsMCHT800to1200" ))
+				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT0tb.append(self.load_ttbar_hist("AT0tb",systematic,False,"TTJets800to1200" ))
 				if self.includeTTTo:
 					self.TTToHadronicMC_AT0tb.append(self.load_TTTo_hists("AT0tb",systematic, False,"TTToHadronicMC"))
 					self.TTToSemiLeptonicMC_AT0tb.append(self.load_TTTo_hists("AT0tb",systematic, False, "TTToSemiLeptonicMC"))
@@ -685,7 +685,7 @@ class linearized_plot:
 				if self.includeWJets:
 					self.WJetsMC_LNu_HT800to1200_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu_HT800to1200"))
 					self.WJetsMC_LNu_HT1200to2500_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-					self.WJetsMC_LNu_HT2500toInf_AT0tb.append(self.load_WJetshists("AT0tb",systematic, False, "WJetsMC_LNu_HT2500toInf"))
+					self.WJetsMC_LNu_HT2500toInf_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu_HT2500toInf"))
 					self.WJetsMC_QQ_HT800toInf_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_QQ_HT800toInf"))
 
 				self.signal_WBWB_hist_AT0tb.append(self.load_signal_hist("AT0tb",systematic, False , "WBWB"))
@@ -711,7 +711,7 @@ class linearized_plot:
 				self.ST_tW_antitop_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_tW_antitop"))
 				self.ST_tW_top_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_tW_top"))
 
-				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SB0b.append(self.load_TTbar_hists("SB0b",systematic,False,"TTJetsMCHT800to1200" ))
+				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SB0b.append(self.load_ttbar_hist("SB0b",systematic,False,"TTJets800to1200" ))
 				if self.includeTTTo:
 					self.TTToHadronicMC_SB0b.append(self.load_TTTo_hists("SB0b",systematic, False,"TTToHadronicMC"))
 					self.TTToSemiLeptonicMC_SB0b.append(self.load_TTTo_hists("SB0b",systematic, False, "TTToSemiLeptonicMC"))
@@ -719,7 +719,7 @@ class linearized_plot:
 				if self.includeWJets:
 					self.WJetsMC_LNu_HT800to1200_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu_HT800to1200"))
 					self.WJetsMC_LNu_HT1200to2500_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-					self.WJetsMC_LNu_HT2500toInf_SB0b.append(self.load_WJetshists("SB0b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
+					self.WJetsMC_LNu_HT2500toInf_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
 					self.WJetsMC_QQ_HT800toInf_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_QQ_HT800toInf"))
 
 				self.signal_WBWB_hist_SB0b.append(self.load_signal_hist("SB0b",systematic_SB, False , "WBWB"))
@@ -743,7 +743,7 @@ class linearized_plot:
 				self.ST_tW_antitop_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_tW_antitop"))
 				self.ST_tW_top_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_tW_top"))
 				
-				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SB1b.append(self.load_TTbar_hists("SB1b",systematic,False,"TTJetsMCHT800to1200" ))
+				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SB1b.append(self.load_ttbar_hist("SB1b",systematic,False,"TTJets800to1200" ))
 				if self.includeTTTo:
 					self.TTToHadronicMC_SB1b.append(self.load_TTTo_hists("SB1b",systematic, False,"TTToHadronicMC"))
 					self.TTToSemiLeptonicMC_SB1b.append(self.load_TTTo_hists("SB1b",systematic, False, "TTToSemiLeptonicMC"))
@@ -751,7 +751,7 @@ class linearized_plot:
 				if self.includeWJets:
 					self.WJetsMC_LNu_HT800to1200_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu_HT800to1200"))
 					self.WJetsMC_LNu_HT1200to2500_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-					self.WJetsMC_LNu_HT2500toInf_SB1b.append(self.load_WJetshists("SB1b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
+					self.WJetsMC_LNu_HT2500toInf_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
 					self.WJetsMC_QQ_HT800toInf_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_QQ_HT800toInf"))
 
 				self.signal_WBWB_hist_SB1b.append(self.load_signal_hist("SB1b",systematic_SB, False , "WBWB"))
@@ -1077,21 +1077,21 @@ class linearized_plot:
 
 			## new stuff
 			if self.includeWJets:
-				if "renorm" in systematic or "fact" in systematic: sample_type = "_ST"
+				if "renorm" in systematic or "fact" in systematic: sample_type = "_WJets"
 				self.WJets_linear_SR.append(self.linearize_plot([],"WJets","SR",systematic + sample_type + year_str, False,"WJets", [ self.WJetsMC_LNu_HT800to1200_SR[iii], self.WJetsMC_LNu_HT1200to2500_SR[iii], self.WJetsMC_LNu_HT2500toInf_SR[iii], self.WJetsMC_QQ_HT800toInf_SR[iii] ]  ))
 				self.WJets_linear_CR.append(self.linearize_plot([],"WJets","CR",systematic + sample_type + year_str, False,"WJets", [ self.WJetsMC_LNu_HT800to1200_CR[iii], self.WJetsMC_LNu_HT1200to2500_CR[iii], self.WJetsMC_LNu_HT2500toInf_CR[iii], self.WJetsMC_QQ_HT800toInf_CR[iii]] ))
 				self.WJets_linear_AT0b.append(self.linearize_plot([],"WJets","AT0b",systematic + sample_type + year_str, False,"WJets", [ self.WJetsMC_LNu_HT800to1200_AT1b[iii], self.WJetsMC_LNu_HT1200to2500_AT1b[iii], self.WJetsMC_LNu_HT2500toInf_AT1b[iii], self.WJetsMC_QQ_HT800toInf_AT1b[iii] ] ))
-				self.WJets_linear_AT1b.append(self.linearize_plot([],"WJetsMC","AT1b",systematic + sample_type + year_str, False,"WJets", [	self.WJetsMC_LNu_HT800to1200_AT0b[iii], self.WJetsMC_LNu_HT1200to2500_AT0b[iii], self.WJetsMC_LNu_HT2500toInf_AT0b[iii], self.WJetsMC_QQ_HT800toInf_AT0b[iii] ] ))
+				self.WJets_linear_AT1b.append(self.linearize_plot([],"WJets","AT1b",systematic + sample_type + year_str, False,"WJets", [	self.WJetsMC_LNu_HT800to1200_AT0b[iii], self.WJetsMC_LNu_HT1200to2500_AT0b[iii], self.WJetsMC_LNu_HT2500toInf_AT0b[iii], self.WJetsMC_QQ_HT800toInf_AT0b[iii] ] ))
 				if self.doATxtb:
 					self.WJets_linear_AT1tb.append(self.linearize_plot([],"WJets","AT1tb",systematic + sample_type + year_str, False,"WJets", [	self.WJetsMC_LNu_HT800to1200_AT1tb[iii], self.WJetsMC_LNu_HT1200to2500_AT1tb[iii], self.WJetsMC_LNu_HT2500toInf_AT1tb[iii], self.WJetsMC_QQ_HT800toInf_AT1tb[iii] ] ))
-					self.WJets_linear_AT0tb.append(self.linearize_plot([],"WJetsMC","AT0tb",systematic + sample_type + year_str, False,"WJets", [ self.WJetsMC_LNu_HT800to1200_AT0tb[iii], self.WJetsMC_LNu_HT1200to2500_AT0tb[iii], self.WJetsMC_LNu_HT2500toInf_AT0tb[iii], self.WJetsMC_QQ_HT800toInf_AT0tb[iii] ] ))
+					self.WJets_linear_AT0tb.append(self.linearize_plot([],"WJets","AT0tb",systematic + sample_type + year_str, False,"WJets", [ self.WJetsMC_LNu_HT800to1200_AT0tb[iii], self.WJetsMC_LNu_HT1200to2500_AT0tb[iii], self.WJetsMC_LNu_HT2500toInf_AT0tb[iii], self.WJetsMC_QQ_HT800toInf_AT0tb[iii] ] ))
 				if self.doSideband:
 					self.WJets_linear_SB1b.append(self.linearize_plot([],"WJets","SB1b",systematic + sample_type + year_str, False,"WJets", [  self.WJetsMC_LNu_HT800to1200_ST1b[iii], self.WJetsMC_LNu_HT1200to2500_ST1b[iii], self.WJetsMC_LNu_HT2500toInf_ST1b[iii], self.WJetsMC_QQ_HT800toInf_ST1b[iii]] ))
-					self.WJets_linear_SB0b.append(self.linearize_plot([],"WJetsMC","SB0b",systematic + sample_type + year_str, False,"WJets", [ self.WJetsMC_LNu_HT800to1200_SB0b[iii], self.WJetsMC_LNu_HT1200to2500_SB0b[iii], self.WJetsMC_LNu_HT2500toInf_SB0b[iii], self.WJetsMC_QQ_HT800toInf_SB0b[iii]] ))
+					self.WJets_linear_SB0b.append(self.linearize_plot([],"WJets","SB0b",systematic + sample_type + year_str, False,"WJets", [ self.WJetsMC_LNu_HT800to1200_SB0b[iii], self.WJetsMC_LNu_HT1200to2500_SB0b[iii], self.WJetsMC_LNu_HT2500toInf_SB0b[iii], self.WJetsMC_QQ_HT800toInf_SB0b[iii]] ))
 
 
 			if self.includeTTTo:
-				if "renorm" in systematic or "fact" in systematic: sample_type = "_ST"
+				if "renorm" in systematic or "fact" in systematic: sample_type = "_TTTo"
 				self.TTTo_linear_SR.append(self.linearize_plot([],"TTTo","SR",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_SR[iii], self.TTToSemiLeptonicMC_SR[iii], self.TTToLeptonicMC_SR[iii] ]  ))
 				self.TTTo_linear_CR.append(self.linearize_plot([],"TTTo","CR",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_CR[iii], self.TTToSemiLeptonicMC_CR[iii], self.TTToLeptonicMC_CR[iii]] ))
 				self.TTTo_linear_AT0b.append(self.linearize_plot([],"TTTo","AT0b",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_AT1b[iii], self.TTToSemiLeptonicMC_AT1b[iii], self.TTToLeptonicMC_AT1b[iii] ] ))
@@ -1450,7 +1450,7 @@ class linearized_plot:
 					systematic_name += "_%s"%sample_str
 
 				if systematic_name == "nom":	
-					sys_updown = [""]
+					sys_updown = [""] 
 				else:
 					sys_updown = ["_%sUp"%systematic_name,"_%sDown"%systematic_name]
 				for jjj,sys_str in enumerate(sys_updown):
@@ -1639,10 +1639,10 @@ class linearized_plot:
 
 			if self.includeTTTo:
 				TTTo_bin_nom_value	 = self.TTTo_linear_SR[0][0].GetBinContent(iii)
-				TTTo_bin_nom_uncert	= self.TTTo_linear_SR[0][0].GetBinError(iii)
+				TTTo_bin_nom_uncert	 = self.TTTo_linear_SR[0][0].GetBinError(iii)
 			if self.includeWJets:
-				TTTo_bin_nom_value	 = self.TTTo_linear_SR[0][0].GetBinContent(iii)
-				TTTo_bin_nom_uncert	= self.TTTo_linear_SR[0][0].GetBinError(iii)
+				WJets_bin_nom_value	    = self.WJets_linear_SR[0][0].GetBinContent(iii)
+				WJets_bin_nom_uncert	= self.WJets_linear_SR[0][0].GetBinError(iii)
 
 			#print("SR ST uncert is %s for bin %s with %s counts."%(ST_bin_nom_uncert,iii,ST_bin_nom_value))
 
@@ -1684,6 +1684,7 @@ class linearized_plot:
 		self.TTbar_linear_SR.append([ TTbar_SR_stat_uncert_up, TTbar_SR_stat_uncert_down])
 		self.ST_linear_SR.append([  ST_SR_stat_uncert_up, ST_SR_stat_uncert_down	 ])
 		if self.includeWJets: self.WJets_linear_SR.append([  WJets_SR_stat_uncert_up, WJets_SR_stat_uncert_down	 ])
+		if self.includeTTTo: self.TTTo_linear_SR.append([  TTTo_SR_stat_uncert_up, TTTo_SR_stat_uncert_down	 ]) 
 		self.all_combined_linear_SR.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -1756,7 +1757,7 @@ class linearized_plot:
 			ST_bin_nom_value	 = self.ST_linear_CR[0][0].GetBinContent(iii)
 			ST_bin_nom_uncert	= self.ST_linear_CR[0][0].GetBinError(iii)
 
-			if self.includeWJets:
+			if self.includeTTTo:
 				TTTo_bin_nom_value	 = self.TTTo_linear_CR[0][0].GetBinContent(iii)
 				TTTo_bin_nom_uncert	= self.TTTo_linear_CR[0][0].GetBinError(iii)
 			if self.includeWJets:
@@ -1803,6 +1804,8 @@ class linearized_plot:
 		self.TTbar_linear_CR.append([ TTbar_CR_stat_uncert_up, TTbar_CR_stat_uncert_down])
 		self.ST_linear_CR.append([  ST_CR_stat_uncert_up, ST_CR_stat_uncert_down	 ])
 		if self.includeWJets: self.WJets_linear_CR.append([  WJets_CR_stat_uncert_up, WJets_CR_stat_uncert_down	 ])
+		if self.includeTTTo: self.TTTo_linear_CR.append([  TTTo_CR_stat_uncert_up, TTTo_CR_stat_uncert_down	 ]) 
+
 		self.all_combined_linear_CR.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -1876,7 +1879,7 @@ class linearized_plot:
 			ST_bin_nom_value	 = self.ST_linear_AT1b[0][0].GetBinContent(iii)
 			ST_bin_nom_uncert	= self.ST_linear_AT1b[0][0].GetBinError(iii)
 
-			if self.includeWJets:
+			if self.includeTTTo:
 				TTTo_bin_nom_value	 = self.TTTo_linear_AT1b[0][0].GetBinContent(iii)
 				TTTo_bin_nom_uncert	= self.TTTo_linear_AT1b[0][0].GetBinError(iii)
 			if self.includeWJets:
@@ -1921,6 +1924,8 @@ class linearized_plot:
 		self.TTbar_linear_AT1b.append([ TTbar_AT1b_stat_uncert_up, TTbar_AT1b_stat_uncert_down])
 		self.ST_linear_AT1b.append([  ST_AT1b_stat_uncert_up, ST_AT1b_stat_uncert_down	 ])
 		if self.includeWJets: self.WJets_linear_AT1b.append([  WJets_AT1b_stat_uncert_up, WJets_AT1b_stat_uncert_down	 ])
+		if self.includeTTTo: self.TTTo_linear_AT1b.append([  TTTo_AT1b_stat_uncert_up, TTTo_AT1b_stat_uncert_down	 ]) 
+
 		self.all_combined_linear_AT1b.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -1994,7 +1999,7 @@ class linearized_plot:
 			ST_bin_nom_uncert	= self.ST_linear_AT0b[0][0].GetBinError(iii)
 
 
-			if self.includeWJets:
+			if self.includeTTTo:
 				TTTo_bin_nom_value	 = self.TTTo_linear_AT0b[0][0].GetBinContent(iii)
 				TTTo_bin_nom_uncert	= self.TTTo_linear_AT0b[0][0].GetBinError(iii)
 			if self.includeWJets:
@@ -2041,6 +2046,7 @@ class linearized_plot:
 		self.TTbar_linear_AT0b.append([ TTbar_AT0b_stat_uncert_up, TTbar_AT0b_stat_uncert_down])
 		self.ST_linear_AT0b.append([  ST_AT0b_stat_uncert_up, ST_AT0b_stat_uncert_down	 ])
 		if self.includeWJets: self.WJets_linear_AT0b.append([  WJets_AT0b_stat_uncert_up, WJets_AT0b_stat_uncert_down	 ])
+		if self.includeTTTo: self.TTTo_linear_AT0b.append([  TTTo_AT0b_stat_uncert_up, TTTo_AT0b_stat_uncert_down	 ]) 
 		self.all_combined_linear_AT0b.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -2116,7 +2122,7 @@ class linearized_plot:
 				ST_bin_nom_value	 = self.ST_linear_AT0tb[0][0].GetBinContent(iii)
 				ST_bin_nom_uncert	= self.ST_linear_AT0tb[0][0].GetBinError(iii)
 
-				if self.includeWJets:
+				if self.includeTTTo:
 					TTTo_bin_nom_value	 = self.TTTo_linear_AT0tb[0][0].GetBinContent(iii)
 					TTTo_bin_nom_uncert	= self.TTTo_linear_AT0tb[0][0].GetBinError(iii)
 				if self.includeWJets:
@@ -2163,6 +2169,7 @@ class linearized_plot:
 			self.TTbar_linear_AT0tb.append([ TTbar_AT0tb_stat_uncert_up, TTbar_AT0tb_stat_uncert_down])
 			self.ST_linear_AT0tb.append([  ST_AT0tb_stat_uncert_up, ST_AT0tb_stat_uncert_down	 ])
 			if self.includeWJets:  self.WJets_linear_AT0tb.append([  WJets_AT0tb_stat_uncert_up, WJets_AT0tb_stat_uncert_down	 ])
+			if self.includeTTTo: self.TTTo_linear_AT0tb.append([  TTTo_AT0tb_stat_uncert_up, TTTo_AT0tb_stat_uncert_down	 ]) 
 			self.all_combined_linear_AT0tb.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -2237,7 +2244,7 @@ class linearized_plot:
 				ST_bin_nom_uncert	= self.ST_linear_AT1tb[0][0].GetBinError(iii)
 
 
-				if self.includeWJets:
+				if self.includeTTTo:
 					TTTo_bin_nom_value	 = self.TTTo_linear_AT1tb[0][0].GetBinContent(iii)
 					TTTo_bin_nom_uncert	= self.TTTo_linear_AT1tb[0][0].GetBinError(iii)
 				if self.includeWJets:
@@ -2284,6 +2291,7 @@ class linearized_plot:
 			self.TTbar_linear_AT1tb.append([ TTbar_AT1tb_stat_uncert_up, TTbar_AT1tb_stat_uncert_down])
 			self.ST_linear_AT1tb.append([  ST_AT1tb_stat_uncert_up, ST_AT1tb_stat_uncert_down	 ])
 			if self.includeWJets: self.WJets_linear_AT1tb.append([  WJets_AT1tb_stat_uncert_up, WJets_AT1tb_stat_uncert_down	 ])
+			if self.includeTTTo: self.TTTo_linear_AT1tb.append([  TTTo_AT1tb_stat_uncert_up, TTTo_AT1tb_stat_uncert_down	 ]) 
 			self.all_combined_linear_AT1tb.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -2359,7 +2367,7 @@ class linearized_plot:
 				ST_bin_nom_uncert	= self.ST_linear_SB1b[0][0].GetBinError(iii)
 
 
-				if self.includeWJets:
+				if self.includeTTTo:
 					TTTo_bin_nom_value	 = self.TTTo_linear_SB1b[0][0].GetBinContent(iii)
 					TTTo_bin_nom_uncert	= self.TTTo_linear_SB1b[0][0].GetBinError(iii)
 				if self.includeWJets:
@@ -2408,6 +2416,7 @@ class linearized_plot:
 			self.TTbar_linear_SB1b.append([ TTbar_SB1b_stat_uncert_up, TTbar_SB1b_stat_uncert_down])
 			self.ST_linear_SB1b.append([  ST_SB1b_stat_uncert_up, ST_SB1b_stat_uncert_down	 ])
 			if self.includeWJets: self.WJets_linear_SB1b.append([  WJets_SB1b_stat_uncert_up, WJets_SB1b_stat_uncert_down	 ])
+			if self.includeTTTo: self.TTTo_linear_SB1b.append([  TTTo_SB1b_stat_uncert_up, TTTo_SB1b_stat_uncert_down	 ]) 
 			self.all_combined_linear_SB1b.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -2529,6 +2538,7 @@ class linearized_plot:
 			self.TTbar_linear_SB0b.append([ TTbar_SB0b_stat_uncert_up, TTbar_SB0b_stat_uncert_down])
 			self.ST_linear_SB0b.append([  ST_SB0b_stat_uncert_up, ST_SB0b_stat_uncert_down	 ])
 			if self.includeWJets: self.WJets_linear_SB0b.append([  WJets_SB0b_stat_uncert_up, WJets_SB0b_stat_uncert_down	 ])
+			if self.includeTTTo: self.TTTo_linear_SB0b.append([  TTTo_SB0b_stat_uncert_up, TTTo_SB0b_stat_uncert_down	 ]) 
 			self.all_combined_linear_SB0b.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -2582,20 +2592,20 @@ class linearized_plot:
 			else:
 				hist_name = "%s/%s_%s%s"%(sys_str,self.final_hist_name,self.technique_str ,region )
 
-			print("Loading QCD %s/%s/%s"%(region,systematic,self.year))
+			#print("Loading QCD %s/%s/%s"%(region,systematic,self.year))
 
 
-			print("Getting histogram/systematic: %s/%s"%(hist_name,systematic)   )
-			print("Getting file %s"%hist_path_1000to1500)
+			#print("Getting histogram/systematic: %s/%s"%(hist_name,systematic)   )
+			#print("Getting file %s"%hist_path_1000to1500)
 			TH2_file_1000to1500 = ROOT.TFile.Open(hist_path_1000to1500,"READ")
 			TH2_hist_1000to1500 = self.clean_histogram(TH2_file_1000to1500.Get(hist_name), systematic, "QCDMC1000to1500" )
-			print("Getting file %s"%hist_path_1500to2000)
+			#print("Getting file %s"%hist_path_1500to2000)
 
 			TH2_file_1500to2000 = ROOT.TFile.Open(hist_path_1500to2000,"READ")
 			TH2_hist_1500to2000 = self.clean_histogram(TH2_file_1500to2000.Get(hist_name), systematic, "QCDMC1500to2000" )
 
 			if region not in ["SB1b", "SB0b"] : 
-				print("Getting file %s"%hist_path_2000toInf)
+				#print("Getting file %s"%hist_path_2000toInf)
 				TH2_file_2000toInf = ROOT.TFile.Open(hist_path_2000toInf,"READ")
 				TH2_hist_2000toInf = self.clean_histogram(TH2_file_2000toInf.Get(hist_name), systematic, "QCDMC2000toInf" )
 
@@ -2622,7 +2632,7 @@ class linearized_plot:
 
 				if region in ["SB1b", "SB0b"] : combined_QCD_hist = ROOT.TH2F("combined_QCD_%s%s"%(self.technique_str ,sys_str), ("QCD (HT1000-Inf) Events in the %s (%s) (%s)"%(region, year, sys_str)), 15 ,0.0, 8000, 12, 0.0, 3000)
 				else: 
-					if self.doHTdist: combined_QCD_hist = ROOT.TH1F("combined_QCD_%s"%(region),"Event H_{T} (%s) (%s) (%s); H_{T} [GeV]; Events / 200 GeV"%(region, max(hist_type,"QCD")  self.technique_str ),50,0.,10000);
+					if self.doHTdist: combined_QCD_hist = ROOT.TH1F("combined_QCD_%s"%(region),"Event H_{T} (%s) (%s) (%s); H_{T} [GeV]; Events / 200 GeV"%(region, max(hist_type,"QCD"),  self.technique_str ),50,0.,10000)
 					else: combined_QCD_hist = ROOT.TH2F("combined_QCD_%s%s"%(self.technique_str ,sys_str), ("QCD (HT1000-Inf) Events in the %s (%s) (%s)"%(region, year, sys_str)), 22,1250., 10000, 20, 500, 5000)
 				combined_QCD_hist.Add(TH2_hist_1000to1500)
 				combined_QCD_hist.Add(TH2_hist_1500to2000)
@@ -2814,8 +2824,7 @@ class linearized_plot:
 
 		SF_TTJetsMCHT800to1200  = {"2015":0.002884466085,"2016":0.002526405224,"2017":0.003001100916,"2018":0.004897196802}
 		SF_TTJetsMCHT1200to2500 = {"2015":0.002722324842,"2016":0.002255554525,"2017":0.00267594799,"2018":0.003918532089}
-
-		if region not in ["SB1b", "SB0b"] :SF_TTJetsMCHT2500toInf = {"2015":0.000056798633,"2016":0.000050253843,"2017":0.00005947217,"2018":0.000084089656}
+		SF_TTJetsMCHT2500toInf = {"2015":0.000056798633,"2016":0.000050253843,"2017":0.00005947217,"2018":0.000084089656}
 
 		if forStats:
 			SF_TTJetsMCHT800to1200 = {"2015":1,"2016":1,"2017":1,"2018":1}
@@ -2828,7 +2837,7 @@ class linearized_plot:
 		#hist_path_TTToLeptonic = use_filepath+ "TTToLeptonicMC_%s_processed.root"%(self.year)
 
 
-		if self.doSideband: hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_processed.root"%(self.year)
+		if self.doSideband or self.includeTTJets800to1200: hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_processed.root"%(self.year)
 		hist_path_TTJetsMCHT1200to2500 = use_filepath + "TTJetsMCHT1200to2500_%s_processed.root"%(self.year)
 		if region not in ["SB1b", "SB0b"] :hist_path_TTJetsMCHT2500toInf  = use_filepath + "TTJetsMCHT2500toInf_%s_processed.root"%(self.year)
 
@@ -2854,12 +2863,11 @@ class linearized_plot:
 
 			TH2_file_TTJetsMCHT1200to2500 = ROOT.TFile.Open(hist_path_TTJetsMCHT1200to2500,"READ")
 			if region not in ["SB1b", "SB0b"]: TH2_file_TTJetsMCHT2500toInf  = ROOT.TFile.Open(hist_path_TTJetsMCHT2500toInf,"READ")
-			else:
-				if self.doSideband: 
-					hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_processed.root"%(self.year)
-					TH2_file_TTJetsMCHT800to1200 = ROOT.TFile.Open(hist_path_TTJetsMCHT800to1200,"READ")
-					#print("Loading TTbar %s/%s/%s"%(region,systematic,self.year))
-					TH2_hist_TTJetsMCHT800to1200  = self.clean_histogram(TH2_file_TTJetsMCHT800to1200.Get(hist_name_TTbar), systematic, "TTJets800to1200") 
+			if self.doSideband or self.includeTTJets800to1200: 
+				hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_processed.root"%(self.year)
+				TH2_file_TTJetsMCHT800to1200 = ROOT.TFile.Open(hist_path_TTJetsMCHT800to1200,"READ")
+				#print("Loading TTbar %s/%s/%s"%(region,systematic,self.year))
+				TH2_hist_TTJetsMCHT800to1200  = self.clean_histogram(TH2_file_TTJetsMCHT800to1200.Get(hist_name_TTbar), systematic, "TTJets800to1200") 
 			#TH2_hist_TTToHadronic = TH2_file_TTToHadronic.Get(hist_name_TTbar) 
 			#TH2_hist_TTToSemiLeptonic = TH2_file_TTToSemiLeptonic.Get(hist_name_TTbar) 
 			#TH2_hist_TTToLeptonic = TH2_file_TTToLeptonic.Get(hist_name_TTbar) 
@@ -2871,7 +2879,7 @@ class linearized_plot:
 
 			if hist_type   == "TTJets1200to2500": all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT1200to2500  )
 			elif hist_type == "TTJets2500toInf" and region not in ["SB1b", "SB0b"] : all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT2500toInf  )
-			elif hist_type == "TTJets800to1200" and region in ["SB1b", "SB0b"]: all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT800to1200  )
+			elif hist_type == "TTJets800to1200" and (self.includeTTJets800to1200 or self.doSideband): all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT800to1200  )
 			elif hist_type == "":
 
 
@@ -2881,7 +2889,7 @@ class linearized_plot:
 					TH2_hist_TTJetsMCHT2500toInf.Scale(self.BR_SF_scale*SF_TTJetsMCHT2500toInf[self.year])
 					TH2_hist_TTJetsMCHT2500toInf.SetDirectory(0)   # histograms lose their references when the file destructor is called
 				else:
-					if self.doSideband: 
+					if self.doSideband or self.includeTTJets800to1200: 
 						TH2_hist_TTJetsMCHT800to1200.Scale(self.BR_SF_scale*SF_TTJetsMCHT800to1200[self.year])
 						TH2_hist_TTJetsMCHT800to1200.SetDirectory(0)   # histograms lose their references when the file destructor is called
 
@@ -2891,13 +2899,13 @@ class linearized_plot:
 
 				if region not in ["SB1b", "SB0b"] :TH2_hist_TTJetsMCHT1200to2500.Add(TH2_hist_TTJetsMCHT2500toInf)
 				else:
-					if self.doSideband: 
+					if self.doSideband or self.includeTTJets800to1200: 
 						TH2_hist_TTJetsMCHT1200to2500.Add(TH2_hist_TTJetsMCHT800to1200)
 				TH2_hist_TTJetsMCHT1200to2500.SetName("combined_TTbar_%s%s"%(self.technique_str ,sys_str))
 				TH2_hist_TTJetsMCHT1200to2500.SetTitle("combined TTbar MC (%s) (%s) (%s)"%(self.year,region, sys_str))
 				all_combined_TTbar_hist.append(TH2_hist_TTJetsMCHT1200to2500)
 			else: 
-				print("ERROR in load_ttbar_hists: hist_type=%s is not correct (options are : '', 'TTJets1200to2500', and 'TTJets2500toInf' )"%hist_type)
+				print("ERROR in load_ttbar_hist: hist_type=%s is not correct (options are : '', TTJets800to1200, 'TTJets1200to2500', and 'TTJets2500toInf' )"%hist_type)
 				return []
 		return all_combined_TTbar_hist  # load in TTbar historam, scale it, and return this version
 	def clean_histogram(self,hist,systematic,sample):
@@ -3099,9 +3107,9 @@ class linearized_plot:
 		for sys_str in sys_updown:
 
 			if "topPt" in systematic and "down" in sys_str:
-				hist_name_ST = "nom/%s_%s%s"%(self.doHTdist,self.technique_str ,region )
+				hist_name_ST = "nom/%s_%s%s"%(self.final_hist_name,self.technique_str ,region )
 			else:
-				hist_name_ST = "%s/%s_%s%s"%(sys_str,self.doHTdist,self.technique_str ,region )
+				hist_name_ST = "%s/%s_%s%s"%(sys_str,self.final_hist_name,self.technique_str ,region )
 
 			#print("Loading Single top %s/%s/%s"%(region,systematic,self.year))
 			TH2_file_ST_t_channel_top_5f 	 = ROOT.TFile.Open(hist_path_ST_t_channel_top_5f,"READ")
@@ -3110,6 +3118,8 @@ class linearized_plot:
 			TH2_file_ST_s_channel_4f_leptons = ROOT.TFile.Open(hist_path_ST_s_channel_4f_leptons,"READ")
 			TH2_file_ST_tW_antitop_5f 		 = ROOT.TFile.Open(hist_path_ST_tW_antitop_5f,"READ")
 			TH2_file_ST_tW_top_5f			 = ROOT.TFile.Open(hist_path_ST_tW_top_5f,"READ")
+
+			#print("file name: %s, hist name: %s"%(hist_path_ST_t_channel_top_5f, hist_name_ST)  )
 
 			TH2_hist_ST_t_channel_top_5f 	 = self.clean_histogram(TH2_file_ST_t_channel_top_5f.Get(hist_name_ST), systematic, "ST_t_channel_top" )
 			TH2_hist_ST_t_channel_antitop_5f = self.clean_histogram(TH2_file_ST_t_channel_antitop_5f.Get(hist_name_ST), systematic, "ST_t_channel_antitop" )
@@ -3161,7 +3171,7 @@ class linearized_plot:
 
 				all_combined_ST_hist.append(combined_ST_hist)
 			else: 
-				print("ERROR in load_ttbar_hists: hist_type=%s is not correct (options are : '', 'ST_t_channel_top', 'ST_t_channel_antitop', 'ST_s_channel_hadrons', 'ST_s_channel_leptons',  'ST_tW_antitop',  and 'ST_tW_top' )"%hist_type)
+				print("ERROR in load_ST_hists: hist_type=%s is not correct (options are : '', 'ST_t_channel_top', 'ST_t_channel_antitop', 'ST_s_channel_hadrons', 'ST_s_channel_leptons',  'ST_tW_antitop',  and 'ST_tW_top' )"%hist_type)
 				return []
 		return all_combined_ST_hist  # load in TTbar historam, scale it, and return this version
 	def load_data_hists(self, region, systematic):
@@ -3195,12 +3205,14 @@ class linearized_plot:
 			else:
 				if self.doHTdist: combined_data_hist = ROOT.TH1F("combined_data_%s"%(region),"Event H_{T} (data_obs) (%s) (%s); H_{T} [GeV]; Events / 200 GeV"%(region ,self.technique_str ),50,0.,10000);
 				else: combined_data_hist = ROOT.TH2F("combined_data_%s"%sys_str, ("data events in the %s (%s)"%(year,region)), 22,1250., 10000, 20, 500, 5000)
-			#JetHT_"+ *dataBlock+"_"+*year+"_processed.root   -> naming scheme
+			#JetHT_"+ *dataBlock+"_"+*year+"_processed.root   -> naming scheme 
 			for data_block in data_blocks:
 				#print("Looking for %s/%s/%s/%s"%(data_block,self.year,sys_str,region))
 				hist_path_data = use_filepath + "%s_%s_processed.root"%(data_block,self.year)
 				TH2_file_data = ROOT.TFile.Open(hist_path_data,"READ")
-				hist_name_data = "%s_%s%s"%(self.doHTdist,self.technique_str, region )
+				hist_name_data = "%s_%s%s"%(self.final_hist_name,self.technique_str, region )
+
+				#print("Getting histogram %s from %s"%(hist_name_data,hist_path_data ))
 				TH2_hist_data = TH2_file_data.Get(sys_str+"/"+hist_name_data) 
 				combined_data_hist.Add(TH2_hist_data)
 
@@ -3871,7 +3883,8 @@ class linearized_plot:
 				#print("The last linearized bin of %s/%s/%s/%s has content %s"%(BR_type, region, systematic, self.year,linear_plot.GetBinContent( linear_plot.GetNbinsX()  )))
 				all_linear_plots.append(linear_plot)
 
-			for hist in split_up_hists_for_systematic[iii]: ## no longer need this 'split up' histograms
+		for hist_list in split_up_hists_for_systematic: ## no longer need this 'split up' histograms ____	
+			for hist in hist_list:
 				del hist
 		return all_linear_plots
 
@@ -3895,6 +3908,9 @@ class linearized_plot:
 
 		QCD_hists	 = [ self.QCD_linear_SR, self.QCD_linear_CR, self.QCD_linear_AT1b, self.QCD_linear_AT0b  ]
 		TTbar_hists  = [ self.TTbar_linear_SR, self.TTbar_linear_CR, self.TTbar_linear_AT1b, self.TTbar_linear_AT0b]
+
+		if self.includeWJets: WJets_hists	 = [ self.WJets_linear_SR, self.WJets_linear_CR, self.WJets_linear_AT1b, self.WJets_linear_AT0b  ]
+		if self.includeTTTo:  TTTo_hists	 = [ self.TTTo_linear_SR, self.TTTo_linear_CR, self.TTTo_linear_AT1b, self.TTTo_linear_AT0b  ]
 		ST_hists	 = [ self.ST_linear_SR, self.ST_linear_CR, self.ST_linear_AT1b, self.ST_linear_AT0b]
 		signal_hists = [ self.signal_linear_SR, self.signal_linear_CR, self.signal_linear_AT1b, self.signal_linear_AT0b]
 		data_hists   = [ self.data_linear_SR, self.data_linear_CR, self.data_linear_AT1b, self.data_linear_AT0b]
@@ -3909,6 +3925,8 @@ class linearized_plot:
 			signal_hists.extend([self.signal_linear_AT1tb, self.signal_linear_AT0tb])
 			data_hists.extend( [ self.data_linear_AT1tb, self.data_linear_AT0tb])
 
+			if self.includeWJets: WJets_hists.extend( [ self.WJets_linear_AT1tb, self.WJets_linear_AT0tb  ])
+			if self.includeTTTo:  TTTo_hists.extend( [ self.TTTo_linear_AT1tb, self.TTTo_linear_AT0tb ])
 			combined_hists.extend( [self.combined_linear_AT1tb, self.combined_linear_AT0tb] )
 			combined_hists_all.extend( [self.all_combined_linear_AT1tb, self.all_combined_linear_AT0tb])
 		if self.doSideband:
@@ -3917,6 +3935,9 @@ class linearized_plot:
 			ST_hists.extend( [self.ST_linear_SB1b, self.ST_linear_SB0b]  )
 			signal_hists.extend([self.signal_linear_SB1b, self.signal_linear_SB0b]  )
 			data_hists.extend( [self.data_linear_SB1b,self.data_linear_SB0b]  )
+
+			if self.includeWJets: WJets_hists.extend( [ self.WJets_linear_SB1b, self.WJets_linear_SB0b  ])
+			if self.includeTTTo:  TTTo_hists.extend( [ self.TTTo_linear_SB1b, self.TTTo_linear_SB0b ])
 
 			combined_hists.extend( [self.combined_linear_SB1b, self.combined_linear_SB0b ]  )
 			combined_hists_all.extend( [self.all_combined_linear_SB1b, self.all_combined_linear_SB0b]  )
@@ -3956,7 +3977,9 @@ class linearized_plot:
 							signal_hists[kkk][iii][jjj].Write()
 						if "fact" not in systematic and "renorm" not in systematic:  
 							ST_hists[kkk][iii][jjj].Write()
+						if self.includeWJets: WJets_hists[kkk][iii][jjj].Write()
 					TTbar_hists[kkk][iii][jjj].Write()
+					if self.includeTTTo: TTTo_hists[kkk][iii][jjj].Write()
 					if not forStats:
 						combined_hists_all[kkk][iii][jjj].Write()
 					

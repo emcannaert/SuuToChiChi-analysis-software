@@ -173,7 +173,6 @@ private:
    int tot_mpp_AK4 = 0;
    std::map<std::string, float> BESTmap;
 
-
    //init event variables
    bool doJEC              = true;
    bool doJER              = false;  // will be set to true for MC
@@ -266,6 +265,10 @@ private:
    TH2F *truebjet_eff,*truecjet_eff, *lightjet_eff;
    TH2F *truebjet_eff_med,*truecjet_eff_med, *lightjet_eff_med;
 
+   int lastNonEmptyEFfMapPtBin_truec[30], lastNonEmptyEFfMapPtBin_trueb[30], lastNonEmptyEFfMapPtBin_truelight[30]; 
+   int lastNonEmptyEFfMapPtBin_med_truec[30], lastNonEmptyEFfMapPtBin_med_trueb[30], lastNonEmptyEFfMapPtBin_med_truelight[30]; 
+
+
    TH2F * jetVetoMap;
    double prefiringWeight_nom, prefiringWeight_up, prefiringWeight_down;
 
@@ -291,10 +294,20 @@ private:
    int LHAPDF_NOM;
    int LHAPDF_VAR_LOW;
    int LHAPDF_VAR_HIGH;
+
+   int nQCD_vertices = 0;  // this will depend on the process
    PDF* nomPDF;
    PDF* varPDFs[102];
    double PDFWeights_factWeightsRMS_up, PDFWeights_factWeightsRMS_down;
-   double PDFWeights_renormWeight_up, PDFWeights_renormWeight_down;
+
+   double PDFWeights_renormWeight_nQCD1_up, PDFWeights_renormWeight_nQCD1_down;
+   double PDFWeights_renormWeight_nQCD2_up, PDFWeights_renormWeight_nQCD2_down;
+   double PDFWeights_renormWeight_nQCD3_up, PDFWeights_renormWeight_nQCD3_down;
+   double PDFWeights_renormWeight_nQCD4_up, PDFWeights_renormWeight_nQCD4_down;
+   double PDFWeights_renormWeight_nQCD5_up, PDFWeights_renormWeight_nQCD5_down;
+
+
+   double PDFWeights_envelope_scale_uncertainty_up,PDFWeights_envelope_scale_uncertainty_down;
    double PDFWeightUp, PDFWeightDown;  // BEST-style PDF weights
    TRandom3 *randomNum = new TRandom3(); // for JERs
 
@@ -391,6 +404,13 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             LHAPDF_VAR_LOW = 325301;
             LHAPDF_VAR_HIGH = 325402;
          }
+         else if(runType.find("WJets") != std::string::npos)
+         {
+            LHAPDF_NOM = 325300;
+            LHAPDF_VAR_LOW = 325301;
+            LHAPDF_VAR_HIGH = 325402;
+         }
+
          else if(runType.find("Suu") != std::string::npos)
          {
             LHAPDF_NOM = 325500;
@@ -403,6 +423,16 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             LHAPDF_VAR_LOW = 325301;
             LHAPDF_VAR_HIGH = 325402;
          }
+
+
+         // determine the number of QCD vertices for the process
+
+         if (runType.find("QCD") != std::string::npos) nQCD_vertices = 4;
+         else if (runType.find("TTJets") != std::string::npos) nQCD_vertices = 4;  // conservative estimate of the number of vertices (should be 2-5: https://github.com/cms-sw/genproductions/blob/cc7c71f6ef532c0d0eede714537ce0c50ea65e1a/bin/MadGraph5_aMCatNLO/cards/production/2017/13TeV/tt0123j_5f_ckm_HT_LO_MLM/tt0123j_5f_ckm_HT-1200to2500_LO_MLM/tt0123j_5f_ckm_HT-1200to2500_LO_MLM_proc_card.dat)
+         else if (runType.find("WJets") != std::string::npos) nQCD_vertices = 3;
+         else if (runType.find("Suu") != std::string::npos) nQCD_vertices = 0; // signal has no QCD vertices in diagram
+         else {nQCD_vertices = 0;  }
+
 
          nVars = LHAPDF_VAR_HIGH - LHAPDF_VAR_LOW + 1;
          std::cout << "The PDF sets are LHAPDF_VAR_LOW-LHAPDF_VAR_HIGH: " << LHAPDF_VAR_LOW << "/" << LHAPDF_VAR_HIGH << std::endl;
@@ -647,6 +677,22 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       truecjet_eff_med = (TH2F*)bTagEff_file->Get("h_effcJets_med"); 
       lightjet_eff_med = (TH2F*)bTagEff_file->Get("h_effLightJets_med"); 
 
+      // find last 
+
+      for(int jjj=1; jjj < truebjet_eff->GetNbinsY()+1; jjj++)
+      {
+         for(int iii=1; iii < truebjet_eff->GetNbinsX()+1; iii++ )
+         {
+            if (truebjet_eff->GetBinContent(iii,jjj) > 0) lastNonEmptyEFfMapPtBin_trueb[jjj] = iii;
+            if (truecjet_eff->GetBinContent(iii,jjj) > 0) lastNonEmptyEFfMapPtBin_truec[jjj] = iii;
+            if (lightjet_eff->GetBinContent(iii,jjj) > 0) lastNonEmptyEFfMapPtBin_truelight[jjj] = iii;
+
+            if (truebjet_eff_med->GetBinContent(iii,jjj) > 0) lastNonEmptyEFfMapPtBin_med_trueb[jjj] = iii;
+            if (truecjet_eff_med->GetBinContent(iii,jjj) > 0) lastNonEmptyEFfMapPtBin_med_truec[jjj] = iii;
+            if (lightjet_eff_med->GetBinContent(iii,jjj) > 0) lastNonEmptyEFfMapPtBin_med_truelight[jjj] = iii;
+         }
+      }
+
 
       bTagEffMap_PtRange = lightjet_eff->GetXaxis()->GetXmax();
       bTagEffMap_Eta_high = lightjet_eff->GetYaxis()->GetXmax();
@@ -654,6 +700,30 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
       bTagEffMap_nPtBins = lightjet_eff->GetNbinsX();
       bTagEffMap_nEtaBins = lightjet_eff->GetNbinsY();
+
+      if(_verbose)
+      {  
+
+         std::cout << "This is what lastNonEmptyEFfMapPtBin_truelight ( " << bTagEffMap_nPtBins << " bins) looks like: " << std::endl;
+         for(int jjj = 1; jjj < bTagEffMap_nEtaBins+1; jjj++)
+         {
+            std::cout << lastNonEmptyEFfMapPtBin_truelight[jjj]  << " (bin " << jjj <<  " of "  << bTagEffMap_nEtaBins  <<  ")     ";
+         }
+         std::cout << std::endl;
+         std::cout << "This is what lastNonEmptyEFfMapPtBin_truec looks like: " << std::endl;
+         for(int jjj = 1; jjj < bTagEffMap_nEtaBins+1; jjj++)
+         {
+            std::cout << lastNonEmptyEFfMapPtBin_truec[jjj]  << " (bin " << jjj <<  " of "  << bTagEffMap_nEtaBins  <<  ")     ";
+         }
+         std::cout << std::endl;
+         std::cout << "This is what lastNonEmptyEFfMapPtBin_med_trueb looks like: " << std::endl;
+         for(int jjj = 1; jjj < bTagEffMap_nEtaBins+1; jjj++)
+         {
+            std::cout << lastNonEmptyEFfMapPtBin_med_trueb[jjj] << " (bin " << jjj <<  " of "  << bTagEffMap_nEtaBins  <<  ")     ";
+         }
+         std::cout << std::endl;
+
+      }
 
       if(_verbose)std::cout << "Setting up b-tag correctionlib corrector" << std::endl;
 
@@ -956,8 +1026,21 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
          }
          if(doPDFWeights)
          {
-            tree->Branch("PDFWeights_renormWeight_up",     &PDFWeights_renormWeight_up, "PDFWeights_renormWeight_up/D");
-            tree->Branch("PDFWeights_renormWeight_down",   &PDFWeights_renormWeight_down, "PDFWeights_renormWeight_down/D");
+            tree->Branch("PDFWeights_renormWeight_nQCD1_up",     &PDFWeights_renormWeight_nQCD1_up, "PDFWeights_renormWeight_nQCD1_up/D");
+            tree->Branch("PDFWeights_renormWeight_nQCD1_down",   &PDFWeights_renormWeight_nQCD1_down, "PDFWeights_renormWeight_nQCD1_down/D");
+
+            tree->Branch("PDFWeights_renormWeight_nQCD2_up",     &PDFWeights_renormWeight_nQCD2_up, "PDFWeights_renormWeight_nQCD2_up/D");
+            tree->Branch("PDFWeights_renormWeight_nQCD2_down",   &PDFWeights_renormWeight_nQCD2_down, "PDFWeights_renormWeight_nQCD2_down/D");
+
+            tree->Branch("PDFWeights_renormWeight_nQCD3_up",     &PDFWeights_renormWeight_nQCD3_up, "PDFWeights_renormWeight_nQCD3_up/D");
+            tree->Branch("PDFWeights_renormWeight_nQCD3_down",   &PDFWeights_renormWeight_nQCD3_down, "PDFWeights_renormWeight_nQCD3_down/D");
+
+            tree->Branch("PDFWeights_renormWeight_nQCD4_up",     &PDFWeights_renormWeight_nQCD4_up, "PDFWeights_renormWeight_nQCD4_up/D");
+            tree->Branch("PDFWeights_renormWeight_nQCD4_down",   &PDFWeights_renormWeight_nQCD4_down, "PDFWeights_renormWeight_nQCD4_down/D");
+
+            tree->Branch("PDFWeights_renormWeight_nQCD5_up",     &PDFWeights_renormWeight_nQCD5_up, "PDFWeights_renormWeight_nQCD5_up/D");
+            tree->Branch("PDFWeights_renormWeight_nQCD5_down",   &PDFWeights_renormWeight_nQCD5_down, "PDFWeights_renormWeight_nQCD5_down/D");
+
             tree->Branch("PDFWeights_factWeightsRMS_up",   &PDFWeights_factWeightsRMS_up, "PDFWeights_factWeightsRMS_up/D");
             tree->Branch("PDFWeights_factWeightsRMS_down", &PDFWeights_factWeightsRMS_down, "PDFWeights_factWeightsRMS_down/D");
             
@@ -974,6 +1057,14 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             tree->Branch("QCDRenormalization_down_BEST", &QCDRenormalization_down_BEST, "QCDRenormalization_down_BEST/D");
 
             tree->Branch("scale_envelope", scale_envelope, "scale_envelope[10]/D");
+
+
+            tree->Branch("PDFWeights_envelope_scale_uncertainty_up", &PDFWeights_envelope_scale_uncertainty_up, "PDFWeights_envelope_scale_uncertainty_up/D");
+            tree->Branch("PDFWeights_envelope_scale_uncertainty_down", &PDFWeights_envelope_scale_uncertainty_down, "PDFWeights_envelope_scale_uncertainty_down/D");
+
+
+
+
             // above: scale_envelope = all the envelope variations from the pdf as written in https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Factorization_and_renormalizatio
             // index 0: muF = 2.0, muR = 1.0
             // index 1: muF = 0.5, muR = 1.0
@@ -1018,15 +1109,15 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             varPDFs[i] = LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
          } 
 
-         // tree->Branch("id1", &id1, "id1/I");
-         // tree->Branch("id2", &id2, "id2/I");
-         // tree->Branch("x1", &x1, "x1/D");
-         // tree->Branch("x2", &x2, "x2/D");
-         // tree->Branch("q2", &q2, "q2/D");   
-         // tree->Branch("PDFWeights_alphas", &alphas, "PDFWeights_alphas/D");
-         // tree->Branch("PDFWeights_nVars", &nVars, "PDFWeights_nVars/i");
-         // tree->Branch("PDFWeights_varWeightsRMS", &varWeightsRMS, "PDFWeights_varWeightsRMS/D");
-         // tree->Branch("PDFWeights_varWeightsErr", &varWeightsErr, "PDFWeights_varWeightsErr/D");
+          tree->Branch("id1", &id1, "id1/I");
+          tree->Branch("id2", &id2, "id2/I");
+          tree->Branch("x1", &x1, "x1/D");
+          tree->Branch("x2", &x2, "x2/D");
+          tree->Branch("q2", &q2, "q2/D");   
+          tree->Branch("PDFWeights_alphas", &alphas, "PDFWeights_alphas/D");
+          tree->Branch("PDFWeights_nVars", &nVars, "PDFWeights_nVars/i");
+          tree->Branch("PDFWeights_varWeightsRMS", &varWeightsRMS, "PDFWeights_varWeightsRMS/D");
+          tree->Branch("PDFWeights_varWeightsErr", &varWeightsErr, "PDFWeights_varWeightsErr/D");
       }
       if(_verbose)std::cout << "Finished setting up MC-specific stuff (genParts tokens, MC-specific TTree vars)" << std::endl;
 
@@ -2271,16 +2362,18 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      double AK4_JER_corr_factor_nom = 1.0; // nominal value for applying to b-tagging event weights (don't want to use the variations!!)
 
       if(doJER)
       {
          if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos) )
          {
-            double AK4_JER_corr_factor = 1.0; // this won't be touched for data
+             double AK4_JER_corr_factor = 1.0; // this won't be touched for data
 
             if(_verbose)std::cout << "doing JER" << std::endl;
 
             double sJER     = -1e12;    //JER scale factor
+            double sJER_nom     = -1e12;    //JER scale factor
             double sigmaJER = -1e12;    //this is the "resolution" you get from the scale factors 
             
             //these are for getting the JER scale factors
@@ -2293,8 +2386,9 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             JME::JetParameters parameters;
             parameters.setJetPt(iJet->pt());
             parameters.setJetEta(iJet->eta());
-            sJER =  resolution_sf_AK4.getScaleFactor(parameters  );  // nominal sJER value
-            
+            sJER     =  resolution_sf_AK4.getScaleFactor(parameters  );  // nominal sJER value
+            sJER_nom = resolution_sf_AK4.getScaleFactor(parameters  );  // copy of the nominal sJER value
+
             if( applyJERSource(systematicType, iJet->eta())  ) // only true if this is run for the JER uncertainty AND if the jet eta is in the correct range
             {
                if( systematicType.find("_up") != std::string::npos )        sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::UP  );  // sJER + 1 sigma uncertainty
@@ -2305,12 +2399,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             if( genJet)   // try the first technique with gen jets
             {
                AK4_JER_corr_factor = 1 + (sJER - 1)*(iJet->pt()-genJet->pt())/iJet->pt();
+               AK4_JER_corr_factor_nom = 1 + (sJER_nom - 1)*(iJet->pt()-genJet->pt())/iJet->pt();
+
             }
             else   // if no gen jet is matched, try the second technique
             {
                randomNum->SetSeed( abs(static_cast<int>(iJet->phi()*1e4)) );
                double JERrand = randomNum->Gaus(0.0, sigmaJER);
-               AK4_JER_corr_factor = max(0., 1 + JERrand*sqrt(max(pow(sJER,2)-1,0.)));   //want to make sure this is truncated at 0
+               AK4_JER_corr_factor     = max(0., 1 + JERrand*sqrt(max(pow(sJER,2)-1,0.)));   //want to make sure this is truncated at 0
+               AK4_JER_corr_factor_nom = max(0., 1 + JERrand*sqrt(max(pow(sJER_nom,2)-1,0.)));   //want to make sure this is truncated at 0
+
             }
             if(_verbose)std::cout << "finished with JER" << std::endl;
             AK4_sf_total*= AK4_JER_corr_factor;
@@ -2379,8 +2477,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             // histogram size:  xbins: 63, xmin: 0, xmax: 6000,  ybins: 18, ymin: -2.4, ymax: 2.4   
 
             // should import the histogram size here so this dosn't have to be manually changed
-            int xbin = (int)(corrJet.pt()*bTagEffMap_nPtBins/bTagEffMap_PtRange) + 1;
-            int ybin = (int)((corrJet.eta()-bTagEffMap_Eta_low)*bTagEffMap_nEtaBins/(bTagEffMap_Eta_high-bTagEffMap_Eta_low)) +1;
+
+            int xbin = (int)((AK4_JER_corr_factor_nom*iJet->pt())*bTagEffMap_nPtBins/bTagEffMap_PtRange) + 1;
+            int ybin = (int)((iJet->eta()-bTagEffMap_Eta_low)*bTagEffMap_nEtaBins/(bTagEffMap_Eta_high-bTagEffMap_Eta_low)) +1;
+
+
 
             if(debug) std::cout << "bTagEffMap_nPtBins/bTagEffMap_PtRange/bTagEffMap_Eta_low/bTagEffMap_nEtaBins/bTagEffMap_Eta_high:" <<bTagEffMap_nPtBins << "/"  <<bTagEffMap_PtRange << "/" <<bTagEffMap_Eta_low << "/" <<bTagEffMap_nEtaBins << "/" <<bTagEffMap_Eta_high << std::endl;
             double SF, SF_up, SF_down;
@@ -2391,17 +2492,52 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
             if(corrJet.hadronFlavour() == 0)   //light jets
             {
+               int xbin_tight = xbin;
+               int xbin_med   = xbin;
 
-               bTag_eff_value     = lightjet_eff->GetBinContent(xbin,ybin);
-               bTag_eff_value_med = lightjet_eff_med->GetBinContent(xbin,ybin);
+               if (xbin_tight >  lastNonEmptyEFfMapPtBin_truelight[ybin]) 
+               {
+                  if(_verbose)
+                  {
+                     std::cout << "Bad b-tagging effeciency map (true light jet, tight WP)." << std::endl; 
 
-               SF     = cset_corrector_light->evaluate({"central", "T", 0, std::abs(corrJet.eta()), corrJet.pt()}); /// tight WP SF
-               SF_med = cset_corrector_light->evaluate({"central", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+                     std::cout << "Bad b-tagging effeciency map (true b jet, med WP)." << std::endl; 
+                     std::cout << "moving to lastNonEmptyEFfMapPtBin_truelight[ybin] = " << lastNonEmptyEFfMapPtBin_truelight[ybin] << std::endl;
+                     std::cout << "This corresponds to (y)-bin " << ybin << " out of bTagEffMap_nEtaBins total bins in the histogram. " << std::endl;
+                     std::cout << "This is what lastNonEmptyEFfMapPtBin_truelight looks like: " << std::endl;
+                     for(int jjj = 0; jjj < bTagEffMap_nEtaBins; jjj++)
+                     {
+                        std::cout << lastNonEmptyEFfMapPtBin_truelight[jjj] << "   ";
+                     }
+                     std::cout << std::endl;
+                  }
+                  xbin_tight   =  lastNonEmptyEFfMapPtBin_truelight[ybin];
 
-               SF_corr_up_med       = cset_corrector_light->evaluate({"up_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_corr_down_med     = cset_corrector_light->evaluate({"down_correlated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_corr_up     = cset_corrector_light->evaluate({"up_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_corr_down   = cset_corrector_light->evaluate({"down_correlated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+
+               }
+               else
+               {
+                  if(_verbose)std::cout << "b-tagging eff value is fine." << std::endl;
+               }
+               if (xbin_med   >  lastNonEmptyEFfMapPtBin_med_truelight[ybin]) 
+               {
+                  if(_verbose)std::cout << "Bad b-tagging effeciency map (true light jet, med WP)." << std::endl; 
+                  xbin_med =  lastNonEmptyEFfMapPtBin_med_truelight[ybin];
+               }
+               else
+               {
+                  if(_verbose)std::cout << "b-tagging eff value is fine." << std::endl;
+               }
+               bTag_eff_value     = lightjet_eff->GetBinContent(xbin_tight,ybin);
+               bTag_eff_value_med = lightjet_eff_med->GetBinContent(xbin_med,ybin);
+
+               SF     = cset_corrector_light->evaluate({"central", "T", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()}); /// tight WP SF
+               SF_med = cset_corrector_light->evaluate({"central", "M", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+
+               SF_corr_up_med       = cset_corrector_light->evaluate({"up_correlated", "M", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_corr_down_med     = cset_corrector_light->evaluate({"down_correlated", "M", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_corr_up     = cset_corrector_light->evaluate({"up_correlated", "T", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_corr_down   = cset_corrector_light->evaluate({"down_correlated", "T", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
                jet_bTagSF_light_T[nTrue_light_AK4] = SF;
                jet_bTagSF_light_M[nTrue_light_AK4] = SF_med;
@@ -2409,11 +2545,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                nTrue_light_AK4++;
 
                // tight WP uncorrelated
-               SF_up   = cset_corrector_light->evaluate({"up_uncorrelated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_light->evaluate({"down_uncorrelated", "T", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up   = cset_corrector_light->evaluate({"up_uncorrelated", "T", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_down = cset_corrector_light->evaluate({"down_uncorrelated", "T", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
                // med WP
-               SF_up_med   = cset_corrector_light->evaluate({"up_uncorrelated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down_med = cset_corrector_light->evaluate({"down_uncorrelated", "M", 0, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up_med   = cset_corrector_light->evaluate({"up_uncorrelated", "M", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_down_med = cset_corrector_light->evaluate({"down_uncorrelated", "M", 0, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
 
                //////// MED WP SCALE FACTOR ////////
@@ -2519,13 +2655,50 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                   if(_verbose)std::cout << "untagged light jet: MC_notTagged/data_notTagged: " << (1- bTag_eff_value) << ":" << (1- SF*bTag_eff_value) << std::endl;
                }
             }
+            
             else if(corrJet.hadronFlavour() == 4) //charm jets
             {
-               bTag_eff_value = truecjet_eff->GetBinContent(xbin,ybin);
-               bTag_eff_value_med = truecjet_eff_med->GetBinContent(xbin,ybin);
+               int xbin_tight = xbin;
+               int xbin_med   = xbin;
 
-               SF = cset_corrector_bc->evaluate(   {"central", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_med = cset_corrector_bc->evaluate(   {"central", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               if (xbin_tight >  lastNonEmptyEFfMapPtBin_truec[ybin])
+               {
+                  if(_verbose)
+                  {
+
+                     std::cout << "Bad b-tagging effeciency map (true c jet, tight WP)." << std::endl; 
+
+                     std::cout << "Bad b-tagging effeciency map (true b jet, med WP)." << std::endl; 
+                     std::cout << "moving to lastNonEmptyEFfMapPtBin_truec[ybin] = " << lastNonEmptyEFfMapPtBin_truec[ybin] << std::endl;
+                     std::cout << "This corresponds to (y)-bin " << ybin << " out of bTagEffMap_nEtaBins total bins in the histogram. " << std::endl;
+                     std::cout << "This is what lastNonEmptyEFfMapPtBin_truec looks like: " << std::endl;
+                     for(int jjj = 0; jjj < bTagEffMap_nEtaBins; jjj++)
+                     {
+                        std::cout << lastNonEmptyEFfMapPtBin_truec[jjj] << "   ";
+                     }
+                     std::cout << std::endl;
+                  }
+
+                  xbin_tight   =  lastNonEmptyEFfMapPtBin_truec[ybin];
+               } 
+               else
+               {
+                  if(_verbose)std::cout << "b-tagging eff value is fine." << std::endl;
+               }
+               if (xbin_med   >  lastNonEmptyEFfMapPtBin_med_truec[ybin])
+               {
+                  if(_verbose)std::cout << "Bad b-tagging effeciency map (true c jet, med WP)." << std::endl; 
+                  xbin_med =  lastNonEmptyEFfMapPtBin_med_truec[ybin];
+               } 
+               else
+               {
+                  if(_verbose)std::cout << "b-tagging eff value is fine." << std::endl;
+               }
+               bTag_eff_value = truecjet_eff->GetBinContent(xbin_tight,ybin);
+               bTag_eff_value_med = truecjet_eff_med->GetBinContent(xbin_med,ybin);
+
+               SF = cset_corrector_bc->evaluate(   {"central", "T", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_med = cset_corrector_bc->evaluate(   {"central", "M", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
                jet_bTagSF_c_T[nTrue_c_AK4] = SF;
                jet_bTagSF_c_M[nTrue_c_AK4] = SF_med;
@@ -2534,21 +2707,21 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
                //uncorrelated
                // tight WP
-               SF_up = cset_corrector_bc->evaluate({"up_uncorrelated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_bc->evaluate(   {"down_uncorrelated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up = cset_corrector_bc->evaluate({"up_uncorrelated", "T", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_down = cset_corrector_bc->evaluate(   {"down_uncorrelated", "T", 4, std::abs(iJet->eta()),AK4_JER_corr_factor_nom* iJet->pt()});
 
                // med WP
-               SF_up_med = cset_corrector_bc->evaluate({"up_uncorrelated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down_med = cset_corrector_bc->evaluate(   {"down_uncorrelated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up_med = cset_corrector_bc->evaluate({"up_uncorrelated", "M", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_down_med = cset_corrector_bc->evaluate(   {"down_uncorrelated", "M", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
                // correlated
                // tight WP
-               SF_corr_up = cset_corrector_bc->evaluate({"up_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_corr_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_up = cset_corrector_bc->evaluate({"up_correlated", "T", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_corr_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
                // med WP
-               SF_corr_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_corr_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 4, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_corr_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 4, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
                //////// MED WP SCALE FACTOR ////////
@@ -2651,11 +2824,47 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             }
             else if(corrJet.hadronFlavour() == 5) // b jets
             {
-               bTag_eff_value = truebjet_eff->GetBinContent(xbin,ybin);
-               bTag_eff_value_med = truebjet_eff_med->GetBinContent(xbin,ybin);
 
-               SF             = cset_corrector_bc->evaluate(   {"central", "T", 5, std::abs(corrJet.eta()), corrJet.pt()}); // tight WP
-               SF_med         = cset_corrector_bc->evaluate(   {"central", "M", 5, std::abs(corrJet.eta()), corrJet.pt()}); // med WP
+
+               int xbin_tight = xbin;
+               int xbin_med   = xbin;
+
+               if (xbin_tight >  lastNonEmptyEFfMapPtBin_trueb[ybin])
+               {
+                  if(_verbose)std::cout << "Bad b-tagging effeciency map (true b jet, tight WP)." << std::endl; 
+                  xbin_tight   =  lastNonEmptyEFfMapPtBin_trueb[ybin];
+               } 
+               else
+               {
+                  if(_verbose)std::cout << "b-tagging eff value is fine." << std::endl;
+               }
+               if (xbin_med   >  lastNonEmptyEFfMapPtBin_med_trueb[ybin])
+               {
+
+                  if(_verbose)
+                  { 
+                     std::cout << "Bad b-tagging effeciency map (true b jet, med WP)." << std::endl; 
+                     std::cout << "moving to lastNonEmptyEFfMapPtBin_med_trueb[ybin] = " << lastNonEmptyEFfMapPtBin_med_trueb[ybin] << std::endl;
+                     std::cout << "This corresponds to (y)-bin " << ybin << " out of bTagEffMap_nEtaBins total bins in the histogram. " << std::endl;
+                     std::cout << "This is what lastNonEmptyEFfMapPtBin_med_trueb looks like: " << std::endl;
+                     for(int jjj = 0; jjj < bTagEffMap_nEtaBins; jjj++)
+                     {
+                        std::cout << lastNonEmptyEFfMapPtBin_med_trueb[jjj] << "   ";
+                     }
+                     std::cout << std::endl;
+                  }
+                  xbin_med =  lastNonEmptyEFfMapPtBin_med_trueb[ybin];
+
+               } 
+               else
+               {
+                  if(_verbose)std::cout << "b-tagging eff value is fine." << std::endl;
+               }
+               bTag_eff_value = truebjet_eff->GetBinContent(xbin_tight,ybin);
+               bTag_eff_value_med = truebjet_eff_med->GetBinContent(xbin_med,ybin);
+
+               SF             = cset_corrector_bc->evaluate(   {"central", "T", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()}); // tight WP
+               SF_med         = cset_corrector_bc->evaluate(   {"central", "M", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()}); // med WP
 
                jet_bTagSF_b_T[nTrue_b_AK4] = SF;
                jet_bTagSF_b_M[nTrue_b_AK4] = SF_med;
@@ -2664,22 +2873,22 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
                //uncorrelated
                // tight WP
-               SF_up = cset_corrector_bc->evaluate({"up_uncorrelated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down = cset_corrector_bc->evaluate(   {"down_uncorrelated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up = cset_corrector_bc->evaluate({"up_uncorrelated", "T", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_down = cset_corrector_bc->evaluate(   {"down_uncorrelated", "T", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
                // med WP
-               SF_up_med = cset_corrector_bc->evaluate({"up_uncorrelated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_down_med = cset_corrector_bc->evaluate(   {"down_uncorrelated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_up_med = cset_corrector_bc->evaluate({"up_uncorrelated", "M", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_down_med = cset_corrector_bc->evaluate(   {"down_uncorrelated", "M", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
 
                // correlated
                // tight WP
-               SF_corr_up = cset_corrector_bc->evaluate({"up_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_corr_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_up = cset_corrector_bc->evaluate({"up_correlated", "T", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_corr_down = cset_corrector_bc->evaluate(   {"down_correlated", "T", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
                // med WP
-               SF_corr_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
-               SF_corr_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 5, std::abs(corrJet.eta()), corrJet.pt()});
+               SF_corr_up_med = cset_corrector_bc->evaluate({"up_correlated", "M", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
+               SF_corr_down_med = cset_corrector_bc->evaluate(   {"down_correlated", "M", 5, std::abs(iJet->eta()), AK4_JER_corr_factor_nom*iJet->pt()});
 
                if(_verbose)std::cout << "Scale factor is " << SF << std::endl;
 
@@ -2791,8 +3000,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          }
       }
 
-      int vetoMap_xbin = (int)((corrJet.eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;       // eta(b) = b*(range / # bins) + b0 -> b(eta) = (eta - b0)*(# bins / range)
-      int vetoMap_ybin = (int)((corrJet.phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // phi(b) = b*(range / # bins) + b0 -> b(phi) = (phi - b0)*(# bins / range)
+      int vetoMap_xbin = (int)((iJet->eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;       // eta(b) = b*(range / # bins) + b0 -> b(eta) = (eta - b0)*(# bins / range)
+      int vetoMap_ybin = (int)((iJet->phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // phi(b) = b*(range / # bins) + b0 -> b(phi) = (phi - b0)*(# bins / range)
       AK4_fails_veto_map[nAK4] = false; // failing the veto map is a bad thing, it means these regions are not "hot"
       if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0) AK4_fails_veto_map[nAK4] = true;
 
@@ -3148,6 +3357,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
       
+      if(_verbose)  std::cout << "counting AK8 jet types. " << std::endl;
 
 
       if((corrJet.pt() > 400.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 10.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt400_M10++;
@@ -3165,8 +3375,12 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if((corrJet.pt() > 200.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 30.) && (!isHEM(corrJet.eta(),corrJet.phi()))) nHeavyAK8_pt200_M30++;
 
 
+      if(_verbose)  std::cout << "Applying AK8 jet selection." << std::endl;
+
+
       if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
 
+      if(_verbose)  std::cout << "Checking HEM." << std::endl;
 
       if(isHEM(corrJet.eta(),corrJet.phi()))
       {
@@ -3176,10 +3390,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       JEC_uncert_AK8[nfatjets] = AK8_JEC_corr_factor;
 
+
+      if(_verbose)  std::cout << "Checking if jet is in veto region." << std::endl;
+
       int vetoMap_xbin = (int)((corrJet.eta() - jetVetoMap_Xmin)*jetVetoMap_nBinsX/jetVetoMap_XRange ) +1;
       int vetoMap_ybin = (int)((corrJet.phi() - jetVetoMap_Ymin)*jetVetoMap_nBinsY/jetVetoMap_YRange ) +1;       // phi(b) = b*(range / # bins) + b0 -> b(phi) = (phi(b) - b0)*(# bins / range)
       AK8_fails_veto_map[nfatjets] = false;
       if(jetVetoMap->GetBinContent(vetoMap_xbin,vetoMap_ybin) > 0.) AK8_fails_veto_map[nfatjets] = true; // saved for future vetoing
+
+      if(_verbose)  std::cout << "Saving kinematic vars" << std::endl;
+
 
       if(nfatjets < 2) leadAK8_mass[nfatjets] = corrJet.userFloat("ak8PFJetsPuppiSoftDropMass");
       jet_pt[nfatjets]   = corrJet.pt();
@@ -3187,6 +3407,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       jet_eta[nfatjets]  = corrJet.eta();
       jet_mass[nfatjets] = corrJet.mass();
 
+      if(_verbose)  std::cout << "Collecting particles from selected AK8 jets." << std::endl;
 
       // save selected AK8 jet particles for use in calculating the thrust axis
       for (unsigned int iii=0; iii<iJet->numberOfDaughters();iii++)   // get all jet particles
@@ -3202,6 +3423,9 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       selectedAK8_TLV.push_back(TLorentzVector(corrJet.px(),corrJet.py(),corrJet.pz(),corrJet.energy()));
 
       // match up AK4 jets to AK8 jets (leave indices as -1 if not matched)
+
+      if(_verbose)  std::cout << "Getting information for high energy AK4 substructure study." << std::endl;
+
       int AK4_counter = 0;
       for(auto iAK4 = selectedAK4_TLV.begin();iAK4 != selectedAK4_TLV.end(); iAK4++ )
       {  
@@ -3211,12 +3435,20 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       AK8_is_near_highE_CA4[nfatjets] = false; // initialize this to false
 
+      if(_verbose)  std::cout << "Saving hadron flavor information." << std::endl;
+
+
       AK8_hadronFlavour[nfatjets] = (double)iJet->hadronFlavour();  // why are these showing up as non integers??
       AK8_partonFlavour[nfatjets] = (double)iJet->partonFlavour();
       if((AK8_hadronFlavour[nfatjets]  > 5) || (AK8_hadronFlavour[nfatjets]  < 0))std::cout << "hadron flavour found to be large or small: " << AK8_hadronFlavour[nfatjets]  << std::endl;
 
+      if(_verbose)  std::cout << "----- Done with jet ----- " << std::endl;
+
       nfatjets++;
    } // end AK8 jet loop
+
+
+    if(_verbose)  std::cout << "Calcualting dijet variables." << std::endl;
 
    diAK8Jet_mass[0] = 0; diAK8Jet_mass[1] = 0;
    fourAK8JetMass = 0;
@@ -3249,6 +3481,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    }
 
 
+   if(_verbose)  std::cout << "Applying nAK8/nHeavyAK8/dijet mass selections." << std::endl;
 
 
    if( !(runType.find("Suu") != std::string::npos) || ( (systematicType.find("JEC") != std::string::npos ) ) )  // FOR NOM SIGNAL, SAVE MORE EVENTS FOR STUDYING
@@ -3266,17 +3499,27 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    if(doPrefiringWeight)
    {
+
+
+      if(_verbose)  std::cout << "Getting prefiring weights." << std::endl;
+
       edm::Handle< double > theprefweight;
       iEvent.getByToken(prefweight_token, theprefweight ) ;
       prefiringWeight_nom =(*theprefweight);
+
+      if(_verbose)  std::cout << "Got nom prefiring weight." << std::endl;
 
       edm::Handle< double > theprefweightup;
       iEvent.getByToken(prefweightup_token, theprefweightup ) ;
       prefiringWeight_up =(*theprefweightup);
 
+      if(_verbose)  std::cout << "Got the up prefiring weight." << std::endl;
+
       edm::Handle< double > theprefweightdown;
       iEvent.getByToken(prefweightdown_token, theprefweightdown ) ;
       prefiringWeight_down =(*theprefweightdown);
+      if(_verbose)  std::cout << "Got the down prefiring weight." << std::endl;
+
    }
 
 
@@ -3288,7 +3531,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    if( doTopPtReweight) // will only be true for TTbar samples
    {
 
-   ////////////////////// Calculate top pt weight /////////////////
+
+      if(_verbose)  std::cout << "Calculating top pt weights." << std::endl;
+
+      ////////////////////// Calculate top pt weight /////////////////
       iEvent.getByToken(genPartToken_, genPartCollection);
       reco::GenParticle * top_one = nullptr;
       reco::GenParticle * top_two = nullptr;
@@ -3320,6 +3566,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    }
 
+
+
+   if(_verbose)  std::cout << "After top pt weight calculation." << std::endl;
+
    /////////////////////////////////////////////////////////////
    /////////////// calculate _pdf weights //////////////////////
    /////////////////////////////////////////////////////////////
@@ -3334,7 +3584,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       nPDFWeights   = 0;
       nScaleWeights = 0;
       
-      if( (runType.find("QCD") != std::string::npos) || (runType.find("TTJets") != std::string::npos)|| (runType.find("Suu") != std::string::npos) )
+      if( (runType.find("MC") != std::string::npos)|| (runType.find("Suu") != std::string::npos) )
       {
 
          double factorizWeights_up[nVars];
@@ -3372,6 +3622,12 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          // Factorization Scale: ID = 1016 (MU_F=2.0), 1026 (MU_F=0.5) 
          // variations 325301-325402 = PDF: ID=1049-1148
 
+
+         // for WJets: (appears to be the same as QCD)
+         // PDF nom = 325300 = ID 1048 (325301-325402 ) 
+         // Scale: ID=1049-1150
+
+
          // ---------------------------------------------------------------
 
          unsigned int PDFstart, PDFend;
@@ -3386,6 +3642,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             PDFend = 147;
          }
          else if( runType.find("TTJets"))
+         {     
+             PDFstart =  48;  // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
+             PDFend   =  147; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
+         }
+         else if( runType.find("WJets"))
          {     
              PDFstart =  48;  // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
              PDFend   =  149; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
@@ -3422,7 +3683,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          //// calculate the renormalization and factorizations the "Ben" way
 
          // This is the way BEST is doing it
-         QCDRenormalization_up_BEST      = lheEventProduct->weights()[5].wgt /PDFWeightNom;   // muF = 1.0, muR = 2.0
+         QCDRenormalization_up_BEST      = lheEventProduct->weights()[5].wgt /PDFWeightNom;   // muF = 1.0, muR = 2.0 
          QCDRenormalization_down_BEST    = lheEventProduct->weights()[10].wgt/PDFWeightNom;  // muF = 1.0, muR = 0.5
          QCDFactorization_up_BEST        = lheEventProduct->weights()[15].wgt/PDFWeightNom;  // muF = 2.0, muR = 1.0
          QCDFactorization_down_BEST      = lheEventProduct->weights()[30].wgt/PDFWeightNom;  // muF = 0.5, muR = 1.0
@@ -3440,10 +3701,36 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          scale_envelope[9] = lheEventProduct->originalXWGTUP();    // nominal (central?) PDF weight
 
 
+         ////////////////////////////////////////////////////////////////////////////////////
+         // use to "envelope" method to find the largest deviation from the nominal weight
+         ////////////////////////////////////////////////////////////////////////////////////
+
+         double max_deviation_up = -9e10;
+         double max_deviation_down = -9e10;
+
+         for (int iii = 0; iii < 8; iii++) {
+             // Calculate the fractional deviation from the nominal weight
+             double deviation = std::abs(scale_envelope[iii] - scale_envelope[8]) / scale_envelope[8];
+             
+             // Update max_deviation_up or max_deviation_down based on the direction of the deviation
+             if (scale_envelope[iii] > scale_envelope[8]) 
+             {
+                 // Positive deviation (scale-up)
+                 max_deviation_up = std::max(max_deviation_up, deviation);
+             } 
+             else 
+             {
+                 // Negative deviation (scale-down)
+                 max_deviation_down = std::max(max_deviation_down, deviation);
+             }
+         }
+
+         // Now assign the results to the uncertainties
+         PDFWeights_envelope_scale_uncertainty_up = 1+ max_deviation_up;
+         PDFWeights_envelope_scale_uncertainty_down = 1.0 - max_deviation_down;
 
          const int VAR_UP = 1;
          const int VAR_DOWN = -1;
-         int nQCD = 0;
 
          // init stuff
 
@@ -3463,9 +3750,22 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          if(_verbose)std::cout << "id1/id2/x1/x2/scalePDF are" << id1<< "/" <<id2 << "/" << x1<< "/" << x2<< "/" << scalePDF<< std::endl;
 
          alphas           = calcAlphas(scalePDF);
-         PDFWeights_renormWeight_up = calcRenormWeight(scalePDF, VAR_UP, nQCD); 
-         PDFWeights_renormWeight_down = calcRenormWeight(scalePDF, VAR_DOWN, nQCD); 
 
+         // I don't know how to find out how many QCD vertices processes have (I have estimates in the dataset spreadsheet), so I will calculate for multiple values
+         PDFWeights_renormWeight_nQCD1_up = calcRenormWeight(q2, VAR_UP, 1); 
+         PDFWeights_renormWeight_nQCD1_down = calcRenormWeight(q2, VAR_DOWN, 1); 
+
+         PDFWeights_renormWeight_nQCD2_up = calcRenormWeight(q2, VAR_UP, 2); 
+         PDFWeights_renormWeight_nQCD2_down = calcRenormWeight(q2, VAR_DOWN, 2); 
+
+         PDFWeights_renormWeight_nQCD3_up = calcRenormWeight(q2, VAR_UP, 3); 
+         PDFWeights_renormWeight_nQCD3_down = calcRenormWeight(q2, VAR_DOWN, 3); 
+
+         PDFWeights_renormWeight_nQCD4_up = calcRenormWeight(q2, VAR_UP, 4); 
+         PDFWeights_renormWeight_nQCD4_down = calcRenormWeight(q2, VAR_DOWN, 4); 
+
+         PDFWeights_renormWeight_nQCD5_up = calcRenormWeight(q2, VAR_UP, 5); 
+         PDFWeights_renormWeight_nQCD5_down = calcRenormWeight(q2, VAR_DOWN, 5); 
          // what are my PDF weights related to what he has here? 
 
          for (int varN = 0; varN < nVars; varN++) 
@@ -3515,6 +3815,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
       
    }
+   if(_verbose)  std::cout << "After pdf weight calculation." << std::endl;
 
    
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

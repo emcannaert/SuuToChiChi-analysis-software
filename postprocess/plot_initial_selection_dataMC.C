@@ -66,8 +66,7 @@ void make_dataMC_plot(std::string year, std::string histName, std::string hist_l
     TFile* QCD1000to1500_file = TFile::Open(Form("root://cmseos.fnal.gov//store/user/ecannaer/selectionStudy_combinedROOT/QCDMC1000to1500_%s_nom_combined.root", year.c_str()));
     TFile* QCD1500to2000_file = TFile::Open(Form("root://cmseos.fnal.gov//store/user/ecannaer/selectionStudy_combinedROOT/QCDMC1500to2000_%s_nom_combined.root", year.c_str()));
     TFile* QCD2000toInf_file = TFile::Open(Form("root://cmseos.fnal.gov//store/user/ecannaer/selectionStudy_combinedROOT/QCDMC2000toInf_%s_nom_combined.root", year.c_str()));
-
-
+    
     TFile* TTToHadronic_file = TFile::Open(Form("root://cmseos.fnal.gov//store/user/ecannaer/selectionStudy_combinedROOT/TTToHadronicMC_%s_nom_combined.root", year.c_str()));
     TFile* TTToSemiLeptonic_file = TFile::Open(Form("root://cmseos.fnal.gov//store/user/ecannaer/selectionStudy_combinedROOT/TTToSemiLeptonicMC_%s_nom_combined.root", year.c_str()));
     TFile* TTToLeptonic_file = TFile::Open(Form("root://cmseos.fnal.gov//store/user/ecannaer/selectionStudy_combinedROOT/TTToLeptonicMC_%s_nom_combined.root", year.c_str()));

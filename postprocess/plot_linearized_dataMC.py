@@ -22,10 +22,11 @@ def plot_region( year, region, technique_str):
     hist_qcd = file.Get("{}/QCD".format(region))
     hist_ttbar = file.Get("{}/TTbar".format(region))
     hist_st = file.Get("{}/ST".format(region))
+    hist_WJets = file.Get("{}/WJets".format(region))
     hist_data = file.Get("{}/data_obs".format(region))
     
     # Check that all histograms were retrieved
-    if not all([hist_qcd, hist_ttbar, hist_st, hist_data]):
+    if not all([hist_qcd, hist_ttbar, hist_st, hist_data, hist_WJets]):
         print "Error: One or more histograms are missing in the region '{}'.".format(region)
         print("hist_qcd/hist_ttbar/hist_st/hist_data: %s/%s/%s/%s"%(type(hist_qcd),type(hist_ttbar),type(hist_st),type(hist_data)) )
         return
@@ -34,11 +35,13 @@ def plot_region( year, region, technique_str):
     hist_qcd.SetFillColor(ROOT.kRed)
     hist_ttbar.SetFillColor(ROOT.kYellow)
     hist_st.SetFillColor(ROOT.kGreen)
-    
+    hist_WJets.SetFillColor(ROOT.kViolet)
+
     # Stack the MC histograms
     stack = ROOT.THStack("stack", "data vs combined backgrounds (%s) (%s) (%s)"%(technique_title,region,year))
     stack.Add(hist_qcd)
     stack.Add(hist_ttbar)
+    stack.Add(hist_WJets)
     stack.Add(hist_st)
 
     # Create a canvas with upper and lower pads
@@ -66,6 +69,7 @@ def plot_region( year, region, technique_str):
     legend.AddEntry(hist_qcd, "QCD", "f")
     legend.AddEntry(hist_ttbar, "TTbar", "f")
     legend.AddEntry(hist_st, "ST", "f")
+    legend.AddEntry(hist_WJets, "WJets", "f")
     legend.AddEntry(hist_data, "Data", "pe")
     legend.Draw()
 
@@ -78,6 +82,7 @@ def plot_region( year, region, technique_str):
     # Calculate data/MC ratio
     hist_mc_total = hist_qcd.Clone("MC_Total")
     hist_mc_total.Add(hist_ttbar)
+    hist_mc_total.Add(hist_WJets)
     hist_mc_total.Add(hist_st)
 
     hist_ratio = hist_data.Clone("Data_MC_Ratio")

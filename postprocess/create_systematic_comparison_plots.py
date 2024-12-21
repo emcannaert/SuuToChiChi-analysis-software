@@ -228,10 +228,12 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 	QCD_samples = ["QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_"]
 	TTbar_samples = ["TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"]
 	ST_samples = ["ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"]	
+	WJets_samples = ["WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"]	
 
 	QCD_file_names 	 = [input_file_dir+ QCD_sample  + year + "_processed.root" for QCD_sample in QCD_samples]
 	TTbar_file_names = [input_file_dir+ TTbar_sample   + year + "_processed.root" for TTbar_sample in TTbar_samples]
 	ST_file_names 	 = [input_file_dir+ ST_sample   + year + "_processed.root" for ST_sample in ST_samples]
+	WJets_file_names 	 = [input_file_dir+ WJets_sample   + year + "_processed.root" for WJets_sample in WJets_samples]
 
 	# get QCD histograms
 
@@ -240,9 +242,9 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 	QCD_weights 		= [all_weights["QCDMC1000to1500"][year],all_weights["QCDMC1500to2000"][year],all_weights["QCDMC2000toInf"][year] ]
 	TTbar_weights 		= [all_weights["TTJetsMCHT1200to2500"][year],all_weights["TTJetsMCHT2500toInf"][year]]
 	ST_weights			= [all_weights["ST_t_channel_top_inclMC"][year],all_weights["ST_t_channel_antitop_incMC"][year],all_weights["ST_s_channel_hadronsMC"][year],all_weights["ST_s_channel_leptonsMC"][year],all_weights["ST_tW_antiTop_inclMC"][year],all_weights["ST_tW_top_inclMC"][year]]
+	WJets_weights		= [all_weights["WJetsMC_LNu_HT800to1200"][year],all_weights["WJetsMC_LNu_HT1200to2500"][year],all_weights["WJetsMC_LNu_HT2500toInf"][year],all_weights["WJetsMC_QQ_HT800toInf"][year]]
 
 
-	
 	QCD_combined_nom	= get_combined_histogram(QCD_file_names, hist_name, 			"nom", QCD_weights, systematic)
 
 	if(systematic != "topPt"):
@@ -272,16 +274,29 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 		ST_combined_up = ST_combined_nom.Clone()
 		ST_combined_down = ST_combined_nom.Clone()
 	
+	WJets_combined_nom  = get_combined_histogram(WJets_file_names, hist_name, 			   "nom", WJets_weights, systematic)
+
+	if(systematic != "topPt"):
+		WJets_combined_down = get_combined_histogram(WJets_file_names, hist_name, systematic+"_down", WJets_weights, systematic)
+		WJets_combined_up   = get_combined_histogram(WJets_file_names, hist_name, systematic+"_up", WJets_weights, systematic)
+	else:
+		WJets_combined_down = WJets_combined_nom.Clone()
+		WJets_combined_up = WJets_combined_nom.Clone()
+
+
 	allBR_up  = QCD_combined_up
 	allBR_up.Add(TTbar_combined_up)
+	allBR_up.Add(WJets_combined_up)
 	allBR_up.Add(ST_combined_up)
 
 	allBR_nom = QCD_combined_nom
 	allBR_nom.Add(TTbar_combined_nom)
+	allBR_nom.Add(WJets_combined_nom)
 	allBR_nom.Add(ST_combined_nom)	
 
 	allBR_down = QCD_combined_down
 	allBR_down.Add(TTbar_combined_down)
+	allBR_down.Add(WJets_combined_down)
 	allBR_down.Add(ST_combined_down)		
 
 	### now make histograms
@@ -293,6 +308,7 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 
 	create_3_hist_ratio_plot(QCD_combined_up,QCD_combined_nom,QCD_combined_down, hist_type, systematic, year, "QCD", "QCD")
 	create_3_hist_ratio_plot(TTbar_combined_up,TTbar_combined_nom,TTbar_combined_down, hist_type, systematic, year, "TTbar","TTbar")
+	create_3_hist_ratio_plot(WJets_combined_up,WJets_combined_nom,WJets_combined_down, hist_type, systematic, year, "WJets","WJets")
 	create_3_hist_ratio_plot(ST_combined_up,ST_combined_nom,ST_combined_down, hist_type, systematic, year, "ST", "Single Top")
 
 	return

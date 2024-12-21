@@ -49,7 +49,8 @@ def return_signal_SF(year,mass_point,decay, y_uu = 2.0, y_x = 2.0):    ## parame
 			nEvents = 50000
 		else: nEvents = 100000
 
-
+	if year in ["2015","2016"]:
+		nEvents /= 2   ### 2016preAPV and 2016postAPV have half as many stats
 	lumi_eff = nEvents*frac_of_events_used/ (  Suu_prod_xs[ "%s"%Suu_mass ] * calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x)    )
 	lumi_year = collected_data[year]
 
