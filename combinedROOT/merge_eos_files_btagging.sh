@@ -23,6 +23,11 @@ else
 	source eos_copy_commands_btagging.sh
 	rm QCD*_combined_*.root
 
+	echo "Copying WJets Files"
+	python create_eos_copy_commands_btaggingEffMaps.py WJets_eos_paths_btagging.txt
+	source eos_copy_commands_btagging.sh
+	rm WJets*_combined_*.root
+
 	echo "Copying Single Top Files"
 	python create_eos_copy_commands_btaggingEffMaps.py ST_eos_paths_btagging.txt
 	source eos_copy_commands_btagging.sh

@@ -160,22 +160,26 @@ if __name__=="__main__":
 				
 					"2015": 
 					{ "QCDMC": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
+					 "WJetsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "TTbarMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "STMC":{ 'JEC':0,'JER':0,'nom':0  }
 					 },
 					 "2016": 
 					{ "QCDMC": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
 					 "TTbarMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "STMC":{ 'JEC':0,'JER':0,'nom':0  }
 					 },
 					 "2017": 
 					{ "QCDMC": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
 					 "TTbarMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "STMC":{ 'JEC':0,'JER':0,'nom':0  }
 					 },
 					 "2018": 
 					{ "QCDMC": { 'JEC':0,'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
 					 "TTbarMC":{ 'JEC':0,'JER':0,'nom':0  },
+					 "WJetsMC":{ 'JEC':0,'JER':0,'nom':0  },
 					 "STMC":{ 'JEC':0,'JER':0,'nom':0  }
 					 }
 
@@ -187,24 +191,28 @@ if __name__=="__main__":
 					 { 
 					 "QCDMC": { 'JEC':[],'JER':[],'nom':[]  },
 					 "TTbarMC":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "STMC":{ 'JEC':[],'JER':[],'nom':[]  }
 					 },
 					 "2016": 
 					 { 
 					 "QCDMC": { 'JEC':[],'JER':[],'nom':[]  },
 					 "TTbarMC":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "STMC":{ 'JEC':[],'JER':[],'nom':[]  }
 					 } ,
 					 "2017": 
 					 { 
 					 "QCDMC": { 'JEC':[],'JER':[],'nom':[]  },
 					 "TTbarMC":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "STMC":{ 'JEC':[],'JER':[],'nom':[]  }
 					 },
 					 "2018": 
 					 { 
 					  "QCDMC": { 'JEC':[],'JER':[],'nom':[]  },
 					 "TTbarMC":{ 'JEC':[],'JER':[],'nom':[] },
+					 "WJetsMC":{ 'JEC':[],'JER':[],'nom':[]  },
 					 "STMC":{ 'JEC':[],'JER':[],'nom':[]  }
 					 } 
 				}
@@ -252,6 +260,8 @@ if __name__=="__main__":
 			sample_str = "TTbarMC"
 		elif "TTTo" in line:
 			sample_str = "TTbarMC"
+		elif "WJetsMC" in line:
+			sample_str = "WJetsMC"
 		elif "ST_" in line:
 			sample_str = "STMC"
 		for sample in signal_samples:

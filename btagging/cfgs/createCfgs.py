@@ -177,7 +177,7 @@ def main():
 
 	years	= ["2015","2016","2017","2018"]
 
-	signal_samples_pkl = open('../../signal_samples.pkl', 'r')
+	signal_samples_pkl = open('../../data/pkl/signal_samples.pkl', 'r')
 	signal_samples	  = pickle.load(signal_samples_pkl)
 	signal_samples = np.array(signal_samples)
 
@@ -377,7 +377,6 @@ def main():
                        'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',
                        'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-
                         "Suu8_chi3": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu8_chi2": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu8_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
@@ -393,7 +392,6 @@ def main():
                         "Suu4_chi1p5": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "Suu4_chi1": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "signal": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
-
                         "WJetsMC_LNu-HT800to1200":   'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "WJetsMC_LNu-HT1200to2500": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
                         "WJetsMC_LNu-HT2500toInf": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
@@ -555,7 +553,12 @@ def main():
 	"ST_s-channel-hadronsMC",
 	"ST_s-channel-leptonsMC",
 	"ST_tW-antiTop_inclMC",
-	"ST_tW-top_inclMC"]
+	"ST_tW-top_inclMC",
+   "WJetsMC_LNu-HT800to1200",
+   "WJetsMC_LNu-HT1200to2500",
+   "WJetsMC_LNu-HT2500toInf",
+   "WJetsMC_QQ-HT800toInf",
+   "TTJetsMCHT800to1200"]
 		elif year == "2016":
 			samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","QCDMC_Pt15to7000","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","TTToHadronicMC","TTToSemiLeptonicMC", "TTToLeptonicMC",
 	"ST_t-channel-top_inclMC",
@@ -563,7 +566,12 @@ def main():
 	"ST_s-channel-hadronsMC",
 	"ST_s-channel-leptonsMC",
 	"ST_tW-antiTop_inclMC",
-	"ST_tW-top_inclMC"]
+	"ST_tW-top_inclMC",
+   "WJetsMC_LNu-HT800to1200",
+   "WJetsMC_LNu-HT1200to2500",
+   "WJetsMC_LNu-HT2500toInf",
+   "WJetsMC_QQ-HT800toInf",
+   "TTJetsMCHT800to1200"]
 		elif year == "2017":
 			samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","QCDMC_Pt15to7000","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","TTToHadronicMC","TTToSemiLeptonicMC", "TTToLeptonicMC",
 	"ST_t-channel-top_inclMC",
@@ -571,7 +579,12 @@ def main():
 	"ST_s-channel-hadronsMC",
 	"ST_s-channel-leptonsMC",
 	"ST_tW-antiTop_inclMC",
-	"ST_tW-top_inclMC" ]
+	"ST_tW-top_inclMC",
+   "WJetsMC_LNu-HT800to1200",
+   "WJetsMC_LNu-HT1200to2500",
+   "WJetsMC_LNu-HT2500toInf",
+   "WJetsMC_QQ-HT800toInf",
+   "TTJetsMCHT800to1200" ]
 		elif year == "2018":
 			samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","QCDMC_Pt15to7000","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","TTToHadronicMC","TTToSemiLeptonicMC", "TTToLeptonicMC",
 	"ST_t-channel-top_inclMC",
@@ -579,7 +592,12 @@ def main():
 	"ST_s-channel-hadronsMC",
 	"ST_s-channel-leptonsMC",
 	"ST_tW-antiTop_inclMC",
-	"ST_tW-top_inclMC" ]
+	"ST_tW-top_inclMC",
+   "WJetsMC_LNu-HT800to1200",
+   "WJetsMC_LNu-HT1200to2500",
+   "WJetsMC_LNu-HT2500toInf",
+   "WJetsMC_QQ-HT800toInf",
+   "TTJetsMCHT800to1200" ]
 		samples.extend(signal_samples)
 		for iii, sample in enumerate(samples):
 			if "data" in sample:

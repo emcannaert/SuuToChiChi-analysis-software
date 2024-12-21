@@ -114,7 +114,7 @@ if __name__ == "__main__":
       years = ["2018","2017","2016","2015"]
       #samples = ["QCDMC2000toInf","QCDMC1500to2000","QCDMC1000to1500","TTToHadronicMC", "TTToLeptonicMC", "TTToSemiLeptonicMC","ST_t-channel-antitop_inclMC", "ST_t-channel-top_inclMC", "ST_tW-antiTop_inclMC","ST_tW-top_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC"]
       #samples = ["TTToHadronic", "TTToLeptonic", "TTToSemiLeptonic","ST_t-channel-antitop_incl", "ST_t-channel-top_incl", "ST_tW-antiTop_incl","ST_tW-top_incl","ST_s-channel-hadrons","ST_s-channel-leptons"]
-      samples = ["QCDMC", "TTbarMC", "STMC", "SuuToChiChi"]
+      samples = ["QCDMC", "TTbarMC", "WJetsMC", "STMC", "SuuToChiChi"]
       for year in years:
          for sample in samples:
             makeBtagEffMap(year, sample)

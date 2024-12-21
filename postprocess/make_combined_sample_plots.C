@@ -24,6 +24,12 @@ using namespace std;
   double ST_s_channel_4f_leptons_SF[4] = {0.01323030083,0.01149139097,0.01117527734,0.01155448784}; //TODO
   double ST_tW_antitop_5f_SF[4] = {0.2967888696,0.2301666797,0.2556495594,0.2700032391}; //TODO
   double ST_tW_top_5f_SF[4] = {0.2962796522,0.2355829386,0.2563403788,0.2625270613}; //TODO
+
+  double WJetsMC_LNu_HT800to1200_SF[4] = {0.04172270958,0.04230432205,0.04374224695,0.04394190568}; //TODO
+  double WJetsMC_LNu_HT1200to2500_SF[4] = {0.01068088067,0.00932744847,0.009709510545,0.01070780024}; //TODO
+  double WJetsMC_LNu_HT2500toInf_SF[4] = {0.0001931363546,0.0001895618832,0.0002799036518,0.0007547032677}; //TODO
+  double WJetsMC_QQ_HT800toInf_SF[4] = {0.072501767,0.07139611301,0.08100232455,0.128194465}; //TODO
+
 void write_cms_text(double CMS_label_pos, double SIM_label_pos, TCanvas * canvas, bool noStats) {
     // do all the fancy formatting 
     //gStyle->SetOptStat(0);
@@ -296,7 +302,7 @@ template <typename T> T combine_histograms(std::vector<T> _hists, double weights
 }
 
 
-template <typename T> void create_plots(std::vector<std::string> dataFiles, std::vector<std::string> QCDFiles, std::vector<std::string> TTbarFiles, std::vector<std::string> STFiles, double QCD_weights[], double TTbar_weights[], double ST_weights[], std::string histName, std::string year,bool makeStack = false, bool makeLog = false, bool noStats = false, std::string plotName = "", std::string plot_description = "", std::string folderName = ""  )
+template <typename T> void create_plots(std::vector<std::string> dataFiles, std::vector<std::string> QCDFiles, std::vector<std::string> TTbarFiles, std::vector<std::string> WJetsFiles,  std::vector<std::string> STFiles, double QCD_weights[], double TTbar_weights[], double WJets_weights[], double ST_weights[], std::string histName, std::string year,bool makeStack = false, bool makeLog = false, bool noStats = false, std::string plotName = "", std::string plot_description = "", std::string folderName = ""  )
 {
 
 
@@ -329,6 +335,11 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
   
 
 
+  std::vector<T>  h_WJets_hists    = get_histograms<T>(WJetsFiles, getName.c_str(), folderName);
+  T  h_all_WJets_MC    = combine_histograms<T>(h_WJets_hists,WJets_weights);
+  h_all_WJets_MC->SetTitle((plot_description + " (" +year+  " combined WJets MC)").c_str());
+  
+
   //std::cout << "Loading data files." << std::endl;
   //std::vector<T>  h_data_hists  = get_histograms<T>(dataFiles, getName.c_str());
   //std::cout << "Loading MC files." << std::endl;
@@ -360,6 +371,7 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
         TH2F * dummy_h2 = (TH2F*)h_all_QCD_MC;
         SetLogScaleZAxis(h_all_TTbar_MC, c1);
         SetLogScaleZAxis(h_all_QCD_MC, c1);
+        SetLogScaleZAxis(h_all_WJets_MC, c1);
         SetLogScaleZAxis(h_all_ST_MC, c1);
 
         SetLogScaleZAxis(dummy_h2, c1);
@@ -373,6 +385,13 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
       h_all_QCD_MC->Draw("colz");
       write_cms_text(CMS_label_pos,SIM_label_pos, c1, noStats);
       c1->SaveAs( (plot_home + plotName +"_QCDMC_combined_"+ year+".png").c_str()); 
+
+      h_all_WJets_MC->Draw("colz");
+      write_cms_text(CMS_label_pos,SIM_label_pos, c1, noStats);
+      c1->SaveAs( (plot_home + plotName +"_WJetsMC_combined_"+ year+".png").c_str()); 
+
+
+
       h_all_ST_MC->Draw("colz");
       write_cms_text(CMS_label_pos,SIM_label_pos, c1, noStats);
       c1->SaveAs( (plot_home + plotName +"_STMC_combined_"+ year+".png").c_str()); 
@@ -380,6 +399,7 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
       //backup: non-stack, combined plot
       T h_allBR = (T)h_all_QCD_MC->Clone();
       h_allBR->Add(h_all_TTbar_MC);
+      h_allBR->Add(h_all_WJets_MC);
       h_allBR->Add(h_all_ST_MC);
       h_allBR->SetTitle((plot_description + " (" +year+  " all combined BRs)").c_str());
 
@@ -402,15 +422,17 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
       setDynamicXScale( h_all_TTbar_MC );
       h_all_TTbar_MC->Draw("HIST");
       write_cms_text(CMS_label_pos,SIM_label_pos, c1, noStats);
-
       c1->SaveAs( (plot_home + plotName +"_TTbar_combined_"+ year+".png").c_str());
       if(plotName == "top_pt_weight")return; // these are only saved for top datasets
 
 
+      setDynamicXScale( h_all_WJets_MC );
+      h_all_WJets_MC->Draw("HIST");
+      write_cms_text(CMS_label_pos,SIM_label_pos, c1, noStats);
+
       setDynamicXScale( h_all_QCD_MC );
 
       h_all_QCD_MC->Draw("HIST");
-
       write_cms_text(CMS_label_pos,SIM_label_pos, c1, noStats);
 
       c1->SaveAs( (plot_home + plotName +"_QCDMC_combined_"+ year+".png").c_str()); 
@@ -431,12 +453,13 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
 
   h_all_QCD_MC->SetFillColor(kRed);
   h_all_TTbar_MC->SetFillColor(kYellow);
+  h_all_WJets_MC->SetFillColor(kViolet);
   h_all_ST_MC->SetFillColor(kGreen);
 
   h_allBR_stack->Add(h_all_ST_MC);
   h_allBR_stack->Add(h_all_TTbar_MC);
+  h_allBR_stack->Add(h_all_WJets_MC);
   h_allBR_stack->Add(h_all_QCD_MC);
-
 
   //h_allBR_stack->GetYaxis()->SetRangeUser(h_allBR_stack->GetMinimum(), h_allBR_stack->GetMaximum());
   //h_allBR_stack->SetMinimum(h_allBR_stack->GetMinimum());
@@ -446,23 +469,19 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
   
   /*
   if(makeLog)
-  {
-    
+  {  
     //h_allBR_stack->GetYaxis()->SetRangeUser(0.1*h_allBR_stack->GetMinimum(), 10*h_allBR_stack->GetMaximum());
     //h_allBR_stack->Draw("HIST");
   }*/
   
-
-
-
   //setDynamicXScale( h_allBR_stack );
 
   TLegend *legend = new TLegend(0.7, 0.7, 0.9, 0.9);
   legend->AddEntry(h_all_QCD_MC, "QCD MC", "f");
   legend->AddEntry(h_all_TTbar_MC, "TTbar MC", "f");
   legend->AddEntry(h_all_ST_MC, "ST MC", "f");
+  legend->AddEntry(h_all_WJets_MC, "ST MC", "f");
   legend->Draw();
-
 
   //backup: non-stack, combined plot
   //T h_allBR = (T)h_all_QCD_MC->Clone();
@@ -652,6 +671,7 @@ void make_combined_sample_plots()
 */
     double QCD_weights[] = {QCD1000to1500_SF[iii],QCD1500to2000_SF[iii],QCD2000toInf_SF[iii]};
     double TTbar_weights[] = {h_TTJetsMCHT1200to2500_SF[iii],h_TTJetsMCHT2500toInf_SF[iii]};
+    double WJets_weights[] = {WJetsMC_LNu_HT800to1200_SF[iii], WJetsMC_LNu_HT1200to2500_SF[iii], WJetsMC_LNu_HT2500toInf_SF[iii],WJetsMC_QQ_HT800toInf_SF[iii]}; 
     double ST_weights[] = {ST_s_channel_4f_hadrons_SF[iii], ST_s_channel_4f_leptons_SF[iii], ST_t_channel_antitop_5f_SF[iii], ST_t_channel_top_5f_SF[iii], ST_tW_antitop_5f_SF[iii],ST_tW_top_5f_SF[iii]};
 
     /*
@@ -718,8 +738,16 @@ void make_combined_sample_plots()
 ("../combinedROOT/processedFiles/QCDMC1500to2000_"+*year+"_processed.root").c_str(),
 ("../combinedROOT/processedFiles/QCDMC2000toInf_"+*year+"_processed.root").c_str()};
 
-  std::vector<std::string> TTbarFiles_processed = {("../combinedROOT/processedFiles/TTJetsMCHT1200to2500_"+*year+"_processed.root").c_str(),
+  std::vector<std::string> TTbarFiles_processed = {("../combinedROOT/processedFiles/TTJetsMCHT800to1200_"+*year+"_processed.root").c_str(),
+  ("../combinedROOT/processedFiles/TTJetsMCHT1200to2500_"+*year+"_processed.root").c_str(),
 ("../combinedROOT/processedFiles/TTJetsMCHT2500toInf_"+*year+"_processed.root").c_str()};
+
+
+  std::vector<std::string> WJetsFiles_processed = {("../combinedROOT/processedFiles/WJetsMC_LNu-HT800to1200_"+*year+"_processed.root").c_str(),
+("../combinedROOT/processedFiles/WJetsMC_LNu-HT1200to2500_"+*year+"_processed.root").c_str(),
+("../combinedROOT/processedFiles/WJetsMC_LNu-HT2500toInf_"+*year+"_processed.root").c_str(),
+("../combinedROOT/processedFiles/WJetsMC_QQ-HT800toInf_"+*year+"_processed.root").c_str()};
+
 
   std::vector<std::string> STFiles_processed = {("../combinedROOT/processedFiles/ST_s-channel-hadronsMC_"+*year+"_processed.root").c_str(),
 ("../combinedROOT/processedFiles/ST_s-channel-leptonsMC_"+*year+"_processed.root").c_str(),
@@ -751,16 +779,14 @@ void make_combined_sample_plots()
     int counter = 0;
     for(auto histName = histNames_proc .begin(); histName < histNames_proc.end(); histName++)
     {
-
-      create_plots<TH2F*>(dataFiles, QCDFiles_processed, TTbarFiles_processed, STFiles_processed, QCD_weights, TTbar_weights, ST_weights, *histName, *year,true, makeLog3[counter],noStats3[counter], *histName, plot_descriptions_proc[counter], nomFolderName);
-
+      create_plots<TH2F*>(dataFiles, QCDFiles_processed, TTbarFiles_processed, WJetsFiles_processed, STFiles_processed, QCD_weights, TTbar_weights, WJets_weights, ST_weights, *histName, *year,true, makeLog3[counter],noStats3[counter], *histName, plot_descriptions_proc[counter], nomFolderName);
       counter++;
     }
 
     counter =0;
     for(auto histName = histNames_2D .begin(); histName < histNames_2D.end(); histName++)
     {
-      create_plots<TH2F*>(dataFiles, QCDFiles_processed, TTbarFiles_processed, STFiles_processed, QCD_weights, TTbar_weights, ST_weights, *histName, *year, false, makeLog2[counter], noStats2[counter],*histName, plot_descriptions_2D[counter], nomFolderName);
+      create_plots<TH2F*>(dataFiles, QCDFiles_processed, TTbarFiles_processed, WJetsFiles_processed, STFiles_processed, QCD_weights, TTbar_weights, WJets_weights, ST_weights, *histName, *year, false, makeLog2[counter], noStats2[counter],*histName, plot_descriptions_2D[counter], nomFolderName);
       counter++;
     }
 

@@ -15,7 +15,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    if runSideband: print("WARNING: RUNNING SIDEBAND REGION.")
 
-   if "data" in sample:
+   if "data" in sample or "nom" not in systematic__:   # do not want to do pdf weights for data or for the JEC/JER variation runs
       doPDF = False
    isSignal = False
    if "Suu" in sample:
@@ -328,7 +328,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
             elif "Suu" in sample:
                bTagSF_sample = "SuuToChiChi"
             elif "WJets" in sample:
-               bTagSF_sample = "TTbarMC"
+               bTagSF_sample = "WJetsMC"
             elif "WW" in sample or "ZZ" in sample:
                bTagSF_sample = "TTbarMC"
             else:
