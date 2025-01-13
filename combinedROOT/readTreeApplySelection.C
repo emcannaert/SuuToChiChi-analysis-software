@@ -600,20 +600,21 @@ void readTreeApplySelection()
    
    std:string runType = "main-band";
    // you must change these ........
-   bool runAll        = false;
+   bool runAll        = true;
    bool runData       = false;
    bool runSignal     = false;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
    bool runDataBR     = false;
    bool runTTbar      = false;
-   bool runSelection  = true;
+   bool runSelection  = false;
    bool runSingleFile = false;
    bool runExtras     = false;
    bool runSideband   = false;
 
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
    std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
-   years = {"2015"}; 
+
+
    int yearNum = 0;
    int nFailedFiles = 0;
    std::string failedFiles = "";
@@ -621,7 +622,7 @@ void readTreeApplySelection()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   if (runSelection) years = {"2015","2015","2016","2017","2018"};  // single year to run over 
+   if (runSelection) years = {"2015","2016","2017","2018"};  // single year to run over 
 
    if(runSingleFile)
    {
@@ -731,7 +732,7 @@ void readTreeApplySelection()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"Suu7_chi2p5_HTHT_", "Suu5_chi2_HTZT_", "Suu5_chi1p5_ZTZT_", "Suu6_chi2_ZTZT_", "Suu8_chi3_ZTZT_"};  
+         dataBlocks = {"WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",  "TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_"  };  
       }
       else if(runExtras)
       {

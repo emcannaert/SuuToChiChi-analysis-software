@@ -254,11 +254,9 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 		SF_1500to2000 = return_BR_SF(self.year,"QCDMC1500to2000")
 		SF_2000toInf  = return_BR_SF(self.year,"QCDMC2000toInf") 
 
-
 		SF_TTJets800to1200  = return_BR_SF(self.year,"TTJetsMCHT800to1200")
 		SF_TTJets1200to2500 = return_BR_SF(self.year,"TTJetsMCHT1200to2500")
 		SF_TTJets2500toInf  = return_BR_SF(self.year,"TTJetsMCHT2500toInf")
-
 
 		SF_ST_t_channel_top_inclMC 		= return_BR_SF(self.year,"ST_t_channel_top_inclMC")
 		SF_ST_t_channel_antitop_inclMC  =  return_BR_SF(self.year,"ST_t_channel_antitop_inclMC")
@@ -308,6 +306,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 
 		total_scaled_event_content =  total_1000to1500*pow(SF_1000to1500,1) +  total_1500to2000*pow(SF_1500to2000,1) + total_2000toInf*pow(SF_2000toInf,1) +    total_ST_t_channel_top_inclMC*pow(SF_ST_t_channel_top_inclMC,1)  + total_ST_t_channel_antitop_inclMC*pow(SF_ST_t_channel_antitop_inclMC,1)  +  total_ST_s_channel_hadronsMC*pow(SF_ST_s_channel_hadronsMC,1)  +  total_ST_s_channel_leptonsMC*pow(SF_ST_s_channel_leptonsMC,1) +  total_ST_tW_antiTop_inclMC*pow(SF_ST_tW_antiTop_inclMC,1)  +  total_ST_tW_top_inclMC*pow(SF_ST_tW_top_inclMC,1)  + 		total_WJetsMC_LNu_HT800to1200*pow(SF_WJetsMC_LNu_HT800to1200,1) + total_WJetsMC_LNu_HT1200to2500*pow(SF_WJetsMC_LNu_HT1200to2500,1) + total_WJetsMC_LNu_HT2500toInf*pow(SF_WJetsMC_LNu_HT2500toInf,1) + total_WJetsMC_QQ_HT800toInf*pow(SF_WJetsMC_QQ_HT800toInf,1)
+		
 		if not self.includeTTo: total_scaled_event_content += (total_TTJets800to1200*pow(SF_TTJets800to1200,1) +  total_TTJets1200to2500*pow(SF_TTJets1200to2500,1)  +  total_TTJets2500toInf*pow(SF_TTJets2500toInf,1) )
 		else: total_scaled_event_content +=  (total_TTToHadronicMC*pow(SF_TTToHadronic,1) + total_TTToSemiLeptonicMC*pow(SF_TTToSemiLeptonic,1) + total_TTToLeptonicMC*pow(SF_TTToSemiLeptonic,1) ) 
 		sum_of_weights  =  total_1000to1500*pow(SF_1000to1500,2) +  total_1500to2000*pow(SF_1500to2000,2) + total_2000toInf*pow(SF_2000toInf,2) +  total_TTJets800to1200*pow(SF_TTJets800to1200,2) +  total_TTJets1200to2500*pow(SF_TTJets1200to2500,2)  +  total_TTJets2500toInf*pow(SF_TTJets2500toInf,2)  +   total_ST_t_channel_top_inclMC*pow(SF_ST_t_channel_top_inclMC,2)  + total_ST_t_channel_antitop_inclMC*pow(SF_ST_t_channel_antitop_inclMC,2)  +  total_ST_s_channel_hadronsMC*pow(SF_ST_s_channel_hadronsMC,2)  +  total_ST_s_channel_leptonsMC*pow(SF_ST_s_channel_leptonsMC,2) +  total_ST_tW_antiTop_inclMC*pow(SF_ST_tW_antiTop_inclMC,2)  +  total_ST_tW_top_inclMC*pow(SF_ST_tW_top_inclMC,2)  + 		total_WJetsMC_LNu_HT800to1200*pow(SF_WJetsMC_LNu_HT800to1200,2) + total_WJetsMC_LNu_HT1200to2500*pow(SF_WJetsMC_LNu_HT1200to2500,2) + total_WJetsMC_LNu_HT2500toInf*pow(SF_WJetsMC_LNu_HT2500toInf,2) + total_WJetsMC_QQ_HT800toInf*pow(SF_WJetsMC_QQ_HT800toInf,2)

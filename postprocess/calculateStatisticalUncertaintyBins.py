@@ -37,8 +37,8 @@ class combineHistBins:
 		self.technique_str = technique_str
 		self.dryRun = dryRun
 		self.max_stat_uncert = 0.20  ## maximum statistical uncertainty
-		self.min_unscaled_QCD_bin_counts   = 8.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
-		self.min_scaled_QCD_bin_counts   = 2.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
+		self.min_unscaled_QCD_bin_counts   = 0.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
+		self.min_scaled_QCD_bin_counts   = 0.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
 
 
 		self.includeTTJetsMCHT800to1200 = False
@@ -766,7 +766,7 @@ if __name__=="__main__":
 		os.system('rm %s/superbin_indicesNN_*.txt'%binMap_path)
 
 	years = ["2015","2016","2017","2018"]
-	regions = ["SR","CR", "AT1b", "AT0b",  "SB1b", "SB0b"]   # "AT0tb", "AT1tb",
+	regions = ["SR","CR", "AT1b", "AT0b"  ]   # "AT0tb", "AT1tb", "SB1b", "SB0b"
 
 	c = ROOT.TCanvas("c", "canvas", 1250, 1000)
 	ROOT.gStyle.SetOptStat(0)
