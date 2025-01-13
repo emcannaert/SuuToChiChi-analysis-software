@@ -76,3 +76,4 @@ crab submit -c crab_selectionStudier_ST_tW-top_inclMC_2015_cfg.py
 crab submit -c crab_selectionStudier_ST_tW-top_inclMC_2016_cfg.py
 crab submit -c crab_selectionStudier_ST_tW-top_inclMC_2017_cfg.py
 crab submit -c crab_selectionStudier_ST_tW-top_inclMC_2018_cfg.py
+source submitCrab_WJets.sh

@@ -463,10 +463,8 @@ selectionStudier::selectionStudier(const edm::ParameterSet& iConfig)
       puSummaryToken_         = consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupCollection"));
 
       if(doTopPtReweight) tree->Branch("top_pt_weight", &top_pt_weight, "top_pt_weight/D");
-
       tree->Branch("bTag_eventWeight_T_nom", &bTag_eventWeight_T_nom  , "bTag_eventWeight_T_nom/D");  /// tight WP event weight
       tree->Branch("bTag_eventWeight_M_nom", &bTag_eventWeight_M_nom  , "bTag_eventWeight_M_nom/D");  /// med WP event weight
-
       if(doPUSF)  tree->Branch("PU_eventWeight_nom", &PU_eventWeight_nom, "PU_eventWeight_nom/D");
 
 
@@ -984,11 +982,16 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 
 
-   /*
+   if(nAK4 < 3) return;
+
    // calculate the candidate dijet delta R values
    double minDeltaRDisc12 = sqrt( pow(leadAK4Jets[0].DeltaR(leadAK4Jets[1]),2) + pow(leadAK4Jets[2].DeltaR(leadAK4Jets[3]),2));    // dijet one always has j1 in it
    double minDeltaRDisc13 = sqrt( pow(leadAK4Jets[0].DeltaR(leadAK4Jets[2]),2) + pow(leadAK4Jets[1].DeltaR(leadAK4Jets[3]),2));
-   double minDeltaRDisc14 = sqrt( pow(leadAK4Jets[0].DeltaR(leadAK4Jets[3]),2) + pow(leadAK4Jets[1].DeltaR(leadAK4Jets[2]),2));
+   double minDeltaRDisc14 = 1e12;
+
+   if(nAK4 > 3)  minDeltaRDisc14 = sqrt( pow(leadAK4Jets[0].DeltaR(leadAK4Jets[3]),2) + pow(leadAK4Jets[1].DeltaR(leadAK4Jets[2]),2));
+   else {    leadAK4Jets.push_back( TLorentzVector(0,0,0,0) );      }
+
 
    if (  abs(min(minDeltaRDisc12, min(minDeltaRDisc13,minDeltaRDisc14)) -minDeltaRDisc12)<1e-8 ) 
    {
@@ -1008,8 +1011,6 @@ void selectionStudier::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       dijetMassOne = (leadAK4Jets[0] +leadAK4Jets[3]).M();
       dijetMassTwo = (leadAK4Jets[1] +leadAK4Jets[2]).M();
    }
-
-   */
 
    if(_verbose)std::cout << "before AK8 jets" << std::endl;
 

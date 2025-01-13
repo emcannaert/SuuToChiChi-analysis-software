@@ -276,8 +276,7 @@ template <typename T> std::vector<T> get_histograms(std::vector<std::string> fna
 
 template <typename T> T combine_histograms(std::vector<T> _hists, double weights[])
 {
-
-
+  
 
   TH1::AddDirectory(false);
 
@@ -328,7 +327,7 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
   if(noStats) gStyle->SetOptStat(0);
   else{ gStyle->SetOptStat(1111);}
 
-
+  
   std::vector<T>  h_TTbar_hists    = get_histograms<T>(TTbarFiles, getName.c_str(), folderName);
   T  h_all_TTbar_MC    = combine_histograms<T>(h_TTbar_hists,TTbar_weights);
   h_all_TTbar_MC->SetTitle((plot_description + " (" +year+  " combined TTbar MC)").c_str());

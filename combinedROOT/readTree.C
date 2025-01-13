@@ -202,6 +202,34 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1F* h_nCA4_300_1b  = new TH1F("h_nCA4_300_1b","Number of Reclustered SJ CA4 jets (E > 300 GeV) in the 1b region;nJets; Events",10,-0.5,9.5);
 		TH1F* h_nCA4_300_0b  = new TH1F("h_nCA4_300_0b","Number of Reclustered SJ CA4 jets (E > 300 GeV) in the 0b region;nJets; Events",10,-0.5,9.5);
 
+
+		// failed events indices
+		// bin 0 triggers
+		// bin 1 veto maps
+		// bin 2 HEM
+		// bin 3 bad event SF
+		// bin 4 HT cut
+		// bin 6 nfatjet cut
+		// bin 7 heavy AK8 / dijet cut 
+
+		std::string failedEventTitle = "Failed events (index gives cause of failure)  (" + dataBlock  +") "  +   + "("+  systematic+"_"+ *systematic_suffix + ")" +   + "("+ dataYear + ") ; index of failure; Events";
+		TH1I* h_failed_events  = new TH1I("h_failed_events", failedEventTitle.c_str(),7,-0.5,6.5);
+
+
+		// bad event weight indices
+		// bin 0 PU
+		// bin 1  fact
+		// bin 2 renorm
+		// bin 3 top pt
+		// bin 4  pdf
+		// bin 5 btagging med 
+		// bin 6 prefiring 
+		// bin 7 full event SF
+
+		std::string badeventWeightTitle = "Bad event weights (index gives weight type)  (" + dataBlock  +") "  +   + "("+  systematic+"_"+ *systematic_suffix + ")" +   + "("+ dataYear + ") ; index of failure; Events";
+		TH1I* h_bad_event_weights  = new TH1I("h_bad_event_weights", badeventWeightTitle.c_str(),8,-0.5,7.5);
+
+		
 		/////////////////////////////////////////////////////////////////////////////
 		/////////////more for verifying the CR //////////////////////////////////////
 		/////////////////////////////////////////////////////////////////////////////
@@ -344,14 +372,59 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		/////////// systematic uncertainties ///////
 		////////////////////////////////////////////
 
-		TH1F * h_pdf_EventWeight= new TH1F("h_pdf_EventWeight", "PDF event weight (up); event weight; Events",200,0.0,10.0);
-		TH1F * h_renorm_EventWeight= new TH1F("h_renorm_EventWeight", "Renorm. event weight (up); event weight; Events",200,0.0,2.5);
-		TH1F * h_factor_EventWeight= new TH1F("h_factor_EventWeight", "Fact. event weight (up); event weight; Events",200,0.0,2.5);
+		// overall event weights
+		TH1F * h_pdf_EventWeight= new TH1F("h_pdf_EventWeight", "PDF event weight; event weight; Events",200,0.0,10.0);
+		TH1F * h_renorm_EventWeight= new TH1F("h_renorm_EventWeight", "Renorm. event weight; event weight; Events",200,0.0,2.5);
+		TH1F * h_factor_EventWeight= new TH1F("h_factor_EventWeight", "Fact. event weight; event weight; Events",200,0.0,2.5);
 
 		TH1F* h_PU_eventWeight  = new TH1F("h_PU_eventWeight","Pileup Event Weights;Event Weight; Events",100,0.0,3.0);
 		TH1F* h_bTag_eventWeight_T  = new TH1F("h_bTag_eventWeight_T","b tagging Event Weights (tight WP);Event Weight; Events",100,0.0,3.0);
 		TH1F* h_bTag_eventWeight_M  = new TH1F("h_bTag_eventWeight_M","b tagging Event Weights (medium WP);Event Weight; Events",100,0.0,3.0);
 		TH1F* h_L1PrefiringWeight  = new TH1F("h_L1PrefiringWeight","L1 Prefiring Event Weights ;Event Weight; Events",100,0.0,3.0);
+
+		// event weights by region
+
+		// SR
+		TH1F * h_pdf_EventWeight_SR= new TH1F("h_pdf_EventWeight_SR", "PDF event weight (SR) ; event weight; Events",200,0.0,10.0);
+		TH1F * h_renorm_EventWeight_SR= new TH1F("h_renorm_EventWeight_SR", "Renorm. event weight  (SR); event weight; Events",200,0.0,2.5);
+		TH1F * h_factor_EventWeight_SR= new TH1F("h_factor_EventWeight_SR", "Fact. event weight  (SR); event weight; Events",200,0.0,2.5);
+
+		TH1F* h_PU_eventWeight_SR  = new TH1F("h_PU_eventWeight_SR","Pileup Event Weights  (SR);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T_SR  = new TH1F("h_bTag_eventWeight_T_SR","b tagging Event Weights (tight WP)  (SR);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_bTag_eventWeight_M_SR  = new TH1F("h_bTag_eventWeight_M_SR","b tagging Event Weights (medium WP)  (SR);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_L1PrefiringWeight_SR  = new TH1F("h_L1PrefiringWeight_SR","L1 Prefiring Event Weights ;Event Weight  (SR); Events",100,0.0,3.0);
+
+		// CR
+		TH1F * h_pdf_EventWeight_CR= new TH1F("h_pdf_EventWeight_CR", "PDF event weight (CR) ; event weight; Events",200,0.0,10.0);
+		TH1F * h_renorm_EventWeight_CR= new TH1F("h_renorm_EventWeight_CR", "Renorm. event weight  (CR); event weight; Events",200,0.0,2.5);
+		TH1F * h_factor_EventWeight_CR= new TH1F("h_factor_EventWeight_CR", "Fact. event weight  (CR); event weight; Events",200,0.0,2.5);
+
+		TH1F* h_PU_eventWeight_CR  = new TH1F("h_PU_eventWeight_CR","Pileup Event Weights  (CR);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T_CR  = new TH1F("h_bTag_eventWeight_T_CR","b tagging Event Weights (tight WP)  (CR);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_bTag_eventWeight_M_CR  = new TH1F("h_bTag_eventWeight_M_CR","b tagging Event Weights (medium WP)  (CR);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_L1PrefiringWeight_CR  = new TH1F("h_L1PrefiringWeight_CR","L1 Prefiring Event Weights ;Event Weight  (CR); Events",100,0.0,3.0);
+
+
+		// AT1b
+		TH1F * h_pdf_EventWeight_AT1b= new TH1F("h_pdf_EventWeight_AT1b", "PDF event weight (AT1b) ; event weight; Events",200,0.0,10.0);
+		TH1F * h_renorm_EventWeight_AT1b= new TH1F("h_renorm_EventWeight_AT1b", "Renorm. event weight  (AT1b); event weight; Events",200,0.0,2.5);
+		TH1F * h_factor_EventWeight_AT1b= new TH1F("h_factor_EventWeight_AT1b", "Fact. event weight  (AT1b); event weight; Events",200,0.0,2.5);
+
+		TH1F* h_PU_eventWeight_AT1b  = new TH1F("h_PU_eventWeight_AT1b","Pileup Event Weights  (AT1b);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T_AT1b  = new TH1F("h_bTag_eventWeight_T_AT1b","b tagging Event Weights (tight WP)  (AT1b);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_bTag_eventWeight_M_AT1b  = new TH1F("h_bTag_eventWeight_M_AT1b","b tagging Event Weights (medium WP)  (AT1b);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_L1PrefiringWeight_AT1b  = new TH1F("h_L1PrefiringWeight_AT1b","L1 Prefiring Event Weights ;Event Weight  (AT1b); Events",100,0.0,3.0);
+
+		// AT0b
+		TH1F * h_pdf_EventWeight_AT0b= new TH1F("h_pdf_EventWeight_AT0b", "PDF event weight (AT0b) ; event weight; Events",200,0.0,10.0);
+		TH1F * h_renorm_EventWeight_AT0b= new TH1F("h_renorm_EventWeight_AT0b", "Renorm. event weight  (AT0b); event weight; Events",200,0.0,2.5);
+		TH1F * h_factor_EventWeight_AT0b= new TH1F("h_factor_EventWeight_AT0b", "Fact. event weight  (AT0b); event weight; Events",200,0.0,2.5);
+
+		TH1F* h_PU_eventWeight_AT0b  = new TH1F("h_PU_eventWeight_AT0b","Pileup Event Weights  (AT0b);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T_AT0b  = new TH1F("h_bTag_eventWeight_T_AT0b","b tagging Event Weights (tight WP)  (AT0b);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_bTag_eventWeight_M_AT0b  = new TH1F("h_bTag_eventWeight_M_AT0b","b tagging Event Weights (medium WP)  (AT0b);Event Weight; Events",100,0.0,3.0);
+		TH1F* h_L1PrefiringWeight_AT0b  = new TH1F("h_L1PrefiringWeight_AT0b","L1 Prefiring Event Weights ;Event Weight  (AT0b); Events",100,0.0,3.0);
+
 
 		///////////////////////////////
 		////////// b-tagging //////////
@@ -458,6 +531,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		///////////////////////////////////////////////////////////////////////
 		///////////////////////// side-band plots // //////////////////////////
 		///////////////////////////////////////////////////////////////////////
+
+		TH1F* h_totHT_SB  = new TH1F("h_totHT_SB","Event H_{T} (sideband region);H_{T} [GeV]; Events / 200 5GeV",20,1200.,1600);
 
 		TH1F* h_SJ_mass_SB1b		 = new TH1F("h_SJ_mass_SB1b","SuperJet Mass (SB1b) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
 		TH1F* h_disuperjet_mass_SB1b  = new TH1F("h_disuperjet_mass_SB1b","diSuperJet Mass (SB1b) (cut-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
@@ -589,52 +664,54 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		else if((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_light_M_down", &bTag_eventWeight_M);*/
 		
 
-		if ( ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) && (systematic.find("bTag") != std::string::npos) )
+		if ( (inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) 
 		{
 
 		
-			/// partially split up ----- UNCORRELATED ----- b-tagging systematics (T & M split, bc and light jets considered together)
-			if     ((systematic == "bTagSF_tight") && (*systematic_suffix == "up"))  t1->SetBranchAddress("bTag_eventWeight_T_up", &bTag_eventWeight_T_up);
-			else if((systematic == "bTagSF_tight") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_T_down", &bTag_eventWeight_T_down);
-			
-			else if     ((systematic == "bTagSF_med") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_M_up", &bTag_eventWeight_M_up);
-			else if((systematic == "bTagSF_med") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_M_down", &bTag_eventWeight_M_down);
-			
-			/// partially split up ----- CORELLATED ---- b-tagging systematics (T & M split, bc and light jets considered together)
-			else if     ((systematic == "bTagSF_tight_corr") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_T_corr_up", &bTag_eventWeight_T_corr_up);
-			else if((systematic == "bTagSF_tight_corr") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_T_corr_down", &bTag_eventWeight_T_corr_down);
-			
-			else if     ((systematic == "bTagSF_med_corr") && (*systematic_suffix == "up")) t1->SetBranchAddress("bTag_eventWeight_M_corr_up", &bTag_eventWeight_M_corr_up);
-			else if((systematic == "bTagSF_med_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_M_corr_down", &bTag_eventWeight_M_corr_down);
+			if (systematic.find("bTag") != std::string::npos)
+			{ 
+				/// partially split up ----- UNCORRELATED ----- b-tagging systematics (T & M split, bc and light jets considered together)
+				if     ((systematic == "bTagSF_tight") && (*systematic_suffix == "up"))  t1->SetBranchAddress("bTag_eventWeight_T_up", &bTag_eventWeight_T_up);
+				else if((systematic == "bTagSF_tight") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_T_down", &bTag_eventWeight_T_down);
+				
+				else if     ((systematic == "bTagSF_med") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_M_up", &bTag_eventWeight_M_up);
+				else if((systematic == "bTagSF_med") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_M_down", &bTag_eventWeight_M_down);
+				
+				/// partially split up ----- CORELLATED ---- b-tagging systematics (T & M split, bc and light jets considered together)
+				else if     ((systematic == "bTagSF_tight_corr") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_T_corr_up", &bTag_eventWeight_T_corr_up);
+				else if((systematic == "bTagSF_tight_corr") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_T_corr_down", &bTag_eventWeight_T_corr_down);
+				
+				else if     ((systematic == "bTagSF_med_corr") && (*systematic_suffix == "up")) t1->SetBranchAddress("bTag_eventWeight_M_corr_up", &bTag_eventWeight_M_corr_up);
+				else if((systematic == "bTagSF_med_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_M_corr_down", &bTag_eventWeight_M_corr_down);
 
-			/// split up CORRELATED b-tagging systematics
-			else if     ((systematic == "bTag_eventWeight_bc_T_corr") && (*systematic_suffix == "up")) t1->SetBranchAddress("bTag_eventWeight_bc_T_corr_up", &bTag_eventWeight_bc_T_corr_up);
-			else if((systematic == "bTag_eventWeight_bc_T_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_bc_T_corr_down", &bTag_eventWeight_bc_T_corr_down);
+				/// split up CORRELATED b-tagging systematics
+				else if     ((systematic == "bTag_eventWeight_bc_T_corr") && (*systematic_suffix == "up")) t1->SetBranchAddress("bTag_eventWeight_bc_T_corr_up", &bTag_eventWeight_bc_T_corr_up);
+				else if((systematic == "bTag_eventWeight_bc_T_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_bc_T_corr_down", &bTag_eventWeight_bc_T_corr_down);
 
-			else if     ((systematic == "bTag_eventWeight_bc_M_corr") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_bc_M_corr_up", &bTag_eventWeight_bc_M_corr_up);
-			else if((systematic == "bTag_eventWeight_bc_M_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_bc_M_corr_down", &bTag_eventWeight_bc_M_corr_down);
+				else if     ((systematic == "bTag_eventWeight_bc_M_corr") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_bc_M_corr_up", &bTag_eventWeight_bc_M_corr_up);
+				else if((systematic == "bTag_eventWeight_bc_M_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_bc_M_corr_down", &bTag_eventWeight_bc_M_corr_down);
 
-			else if     ((systematic == "bTag_eventWeight_light_T_corr") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_T_corr_up", &bTag_eventWeight_light_T_corr_up);
-			else if((systematic == "bTag_eventWeight_light_T_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_T_corr_down", &bTag_eventWeight_light_T_corr_down);
+				else if     ((systematic == "bTag_eventWeight_light_T_corr") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_T_corr_up", &bTag_eventWeight_light_T_corr_up);
+				else if((systematic == "bTag_eventWeight_light_T_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_T_corr_down", &bTag_eventWeight_light_T_corr_down);
 
-			else if     ((systematic == "bTag_eventWeight_light_M_corr") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_M_corr_up", &bTag_eventWeight_light_M_corr_up);
-			else if((systematic == "bTag_eventWeight_light_M_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_M_corr_down", &bTag_eventWeight_light_M_corr_down);
+				else if     ((systematic == "bTag_eventWeight_light_M_corr") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_M_corr_up", &bTag_eventWeight_light_M_corr_up);
+				else if((systematic == "bTag_eventWeight_light_M_corr") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_M_corr_down", &bTag_eventWeight_light_M_corr_down);
 
-			/// split up UNCORRELATED b-tagging systematics
-			else if     ((systematic == "bTag_eventWeight_bc_T_year") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_bc_T_up", &bTag_eventWeight_bc_T_up);
-			else if((systematic == "bTag_eventWeight_bc_T_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_bc_T_down", &bTag_eventWeight_bc_T_down);
+				/// split up UNCORRELATED b-tagging systematics
+				else if     ((systematic == "bTag_eventWeight_bc_T_year") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_bc_T_up", &bTag_eventWeight_bc_T_up);
+				else if((systematic == "bTag_eventWeight_bc_T_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_bc_T_down", &bTag_eventWeight_bc_T_down);
 
-			else if     ((systematic == "bTag_eventWeight_bc_M_year") && (*systematic_suffix == "up")) t1->SetBranchAddress("bTag_eventWeight_bc_M_up", &bTag_eventWeight_bc_M_up);
-			else if((systematic == "bTag_eventWeight_bc_M_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_bc_M_down", &bTag_eventWeight_bc_M_down);
+				else if     ((systematic == "bTag_eventWeight_bc_M_year") && (*systematic_suffix == "up")) t1->SetBranchAddress("bTag_eventWeight_bc_M_up", &bTag_eventWeight_bc_M_up);
+				else if((systematic == "bTag_eventWeight_bc_M_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_bc_M_down", &bTag_eventWeight_bc_M_down);
 
-			else if     ((systematic == "bTag_eventWeight_light_T_year") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_T_up", &bTag_eventWeight_light_T_up);
-			else if((systematic == "bTag_eventWeight_light_T_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_T_down", &bTag_eventWeight_light_T_down);
+				else if     ((systematic == "bTag_eventWeight_light_T_year") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_T_up", &bTag_eventWeight_light_T_up);
+				else if((systematic == "bTag_eventWeight_light_T_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_T_down", &bTag_eventWeight_light_T_down);
 
-			else if     ((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_M_up", &bTag_eventWeight_light_M_up);
-			else if((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_M_down", &bTag_eventWeight_light_M_down);
-		
+				else if     ((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_M_up", &bTag_eventWeight_light_M_up);
+				else if((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_M_down", &bTag_eventWeight_light_M_down);
+			}
 			//////// pileup systematic 
-			else if((systematic == "PUSF") && (*systematic_suffix == "up"))        t1->SetBranchAddress("PU_eventWeight_up", &PU_eventWeight);
+			if     ((systematic == "PUSF") && (*systematic_suffix == "up"))        t1->SetBranchAddress("PU_eventWeight_up", &PU_eventWeight);
 			else if((systematic == "PUSF") && (*systematic_suffix == "down")) t1->SetBranchAddress("PU_eventWeight_down", &PU_eventWeight);
 			
 			//////// pdf weight systematic 
@@ -680,7 +757,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			//////// top pt systematic 
-			else if (inFileName.find("TTJets") != std::string::npos)
+			else if ( (inFileName.find("TTJets") != std::string::npos) || (inFileName.find("TTTo") != std::string::npos) )
 			{
 				if((systematic == "topPt") && (*systematic_suffix == "up")) t1->SetBranchAddress("top_pt_weight", &topPtWeight);
 			}
@@ -747,8 +824,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 		for (Int_t i=0;i<nentries;i++) 
 		{  
-
-			bool eventIsBad = false;
 			nomBtaggingWeight=1.0;
 
 			t1->GetEntry(i);
@@ -759,7 +834,12 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			}
 
 		  ///// APPLY TRIGGER 
-		  if ( (!passesPFHT) && (!passesPFJet) ) continue; // skip events that don't pass at least one trigger
+		  if ( (!passesPFHT) && (!passesPFJet) ) 
+		  {
+		  		h_failed_events->Fill(0);  //
+		  		continue; // skip events that don't pass at least one trigger
+		  }
+		  
 
 			nfatjets_double = 1.0 *nfatjets;
 			nfatjets_pre_double = 1.0*nfatjet_pre;
@@ -784,9 +864,16 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				if(AK4_fails_veto_map[iii]) fails_veto_map = true;
 			}*/
 
-			if(fails_veto_map || fails_HEM) continue; // skip event if there are bad jets in HEM or veto map regions
-
-
+			if(fails_veto_map)
+			{
+				h_failed_events->Fill(1);
+				continue;
+			}
+			if(fails_HEM) 
+			{
+				h_failed_events->Fill(2);
+				continue; 
+			}
 			double nAK4_recount = 0;
 
 			for(int iii=0; iii<nAK4; iii++)
@@ -797,7 +884,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 
 			eventScaleFactor = 1.0;
-
+			double bTag_eventWeight_M = 1, bTag_eventWeight_T = 1;
 
 			if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos)  )
 			{
@@ -814,11 +901,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				{
 					PU_eventWeight = 1.0;
 					num_bad_PUSF++;
+					h_bad_event_weights->Fill(0);
 				}
 
 				if ((factWeight != factWeight) || (std::isinf(factWeight))  || (std::isnan(factWeight)) || (abs(factWeight) > 100) || (factWeight < 0. ))
 				{
 					factWeight = 1.0;
+					h_bad_event_weights->Fill(1);
+
 				  // num_bad_scale++;
 					//std::cout << "BAD factorization weight during " << systematic << "_" << *systematic_suffix << ": " << factWeight << std::endl;
 				}
@@ -826,6 +916,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				if ((renormWeight != renormWeight) || (std::isinf(renormWeight))  || (std::isnan(renormWeight)) || (abs(renormWeight) > 100) || (renormWeight < 0.))
 				{
 					renormWeight = 1.0;
+					h_bad_event_weights->Fill(2);
+
 				  //std::cout << "BAD renormalization weight during " << systematic << "_" << *systematic_suffix << ": " << renormWeight << std::endl;
 				}
 
@@ -835,6 +927,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				{
 					topPtWeight = 1.0;
 					num_bad_topPt++;
+					h_bad_event_weights->Fill(3);
+
 				}
 				
 
@@ -842,19 +936,13 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				{
 					pdf_weight = 1.0;
 					num_bad_pdf++;
+					h_bad_event_weights->Fill(4);
+
 				}
 	 
 				eventScaleFactor = PU_eventWeight*topPtWeight;   /// these are all MC-only systematics, the b-tagging, fact, and renorm event weights will be applied after selection
-			}  
 
-
-			double bTag_eventWeight_M = 1, bTag_eventWeight_T = 1;
-
-			// set the b-tagging event weight based on the systematic
-
-			if ( ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)))
-			{
-
+				// set the b-tagging event weight based on the systematic
 				// only valid for MC
 				bTag_eventWeight_M = bTag_eventWeight_M_nom;
 				bTag_eventWeight_T = bTag_eventWeight_T_nom;
@@ -913,8 +1001,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				{
 					bTag_eventWeight_M = 1.0;
 					//std::cout << "event weight was bad!!" << std::endl;
-					eventIsBad = true;
 					num_bad_btagSF++;
+					h_bad_event_weights->Fill(5);
+
 				}	
 
 			} 
@@ -924,6 +1013,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			{
 				prefiringWeight = 1.0;
 				num_bad_prefiring++;
+				h_bad_event_weights->Fill(6);
+
 			}
 
 			eventScaleFactor *= prefiringWeight;   // these are the non-MC-only systematics
@@ -933,6 +1024,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			{
 				//std::cout << "ERROR: failed event scale factor on " << systematic << "_" << *systematic_suffix << std::endl;
 				badEventSF++;
+				h_bad_event_weights->Fill(7);
+
 				continue;
 			}
 
@@ -1109,7 +1202,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				std::cout << "bTag_eventWeight_M_nom: " << bTag_eventWeight_M_nom << std::endl;
 
 				std::cout << "======= the used event scale factor is --- " << bTag_eventWeight_M << " ---" << std::endl; 
-				//std::cout << "Event number " << eventnum << ", systematic is " << systematic << "_" << *systematic_suffix << ".   Is this bTag_eventWeight_light_M_corr_up/bTag_eventWeight_light_M_corr_down? " << ((systematic == "bTag_eventWeight_light_M_corr") && (*systematic_suffix == "up")) << "/" << ((systematic == "bTag_eventWeight_light_M_corr") && (*systematic_suffix == "down")) << ". Nom b tag weight is " <<  nomBtaggingWeight << ", used systematic weight is " << bTag_eventWeight_M << ". Event is bad: " << eventIsBad <<  std::endl;
+				//std::cout << "Event number " << eventnum << ", systematic is " << systematic << "_" << *systematic_suffix << ".   Is this bTag_eventWeight_light_M_corr_up/bTag_eventWeight_light_M_corr_down? " << ((systematic == "bTag_eventWeight_light_M_corr") && (*systematic_suffix == "up")) << "/" << ((systematic == "bTag_eventWeight_light_M_corr") && (*systematic_suffix == "down")) << ". Nom b tag weight is " <<  nomBtaggingWeight << ", used systematic weight is " << bTag_eventWeight_M << std::endl;
 			}
 
 			///////////////////////////////////////////////////////
@@ -1618,6 +1711,10 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			else if (runType == "side-band")
 			{
 
+
+
+				h_totHT_SB->Fill(totHT, eventWeightToUse  );
+
 				h_nTightBTags->Fill(nTightBTags,eventWeightToUse);
 				h_nMedBTags->Fill(nMedBTags,eventWeightToUse);
 				h_nLooseBTags->Fill(nLooseBtags,eventWeightToUse);
@@ -1805,9 +1902,9 @@ void readTree()
    bool runData			= false;
    bool runSignal    	= false;
    bool runBR	  			= false;
-   bool runAll	 			= false;
+   bool runAll	 			= true;
    bool runDataBR    	= false;
-   bool runSelection 	= true;
+   bool runSelection 	= false;
    bool runSingleFile 	= false;
    bool runSideband 		= false;
    int nFailedFiles = 0;
