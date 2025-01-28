@@ -28,7 +28,7 @@ class linearized_plot:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, mass_point, technique_str, all_BR_hists):
+	def __init__(self, year, mass_point, technique_str, all_BR_hists, useMask=False):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
@@ -50,6 +50,7 @@ class linearized_plot:
 		self.doSideband = all_BR_hists.doSideband
 		self.doATxtb = 	  all_BR_hists.doATxtb
 		self.doHTdist =   all_BR_hists.doHTdist
+		self.useMask  =   useMask
 		if self.doSideband: self.doHTdist = False
 
 		self.final_hist_name = "h_MSJ_mass_vs_MdSJ"
@@ -70,10 +71,17 @@ class linearized_plot:
 		self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
 		self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats"
 		self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots"
-		
+
+		if self.useMask: 
+			self.output_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/maskedFinalCombineFiles"
+			self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/maskedFinalCombineFiles/"
+
+		if self.useMask and self.doHTdist: return
+
 		self.superbin_indices			  	  = self.load_superbin_indices()
 		self.superbin_indices_AT			  = self.load_superbin_indices(region="AT1b")   ## change this to reflect which bin indices should be followed (AT1tb if you are using the tight WP in the SR)
  
+
 		if  self.doSideband: 
 			self.superbin_indices_SB1b = self.load_superbin_indices(region="SB1b")
 			self.superbin_indices_SB0b = self.load_superbin_indices(region="SB1b")
@@ -87,8 +95,8 @@ class linearized_plot:
 		#self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",	  "JER",	 "JEC",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",	   "Absolute",	 "JEC_BBEC1_year",		"JEC_Absolute_year",	  "JEC_RelativeSample_year",	"PUSF",	"topPt",	 "L1Prefiring",	       "pdf",	 "renorm",	 "fact",	  "AbsoluteCal",		    "AbsoluteTheory",	     "AbsolutePU"     ]   ## systematic namings as used in analyzer   removed:  "bTagSF",			  "JEC_HF",	 "JEC_BBEC1",	 "JEC_EC2",	 "JEC_EC2_year",		 "JEC_HF_year",	
 		#self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",	   "CMS_bTagSF_light_T",	   "CMS_bTagSF_bc_M",	   "CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		"CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_Absolute_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",  "CMS_jer",	 "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2",   "CMS_jec_EC2_year",   "CMS_jec_HF_year",   
 		
-		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",   "JEC_AbsolutePU",	     "JEC_AbsoluteScale",		  "JEC_Fragmentation",	   "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ]   ## systematic namings as used in analyzer	 "bTagSF",   
-		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	       "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR"]  ## systematic namings for cards   "CMS_btagSF", 
+		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",   "JEC_AbsolutePU",	     "JEC_AbsoluteScale",		  "JEC_Fragmentation",	   "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ,    "scale"]   ## systematic namings as used in analyzer	 "bTagSF",   
+		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	       "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
 
 		self.uncorrelated_systematics = [ "CMS_pu",  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
 
@@ -592,6 +600,8 @@ class linearized_plot:
 					year_str =  year[-2:]
 
 
+			#if systematic == "CMS_scale": print("Linearizing scale histograms.")
+
 			if "renorm" in systematic or "fact" in systematic: sample_type = "_QCD"
 			self.QCD_linear_SR.append(self.linearize_plot([],"QCD","SR",systematic + sample_type + year_str, False, "QCD", [ self.QCD1000to1500_hist_SR[iii], self.QCD1500to2000_hist_SR[iii],  self.QCD2000toInf_hist_SR[iii]]) )
 			self.QCD_linear_CR.append(self.linearize_plot([],"QCD","CR",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_CR[iii], self.QCD1500to2000_hist_CR[iii],  self.QCD2000toInf_hist_CR[iii]]))
@@ -768,14 +778,21 @@ class linearized_plot:
 
 			systematic_name = systematic_name + sample_type + year_str
 
+
 			#print("systematic name is %s"%(systematic_name))
-			if systematic_name == "CMS_pdf" or systematic_name == "CMS_renorm" or systematic_name == "CMS_fact":
+			if systematic_name in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :   
 				sample_str = "allBR"
 				systematic_name += "_%s"%sample_str
 			if systematic_name == "nom": 
 				sys_updown = [""]
 			else:
 				sys_updown = ["_%sUp"%systematic_name,"_%sDown"%systematic_name]
+
+
+
+			if "CMS_scale" in systematic_name: 
+				print("Writing scale histogram: %s"%(systematic_name) )
+
 
 			for jjj,sys_str in enumerate(sys_updown):
 				combined_hist = self.QCD_linear_SR[iii][jjj].Clone("allBR%s"%sys_str)
@@ -802,7 +819,7 @@ class linearized_plot:
 
 			systematic_name = systematic_name + sample_type + year_str
 
-			if systematic_name == "CMS_pdf" or systematic_name == "CMS_renorm" or systematic_name == "CMS_fact":
+			if systematic_name in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 				sample_str = "allBR"
 				systematic_name += "_%s"%sample_str
 
@@ -833,7 +850,7 @@ class linearized_plot:
 
 			systematic_name = systematic_name + sample_type + year_str
 
-			if systematic_name == "CMS_pdf" or systematic_name == "CMS_renorm" or systematic_name == "CMS_fact":
+			if systematic_name in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 				sample_str = "allBR"
 				systematic_name += "_%s"%sample_str
 
@@ -864,7 +881,7 @@ class linearized_plot:
 
 			systematic_name = systematic_name + sample_type + year_str
 
-			if systematic_name == "CMS_pdf" or systematic_name == "CMS_renorm" or systematic_name == "CMS_fact":
+			if systematic_name in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 				sample_str = "allBR"
 				systematic_name += "_%s"%sample_str
 
@@ -897,7 +914,7 @@ class linearized_plot:
 
 				systematic_name = systematic_name + sample_type + year_str
 
-				if systematic_name == "CMS_pdf" or systematic_name == "CMS_renorm" or systematic_name == "CMS_fact":
+				if systematic_name in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 					sample_str = "allBR"
 					systematic_name += "_%s"%sample_str
 
@@ -928,7 +945,7 @@ class linearized_plot:
 
 				systematic_name = systematic_name + sample_type + year_str
 
-				if systematic_name == "CMS_pdf" or systematic_name == "CMS_renorm" or systematic_name == "CMS_fact":
+				if systematic_name in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 					sample_str = "allBR"
 					systematic_name += "_%s"%sample_str
 
@@ -960,7 +977,7 @@ class linearized_plot:
 
 				systematic_name = systematic_name + sample_type + year_str
 
-				if systematic_name == "CMS_pdf" or systematic_name == "CMS_renorm" or systematic_name == "CMS_fact":
+				if systematic_name in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 					sample_str = "allBR"
 					systematic_name += "_%s"%sample_str
 
@@ -991,7 +1008,7 @@ class linearized_plot:
 
 				systematic_name = systematic_name + sample_type + year_str
 
-				if systematic_name == "CMS_pdf" or systematic_name == "CMS_renorm" or systematic_name == "CMS_fact":
+				if systematic_name in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 					sample_str = "allBR"
 					systematic_name += "_%s"%sample_str
 
@@ -2011,7 +2028,7 @@ class linearized_plot:
 					hist.SetBinContent(iii,jjj,0)
 
 		return hist
-	def get_combined_histogram(self,file_names, hist_name,folder, weights,systematic,region):
+	def get_combined_histogram(self,file_names, hist_name,folder, weights,systematic,region):  ### for signal
 		ROOT.TH1.AddDirectory(False)
 		 
 		#print("-------------------- start loading signal files (%s) (%s) (%s) (%s) (technique=%s) ---------------------"%(self.mass_point,self.year,folder,region,self.technique_str))
@@ -2168,14 +2185,22 @@ class linearized_plot:
 		mu = 2* (num_bins - 1) / 3
 		return 0.1*np.exp(-0.5 * ((bin_num - mu) / sigma) ** 2) / 200.
 
-	def linearize_plot(self,_hist,BR_type,region,systematic, forStats=False, hist_type="", split_up_hists_for_systematic = []): 
+	def linearize_plot(self,_hist,BR_type,region,systematic ,forStats=False, hist_type="", split_up_hists_for_systematic = []): 
 		ROOT.TH1.SetDefaultSumw2()
 		ROOT.TH2.SetDefaultSumw2()
 
 
+
+		mask_size = 0
+		bin_mask = []
+		if self.useMask:
+			bin_mask   = self.load_bin_masks(region) ## bin mask for this specific region
+			mask_size  = len(bin_mask)
+
+
 		#print("BR_type / systematic are : %s/%s/%s"%(BR_type, region,systematic))
 		#print( "TTTo is in %s: %s."%(BR_type, "TTTo" in BR_type))
-		if systematic == "CMS_pdf" or systematic == "CMS_renorm" or systematic == "CMS_fact":
+		if systematic in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 			sample_str = BR_type
 			if   BR_type == "sig":   sample_str = "sig"
 			elif "TTTo" in BR_type:  sample_str = "TTbar"  
@@ -2210,7 +2235,7 @@ class linearized_plot:
 
 
 			#print("BR_type/sys_str is %s/%s"%(BR_type,sys_str))
-			linear_plot_size = len(use_indices)  
+			linear_plot_size = len(use_indices)  - mask_size  ## subtract off mask size
 			#print("Creating a linearized histogram for %s/%s with %s bins."%(self.year,region,linear_plot_size))
 			if forStats:
 				if self.doHTdist: linear_plot = ROOT.TH1F("%s%s"%(BR_type,sys_str),"Event H_{T} (%s) (%s) (%s) (UNSCALED); H_{T} [GeV]; Events / 200 GeV"%(region, BR_type, self.technique_str ),linear_plot_size,-0.5,linear_plot_size-0.5)
@@ -2221,7 +2246,7 @@ class linearized_plot:
 
 			linear_plot.GetYaxis().SetTitleOffset(1.48)
 
-
+			num_masked_bins = 0 
 			#print("Histogram name is %s."%linear_plot.GetName())
 			if hist_type == "QCD":
 
@@ -2248,11 +2273,14 @@ class linearized_plot:
 
 				if not self.doHTdist:
 
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
 						total_counts_QCD1000to1500 = 0
 						total_counts_QCD1500to2000 = 0
-						total_counts_QCD2000toInf  = 0
-
+						total_counts_QCD2000toInf  = 0  
+						if superbin_counter in bin_mask: 
+							num_masked_bins+=1
+							continue
 						for _tuple in superbin:
 
 							#if ( (split_up_hists_for_systematic[0][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) or (split_up_hists_for_systematic[1][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) or (split_up_hists_for_systematic[2][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) ): ### need to verify if these need the +1 ...
@@ -2269,13 +2297,16 @@ class linearized_plot:
 						if region not in ["SB1b","SB0b"]:
 							linear_plot_QCD2000toInf.SetBinContent(superbin_index+1,total_counts_QCD2000toInf)
 							linear_plot_QCD2000toInf.SetBinError(superbin_index+1,sqrt(total_counts_QCD2000toInf))
-
+						superbin_index+=1
 				else:
-
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0 ## the number of superbins that are actually used (i.e. those not masked)
+					for superbin_counter,superbin in enumerate(use_indices):
 						total_counts_QCD1000to1500 = 0
 						total_counts_QCD1500to2000 = 0
 						total_counts_QCD2000toInf  = 0
+						if superbin_counter in bin_mask:
+							num_masked_bins+=1
+							continue
 						for bin_num in superbin:
 							total_counts_QCD1000to1500+=split_up_hists_for_systematic[0][iii].GetBinContent(bin_num)
 							total_counts_QCD1500to2000+=split_up_hists_for_systematic[1][iii].GetBinContent(bin_num)
@@ -2288,7 +2319,7 @@ class linearized_plot:
 						if region not in ["SB1b","SB0b"]:
 							linear_plot_QCD2000toInf.SetBinContent(superbin_index+1,total_counts_QCD2000toInf)
 							linear_plot_QCD2000toInf.SetBinError(superbin_index+1,sqrt(total_counts_QCD2000toInf))
-
+						superbin_index+=1
 					"""
 					linear_plot_QCD1000to1500 = split_up_hists_for_systematic[0][iii]
 					linear_plot_QCD1000to1500.SetName("%s%s"%("QCDMC1000to1500",sys_str))
@@ -2299,7 +2330,6 @@ class linearized_plot:
 					linear_plot_QCD2000toInf =  split_up_hists_for_systematic[2][iii]
 					linear_plot_QCD1000to1500.SetName("%s%s"%("QCDMC2000toInf",sys_str))
 					linear_plot_QCD1000to1500.SetTitle("linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC2000toInf",region,year, " ".join(use_sys.split("_"))))"""
-
 
 				linear_plot_QCD1000to1500.Sumw2(); 
 				linear_plot_QCD1500to2000.Sumw2(); 
@@ -2325,9 +2355,6 @@ class linearized_plot:
 				SF_TTJetsMCHT2500toInf = {"2015":0.000056798633,"2016":0.000050253843,"2017":0.00005947217,"2018":0.000084089656}
 
 
-
-
-
 				### need to lineraize the histograms separately and THEN add them to linear_plot
 				linear_plot_TTJets800to1200  = ROOT.TH1D("%s%s"%(BR_type,sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "TTJetsMCHT800to1200", region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
 				linear_plot_TTJets1200to2500 = ROOT.TH1D("%s%s"%(BR_type,sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "TTJetsMCHT1200to2500",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
@@ -2337,9 +2364,7 @@ class linearized_plot:
 				linear_plot_TTJets1200to2500.Sumw2()
 				linear_plot_TTJets2500toInf.Sumw2()
 
-				####### INFO 
-
-				
+				####### INFO 				
 				#### split_up_hists_for_systematic[0] is the TTJets1200to2500 histogram
 				#### split_up_hists_for_systematic[1] is the TTJets2500toInf  histogram
 				#### split_up_hists_for_systematic[1] is the TTJets800to1200  histogram ## ONLY IF self.includeTTJets800to1200 == True
@@ -2350,10 +2375,14 @@ class linearized_plot:
 
 
 				if not self.doHTdist:
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
 						total_counts_TTJets800to1200  = 0
 						total_counts_TTJets1200to2500 = 0
 						total_counts_TTJets2500toInf  = 0
+						if superbin_counter in bin_mask:
+							num_masked_bins+=1
+							continue
 
 						for _tuple in superbin:
 							#if ( (split_up_hists_for_systematic[0][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) or (split_up_hists_for_systematic[1][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) ): ### need to verify if these need the +1 ...
@@ -2378,10 +2407,16 @@ class linearized_plot:
 						if region not in ["SB1b","SB0b"]: 
 							linear_plot_TTJets2500toInf.SetBinContent(superbin_index+1,total_counts_TTJets2500toInf)
 							linear_plot_TTJets2500toInf.SetBinError(superbin_index+1,sqrt(total_counts_TTJets2500toInf))
+						superbin_index+=1
 
 
 				else:
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask:
+							num_masked_bins+=1
+							continue
+
 						total_counts_TTJets800to1200  = 0
 						total_counts_TTJets1200to2500 = 0
 						total_counts_TTJets2500toInf  = 0
@@ -2409,6 +2444,7 @@ class linearized_plot:
 						if region not in ["SB1b","SB0b"]: 
 							linear_plot_TTJets2500toInf.SetBinContent(superbin_index+1,total_counts_TTJets2500toInf)
 							linear_plot_TTJets2500toInf.SetBinError(superbin_index+1,sqrt(total_counts_TTJets2500toInf))
+						superbin_index+=1
 
 					"""
 					if region in ["SB1b","SB0b"] :
@@ -2482,8 +2518,11 @@ class linearized_plot:
 				linear_plot_ST_tW_top_5f.Sumw2()
 
 				if not self.doHTdist:
-
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask:
+							num_masked_bins+=1
+							continue
 						total_counts_ST_t_channel_top_5f = 0
 						total_counts_ST_t_channel_antitop_5f  = 0
 						total_counts_ST_s_channel_4f_hadrons = 0
@@ -2516,10 +2555,14 @@ class linearized_plot:
 						linear_plot_ST_s_channel_4f_leptons.SetBinError(superbin_index+1,sqrt(total_counts_ST_s_channel_4f_leptons))			
 						linear_plot_ST_tW_antitop_5f.SetBinError(superbin_index+1,sqrt(total_counts_ST_tW_antitop_5f))
 						linear_plot_ST_tW_top_5f.SetBinError(superbin_index+1,sqrt(total_counts_ST_tW_top_5f))
-					
-				else:
+						superbin_index+=1
 
-					for superbin_index,superbin in enumerate(use_indices):
+				else:
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask:
+							num_masked_bins+=1
+							continue
 						total_counts_ST_t_channel_top_5f = 0
 						total_counts_ST_t_channel_antitop_5f  = 0
 						total_counts_ST_s_channel_4f_hadrons = 0
@@ -2552,6 +2595,7 @@ class linearized_plot:
 						linear_plot_ST_s_channel_4f_leptons.SetBinError(superbin_index+1,sqrt(total_counts_ST_s_channel_4f_leptons))			
 						linear_plot_ST_tW_antitop_5f.SetBinError(superbin_index+1,sqrt(total_counts_ST_tW_antitop_5f))
 						linear_plot_ST_tW_top_5f.SetBinError(superbin_index+1,sqrt(total_counts_ST_tW_top_5f))
+						superbin_index+=1
 
 					"""linear_plot_ST_t_channel_top_5f = split_up_hists_for_systematic[0][iii]
 					linear_plot_ST_t_channel_top_5f.SetName("%s%s"%("ST_t_channel_top_5f",sys_str))
@@ -2630,14 +2674,15 @@ class linearized_plot:
 
 
 				if not self.doHTdist:
-
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask: 
+							num_masked_bins+=1
+							continue
 						total_counts_WJetsMC_LNu_HT800to1200 = 0
 						total_counts_WJetsMC_LNu_HT1200to2500 = 0
 						total_counts_WJetsMC_LNu_HT2500toInf = 0
 						total_counts_WJetsMC_QQ_HT800toInf  = 0					
-
-
 						for _tuple in superbin:
 
 							total_counts_WJetsMC_LNu_HT800to1200+=split_up_hists_for_systematic[0][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
@@ -2654,9 +2699,15 @@ class linearized_plot:
 						linear_plot_WJetsMC_LNu_HT800to1200.SetBinError(superbin_index+1,sqrt(total_counts_WJetsMC_LNu_HT800to1200))
 						linear_plot_WJetsMC_LNu_HT1200to2500.SetBinError(superbin_index+1,sqrt(total_counts_WJetsMC_LNu_HT1200to2500))
 						linear_plot_WJetsMC_LNu_HT2500toInf.SetBinError(superbin_index+1,sqrt(total_counts_WJetsMC_LNu_HT2500toInf))
-						linear_plot_WJetsMC_QQ_HT800toInf.SetBinError(superbin_index+1,sqrt(total_counts_WJetsMC_QQ_HT800toInf))			
+						linear_plot_WJetsMC_QQ_HT800toInf.SetBinError(superbin_index+1,sqrt(total_counts_WJetsMC_QQ_HT800toInf))
+						superbin_index+=1
+
 				else:
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask:
+							num_masked_bins+=1
+							continue
 						total_counts_WJetsMC_LNu_HT800to1200 = 0
 						total_counts_WJetsMC_LNu_HT1200to2500 = 0
 						total_counts_WJetsMC_LNu_HT2500toInf = 0
@@ -2680,6 +2731,8 @@ class linearized_plot:
 						linear_plot_WJetsMC_LNu_HT1200to2500.SetBinError(superbin_index+1,sqrt(total_counts_WJetsMC_LNu_HT1200to2500))
 						linear_plot_WJetsMC_LNu_HT2500toInf.SetBinError(superbin_index+1,sqrt(total_counts_WJetsMC_LNu_HT2500toInf))
 						linear_plot_WJetsMC_QQ_HT800toInf.SetBinError(superbin_index+1,sqrt(total_counts_WJetsMC_QQ_HT800toInf))	
+						superbin_index+=1
+
 					"""linear_plot_WJetsMC_LNu_HT800to1200 = split_up_hists_for_systematic[0][iii]
 					linear_plot_WJetsMC_LNu_HT800to1200.SetName("%s%s"%("_WJetsMC_LNu_HT800to1200",sys_str))
 					linear_plot_WJetsMC_LNu_HT800to1200.SetTitle("linearized %s in the %s (%s) (%s); bin; Events / bin"%( "WJetsMC_LNu_HT800to1200",region,year, " ".join(use_sys.split("_"))))
@@ -2745,8 +2798,11 @@ class linearized_plot:
 
 
 				if not self.doHTdist:
-
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask: 
+							num_masked_bins+=1
+							continue
 						total_counts_TTToHadronic = 0
 						total_counts_TTToSemiLeptonic = 0
 						total_counts_TTToLeptonic = 0
@@ -2766,13 +2822,17 @@ class linearized_plot:
 						linear_plot_TTToHadronic.SetBinError(superbin_index+1,sqrt(total_counts_TTToHadronic))
 						linear_plot_TTToSemiLeptonic.SetBinError(superbin_index+1,sqrt(total_counts_TTToSemiLeptonic))
 						linear_plot_TTToLeptonic.SetBinError(superbin_index+1,sqrt(total_counts_TTToLeptonic))
-				else:
+						superbin_index+=1
 
-					for superbin_index,superbin in enumerate(use_indices):
+				else:
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask:
+							num_masked_bins+=1
+							continue
 						total_counts_TTToHadronic = 0
 						total_counts_TTToSemiLeptonic = 0
 						total_counts_TTToLeptonic = 0
-
 
 						for bin_num in superbin:
 
@@ -2788,6 +2848,8 @@ class linearized_plot:
 						linear_plot_TTToHadronic.SetBinError(superbin_index+1,sqrt(total_counts_TTToHadronic))
 						linear_plot_TTToSemiLeptonic.SetBinError(superbin_index+1,sqrt(total_counts_TTToSemiLeptonic))
 						linear_plot_TTToLeptonic.SetBinError(superbin_index+1,sqrt(total_counts_TTToLeptonic))
+						superbin_index+=1
+
 					"""linear_plot_TTToHadronic = split_up_hists_for_systematic[0][iii]
 					linear_plot_TTToHadronic.SetName("%s%s"%("TTToHadronic",sys_str))
 					linear_plot_TTToHadronic.SetTitle("linearized %s in the %s (%s) (%s); bin; Events / bin"%( "TTToHadronic",region,year, " ".join(use_sys.split("_"))))
@@ -2847,8 +2909,11 @@ class linearized_plot:
 				#### split_up_hists_for_systematic[4] is the WBZT  histogram
 				#### split_up_hists_for_systematic[5] is the HTZT  histogram
 				if not self.doHTdist:
-
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask: 
+							num_masked_bins+=1
+							continue
 						total_counts_WBWB = 0
 						total_counts_HTHT = 0
 						total_counts_ZTZT = 0
@@ -2878,8 +2943,14 @@ class linearized_plot:
 						linear_plot_WBHT.SetBinError(superbin_index+1,sqrt(total_counts_WBHT))					
 						linear_plot_WBZT.SetBinError(superbin_index+1,sqrt(total_counts_WBZT))
 						linear_plot_HTZT.SetBinError(superbin_index+1,sqrt(total_counts_HTZT))
+						superbin_index+=1
+
 				else:
-					for superbin_index,superbin in enumerate(use_indices):
+					superbin_index = 0
+					for superbin_counter,superbin in enumerate(use_indices):
+						if superbin_counter in bin_mask:
+							num_masked_bins+=1
+							continue
 						total_counts_WBWB = 0
 						total_counts_HTHT = 0
 						total_counts_ZTZT = 0
@@ -2909,6 +2980,8 @@ class linearized_plot:
 						linear_plot_WBHT.SetBinError(superbin_index+1,sqrt(total_counts_WBHT))					
 						linear_plot_WBZT.SetBinError(superbin_index+1,sqrt(total_counts_WBZT))
 						linear_plot_HTZT.SetBinError(superbin_index+1,sqrt(total_counts_HTZT))
+						superbin_index+=1
+
 					"""linear_plot_WBWB = split_up_hists_for_systematic[0][iii]
 					linear_plot_WBWB.SetName("%s%s"%("sig_WBWB",sys_str))
 					linear_plot_WBWB.SetTitle("linearized %s in the %s (%s) (%s); bin; Events / bin"%( "sig_WBWB",region,year, " ".join(use_sys.split("_"))))
@@ -2973,8 +3046,16 @@ class linearized_plot:
 					#print("sig had integral 0 for %s%s for year %s and region %s. Injected signal with integral %s."%(BR_type, sys_str, self.year, region, linear_plot.Integral()))
 				all_linear_plots.append(linear_plot)
 
+
+
 			else:  # return the FULL histogram (no weighting stuff), this is the old way we did this 
-				for superbin_index,superbin in enumerate(use_indices):
+
+				superbin_index = 0
+				for superbin_counter,superbin in enumerate(use_indices):
+					if superbin_counter in bin_mask:
+						num_masked_bins+=1
+						continue
+
 					total_counts = 0
 
 					if not all_BR_hists.doHTdist:
@@ -2993,15 +3074,15 @@ class linearized_plot:
 						linear_plot.SetBinError(superbin_index+1,sqrt(total_counts))
 					except:
 						print("ERROR: Failed setting bin error (superbin index = %s, counts = %s ) for %s/%s/%s/%s"%(superbin_index+1,total_counts, self.year,BR_type,region,systematic))
+					superbin_index+=1
+
 				ROOT.TH1.AddDirectory(False)
 				linear_plot.SetDirectory(0)   # histograms lose their references when the file destructor is called
 				#if BR_type == "sig"  and "SB" in region:   print(" @@@@@ The POST-linearized %s/%s/%s/%s signal histogram integral is %f"%(self.year,self.mass_point, systematic,region,linear_plot.Integral()))
 				#print("superbin indices have size %s, linearized plot has size %s"%( len(self.superbin_indices), linear_plot.GetNbinsX()  )  )
 				#print("The last linearized bin of %s/%s/%s/%s has content %s"%(BR_type, region, systematic, self.year,linear_plot.GetBinContent( linear_plot.GetNbinsX()  )))
 				all_linear_plots.append(linear_plot)
-
-
-
+			#if region == "AT1b": print("For year %s, sample type %s, region %s, and sytematic %s, a total of %s bins were masked out of %s in the mask file. "%(self.year, BR_type, region, sys_str, num_masked_bins, mask_size))
 		"""
 		for hist_list in split_up_hists_for_systematic: ## no longer need this 'split up' histograms	
 			for hist in hist_list:
@@ -3081,6 +3162,8 @@ class linearized_plot:
 			systematics_.extend( ["stat"]) 
 
 			for iii,systematic in enumerate(systematics_):
+
+
 				if forStats and kkk < 4:
 					combined_hists[kkk][iii].Write()
 				sys_suffix = [""]
@@ -3092,17 +3175,31 @@ class linearized_plot:
 					sys_updown = ["%s_up"%systematic,"%s_down"%systematic]
 
 				for jjj,sys_str in enumerate(sys_updown):
+
+					
 					if "topPt" not in systematic: 
 						QCD_hists[kkk][iii][jjj].Write()
+						#if systematic == "CMS_scale": print("Writing scale histogram: %s"%(QCD_hists[kkk][iii][jjj].GetName()))
+
 						if "stat" not in systematic:  
 							signal_hists[kkk][iii][jjj].Write()
-						if "fact" not in systematic and "renorm" not in systematic:  
+							#if systematic == "CMS_scale": print("Writing scale histogram: %s"%(signal_hists[kkk][iii][jjj].GetName()))
+
+						if "fact" not in systematic and "renorm" not in systematic and "CMS_scale" not in systematic:  
 							ST_hists[kkk][iii][jjj].Write()
-						if self.includeWJets: WJets_hists[kkk][iii][jjj].Write()
+						if self.includeWJets: 
+							WJets_hists[kkk][iii][jjj].Write()
+							#if systematic == "CMS_scale": print("Writing scale histogram: %s"%(WJets_hists[kkk][iii][jjj].GetName()))
+
 					TTbar_hists[kkk][iii][jjj].Write()
-					if self.includeTTTo: TTTo_hists[kkk][iii][jjj].Write()
+					#if systematic == "CMS_scale": print("Writing scale histogram: %s"%(TTbar_hists[kkk][iii][jjj].GetName()))
+
+					if self.includeTTTo: 
+						TTTo_hists[kkk][iii][jjj].Write()
+						#if systematic == "CMS_scale": print("Writing scale histogram: %s"%(TTTo_hists[kkk][iii][jjj].GetName()))
 					if not forStats:
 						combined_hists_all[kkk][iii][jjj].Write()
+						#f systematic == "CMS_scale": print("Writing scale histogram: %s"%(combined_hists_all[kkk][iii][jjj].GetName()))
 					
 			systematics_ = self.data_systematics[:]
 			if forStats:
@@ -3252,6 +3349,19 @@ class linearized_plot:
 		return ast.literal_eval(_superbin_indices)
 
 
+	def load_bin_masks(self,region):	# load in the superbin indices (located in a text file )
+		_superbin_indices = []
+		bin_map_path         = "region_masks/"
+		open_file = open(bin_map_path+"/bin_masks_%s.txt"%(year),"r")
+		#print("Got superbin index file %s."%( bin_map_path+"/superbin_indices%s_%s.txt"%(technique_str,year)  ))
+		for line in open_file:
+			columns = line.split('/')
+			if columns[0] == self.year and columns[1] == region and columns[2] == self.technique_str:
+				_superbin_indices = columns[3]
+		open_file.close()
+		return ast.literal_eval(_superbin_indices)
+
+
 	def kill_histograms(self):   ## kill the linearized and individual signal histograms
 
  		linear_hists = [ self.all_combined_hists_SR,self.all_combined_hists_CR,self.all_combined_hists_AT1b,self.all_combined_hists_AT0b,
@@ -3325,8 +3435,8 @@ if __name__=="__main__":
 	includeTTTo            = True
 	includeWJets           = True
 
+	createMaskedFiles      = True
 
-		
 	for iii,technique_str in enumerate(technique_strs):
 
 		if doHTdist and "NN" in technique_str: continue 
@@ -3337,7 +3447,9 @@ if __name__=="__main__":
 		for mass_point in mass_points:
 			#try:
 			print("Running for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
-			final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists)
+			if createMaskedFiles: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, True)   ### run with masked bins
+			final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, False)	### run without masked bins
+
 			#except:
 			#	print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
 			del final_plot

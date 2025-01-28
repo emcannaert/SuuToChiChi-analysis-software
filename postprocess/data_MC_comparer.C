@@ -739,7 +739,17 @@ void data_MC_comparer()
 
 
     ///// CONTROL REGION STUDY PORTION (creates data/MC plot comparing data/MC for SB1b, SB0b, and AT0b regions)
-    hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_nAK4_all", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b","h_nMedBTags", "h_nTightBTags", };
+    hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_nAK4_all", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b","h_nMedBTags", "h_nTightBTags", 
+    "h_SJ_mass_SR", "h_disuperjet_mass_SR" , "h_SJ_mass_CR", "h_disuperjet_mass_CR", "h_SJ_mass_AT1b", "h_disuperjet_mass_AT1b", 
+    "h_SJ_mass_AT0b", "h_disuperjet_mass_AT0b", "h_SJ_mass", "h_disuperjet_mass",
+    "h_nMedBTags",
+    "h_nMedBTags_pt75",
+    "h_nMedBTags_pt100",
+    "h_nMedBTags_pt150",
+    "h_nCA4_300_1b",
+    "h_nCA4_300_0b",
+
+     };
 
     if(runControlRegions)
     {

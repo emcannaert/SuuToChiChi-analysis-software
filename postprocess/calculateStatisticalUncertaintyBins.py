@@ -37,7 +37,7 @@ class combineHistBins:
 		self.technique_str = technique_str
 		self.dryRun = dryRun
 		self.max_stat_uncert = 0.20  ## maximum statistical uncertainty
-		self.min_unscaled_QCD_bin_counts   = 0.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
+		self.min_unscaled_QCD_bin_counts   = 5.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
 		self.min_scaled_QCD_bin_counts   = 0.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
 
 
