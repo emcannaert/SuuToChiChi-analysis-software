@@ -28,6 +28,7 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
 
     technique_str = "cut-based"
     if "NN" in technique_type:
+        print("Technique type is %s."%technique_type)
         technique_str = "NN-based"
 
     file_name = "finalCombineFilesNewStats/combine_%s%s_%s.root"%(technique_type, year, mass_point)
@@ -41,7 +42,7 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
 
     QCD_hist_name = "%s/QCD"%region
     TTbar_hist_name = "%s/TTbar"%region
-    WJet_hist_name = "%s/WJets"%region
+    WJets_hist_name = "%s/WJets"%region
     ST_hist_name = "%s/ST"%region
 
 
@@ -58,6 +59,7 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     TTbar_hist = root_file.Get(TTbar_hist_name)
     ST_hist = root_file.Get(ST_hist_name)
 
+
     QCD_hist.SetLineColor(ROOT.kRed)
     TTbar_hist.SetLineColor(ROOT.kYellow)
     WJets_hist.SetLineColor(ROOT.kViolet)
@@ -69,12 +71,20 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     WJets_hist.SetFillColor(ROOT.kViolet)
     ST_hist.SetFillColor(ROOT.kGreen)
 
+    QCD_hist.SetMinimum(1e-1) 
+    TTbar_hist.SetMinimum(1e-1)
+    WJets_hist.SetMinimum(1e-1)
+    ST_hist.SetMinimum(1e-1)
+
+
     # Create a THStack and add the sub-histograms
     hs = ROOT.THStack("h_stack", "Linearized Background vs Signal (%s) (%s) (%s) (%s)"%(mass_point, region,year, technique_str))
     hs.Add(TTbar_hist)
     hs.Add(ST_hist)
     hs.Add(WJets_hist)
     hs.Add(QCD_hist)
+
+    hs.SetMinimum(1e-1)
 
     allBR_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year,technique_str))
     sig_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year,technique_str))
@@ -121,8 +131,6 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
         hs.Draw("HIST")
         sig_hist.Draw("HIST,same")
         
-
-
     # Draw the ratio on the lower pad
     pad2.cd()
 
@@ -164,10 +172,8 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     nom_line_down.SetLineStyle(2)  # Dotted line style
     nom_line_down.Draw("same")
 
-
     # Add legend
     pad1.cd()
-
 
     legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
     legend.AddEntry(QCD_hist, "QCD", "f")
@@ -179,24 +185,16 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
 
     write_cms_text.write_cms_text(CMS_label_pos, SIM_label_pos)
 
-
-
     # Save the canvas as an image
     output_file = "plots/linearized_sigBR/sig_vs_BR_%s_%s%s_%s.png"%(mass_point,technique_type,region,year)
     c.SaveAs(output_file)
-
-
-
 
     sig_hist.Draw("HIST")
     output_file = "plots/linearized_sig/linearized_sig_%s_%s%s_%s.png"%(mass_point,technique_type,region,year)
     c.SaveAs(output_file)
 
-
-
     # Close the ROOT file
     root_file.Close()
-
 
     del sig_hist
     del allBR_hist
@@ -232,17 +230,21 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
 
     QCD_hist = root_file.Get(QCD_hist_name)
     QCD_hist.SetLineWidth(2)
+    QCD_hist.SetMinimum(1e-1)
     TTbar_hist = root_file.Get(TTbar_hist_name)
     TTbar_hist.SetLineWidth(2)
+    TTbar_hist.SetMinimum(1e-1)
     WJets_hist = root_file.Get(WJets_hist_name)
     WJets_hist.SetLineWidth(2)
+    WJets_hist.SetMinimum(1e-1)
     ST_hist = root_file.Get(ST_hist_name)
     ST_hist.SetLineWidth(2)
+    ST_hist.SetMinimum(1e-1)
 
     # Set colors for each sub-histogram in the stack
     QCD_hist.SetFillColor(ROOT.kRed)
     TTbar_hist.SetFillColor(ROOT.kYellow)
-    Wjets_hist.SetFillColor(ROOT.kViolet)
+    WJets_hist.SetFillColor(ROOT.kViolet)
     ST_hist.SetFillColor(ROOT.kGreen)
 
     # Create a THStack and add the sub-histograms
@@ -251,6 +253,9 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     hs.Add(ST_hist)
     hs.Add(WJets_hist)
     hs.Add(QCD_hist)
+
+    hs.SetMinimum(1e-1)
+
 
     QCD_hist.SetTitle("Linearized Backgrounds (%s) (%s) (%s);linearized bin number; events"%(region,year,technique_str))
     TTbar_hist.SetTitle("Linearized Backgrounds (%s) (%s) (%s);linearized bin number; events"%(region,year,technique_str))
@@ -311,7 +316,7 @@ if __name__=="__main__":
     years = ["2015","2016","2017","2018"]
     mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1","Suu5_chi1p5","Suu5_chi2","Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1",
     "Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"] 
-    regions = ["SR","CR","AT0b", "AT1b", "AT1tb", "AT0tb"]
+    regions = ["SR","CR","AT0b", "AT1b"]   # "AT1tb", "AT0tb"
     technique_types = ["", "NN_"]
 
     for year in years:
@@ -321,7 +326,8 @@ if __name__=="__main__":
                 for mass_point in mass_points:
                     
                     #try:
-                    plot_linearized_BR_histogram(year,region,mass_point, technique_type,run_count)
+                    if "Suu4_chi1" in mass_point:
+                        plot_linearized_BR_histogram(year,region,mass_point, technique_type,run_count)  # only need to do this once
                     plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_type)
                     run_count+=1
                     #except:

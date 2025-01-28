@@ -8,7 +8,8 @@ from math import sqrt
 
 ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
-def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, debug = False):
+
+def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, useMask=False, debug = False):
 	ROOT.TH1.AddDirectory(False)
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
@@ -18,8 +19,11 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, de
 	###########################
 	## meta variables to change
 	###########################
-	fix_small_sandwiched_uncerts     = True
-	fix_opposite_sided_uncertainties = True
+
+
+	asymmetry_threshold              = 0.4     ## value below which symmetry will be forced for a NP. Set to some large value to force all NPs to be symmetrix 
+	fix_small_sandwiched_uncerts     = False
+	fix_opposite_sided_uncertainties = False
 	bin_variation_ratio_threshold     = 0.15 # the ratio of bin_i variation / bin_i+-1 variation that determines if a bin needs to be changed manually
 
 
@@ -42,6 +46,14 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, de
 
 	outfile_dir = "finalCombineFilesNewStats/correctedFinalCombineFiles/"
 	outfile_name = outfile_dir + "combine_%s_%s.root"%(year,mass_point)
+
+	if useMask:
+		infile_dir = "finalCombineFilesNewStats/maskedFinalCombineFiles/"
+		infile_name = infile_dir+ "combine_%s_%s.root"%(year,mass_point)
+
+		outfile_dir = "finalCombineFilesNewStats/maskedCorrectedFinalCombineFiles/"
+		outfile_name = outfile_dir + "combine_%s_%s.root"%(year,mass_point)
+
 
 	print("Looking for file %s"%(infile_name))
 	## open root file
@@ -79,7 +91,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, de
 				if uncert_to_fix_ not in ["nom"] and sample == "data_obs": continue # data_obs only has this one uncertainty 
 				if (sample == "sig" or sample == "WJets"    )and "stat" in uncert_to_fix_: continue
 				uncert_to_fix = uncert_to_fix_
-				if uncert_to_fix == "CMS_pdf" or uncert_to_fix == "CMS_renorm" or uncert_to_fix == "CMS_fact":
+				if uncert_to_fix in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
 					if sample == "QCD": uncert_to_fix+= "_QCD"
 					elif  "TTTo" in sample: uncert_to_fix+= "_TTbar"
 					elif sample == "TTbar": uncert_to_fix+= "_TTbar"
@@ -137,30 +149,31 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, de
 						distance_up   = yield_up - yield_nom
 						distance_down = yield_down - yield_nom
 
-						## find which uncertainty is further from nom ( abs(up - nom) / abs(nom - down)   )
-						if abs(distance_up) > abs(distance_down): 
-							distance_down = -1*distance_up
 
-						else:
-							distance_up = -1*distance_down
 
-						## set bin content (and bin error) for the new, "corrected" histogram 
+						### ONLY DO THIS IF up/down ratios are less than define threshold
+						if ( abs(distance_up)/abs(distance_down) < asymmetry_threshold) or (abs(distance_down)/abs(distance_up)  < asymmetry_threshold):
 
-						new_yield_up = max(0, yield_nom + distance_up)
-						new_yield_down = max(0,yield_nom + distance_down)
-						hist_up_corr.SetBinContent(iii,new_yield_up)
-						hist_down_corr.SetBinContent(iii,new_yield_down)
+							## find which uncertainty is further from nom ( abs(up - nom) / abs(nom - down)   )
+							if abs(distance_up) > abs(distance_down): 
+								distance_down = -1*distance_up
 
-						hist_up_corr.SetBinError(iii, sqrt(abs(new_yield_up)) ) 
-						hist_down_corr.SetBinError(iii, sqrt(abs(new_yield_down)) ) 
+							else:
+								distance_up = -1*distance_down
+
+							## set bin content (and bin error) for the new, "corrected" histogram 
+
+							new_yield_up = max(0, yield_nom + distance_up)
+							new_yield_down = max(0,yield_nom + distance_down)
+							hist_up_corr.SetBinContent(iii,new_yield_up)
+							hist_down_corr.SetBinContent(iii,new_yield_down)
+
+							hist_up_corr.SetBinError(iii, sqrt(abs(new_yield_up)) ) 
+							hist_down_corr.SetBinError(iii, sqrt(abs(new_yield_down)) ) 
 
 					## at this point, the up/down uncertainties should be matched pretty well
 					## now go through the bins AGAIN now that they have been 'corrected' and check for large adjacent variations
 
-
-
-
-					## CHANGE TO MAKE: if the variation is very small AND in the opposite direction of the neighbors, use neighbors to model it
 
 
 
@@ -428,7 +441,7 @@ if __name__=="__main__":
 
 	include_WJets    = True
 	include_TTTo     = True
-	all_uncerts = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",  "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR"]  ## systematic namings for cards   "CMS_btagSF", 
+	all_uncerts = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",  "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
 	#uncerts_to_fix = [ "CMS_jer",  "cms_jec",  "CMS_jer_eta193", "CMS_jer_193eta25","CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU", "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",  "CMS_bTagSF_M",  "CMS_bTagSF_T" ]   # name of uncertainty to fix (proper name as written in the linearized root files)
 	
 	uncerts_to_fix =  [ "CMS_jer", "CMS_jec", "CMS_bTagSF_M" ,  "CMS_bTagSF_T",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",   "CMS_bTagSF_bc_T_corr", "CMS_bTagSF_light_T_corr",  "CMS_bTagSF_bc_M_corr", "CMS_bTagSF_light_M_corr", "CMS_bTagSF_bc_T_year",  "CMS_bTagSF_light_T_year",  
@@ -473,7 +486,9 @@ if __name__=="__main__":
 	for year in years:
 			for mass_point in mass_points:
 					#try:
-					fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions,debug   )
+					fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, True, debug   )
+					fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, False, debug   )
+
 					#except: 
 					#print("ERROR: failed %s/%s"%(mass_point,year))
 

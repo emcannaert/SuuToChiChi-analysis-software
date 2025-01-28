@@ -203,9 +203,9 @@ void make_combinedROOT_comparisons()
     std::vector<double> QCD1500to2000_SFs = {0.2119142341,0.195224041, 0.3197450474,0.5425809983};
     std::vector<double> QCD2000toInf_SFs = {0.08568186031, 0.07572795371, 0.14306915, 0.2277769275};
 
-    std::vector<double> TTToHadronic_SFs = {0.08568186031, 0.07572795371, 0.14306915, 0.2277769275};
-    std::vector<double> TTToSemiLeptonic_SFs = {0.08568186031, 0.07572795371, 0.14306915, 0.2277769275};
-    std::vector<double> TTToLeptonic_SFs = {0.08568186031, 0.07572795371, 0.14306915, 0.2277769275};
+    std::vector<double> TTToHadronic_SFs = {0.075592, 0.05808655696, 0.06651018525, 0.06588049107};
+    std::vector<double> TTToSemiLeptonic_SFs = {0.05395328118, 0.04236184005, 0.04264829286, 0.04563489275};
+    std::vector<double> TTToLeptonic_SFs = {0.0459517611, 0.03401684391, 0.03431532926, 0.03617828025};
 
     std::vector<std::string> histNames = {    "totHT",           "nfatjets",      "nfatjet_pre",  "AK4_DeepJet_disc" }; // ,   "superJet_mass",  "diSuperJet_mass"  
     std::vector<std::string> hist_limits = { "30, 1200, 3500",  "8,-0.5,7.5",      "6,-0.5,5.5",   "25, 0, 1.0"    }; // ,        "30,0,3000",      "40,0,9000"  
