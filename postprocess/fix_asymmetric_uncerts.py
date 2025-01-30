@@ -152,7 +152,12 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, us
 
 
 						### ONLY DO THIS IF up/down ratios are less than define threshold
-						if ( abs(distance_up)/abs(distance_down) < asymmetry_threshold) or (abs(distance_down)/abs(distance_up)  < asymmetry_threshold):
+
+						"""if (  (abs(distance_up) > 0)   and  (abs(distance_down) < 1e-8)      ):
+
+						elif (  (abs(distance_up) < 1e-8)   and  (abs(distance_down) > 0)      ): """
+
+						if (   (abs(distance_down ) > 0) and ( abs(distance_up) > 0   ) and     (( abs(distance_up)/abs(distance_down) < asymmetry_threshold) or (abs(distance_down)/abs(distance_up)  < asymmetry_threshold)) or (  (distance_up *distance_down)  > 0     ) ):
 
 							## find which uncertainty is further from nom ( abs(up - nom) / abs(nom - down)   )
 							if abs(distance_up) > abs(distance_down): 

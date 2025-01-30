@@ -180,7 +180,14 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     
     std::vector<std::string> nonMaskedHists = {"h_nHeavyAK8_pt400_M10", "h_nHeavyAK8_pt400_M20", "h_nHeavyAK8_pt400_M30", "h_nHeavyAK8_pt300_M10", "h_nHeavyAK8_pt300_M20", "h_nHeavyAK8_pt300_M30",
      "h_nHeavyAK8_pt200_M10", "h_nHeavyAK8_pt200_M20", "h_nHeavyAK8_pt200_M30", "h_nAK8_pt200", "h_nAK8_pt300", "h_nAK8_pt150", "h_nAK8_pt500", "h_AK8_pt", "h_nCA4_300_0b", "h_nCA4_300_1b", "h_nTightBTags", "h_nMedBTags"
-    "h_nAK8_pt200_noCorr", "h_nAK8_pt300_noCorr", "h_nAK8_pt150_noCorr", "h_nAK8_pt500_noCorr", "h_nHeavyAK8_pt500_M45", "h_nHeavyAK8_pt500_M45_noCorr","h_AK4_eta", "h_AK4_phi", "h_AK8_eta", "h_AK8_phi"};
+    "h_nAK8_pt200_noCorr", "h_nAK8_pt300_noCorr", "h_nAK8_pt150_noCorr", "h_nAK8_pt500_noCorr", "h_nHeavyAK8_pt500_M45", "h_nHeavyAK8_pt500_M45_noCorr","h_AK4_eta", "h_AK4_phi", "h_AK8_eta", "h_AK8_phi"   , "h_SJ_mass_CR", "h_disuperjet_mass_CR", "h_SJ_mass_AT1b", "h_disuperjet_mass_AT1b", 
+    "h_SJ_mass_AT0b", "h_disuperjet_mass_AT0b",
+    "h_nMedBTags",
+    "h_nMedBTags_pt75",
+    "h_nMedBTags_pt100",
+    "h_nMedBTags_pt150",
+    "h_nCA4_300_1b",
+    "h_nCA4_300_0b"};
 
     if (std::find(nonMaskedHists.begin(), nonMaskedHists.end(), histName) != nonMaskedHists.end()) necessaryToMask = false;
 
@@ -190,7 +197,9 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     if (year == "2015") year_str = "2016preAPV";
     else if (year == "2016") year_str = "2016postAPV";
 
-    std::map<std::string, double> maskValues = {  {"h_disuperjet_mass", 4000   } ,  {"h_SJ_mass", 3500  }, {"h_totHT", 3500} , {"h_dijet_mass", 1000} , {"h_AK8_jet_mass", 1000} , {"h_AK8_jet_pt",2000} } ; // mask threshold for various histogram types
+    std::map<std::string, double> maskValues = {  {"h_disuperjet_mass", 4000   } ,  {"h_SJ_mass", 3500  }, {"h_totHT", 3500} , {"h_dijet_mass", 1000} , {"h_AK8_jet_mass", 1000} , {"h_AK8_jet_pt",2000} ,
+     {"h_disuperjet_mass_SR", 5000   } ,  {"h_SJ_mass_SR", 2500  },
+     {"h_disuperjet_mass_CR", 5000   } ,  {"h_SJ_mass_CR", 3500  } } ; // mask threshold for various histogram types
 
     std::string histTitleDataMC = histName + " - data vs combined BR (" + year_str  + ") ";
     if (region != "") histTitleDataMC += Form(" (%s)", region.c_str());
@@ -210,14 +219,16 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     if (runControlRegions)
     {
 
-        folderName = "nom/" + histName + "_" + region;
+        folderName = "nom/" + histName;     // + "_" + region;
 
+
+        /*
         if (saveStr == "") saveStr    = "";
         if ( !(histName == "h_disuperjet_mass") && !(histName == "h_SJ_mass")  )
         {
             folderName = "nom/" + histName;
             saveStr    = ""; 
-        }
+        }   */
 
         std::cout << "----------------- Creating control region plots ------------------ " << std::endl;
         if(runSideband) processedFilePaths = "../combinedROOT/sideband_processedFiles/";
@@ -741,13 +752,13 @@ void data_MC_comparer()
     ///// CONTROL REGION STUDY PORTION (creates data/MC plot comparing data/MC for SB1b, SB0b, and AT0b regions)
     hist_names = {"h_totHT", "h_nfatjets","h_nfatjets_pre", "h_nAK4_all", "h_AK8_jet_mass", "h_AK8_jet_pt", "h_nCA4_300_1b", "h_nCA4_300_0b","h_nMedBTags", "h_nTightBTags", 
     "h_SJ_mass_SR", "h_disuperjet_mass_SR" , "h_SJ_mass_CR", "h_disuperjet_mass_CR", "h_SJ_mass_AT1b", "h_disuperjet_mass_AT1b", 
-    "h_SJ_mass_AT0b", "h_disuperjet_mass_AT0b", "h_SJ_mass", "h_disuperjet_mass",
+    "h_SJ_mass_AT0b", "h_disuperjet_mass_AT0b",
     "h_nMedBTags",
     "h_nMedBTags_pt75",
     "h_nMedBTags_pt100",
     "h_nMedBTags_pt150",
     "h_nCA4_300_1b",
-    "h_nCA4_300_0b",
+    "h_nCA4_300_0b"
 
      };
 
@@ -786,8 +797,15 @@ void data_MC_comparer()
             {
                 for(auto hist_name = hist_names.begin();hist_name!=hist_names.end();hist_name++)
                 {
+                    std::string region_str = "";
+                    if ( ( (hist_name->find("SR") != std::string::npos) || (hist_name->find("CR") != std::string::npos) || (hist_name->find("AT1b") != std::string::npos) || (hist_name->find("AT0b") != std::string::npos)  )   )
+                    {
+                        if ( !(hist_name->find(*region) != std::string::npos)) continue;    // don't want to try and plot some AT1b variable for AT0b 
+                        else { region_str=  *region; }
+                    }
                     std::cout << "Running control region for " << *year << "/" << *region << "/" << *hist_name << std::endl;
-                    make_plot(*year, *hist_name, runControlRegions, runSideband, *region, doMasking);
+                    make_plot(*year, *hist_name, runControlRegions, runSideband, region_str, doMasking);
+
                 }
             }
         }
