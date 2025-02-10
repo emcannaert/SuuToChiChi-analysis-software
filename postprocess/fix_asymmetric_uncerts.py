@@ -22,7 +22,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, us
 
 
 	asymmetry_threshold              = 0.4     ## value below which symmetry will be forced for a NP. Set to some large value to force all NPs to be symmetrix 
-	fix_small_sandwiched_uncerts     = False
+	fix_small_sandwiched_uncerts     = True
 	fix_opposite_sided_uncertainties = False
 	bin_variation_ratio_threshold     = 0.15 # the ratio of bin_i variation / bin_i+-1 variation that determines if a bin needs to be changed manually
 

@@ -1,0 +1,16 @@
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT1200to2500_2015_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT1200to2500_2016_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT1200to2500_2017_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT1200to2500_2018_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT2500toInf_2015_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT2500toInf_2016_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT2500toInf_2017_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT2500toInf_2018_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT800to1200_2015_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT800to1200_2016_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT800to1200_2017_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_LNu-HT800to1200_2018_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_QQ-HT800toInf_2015_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_QQ-HT800toInf_2016_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_QQ-HT800toInf_2017_nom_AltDatasets_000
+crab resubmit --maxmemory 3000 -d crab_projects/crab_selectionStudier_WJetsMC_QQ-HT800toInf_2018_nom_AltDatasets_000

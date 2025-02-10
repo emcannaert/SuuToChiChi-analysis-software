@@ -284,17 +284,17 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 		WJets_combined_up = WJets_combined_nom.Clone()
 
 
-	allBR_up  = QCD_combined_up
+	allBR_up  = QCD_combined_up.Clone("allBR_up")
 	allBR_up.Add(TTbar_combined_up)
 	allBR_up.Add(WJets_combined_up)
 	allBR_up.Add(ST_combined_up)
 
-	allBR_nom = QCD_combined_nom
+	allBR_nom = QCD_combined_nom.Clone("allBR_nom")
 	allBR_nom.Add(TTbar_combined_nom)
 	allBR_nom.Add(WJets_combined_nom)
 	allBR_nom.Add(ST_combined_nom)	
 
-	allBR_down = QCD_combined_down
+	allBR_down = QCD_combined_down.Clone("allBR_down")
 	allBR_down.Add(TTbar_combined_down)
 	allBR_down.Add(WJets_combined_down)
 	allBR_down.Add(ST_combined_down)		

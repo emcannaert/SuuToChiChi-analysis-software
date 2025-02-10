@@ -7,9 +7,6 @@ import numpy as np
 if __name__=="__main__":
 	#try:
 
-
-					 
-
 	# keeping track of how many copy commands have already been made for each of the samples and systematics
 
 	nCommands	= {  "2015": { "QCDMC2000toInf": { 'JEC1':0, 'JEC2':0, 'JER':0,'nom':0  },     #nCommands[year][sample][systematic]
@@ -65,6 +62,7 @@ if __name__=="__main__":
 					 "2017": { "QCDMC2000toInf": { 'JEC1':0, 'JEC2':0, 'JER':0,'nom':0  },
 					 "QCDMC1500to2000":{ 'JEC1':0, 'JEC2':0, 'JER':0,'nom':0  },
 					 "QCDMC1000to1500":{ 'JEC1':0, 'JEC2':0, 'JER':0,'nom':0  },
+					 "QCD_HT700to1000": {'JEC1':0, 'JEC2':0, 'JER':0,'nom':0  },  ## this is for helping Heewon
 					 "TTToHadronicMC":{ 'JEC1':0, 'JEC2':0, 'JER':0,'nom':0  },
 					 "TTToSemiLeptonicMC":{ 'JEC1':0, 'JEC2':0, 'JER':0,'nom':0  },
 					 "TTToLeptonicMC":{ 'JEC1':0, 'JEC2':0, 'JER':0,'nom':0    },
@@ -166,6 +164,7 @@ if __name__=="__main__":
 					 "2017": { "QCDMC2000toInf": { 'JEC1':[], 'JEC2': [], 'JER':[],'nom':[]  },
 					 "QCDMC1500to2000":{ 'JEC1':[], 'JEC2': [], 'JER':[],'nom':[]  },
 					 "QCDMC1000to1500":{ 'JEC1':[], 'JEC2': [], 'JER':[],'nom':[]  },
+					 "QCD_HT700to1000": { 'JEC1':[], 'JEC2': [], 'JER':[],'nom':[]   },
 					 "TTToHadronicMC":{ 'JEC1':[], 'JEC2': [], 'JER':[],'nom':[]  },
 					 "TTToSemiLeptonicMC":{ 'JEC1':[], 'JEC2': [], 'JER':[],'nom':[]  },
 					 "TTToLeptonicMC":{ 'JEC1':[], 'JEC2': [], 'JER':[],'nom':[]  },
@@ -226,8 +225,8 @@ if __name__=="__main__":
 "WJetsMC_LNu-HT2500toInf",
 "WJetsMC_QQ-HT800toInf",
 	"WW_MC",
-	"ZZ_MC"
-
+	"ZZ_MC",
+	"QCD_HT700to1000"  ## for helping heewon
 	]
 
 	signal_samples_pkl = open('../data/pkl/signal_samples.pkl', 'r')
@@ -300,7 +299,7 @@ if __name__=="__main__":
 			all_files_made[year_str][sample_str][sys_str].append("%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
 			nCommands[year_str][sample_str][sys_str]+=1
 		pipe = '|'
-		command_path.write(r'hadd -f %s_%s_%s_combined_%s.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
+		command_path.write(r'hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s_%s_%s_combined_%s.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
 
 	#print(all_files_made)
 	### now add to this .sh script a section that combines all files together into a single "_combined.root", renames files to this if they don't need to be added together
@@ -309,14 +308,14 @@ if __name__=="__main__":
 			for syst,syst_dict in sample_dict.items():
 				combined_file_name = "%s_%s_%s_combined.root"%(sample, year, syst)
 				if len(syst_dict) > 1:    # if there are actually files in this 
-					command_path.write('hadd -f %s '%combined_file_name)
+					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
 						command_path.write(" %s"%one_file.strip()) 
 						if iii == (len(syst_dict)-1):
 							command_path.write("\n")
 				elif len(syst_dict) == 1:
 					## rename the one file 
-					command_path.write("mv %s %s\n"%(syst_dict[0], combined_file_name) )
+					command_path.write("eosmv $EOSHOME/combinedROOT_temp/%s $EOSHOME/combinedROOT/%s\n"%(syst_dict[0], combined_file_name) )
 
 	## merge together the signal files
 	for year,year_dict in signal_files_made.items():
@@ -324,14 +323,14 @@ if __name__=="__main__":
 			for syst,syst_dict in sample_dict.items():
 				combined_file_name = "%s_%s_%s_combined.root"%(sample, year, syst)
 				if len(syst_dict) > 1:    # if there are actually files in this 
-					command_path.write('hadd -f %s '%combined_file_name)
+					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
 						command_path.write(" %s"%one_file.strip()) 
 						if iii == (len(syst_dict)-1):
 							command_path.write("\n")
 				elif len(syst_dict) == 1:
 					## rename the one file 
-					command_path.write("mv %s %s\n"%(syst_dict[0], combined_file_name) )
+					command_path.write("eosmv $EOSHOME/combinedROOT_temp/%s $EOSHOME/combinedROOT/%s\n"%(syst_dict[0], combined_file_name) )
 
 	#except:
 	#	print("Enter in a valid text file with a list of the files you want to copy from EOS (no spaces in between)")
