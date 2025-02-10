@@ -34,7 +34,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
       ### AND REPLACE WITH THESE
       elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_BBEC1_year",  "JEC_Absolute_year", "JEC_RelativeSample_year", "JEC", "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteTheory"]
-      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_AbsoluteMPFBias","JEC_RelativeFSR" ]        #all_systematics
+      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_BBEC1" ]        #all_systematics
 
       else:        #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER" ]        #all_systematics
          print("ERROR: Suu systematic is neither JEC nor nom.")
@@ -46,7 +46,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    # and replace with these 
    elif systematic__ == "JEC1": systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal","JEC_BBEC1_year",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR","JEC_AbsoluteTheory" ]
-   elif systematic__ == "JEC2": systematic_ =   [ "JEC_Absolute_year",  "JEC_RelativeSample_year", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC"]
+   elif systematic__ == "JEC2": systematic_ =   [ "JEC_Absolute_year",  "JEC_RelativeSample_year", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_BBEC1", "JEC"]
    elif systematic__ == "JER":  systematic_ =   [  "JER_eta193", "JER_193eta25", "JER"] ## we aren't using JERs for eta > 2.5, so no need for the other 4 uncertainties
 
    apply_pu_ID = True

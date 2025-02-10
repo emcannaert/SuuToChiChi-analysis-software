@@ -600,13 +600,13 @@ void readTreeApplySelection()
    
    std:string runType = "main-band";
    // you must change these ........
-   bool runAll        = true;
+   bool runAll        = false;
    bool runData       = false;
    bool runSignal     = false;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
    bool runDataBR     = false;
    bool runTTbar      = false;
-   bool runSelection  = false;
+   bool runSelection  = true;
    bool runSingleFile = false;
    bool runExtras     = false;
    bool runSideband   = false;
@@ -622,7 +622,7 @@ void readTreeApplySelection()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   if (runSelection) years = {"2015","2016","2017","2018"};  // single year to run over 
+   if (runSelection) years = {"2016"};  // single year to run over 
 
    if(runSingleFile)
    {
@@ -732,7 +732,7 @@ void readTreeApplySelection()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",  "TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_"  };  
+         dataBlocks = {"dataF_", "dataG_", "dataH_" };  
       }
       else if(runExtras)
       {

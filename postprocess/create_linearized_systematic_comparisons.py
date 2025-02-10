@@ -145,9 +145,6 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	canvas.cd(2)
 
 	ratio1_2 = up_hist.Clone("ratio1_2")
-
-
-
 	ratio1_2 = divide_histograms(ratio1_2,nom_hist)
 
 	ratio1_2.SetTitle(hist_type + " up and down systematics / nom systematic")
@@ -181,7 +178,6 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	# Get the lower pad
 	ratio1_2.GetYaxis().SetRangeUser(min_bin_content_ratio/0.8, max_bin_content_ratio*1.15)
 	canvas.Update();
-
 
 	ratio1_2.SetMinimum(min_bin_content_ratio)
 	ratio1_2.SetMaximum(max_bin_content_ratio)
@@ -292,6 +288,72 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 
 	down_hist = finput.Get(region+"/"+histname_down)
 	#down_hist.Sumw2()
+
+
+	#### add the NP yield changes to text file
+
+	if run_corrected: yield_impact_text = open("txt_files/NP_yield_impacts_corrected.txt","a")
+	else: yield_impact_text = open("txt_files/NP_yield_impacts.txt","a")
+	yield_impact_text.write("%s     %s     %s     %s     %s     %s     %s     %s     %s    %s\n"%(year, histname, region, systematic,   np.round(nom_hist.Integral(),4), np.round(up_hist.Integral(),4), np.round(down_hist.Integral(),4),  np.round(up_hist.Integral()/nom_hist.Integral() - 1.0,4), np.round(down_hist.Integral()/nom_hist.Integral() - 1.0,4),  np.round(max( abs(up_hist.Integral()/nom_hist.Integral() - 1.0), abs(down_hist.Integral()/nom_hist.Integral() - 1.0)     )   ,4) ) )
+	yield_impact_text.close()
+
+
+	#shape_impact_text_corrected.write("year     NP_name     mean_var_up     mean_var_down     max_var_up     var_stddev_up     var_stddev_down     max_var_down\n")
+
+
+
+
+	### need to loop overall bins and count up the variations
+
+	### these will contain the 1 - var / nom values
+	vars_up  = np.array([])
+	vars_down = np.array([])
+
+	for iii in range(1,nom_hist.GetNbinsX()+1):
+		nom_yield = nom_hist.GetBinContent(iii)
+		up_yield  = up_hist.GetBinContent(iii)
+		down_yield = down_hist.GetBinContent(iii)
+
+		if nom_yield > 0:
+			up_var = 1.0 - up_yield/nom_yield
+			down_var = 1.0 - down_yield/nom_yield
+		else: 
+			up_var = 1.0
+			down_var = 1.0
+
+
+		vars_up = np.append(vars_up, up_var)
+		vars_down = np.append(vars_down, down_var)
+
+	mean_var_up = np.round(np.mean(vars_up),4)
+	mean_var_down = np.round(np.mean(vars_down),4)
+
+	var_stddev_up = np.round(np.std(vars_up),4)
+	var_stddev_down = np.round(np.std(vars_down),4)
+
+	max_var_up = np.round(np.max(vars_up),4)
+	max_var_down = np.round(np.max(vars_down),4)
+
+	min_var_up   =  np.round(np.min(vars_up),4)
+	min_var_down =  np.round(np.min(vars_down),4)
+
+
+	max_var_up = max( abs(max_var_up), abs(min_var_up)    )
+	max_var_down = max( abs(max_var_down), abs(min_var_down)    )
+
+	abs_vars_up   = np.array([ abs(a_var_up)  for a_var_up in vars_up  ])
+	abs_vars_down = np.array([ abs(a_var_down)  for a_var_down in vars_down  ])
+
+	mean_abs_var_up      =  np.round(  np.mean(  abs_vars_up    ),4)
+	mean_abs_var_down    =  np.round(  np.mean(  abs_vars_down  ),4)
+
+	max_var_abs =   np.round(max( max( max(  abs(max_var_up)     ,  abs(max_var_down)   ),  abs(min_var_up)      ),  abs(min_var_down)     ),4)
+
+	if run_corrected: shape_impact_text = open("txt_files/NP_shape_impacts_corrected.txt","a")
+	else: shape_impact_text = open("txt_files/NP_shape_impacts.txt","a")
+	shape_impact_text.write("%s     %s     %s     %s     %s     %s    %s     %s     %s     %s     %s     %s     %s\n"%(year, histname, region, systematic,   mean_var_up,     mean_var_down,  mean_abs_var_up, mean_abs_var_down,   var_stddev_up,     var_stddev_down ,    max_var_up,     max_var_down,       max_var_abs      ))
+	shape_impact_text.close()
+
 
 	#print("up hist name is ", region+"/"+histname_up)
 	up_hist.SetTitle("Linearized %s in the %s for different %s values (%s) (%s)"%(histname,region, systematic,year,technique_desc ))
@@ -448,6 +510,27 @@ if __name__== "__main__":
 	#technique_strs = ["","NN_"]
 	technique_strs = [""]
 
+	#### REMAKE TEXT FILEs:
+	yield_impact_text = open("txt_files/NP_yield_impacts.txt","w")
+	yield_impact_text.write("year     sample_type     region     NP_name     nom_yield     up_yield     down_yield     up_var     down_var    max_var\n")
+	yield_impact_text.close()
+
+	yield_impact_text_corrected = open("txt_files/NP_yield_impacts_corrected.txt","w")
+	yield_impact_text_corrected.write("year     sample_type     region     NP_name     nom_yield     up_yield     down_yield     up_var     down_var    max_var\n")
+	yield_impact_text_corrected.close()
+
+
+
+
+
+	shape_impact_text = open("txt_files/NP_shape_impacts.txt","w")
+	shape_impact_text.write("year   sample_type   region   NP_name   mean_var_up   mean_var_down   mean_abs_var_up   mean_abs_var_down   var_stddev_up   var_stddev_down   max_var_up   max_var_down   max_var_abs\n") #  max_var_up   max_var_down   min_var_up   min_var_down
+	shape_impact_text.close()
+
+	shape_impact_text_corrected = open("txt_files/NP_shape_impacts_corrected.txt","w")
+	shape_impact_text_corrected.write("year   sample_type   region   NP_name   mean_var_up   mean_var_down   mean_abs_var_up   mean_abs_var_down   var_stddev_up   var_stddev_down   max_var_up   max_var_down   max_var_abs\n") # max_var_up   max_var_down   min_var_up   min_var_down 
+	shape_impact_text_corrected.close()
+
 
 	if debug:
 		histnames = ["QCD"] ## "ST"
@@ -500,7 +583,7 @@ if __name__== "__main__":
 									print("============================================")
 									print("============================================")
 								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
-								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region )
+								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region, False )
 							except:
 								print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region)) 
 

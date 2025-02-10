@@ -62,6 +62,9 @@
 #include <cmath>
 #include "TLorentzVector.h"
 #include "TVector3.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Tau.h"
 
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
@@ -140,6 +143,9 @@ private:
    edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
    edm::EDGetTokenT<double> m_rho_token;
 
+   edm::EDGetTokenT<std::vector<pat::Muon>> muonToken_;
+   edm::EDGetTokenT<std::vector<pat::Electron>> electronToken_;
+   edm::EDGetTokenT<std::vector<pat::Tau>> tauToken_;
 
    TTree * tree;
 
@@ -186,10 +192,10 @@ private:
    bool _verbose           = false;  // do printouts of each section for debugging, set through cfg
    bool debug              = false;  // print out some other debug stuff, set through cfg
    bool runSideband        = false;  // change the HT region, set through cfg
-   int SJ_nAK4_50[100],SJ_nAK4_70[100],SJ_nAK4_100[100],SJ_nAK4_125[100],SJ_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_300[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
+   int SJ_nAK4_10[2],SJ_nAK4_25[2], SJ_nAK4_50[2],SJ_nAK4_70[2],SJ_nAK4_100[2],SJ_nAK4_125[2],SJ_nAK4_150[2],SJ_nAK4_200[2],SJ_nAK4_300[2],SJ_nAK4_400[2],SJ_nAK4_600[2],SJ_nAK4_800[2],SJ_nAK4_1000[2];
    double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100];
-   double SJ_mass_50[100], SJ_mass_70[100],SJ_mass_100[100],superJet_mass[100],SJ_AK4_50_mass[100],SJ_AK4_70_mass[100];
-   double SJ_mass_125[100], SJ_mass_150[100], SJ_mass_200[100],SJ_mass_300[100],SJ_mass_400[100],SJ_mass_600[100],SJ_mass_800[100],SJ_mass_1000[100];   
+   double SJ_mass_50[2], SJ_mass_70[2],SJ_mass_100[2],superJet_mass[2],SJ_AK4_50_mass[2],SJ_AK4_70_mass[2];
+   double SJ_mass_125[2], SJ_mass_150[2], SJ_mass_200[2],SJ_mass_300[2],SJ_mass_400[2],SJ_mass_600[2],SJ_mass_800[2],SJ_mass_1000[2];   
    double AK4_mass[100], AK4_E[500], leadAK8_mass[10];
    double diSuperJet_mass,diSuperJet_mass_100;
    double top_pt_weight;
@@ -338,6 +344,11 @@ private:
    std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK4;   // contains the correctors for each uncertainty source
    std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK8;   // contains the correctors for each uncertainty source
 
+   int nMuons_looseID_looseIso = 0, nMuons_medID_looseIso = 0, nMuons_looseID_medIso = 0;
+   int nElectrons_looseID_medISO = 0, nElectrons_medID_looseISO= 0, nElectrons_looseID_looseISO= 0, nElectrons_looseID_NOISO = 0;
+   int nTau_looseVsJet_looseVsMuon_VVLooseVse = 0, nTau_VLooseVsJet_looseVsMuon_VVLooseVse = 0, nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse= 0 , nTau_looseVsJet_VLooseVsMuon_VVLooseVse = 0;
+   int nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse = 0,nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse = 0;
+
 
 };
 
@@ -467,7 +478,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
    file_map["2015"]["dataBCD"] = "Summer19UL16APV_RunBCD_V7_DATA";
    file_map["2015"]["dataEF"]  = "Summer19UL16APV_RunEF_V7_DATA";
-
    file_map["2016"]["dataFGH"] = "Summer19UL16_RunFGH_V7_DATA";
 
    file_map["2017"]["dataB"] = "Summer19UL17_RunB_V6_DATA";
@@ -495,6 +505,13 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
    fatJetToken_ = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetCollection"));
    jetToken_    = consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetCollection"));
+
+
+    muonToken_ =    consumes<std::vector<pat::Muon>>(iConfig.getParameter<edm::InputTag>("muonCollection"));
+    electronToken_ =    consumes<std::vector<pat::Electron>>(iConfig.getParameter<edm::InputTag>("electronCollection"));
+    tauToken_ =    consumes<std::vector<pat::Tau>>(iConfig.getParameter<edm::InputTag>("tauCollection"));
+
+
 
    m_rho_token  = consumes<double>(edm::InputTag("fixedGridRhoAll", "", "RECO"));
    edm::Service<TFileService> fs;      
@@ -769,6 +786,21 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    tree->Branch("passesPFHT", &passesPFHT  , "passesPFHT/O");
    tree->Branch("passesPFJet", &passesPFJet  , "passesPFJet/O");
 
+
+   // LEPTON INFORMATION
+   tree->Branch("nMuons_looseID_looseIso", &nMuons_looseID_looseIso, "nMuons_looseID_looseIso/I");
+   tree->Branch("nMuons_medID_looseIso", &nMuons_medID_looseIso, "nMuons_medID_looseIso/I");
+   tree->Branch("nMuons_looseID_medIso", &nMuons_looseID_medIso, "nMuons_looseID_medIso/I");
+   tree->Branch("nElectrons_looseID_looseISO", &nElectrons_looseID_looseISO, "nElectrons_looseID_looseISO/I");
+   tree->Branch("nElectrons_looseID_NOISO", &nElectrons_looseID_NOISO, "nElectrons_looseID_NOISO/I");
+   tree->Branch("nTau_looseVsJet_looseVsMuon_VVLooseVse", &nTau_looseVsJet_looseVsMuon_VVLooseVse, "nTau_looseVsJet_looseVsMuon_VVLooseVse/I");
+   tree->Branch("nTau_VLooseVsJet_looseVsMuon_VVLooseVse", &nTau_VLooseVsJet_looseVsMuon_VVLooseVse, "nTau_VLooseVsJet_looseVsMuon_VVLooseVse/I");
+   tree->Branch("nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse", &nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse, "nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse/I");
+   tree->Branch("nTau_looseVsJet_VLooseVsMuon_VVLooseVse", &nTau_looseVsJet_VLooseVsMuon_VVLooseVse, "nTau_looseVsJet_VLooseVsMuon_VVLooseVse/I");
+   tree->Branch("nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse", &nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse, "nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse/I");
+   tree->Branch("nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse", &nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse, "nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse/I");
+
+
    tree->Branch("nfatjets", &nfatjets, "nfatjets/I");
 
    tree->Branch("nAK4", &nAK4, "nAK4/I");
@@ -804,6 +836,9 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    tree->Branch("dijetMassOne", &dijetMassOne, "dijetMassOne/D");
    tree->Branch("dijetMassTwo", &dijetMassTwo, "dijetMassTwo/D");
 
+
+   tree->Branch("SJ_nAK4_10", SJ_nAK4_10, "SJ_nAK4_10[nSuperJets]/I");
+   tree->Branch("SJ_nAK4_25", SJ_nAK4_25, "SJ_nAK4_25[nSuperJets]/I");
    tree->Branch("SJ_nAK4_50", SJ_nAK4_50, "SJ_nAK4_50[nSuperJets]/I");
    tree->Branch("SJ_nAK4_70", SJ_nAK4_70, "SJ_nAK4_70[nSuperJets]/I");
    tree->Branch("SJ_nAK4_100", SJ_nAK4_100, "SJ_nAK4_100[nSuperJets]/I");
@@ -871,6 +906,18 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
    tree->Branch("eventNumber", &eventNumber  , "eventNumber/I");
 
+   tree->Branch("AK4_m12",AK4_m12 , "AK4_m12[nSuperJets]/D");
+   tree->Branch("AK4_m13",AK4_m13 , "AK4_m13[nSuperJets]/D");
+   tree->Branch("AK4_m14",AK4_m14 , "AK4_m14[nSuperJets]/D");
+   tree->Branch("AK4_m23",AK4_m23 , "AK4_m23[nSuperJets]/D");
+   tree->Branch("AK4_m24",AK4_m24 , "AK4_m24[nSuperJets]/D");
+   tree->Branch("AK4_m34",AK4_m34 , "AK4_m34[nSuperJets]/D");
+   tree->Branch("AK4_m123", AK4_m123, "AK4_m123[nSuperJets]/D");
+   tree->Branch("AK4_m124", AK4_m124, "AK4_m124[nSuperJets]/D");
+   tree->Branch("AK4_m134",AK4_m134 , "AK4_m134[nSuperJets]/D");
+   tree->Branch("AK4_m234",AK4_m234 , "AK4_m234[nSuperJets]/D");
+   tree->Branch("AK4_m1234",AK4_m1234 , "AK4_m1234[nSuperJets]/D");
+
    if(_verbose)std::cout << "Initialized base (non-includeAllBranches) variables." << std::endl;
 
    if(includeAllBranches) // EXTRA tree branches to be included if needed
@@ -895,17 +942,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       tree->Branch("AK42_E_tree",AK42_E_tree , "AK42_E_tree[nSuperJets]/D");
       tree->Branch("AK43_E_tree",AK43_E_tree , "AK43_E_tree[nSuperJets]/D");
       tree->Branch("AK44_E_tree",AK44_E_tree , "AK44_E_tree[nSuperJets]/D");
-      tree->Branch("AK4_m12",AK4_m12 , "AK4_m12[nSuperJets]/D");
-      tree->Branch("AK4_m13",AK4_m13 , "AK4_m13[nSuperJets]/D");
-      tree->Branch("AK4_m14",AK4_m14 , "AK4_m14[nSuperJets]/D");
-      tree->Branch("AK4_m23",AK4_m23 , "AK4_m23[nSuperJets]/D");
-      tree->Branch("AK4_m24",AK4_m24 , "AK4_m24[nSuperJets]/D");
-      tree->Branch("AK4_m34",AK4_m34 , "AK4_m34[nSuperJets]/D");
-      tree->Branch("AK4_m123", AK4_m123, "AK4_m123[nSuperJets]/D");
-      tree->Branch("AK4_m124", AK4_m124, "AK4_m124[nSuperJets]/D");
-      tree->Branch("AK4_m134",AK4_m134 , "AK4_m134[nSuperJets]/D");
-      tree->Branch("AK4_m234",AK4_m234 , "AK4_m234[nSuperJets]/D");
-      tree->Branch("AK4_m1234",AK4_m1234 , "AK4_m1234[nSuperJets]/D");
+
       tree->Branch("AK4_theta12",AK4_theta12 , "AK4_theta12[nSuperJets]/D");
       tree->Branch("AK4_theta13",AK4_theta13,  "AK4_theta13[nSuperJets]/D");
       tree->Branch("AK4_theta14", AK4_theta14, "AK4_theta14[nSuperJets]/D");
@@ -2223,7 +2260,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
    if ((runType.find("MC") != std::string::npos) || (runType.find("Suu")!=std::string::npos ) )
@@ -2256,6 +2292,141 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
    }  
+
+
+
+
+   /////////////////////////////////////////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////////////////////////
+   //////////////////////////////////////////  _Leptons  ////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////////////////////////
+
+   ///// SAVE INFORMATION FOR MORE TIGHT LEPTON VETO
+
+   // recommendations from conveners:
+   // loose cut-based ID for muons 
+   // mvaEleID-Fall17-iso-V2-wpLoose + mvaEleID-Fall17-noiso-V2-wpLoose for electrons, 
+   // Loose/VLoose/VVLoose for tau-vs-jet and tau-vs-muon
+
+
+   // add these variables
+
+   // nMuons_looseID_looseIso
+   // nMuons_medID_looseIso
+   // nMuons_looseID_medIso
+
+   // nElectrons_looseID_medISO (NOT USING)
+   // nElectrons_medID_looseISO (NOT USING)
+   // nElectrons_looseID_looseISO
+   // nElectrons_looseID_NOISO
+
+   // nTau_looseVsJet_looseVsMuon_VVLooseVse 
+   // nTau_VLooseVsJet_looseVsMuon_VVLooseVse 
+   // nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse 
+
+   // nTau_looseVsJet_VLooseVsMuon_VVLooseVse 
+   // nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse 
+   // nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse 
+
+   // nTau_looseVsJet_VVLooseVsMuon_VVLooseVse  (VVLooseMuon does not exist!)
+   // nTau_VLooseVsJet_VVLooseVsMuon_VVLooseVse 
+   // nTau_VVLlooseVsJet_VVLooseVsMuon_VVLooseVse 
+
+   nMuons_looseID_looseIso = 0; nMuons_medID_looseIso = 0; nMuons_looseID_medIso = 0;
+   //nElectrons_looseID_medISO = 0 ; nElectrons_medID_looseISO= 0; 
+   nElectrons_looseID_looseISO= 0; nElectrons_looseID_NOISO = 0;
+   nTau_looseVsJet_looseVsMuon_VVLooseVse = 0; nTau_VLooseVsJet_looseVsMuon_VVLooseVse = 0; nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse= 0 ; nTau_looseVsJet_VLooseVsMuon_VVLooseVse = 0;
+   nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse = 0;nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse = 0; 
+
+
+    //int nTau_e = 0, nTau_mu = 0, nTau_jet = 0;
+    edm::Handle<std::vector<pat::Muon>> muons;
+    iEvent.getByToken(muonToken_, muons);
+    for(auto iM = muons->begin(); iM != muons->end();iM++)
+    {
+      if( (iM->passed(reco::Muon::CutBasedIdLoose)) && (iM->pt() > 8.) && (abs(iM->eta()) < 2.4)  && (iM->passed(reco::Muon::PFIsoLoose))   ) nMuons_looseID_looseIso++;
+      if( (iM->passed(reco::Muon::CutBasedIdMedium)) && (iM->pt() > 8.) && (abs(iM->eta()) < 2.4)  && (iM->passed(reco::Muon::PFIsoLoose))   ) nMuons_medID_looseIso++;
+      if( (iM->passed(reco::Muon::CutBasedIdLoose)) && (iM->pt() > 8.) && (abs(iM->eta()) < 2.4)  && (iM->passed(reco::Muon::PFIsoMedium))   ) nMuons_looseID_medIso++;
+    }
+
+
+    edm::Handle<std::vector<pat::Electron>> electrons;
+    iEvent.getByToken(electronToken_, electrons);
+    for(auto iE = electrons->begin(); iE != electrons->end();iE++)
+    {
+      if((iE->electronID("mvaEleID-Fall17-iso-V2-wpLoose")) &&  (iE->pt() > 12.) && (abs(iE->eta())<2.5 ))   nElectrons_looseID_looseISO++;   //medium WP
+      if((iE->electronID("mvaEleID-Fall17-noIso-V2-wpLoose"))  &&  (iE->pt() > 12.) && (abs(iE->eta())<2.5 )) nElectrons_looseID_NOISO++;   //medium WP
+
+    }
+
+    
+    edm::Handle<std::vector<pat::Tau>> taus;
+    iEvent.getByToken(tauToken_, taus);
+    for(auto iT = taus->begin(); iT != taus->end();iT++)
+    {
+        if((iT->pt() > 20.) && (abs(iT->eta()) < 2.3) && (iT->decayMode() != 5) && (iT->decayMode() != 6) && (iT->decayMode() != 7)  && (iT->tauID("decayModeFindingNewDMs") > 0.5) ) // && (abs(iT->dz() < 0.2))
+        {  
+
+            /*   dz doesn't work
+            double dz = 0;
+            auto leadChargedHadrCand = iT->leadChargedHadrCand();
+            if ( leadChargedHadrCand->isNonnull()   ) 
+            {
+                    dz = leadChargedHadrCand->dz();
+            } 
+            if( abs(dz)<0.2)
+            {
+
+            }  
+            */
+
+
+            // nTau_looseVsJet_looseVsMuon_VVLooseVse 
+            // nTau_VLooseVsJet_looseVsMuon_VVLooseVse 
+            // nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse 
+
+            // nTau_looseVsJet_VLooseVsMuon_VVLooseVse 
+            // nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse 
+            // nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse 
+
+            if ((iT->tauID("byVVLooseDeepTau2017v2p1VSe") > 0.5) && (iT->tauID("byLooseDeepTau2017v2p1VSjet") > 0.5) && (iT->tauID("byLooseDeepTau2017v2p1VSmu") > 0.5)  ) nTau_looseVsJet_looseVsMuon_VVLooseVse++;
+            if ((iT->tauID("byVVLooseDeepTau2017v2p1VSe") > 0.5) && (iT->tauID("byVLooseDeepTau2017v2p1VSjet") > 0.5) && (iT->tauID("byLooseDeepTau2017v2p1VSmu") > 0.5)  ) nTau_VLooseVsJet_looseVsMuon_VVLooseVse++;
+            if ((iT->tauID("byVVLooseDeepTau2017v2p1VSe") > 0.5) && (iT->tauID("byVVLooseDeepTau2017v2p1VSjet") > 0.5) && (iT->tauID("byLooseDeepTau2017v2p1VSmu") > 0.5)  ) nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse++;
+
+            if ((iT->tauID("byVVLooseDeepTau2017v2p1VSe") > 0.5) && (iT->tauID("byLooseDeepTau2017v2p1VSjet") > 0.5) && (iT->tauID("byVLooseDeepTau2017v2p1VSmu") > 0.5)  ) nTau_looseVsJet_VLooseVsMuon_VVLooseVse++;
+            if ((iT->tauID("byVVLooseDeepTau2017v2p1VSe") > 0.5) && (iT->tauID("byVLooseDeepTau2017v2p1VSjet") > 0.5) && (iT->tauID("byVLooseDeepTau2017v2p1VSmu") > 0.5)  ) nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse++;
+            if ((iT->tauID("byVVLooseDeepTau2017v2p1VSe") > 0.5) && (iT->tauID("byVVLooseDeepTau2017v2p1VSjet") > 0.5) && (iT->tauID("byVLooseDeepTau2017v2p1VSmu") > 0.5)  ) nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse++;
+
+        }          
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
    if(_verbose)std::cout << "before AK4 jets" << std::endl;
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3378,7 +3549,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if(_verbose)  std::cout << "Applying AK8 jet selection." << std::endl;
 
 
-      if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
+      if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 300.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nfatjets )) || (corrJet.mass()< 0.)) continue; //userFloat("ak8PFJetsPuppiSoftDropMass")
 
       if(_verbose)  std::cout << "Checking HEM." << std::endl;
 
@@ -4120,7 +4291,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       double SJ_800_px = 0, SJ_800_py=0,SJ_800_pz=0,SJ_800_E=0;
       double SJ_1000_px = 0, SJ_1000_py=0,SJ_1000_pz=0,SJ_1000_E=0;
 
-      SJ_nAK4_50[nSuperJets] = 0,  SJ_nAK4_70[nSuperJets] =0,SJ_nAK4_100[nSuperJets] = 0,SJ_nAK4_125[nSuperJets] = 0,SJ_nAK4_150[nSuperJets] = 0,SJ_nAK4_200[nSuperJets] = 0,SJ_nAK4_300[nSuperJets] = 0,SJ_nAK4_400[nSuperJets] = 0,SJ_nAK4_1000[nSuperJets] = 0;
+     SJ_nAK4_10[nSuperJets] = 0, SJ_nAK4_25[nSuperJets] = 0, SJ_nAK4_50[nSuperJets] = 0,  SJ_nAK4_70[nSuperJets] =0,SJ_nAK4_100[nSuperJets] = 0,SJ_nAK4_125[nSuperJets] = 0,SJ_nAK4_150[nSuperJets] = 0,SJ_nAK4_200[nSuperJets] = 0,SJ_nAK4_300[nSuperJets] = 0,SJ_nAK4_400[nSuperJets] = 0,SJ_nAK4_1000[nSuperJets] = 0;
       SJ_nAK4_600[nSuperJets] = 0, SJ_nAK4_800[nSuperJets] = 0;
 
 
@@ -4145,6 +4316,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          }
 
          AK4_E[tot_mpp_AK4]= iPJ->E();
+
+         if(iPJ->E()>10.)
+         {
+            SJ_nAK4_10[nSuperJets]++;
+         }
+         if(iPJ->E()>25.)
+         {
+            SJ_nAK4_25[nSuperJets]++;
+         }
+
          if(iPJ->E()>50.)
          {
             SJ_AK4_50_mass[tot_nAK4_50] = iPJ->m();
