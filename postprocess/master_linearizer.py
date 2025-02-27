@@ -95,8 +95,8 @@ class linearized_plot:
 		#self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",	  "JER",	 "JEC",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",	   "Absolute",	 "JEC_BBEC1_year",		"JEC_Absolute_year",	  "JEC_RelativeSample_year",	"PUSF",	"topPt",	 "L1Prefiring",	       "pdf",	 "renorm",	 "fact",	  "AbsoluteCal",		    "AbsoluteTheory",	     "AbsolutePU"     ]   ## systematic namings as used in analyzer   removed:  "bTagSF",			  "JEC_HF",	 "JEC_BBEC1",	 "JEC_EC2",	 "JEC_EC2_year",		 "JEC_HF_year",	
 		#self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",	   "CMS_bTagSF_light_T",	   "CMS_bTagSF_bc_M",	   "CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		"CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_Absolute_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",  "CMS_jer",	 "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2",   "CMS_jec_EC2_year",   "CMS_jec_HF_year",   
 		
-		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",   "JEC_AbsolutePU",	     "JEC_AbsoluteScale",		  "JEC_Fragmentation",	   "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ,    "scale"]   ## systematic namings as used in analyzer	 "bTagSF",   
-		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	       "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",        "JEC_AbsolutePU",	      "JEC_AbsoluteScale",		  "JEC_Fragmentation",	   "JEC_AbsoluteMPFBias",	    "JEC_RelativeFSR" ,     "scale"]   ## systematic namings as used in analyzer	 "bTagSF",   
+		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	       "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year",     "CMS_pu",  "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
 
 		self.uncorrelated_systematics = [ "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
 			## removed from uncorrelated uncertainties :  "CMS_pu"
@@ -709,8 +709,8 @@ class linearized_plot:
 				if "renorm" in systematic or "fact" in systematic: sample_type = "_TTbar" 
 				self.TTTo_linear_SR.append(self.linearize_plot([],"TTTo","SR",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_SR[iii], self.TTToSemiLeptonicMC_SR[iii], self.TTToLeptonicMC_SR[iii] ]  ))
 				self.TTTo_linear_CR.append(self.linearize_plot([],"TTTo","CR",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_CR[iii], self.TTToSemiLeptonicMC_CR[iii], self.TTToLeptonicMC_CR[iii]] ))
-				self.TTTo_linear_AT0b.append(self.linearize_plot([],"TTTo","AT0b",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_AT1b[iii], self.TTToSemiLeptonicMC_AT1b[iii], self.TTToLeptonicMC_AT0b[iii] ] ))
-				self.TTTo_linear_AT1b.append(self.linearize_plot([],"TTTo","AT1b",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_AT0b[iii], self.TTToSemiLeptonicMC_AT0b[iii], self.TTToLeptonicMC_AT1b[iii]] ))
+				self.TTTo_linear_AT0b.append(self.linearize_plot([],"TTTo","AT0b",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_AT0b[iii], self.TTToSemiLeptonicMC_AT0b[iii], self.TTToLeptonicMC_AT0b[iii] ] ))
+				self.TTTo_linear_AT1b.append(self.linearize_plot([],"TTTo","AT1b",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_AT1b[iii], self.TTToSemiLeptonicMC_AT1b[iii], self.TTToLeptonicMC_AT1b[iii]] ))
 				if self.doATxtb:
 					self.TTTo_linear_AT1tb.append(self.linearize_plot([],"TTTo","AT1tb",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_AT1tb[iii], self.TTToSemiLeptonicMC_AT1tb[iii], self.TTToLeptonicMC_AT1tb[iii]] ))
 					self.TTTo_linear_AT0tb.append(self.linearize_plot([],"TTTo","AT0tb",systematic + sample_type + year_str, False,"TTTo", [ self.TTToHadronicMC_AT0tb[iii], self.TTToSemiLeptonicMC_AT0tb[iii], self.TTToLeptonicMC_AT0tb[iii]] ))
@@ -1144,10 +1144,10 @@ class linearized_plot:
 				WJets_SR_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 				WJets_SR_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-			allBR_stat_uncert_up.SetBinContent(iii, total_bin_nom_value* (1+total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_up.SetBinError(iii, total_bin_stat_uncert * (1+total_bin_stat_uncert/total_bin_nom_value))
-			allBR_stat_uncert_down.SetBinContent(iii, total_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_down.SetBinError(iii, total_bin_stat_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
 		self.QCD_linear_SR.append([QCD_SR_stat_uncert_up, QCD_SR_stat_uncert_down])
 		self.TTbar_linear_SR.append([ TTbar_SR_stat_uncert_up, TTbar_SR_stat_uncert_down])
@@ -1263,10 +1263,10 @@ class linearized_plot:
 				WJets_CR_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 				WJets_CR_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-			allBR_stat_uncert_up.SetBinContent(iii, total_bin_nom_value* (1+total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_up.SetBinError(iii, total_bin_stat_uncert * (1+total_bin_stat_uncert/total_bin_nom_value))
-			allBR_stat_uncert_down.SetBinContent(iii, total_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_down.SetBinError(iii, total_bin_stat_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
 		self.QCD_linear_CR.append([QCD_CR_stat_uncert_up, QCD_CR_stat_uncert_down])
 		self.TTbar_linear_CR.append([ TTbar_CR_stat_uncert_up, TTbar_CR_stat_uncert_down])
@@ -1383,10 +1383,10 @@ class linearized_plot:
 				WJets_AT1b_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 				WJets_AT1b_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-			allBR_stat_uncert_up.SetBinContent(iii, total_bin_nom_value* (1+total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_up.SetBinError(iii, total_bin_stat_uncert * (1+total_bin_stat_uncert/total_bin_nom_value))
-			allBR_stat_uncert_down.SetBinContent(iii, total_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_down.SetBinError(iii, total_bin_stat_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
 		self.QCD_linear_AT1b.append([QCD_AT1b_stat_uncert_up, QCD_AT1b_stat_uncert_down])
 		self.TTbar_linear_AT1b.append([ TTbar_AT1b_stat_uncert_up, TTbar_AT1b_stat_uncert_down])
@@ -1505,10 +1505,10 @@ class linearized_plot:
 				WJets_AT0b_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 				WJets_AT0b_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-			allBR_stat_uncert_up.SetBinContent(iii, total_bin_nom_value* (1+total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_up.SetBinError(iii, total_bin_stat_uncert * (1+total_bin_stat_uncert/total_bin_nom_value))
-			allBR_stat_uncert_down.SetBinContent(iii, total_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_down.SetBinError(iii, total_bin_stat_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
 		self.QCD_linear_AT0b.append([QCD_AT0b_stat_uncert_up, QCD_AT0b_stat_uncert_down])
 		self.TTbar_linear_AT0b.append([ TTbar_AT0b_stat_uncert_up, TTbar_AT0b_stat_uncert_down])
@@ -1628,10 +1628,10 @@ class linearized_plot:
 					WJets_AT0tb_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 					WJets_AT0tb_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-				allBR_stat_uncert_up.SetBinContent(iii, total_bin_nom_value* (1+total_bin_stat_uncert/total_bin_nom_value)  )
-				allBR_stat_uncert_up.SetBinError(iii, total_bin_stat_uncert * (1+total_bin_stat_uncert/total_bin_nom_value))
-				allBR_stat_uncert_down.SetBinContent(iii, total_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
-				allBR_stat_uncert_down.SetBinError(iii, total_bin_stat_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
+				allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+				allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+				allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+				allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
 			self.QCD_linear_AT0tb.append([QCD_AT0tb_stat_uncert_up, QCD_AT0tb_stat_uncert_down])
 			self.TTbar_linear_AT0tb.append([ TTbar_AT0tb_stat_uncert_up, TTbar_AT0tb_stat_uncert_down])
@@ -1750,10 +1750,10 @@ class linearized_plot:
 					WJets_AT1tb_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 					WJets_AT1tb_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-				allBR_stat_uncert_up.SetBinContent(iii, total_bin_nom_value* (1+total_bin_stat_uncert/total_bin_nom_value)  )
-				allBR_stat_uncert_up.SetBinError(iii, total_bin_stat_uncert * (1+total_bin_stat_uncert/total_bin_nom_value))
-				allBR_stat_uncert_down.SetBinContent(iii, total_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
-				allBR_stat_uncert_down.SetBinError(iii, total_bin_stat_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
+				allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+				allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+				allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+				allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
 			self.QCD_linear_AT1tb.append([QCD_AT1tb_stat_uncert_up, QCD_AT1tb_stat_uncert_down])
 			self.TTbar_linear_AT1tb.append([ TTbar_AT1tb_stat_uncert_up, TTbar_AT1tb_stat_uncert_down])
@@ -1875,10 +1875,10 @@ class linearized_plot:
 					WJets_SB1b_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 					WJets_SB1b_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-				allBR_stat_uncert_up.SetBinContent(iii, total_bin_nom_value* (1+total_bin_stat_uncert/total_bin_nom_value)  )
-				allBR_stat_uncert_up.SetBinError(iii, total_bin_stat_uncert * (1+total_bin_stat_uncert/total_bin_nom_value))
-				allBR_stat_uncert_down.SetBinContent(iii, total_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
-				allBR_stat_uncert_down.SetBinError(iii, total_bin_stat_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
+				allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+				allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+				allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+				allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
 			self.QCD_linear_SB1b.append([QCD_SB1b_stat_uncert_up, QCD_SB1b_stat_uncert_down])
 			self.TTbar_linear_SB1b.append([ TTbar_SB1b_stat_uncert_up, TTbar_SB1b_stat_uncert_down])
@@ -1997,10 +1997,10 @@ class linearized_plot:
 					WJets_SB0b_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 					WJets_SB0b_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-				allBR_stat_uncert_up.SetBinContent(iii, total_bin_nom_value* (1+total_bin_stat_uncert/total_bin_nom_value)  )
-				allBR_stat_uncert_up.SetBinError(iii, total_bin_stat_uncert * (1+total_bin_stat_uncert/total_bin_nom_value))
-				allBR_stat_uncert_down.SetBinContent(iii, total_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
-				allBR_stat_uncert_down.SetBinError(iii, total_bin_stat_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
+				allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+				allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+				allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+				allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
 			self.QCD_linear_SB0b.append([QCD_SB0b_stat_uncert_up, QCD_SB0b_stat_uncert_down])
 			self.TTbar_linear_SB0b.append([ TTbar_SB0b_stat_uncert_up, TTbar_SB0b_stat_uncert_down])

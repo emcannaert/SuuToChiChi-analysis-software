@@ -2,8 +2,7 @@
 #include <string>
 #include "TLorentzVector.h"
 #include <cstdlib>
-
-
+#include <fstream>  // For file handling
 
 // helper function 
 double return_BR_SF(const std::string& year, const std::string& sample) 
@@ -168,6 +167,21 @@ bool doThings(std::string inFileName, std::string outFileName,double & total_QCD
 {
 
 
+
+    std::ofstream outFile_txt( ("../postprocess/txt_files/NN_scores/NN_scores_" + dataYear  + "_"+ dataBlock   + ".txt").c_str()   );
+
+    if (outFile_txt.is_open()) 
+    { 
+        std::cout << "Output text succesffully opened." << std::endl;
+        outFile_txt << "SJ1_signal_score" << "     " << "SJ1_TTbar_score" << "     " << "SJ1_QCD_score" << "     " << "SJ2_signal_score" << "     " << "SJ2_TTbar_score" << "     " << "SJ2_QCD_score" <<  "\n";
+    } 
+    else 
+    {
+        std::cerr << "Error: Could not create the output text file!\n";
+    }
+
+
+
    TH1::SetDefaultSumw2();
    TH2::SetDefaultSumw2();
    int eventnum = 0;int nhadevents = 0; int nfatjets = 0;int raw_nfatjets;int tot_nAK4_50,tot_nAK4_70;int SJ_nAK4_50[100],SJ_nAK4_70[100];
@@ -255,6 +269,7 @@ bool doThings(std::string inFileName, std::string outFileName,double & total_QCD
    {
 		std::cout << "ERROR: File " << _inFilename << " not found - skipping !!" << std::endl;
 		delete f;
+        outFile_txt.close();
 		return false;
    }
    TFile * outFile = TFile::Open(_outFilename,"UPDATE");
@@ -292,6 +307,7 @@ bool doThings(std::string inFileName, std::string outFileName,double & total_QCD
 			{
 				std::cout << "ERROR: tree not found - " << ( tree_name  + "/skimmedTree_"+ tree_name ).c_str()  <<std::endl;
 				delete f;
+                outFile_txt.close();
 				return false;
 			}
 			nentries = t1->GetEntries();
@@ -300,6 +316,7 @@ bool doThings(std::string inFileName, std::string outFileName,double & total_QCD
 		{
 			std::cout << "ERROR: tree not found - " << ( tree_name  + "/skimmedTree_"+ tree_name ).c_str()  <<std::endl;
 			delete f;
+            outFile_txt.close();
 			return false;
 		}
 		std::cout << "Successfully got tree " << tree_name  + "/skimmedTree_"+ tree_name << std::endl;
@@ -529,6 +546,10 @@ bool doThings(std::string inFileName, std::string outFileName,double & total_QCD
 			double eventScaleFactor = 1.0;
 			double bTag_eventWeight_M = 1, bTag_eventWeight_T = 1;
 
+
+
+
+
 			if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos)  )
 			{
 
@@ -691,6 +712,12 @@ bool doThings(std::string inFileName, std::string outFileName,double & total_QCD
 			nAK8JetCut+=eventScaleFactor;
 			if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))continue;
  
+
+            outFile_txt << SJ1_BEST_scores[0] << "     " << SJ1_BEST_scores[1] << "     " << SJ1_BEST_scores[2] << "     " << SJ2_BEST_scores[0] << "     " << SJ2_BEST_scores[1] << "     " << SJ2_BEST_scores[2] <<  "\n";
+
+
+
+
 			nHeavyAK8Cut+=eventScaleFactor;
 			double eventWeightToUse = eventScaleFactor; 
 
@@ -1177,6 +1204,7 @@ bool doThings(std::string inFileName, std::string outFileName,double & total_QCD
 
 	}
 
+   outFile_txt.close();
    outFile->Close();
    std::cout << "--------- Finished file " << inFileName << std::endl;
    delete f;
