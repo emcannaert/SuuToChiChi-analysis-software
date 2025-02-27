@@ -257,26 +257,40 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 
 
-		// number of tagged superjets per SJ mass bin
+		// number of tagged superjets per SJ mass bin ----- cut-based
 		TH1F* h_SJ_mass_tagged_SJs_1b  = new TH1F("h_SJ_mass_tagged_SJs_1b","Number of Tagged SJs by Superjet mass (1b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
 		TH1F* h_SJ_mass_tagged_SJs_0b  = new TH1F("h_SJ_mass_tagged_SJs_0b","Number of Tagged SJs by Superjet mass (0b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
 		TH1F* h_SJ_mass_tagged_SJs  = new TH1F("h_SJ_mass_tagged_SJs","Number of Tagged SJs by Superjet mass;SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
 		
-		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1_1b  = new TH1F("h_SJ_mass_tagged_SJs_ATSJ1_1b","Number of Tagged SJ2 by Superjet mass (SJ1 antitagged) (1b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
-		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1_0b  = new TH1F("h_SJ_mass_tagged_SJs_ATSJ1_0b","Number of Tagged SJs by Superjet mass bin (SJ1 antitagged) (0b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
-		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1  = new TH1F("h_SJ_mass_tagged_SJs_ATSJ1","Number of Tagged SJs per Superjet mass bin (SJ1 antitagged) ;SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1_1b  = new TH1F("h_SJ2_mass_tagged_SJs_ATSJ1_1b","Number of Tagged SJ2 by Superjet mass (SJ1 antitagged) (1b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1_0b  = new TH1F("h_SJ2_mass_tagged_SJs_ATSJ1_0b","Number of Tagged SJs by Superjet mass bin (SJ1 antitagged) (0b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1  = new TH1F("h_SJ2_mass_tagged_SJs_ATSJ1","Number of Tagged SJs per Superjet mass bin (SJ1 antitagged) ;SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
 		
 		// total number of superjets per mass bin
 		TH1F* h_SJ_mass_total_SJs_1b  = new TH1F("h_SJ_mass_total_SJs_1b","Total number of SJs by Superjet mass (1b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
 		TH1F* h_SJ_mass_total_SJs_0b  = new TH1F("h_SJ_mass_total_SJs_0b","Total number of SJs by Superjet mass (0b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
 		TH1F* h_SJ_mass_total_SJs  = new TH1F("h_SJ_mass_total_SJs","Total number of SJs by Superjet mass;SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
 		
-		TH1F* h_SJ2_mass_total_SJs_ATSJ1_1b  = new TH1F("h_SJ_mass_total_SJs_ATSJ1_1b","Total number of SJ2 by Superjet mass (SJ1 antitagged) (1b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
-		TH1F* h_SJ2_mass_total_SJs_ATSJ1_0b  = new TH1F("h_SJ_mass_total_SJs_ATSJ1_0b","Total number of SJs by Superjet mass bin (SJ1 antitagged) (0b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
-		TH1F* h_SJ2_mass_total_SJs_ATSJ1  = new TH1F("h_SJ_mass_total_SJs_ATSJ1","Total number of SJs per Superjet mass bin (SJ1 antitagged) ;SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_total_SJs_ATSJ1_1b  = new TH1F("h_SJ2_mass_total_SJs_ATSJ1_1b","Total number of SJ2 by Superjet mass (SJ1 antitagged) (1b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_total_SJs_ATSJ1_0b  = new TH1F("h_SJ2_mass_total_SJs_ATSJ1_0b","Total number of SJs by Superjet mass bin (SJ1 antitagged) (0b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_total_SJs_ATSJ1  = new TH1F("h_SJ2_mass_total_SJs_ATSJ1","Total number of SJs per Superjet mass bin (SJ1 antitagged) ;SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
 		
 
 
+
+		// number of tagged superjets per SJ mass bin ----- NN-based
+		TH1F* h_SJ_mass_tagged_SJs_1b_NN  = new TH1F("h_SJ_mass_tagged_SJs_1b_NN","Number of Tagged SJs by Superjet mass (1b region) (NN-based);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ_mass_tagged_SJs_0b_NN  = new TH1F("h_SJ_mass_tagged_SJs_0b_NN","Number of Tagged SJs by Superjet mass (0b region) (NN-based);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ_mass_tagged_SJs_NN  = new TH1F("h_SJ_mass_tagged_SJs_NN","Number of Tagged SJs by Superjet mass;SJ mass [GeV] (NN-based); Events / 100 GeV",50,0.,5000);
+		
+		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1_1b_NN  = new TH1F("h_SJ2_mass_tagged_SJs_ATSJ1_1b_NN","Number of Tagged SJ2 by Superjet mass (SJ1 antitagged) (1b region) (NN-based);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1_0b_NN  = new TH1F("h_SJ2_mass_tagged_SJs_ATSJ1_0b_NN","Number of Tagged SJs by Superjet mass bin (SJ1 antitagged) (0b region) (NN-based);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_tagged_SJs_ATSJ1_NN  = new TH1F("h_SJ2_mass_tagged_SJs_ATSJ1_NN","Number of Tagged SJs per Superjet mass bin (SJ1 antitagged) (NN-based);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+			
+		TH1F* h_SJ2_mass_total_SJs_ATSJ1_1b_NN  = new TH1F("h_SJ2_mass_total_SJs_ATSJ1_1b_NN","Total number of SJ2 by Superjet mass (SJ1 antitagged) (1b region) (NN-based);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_total_SJs_ATSJ1_0b_NN  = new TH1F("h_SJ2_mass_total_SJs_ATSJ1_0b_NN","Total number of SJs by Superjet mass bin (SJ1 antitagged) (0b region) (NN-based);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		TH1F* h_SJ2_mass_total_SJs_ATSJ1_NN  = new TH1F("h_SJ2_mass_total_SJs_ATSJ1_NN","Total number of SJs per Superjet mass bin (SJ1 antitagged) (NN-based);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
+		
 
 
 		TH1F* h_nfatjets_SR = new TH1F("h_nfatjets_SR","Number of AK8 Jets (E_{T} > 300 GeV per Event ;nAK8 Jets; Events",10,-0.5,9.5);
@@ -401,6 +415,38 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 		TH1F* h_SJ2_decision_1b  = new TH1F("h_SJ2_decision_1b","superjet decision category (1b region);Category; Superjets",3,-0.5,2.5);
 		TH1F* h_SJ2_decision_0b  = new TH1F("h_SJ2_decision_0b","superjet decision category (0b region);Category; Superjets",3,-0.5,2.5);
+			   
+
+		TH1F* h_SJ1_BEST_sig_score  = new TH1F("h_SJ1_BEST_sig_score","SJ2 BEST Score for the Signal Category (All SJ1); Score; superjets",50,0,1.0);
+		TH1F* h_SJ1_BEST_Top_score  = new TH1F("h_SJ1_BEST_Top_score","SJ2 BEST Score for the Top Category (All SJ1); Score; superjets",50,0,1.0);
+		TH1F* h_SJ1_BEST_QCD_score  = new TH1F("h_SJ1_BEST_QCD_score","SJ2 BEST Score for the QCD Category (All SJ1); Score; superjets",50,0,1.0);
+
+		TH1F* h_SJ2_BEST_sig_score  = new TH1F("h_SJ2_BEST_sig_score","SJ1 BEST Score for the Signal Category (All SJ2); Score; superjets",50,0,1.0);
+		TH1F* h_SJ2_BEST_Top_score  = new TH1F("h_SJ2_BEST_Top_score","SJ1 BEST Score for the Top Category (All SJ2); Score; superjets",50,0,1.0);
+		TH1F* h_SJ2_BEST_QCD_score  = new TH1F("h_SJ2_BEST_QCD_score","SJ1 BEST Score for the QCD Category (All SJ2); Score; superjets",50,0,1.0);
+
+		TH1F* h_SJ1_decision  = new TH1F("h_SJ1_decision","Superjet 1 decision category;Category; Superjets",3,-0.5,2.5);
+		TH1F* h_SJ2_decision  = new TH1F("h_SJ2_decision","Superjet 2 decision category;Category; Superjets",3,-0.5,2.5);
+
+
+		// antitagged SJ2 NN scores (for data/MC comparisons)
+		TH1F* h_SJ2_BEST_sig_score_1b_SJ1AT  = new TH1F("h_SJ2_BEST_sig_score_1b_SJ1AT","SJ2 BEST Score for the Signal Category (1b region) (AT region); Score; superjets",50,0,1.0);
+		TH1F* h_SJ2_BEST_Top_score_1b_SJ1AT  = new TH1F("h_SJ2_BEST_Top_score_1b_SJ1AT","SJ2 BEST Score for the Top Category (1b region) (AT region); Score; superjets",50,0,1.0);
+		TH1F* h_SJ2_BEST_QCD_score_1b_SJ1AT  = new TH1F("h_SJ2_BEST_QCD_score_1b_SJ1AT","SJ2 BEST Score for the QCD Category (1b region) (AT region); Score; superjets",50,0,1.0);
+
+		TH1F* h_SJ2_BEST_sig_score_0b_SJ1AT  = new TH1F("h_SJ2_BEST_sig_score_0b_SJ1AT","SJ2 BEST Score for the Signal Category (0b region) (AT region); Score; superjets",50,0,1.0);
+		TH1F* h_SJ2_BEST_Top_score_0b_SJ1AT  = new TH1F("h_SJ2_BEST_Top_score_0b_SJ1AT","SJ2 BEST Score for the Top Category (0b region) (AT region); Score; superjets",50,0,1.0);
+		TH1F* h_SJ2_BEST_QCD_score_0b_SJ1AT  = new TH1F("h_SJ2_BEST_QCD_score_0b_SJ1AT","SJ2 BEST Score for the QCD Category (0b region) (AT region); Score; superjets",50,0,1.0);
+
+		TH1F* h_SJ2_BEST_sig_score_SJ1AT  = new TH1F("h_SJ2_BEST_sig_score_SJ1AT","SJ2 BEST Score for the Signal Category (AT region); Score; superjets",50,0,1.0);
+		TH1F* h_SJ2_BEST_Top_score_SJ1AT  = new TH1F("h_SJ2_BEST_Top_score_SJ1AT","SJ2 BEST Score for the Top Category (AT region); Score; superjets",50,0,1.0);
+		TH1F* h_SJ2_BEST_QCD_score_SJ1AT  = new TH1F("h_SJ2_BEST_QCD_score_SJ1AT","SJ2 BEST Score for the QCD Category (AT region); Score; superjets",50,0,1.0);
+
+
+		TH1F* h_SJ2_decision_1b_SJ1AT  = new TH1F("h_SJ2_decision_1b_SJ1AT","Superjet decision category (1b region) (AT region);Category; Superjets",3,-0.5,2.5);
+		TH1F* h_SJ2_decision_0b_SJ1AT  = new TH1F("h_SJ2_decision_0b_SJ1AT","Superjet decision category (0b region) (AT region);Category; Superjets",3,-0.5,2.5);
+		TH1F* h_SJ2_decision_SJ1AT  = new TH1F("h_SJ2_decision_SJ1AT","Superjet decision category (AT region);Category; Superjets",3,-0.5,2.5);
+
 
 		/////////////////////////////////////////////
 		/////////// systematic uncertainties ///////
@@ -1319,6 +1365,22 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				h_nMedBTags_pt150->Fill(1.0*nTightBTags_pt150,eventWeightToUse);
 				h_nAK4_pt150->Fill(1.0*nAK4_pt150,eventWeightToUse);
 
+
+				h_SJ1_BEST_sig_score->Fill( SJ1_BEST_scores[0]  ,eventWeightToUse);
+				h_SJ1_BEST_Top_score->Fill( SJ1_BEST_scores[1],eventWeightToUse);
+				h_SJ1_BEST_QCD_score->Fill( SJ1_BEST_scores[2],eventWeightToUse);
+				h_SJ2_BEST_sig_score->Fill( SJ2_BEST_scores[0],eventWeightToUse);
+				h_SJ2_BEST_Top_score->Fill( SJ2_BEST_scores[1],eventWeightToUse);
+				h_SJ2_BEST_QCD_score->Fill( SJ2_BEST_scores[2],eventWeightToUse);
+				h_SJ2_decision->Fill( SJ2_decision,eventWeightToUse);
+				h_SJ1_decision->Fill( SJ2_decision,eventWeightToUse);
+
+
+
+
+
+
+
 				///////////////////////////////
 				////////// 0b region //////////
 				///////////////////////////////
@@ -1351,7 +1413,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				  ///////////////////////////////////
 				  /////// tagging study stuff ///////
 				  ///////////////////////////////////
-
 
 
 				  double eventWeightToUse_taggingStudy = eventWeightToUse*pdf_weight*scale_weight;   
@@ -1400,6 +1461,71 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 							h_SJ2_mass_tagged_SJs_ATSJ1->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
 						}
 					}
+
+					/// NN-based tagging
+
+					// SJ1 tag
+					if(  (SJ1_decision == 0) && (SJ1_BEST_scores[0] > 0.5)  ) // should kill some of the ST BR
+					{
+						h_SJ_mass_tagged_SJs_0b_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
+						h_SJ_mass_tagged_SJs_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
+					}
+					// SJ2 tag
+					if(  (SJ2_decision == 0) && (SJ2_BEST_scores[0] > 0.5)   )
+					{
+						h_SJ_mass_tagged_SJs_0b_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
+						h_SJ_mass_tagged_SJs_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
+					}
+
+					// SJ1 antitag
+					if(   (SJ1_decision != 0) && (SJ1_BEST_scores[0] < 0.2)    )
+					{
+						h_SJ2_mass_total_SJs_ATSJ1_0b_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
+						h_SJ2_mass_total_SJs_ATSJ1_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
+
+						h_SJ2_BEST_sig_score_0b_SJ1AT->Fill( SJ2_BEST_scores[0],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_Top_score_0b_SJ1AT->Fill( SJ2_BEST_scores[1],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_QCD_score_0b_SJ1AT->Fill( SJ2_BEST_scores[2],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_sig_score_SJ1AT->Fill( SJ2_BEST_scores[0],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_BEST_Top_score_SJ1AT->Fill( SJ2_BEST_scores[1],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_BEST_QCD_score_SJ1AT->Fill( SJ2_BEST_scores[2],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_decision_SJ1AT->Fill( SJ2_decision, eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_decision_0b_SJ1AT->Fill(SJ2_decision,eventWeightToUse_taggingStudy);
+
+						if(   (SJ2_decision == 0)  && (SJ2_BEST_scores[0] > 0.5)   )
+						{
+							h_SJ2_mass_tagged_SJs_ATSJ1_0b_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
+							h_SJ2_mass_tagged_SJs_ATSJ1_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
+
+
+
+
+
+						}
+					}
+					// SJ2 antitag
+					if(   (SJ2_decision != 0) && (SJ2_BEST_scores[0] < 0.2)    )
+					{
+						h_SJ2_mass_total_SJs_ATSJ1_0b_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
+						h_SJ2_mass_total_SJs_ATSJ1_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
+
+						h_SJ2_BEST_sig_score_0b_SJ1AT->Fill( SJ1_BEST_scores[0],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_Top_score_0b_SJ1AT->Fill( SJ1_BEST_scores[1],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_QCD_score_0b_SJ1AT->Fill( SJ1_BEST_scores[2],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_sig_score_SJ1AT->Fill( SJ1_BEST_scores[0],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_BEST_Top_score_SJ1AT->Fill( SJ1_BEST_scores[1],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_BEST_QCD_score_SJ1AT->Fill( SJ1_BEST_scores[2],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_decision_SJ1AT->Fill( SJ1_decision, eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_decision_0b_SJ1AT->Fill(SJ1_decision,eventWeightToUse_taggingStudy);
+
+						if(      (SJ1_decision == 0)  && (SJ1_BEST_scores[0] > 0.5)   )
+						{
+							h_SJ2_mass_tagged_SJs_ATSJ1_0b_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
+							h_SJ2_mass_tagged_SJs_ATSJ1_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
+						}
+					}
+
+
 
 
 					//////////////////////////////////////////
@@ -1580,7 +1706,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					///////////////////
 					////// NN CR //////
 					///////////////////
-					if(  (SJ1_decision == 0) && (SJ2_decision == 0) && (SJ2_BEST_scores[0] > 0.4) && (SJ2_BEST_scores[0])> 0.4) // should kill some of the ST BR
+					if(  (SJ1_decision == 0) && (SJ2_decision == 0) && (SJ1_BEST_scores[0] > 0.5) && (SJ2_BEST_scores[0]> 0.5) )  // should kill some of the ST BR
 					{
 
 
@@ -1600,7 +1726,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					///////////////////
 					///// NN AT0b /////
 					///////////////////
-					else if(  (SJ1_decision == 0) && (SJ2_decision != 0) && (SJ2_BEST_scores[0] < 0.2) ) // want to be quite sure the second superjet is not tagged
+					// SJ2 antitag w/ SJ1 tagged
+					else if(  (SJ1_decision == 0) && (SJ1_BEST_scores[0] > 0.5) && (SJ2_decision != 0) && (SJ2_BEST_scores[0] < 0.2) ) // want to be quite sure the second superjet is not tagged
 					{
 						 double eventWeightToUse_NN = eventScaleFactor*=bTag_eventWeight_M;
 						 if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) eventWeightToUse_NN*=bTag_eventWeight_M;
@@ -1613,7 +1740,20 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						h_true_b_jets_NN_AT0b->Fill(nGenBJets);
 						h_true_b_jets_NN_AT->Fill(nGenBJets);
 					} 
+					// SJ1 antitag w/ SJ12tagged
+					else if(  (SJ2_decision == 0) && (SJ2_BEST_scores[0] > 0.5) && (SJ1_decision != 0) && (SJ1_BEST_scores[0] < 0.2) ) // want to be quite sure the second superjet is not tagged
+					{
+						 double eventWeightToUse_NN = eventScaleFactor*=bTag_eventWeight_M;
+						 if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) eventWeightToUse_NN*=bTag_eventWeight_M;
+						 eventWeightToUse_NN *= pdf_weight*scale_weight;   //factWeight*renormWeight
 
+						nNN_AT0b +=eventScaleFactor;
+						h_SJ_mass_NN_AT0b->Fill(superJet_mass[1],eventWeightToUse_NN);
+						h_disuperjet_mass_NN_AT0b->Fill(diSuperJet_mass,eventWeightToUse_NN);
+						h_MSJ_mass_vs_MdSJ_NN_AT0b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse_NN);
+						h_true_b_jets_NN_AT0b->Fill(nGenBJets);
+						h_true_b_jets_NN_AT->Fill(nGenBJets);
+					} 
 					///////////////////
 					///// NN ADT0b /////
 					///////////////////
@@ -1669,7 +1809,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 					h_SJ1_BEST_sig_score_1b->Fill(SJ1_BEST_scores[0],eventWeightToUse);
 					h_SJ1_BEST_Top_score_1b->Fill(SJ1_BEST_scores[1],eventWeightToUse);
-					h_SJ1_BEST_QCD_score_1b->Fill(SJ1_BEST_scores[2],eventWeightToUse);
+	  				h_SJ1_BEST_QCD_score_1b->Fill(SJ1_BEST_scores[2],eventWeightToUse);
 					h_SJ1_decision_1b->Fill(SJ1_decision,eventWeightToUse);
 					
 
@@ -1691,6 +1831,10 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				  /////// tagging study stuff ///////
 				  ///////////////////////////////////
 
+
+
+
+					/// cut-based tagging
 
 				  double eventWeightToUse_taggingStudy = eventWeightToUse*pdf_weight*scale_weight;   
 				  double eventWeightToUse_taggingStudy_noBTag = eventWeightToUse_preBtag*pdf_weight*scale_weight;   
@@ -1720,6 +1864,15 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					{
 						h_SJ2_mass_total_SJs_ATSJ1_1b->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
 						h_SJ2_mass_total_SJs_ATSJ1->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
+
+						h_SJ2_BEST_sig_score_1b_SJ1AT->Fill( SJ2_BEST_scores[0],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_Top_score_1b_SJ1AT->Fill( SJ2_BEST_scores[1],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_QCD_score_1b_SJ1AT->Fill( SJ2_BEST_scores[2],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_sig_score_SJ1AT->Fill( SJ2_BEST_scores[0],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_BEST_Top_score_SJ1AT->Fill( SJ2_BEST_scores[1],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_BEST_QCD_score_SJ1AT->Fill( SJ2_BEST_scores[2],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_decision_SJ1AT->Fill( SJ2_decision, eventWeightToUse_taggingStudy_noBTag);
+
 						if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
 						{
 							h_SJ2_mass_tagged_SJs_ATSJ1_1b->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
@@ -1731,6 +1884,15 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					{
 						h_SJ2_mass_total_SJs_ATSJ1_1b->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
 						h_SJ2_mass_total_SJs_ATSJ1->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
+
+						h_SJ2_BEST_sig_score_1b_SJ1AT->Fill( SJ1_BEST_scores[0],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_Top_score_1b_SJ1AT->Fill( SJ1_BEST_scores[1],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_QCD_score_1b_SJ1AT->Fill( SJ1_BEST_scores[2],eventWeightToUse_taggingStudy);
+						h_SJ2_BEST_sig_score_SJ1AT->Fill( SJ1_BEST_scores[0],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_BEST_Top_score_SJ1AT->Fill( SJ1_BEST_scores[1],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_BEST_QCD_score_SJ1AT->Fill( SJ1_BEST_scores[2],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_decision_SJ1AT->Fill( SJ1_decision, eventWeightToUse_taggingStudy_noBTag);
+
 						if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
 						{
 							h_SJ2_mass_tagged_SJs_ATSJ1_1b->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
@@ -1738,6 +1900,50 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						}
 					}
 					/////////////////////////////////////////////////////
+
+					/// NN-based tagging
+
+					// SJ1 tag
+					if(  (SJ1_decision == 0) && (SJ1_BEST_scores[0] > 0.5)  ) // should kill some of the ST BR
+					{
+						h_SJ_mass_tagged_SJs_1b_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
+						h_SJ_mass_tagged_SJs_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
+					}
+					// SJ2 tag
+					if(  (SJ2_decision == 0) && (SJ2_BEST_scores[0] > 0.5)   )
+					{
+						h_SJ_mass_tagged_SJs_1b_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
+						h_SJ_mass_tagged_SJs_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
+					}
+
+					// SJ1 antitag
+					if(   (SJ1_decision != 0) && (SJ1_BEST_scores[0] < 0.2)    )
+					{
+						h_SJ2_mass_total_SJs_ATSJ1_1b_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
+						h_SJ2_mass_total_SJs_ATSJ1_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_decision_1b_SJ1AT->Fill(SJ2_decision,eventWeightToUse_taggingStudy);
+
+						if(   (SJ2_decision == 0)  && (SJ2_BEST_scores[0] > 0.5)   )
+						{
+							h_SJ2_mass_tagged_SJs_ATSJ1_1b_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
+							h_SJ2_mass_tagged_SJs_ATSJ1_NN->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
+						}
+					}
+					// SJ2 antitag
+					if(   (SJ2_decision != 0) && (SJ2_BEST_scores[0] < 0.2)    )
+					{
+						h_SJ2_mass_total_SJs_ATSJ1_1b_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
+						h_SJ2_mass_total_SJs_ATSJ1_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
+						h_SJ2_decision_1b_SJ1AT->Fill(SJ2_decision,eventWeightToUse_taggingStudy);
+
+						if(      (SJ1_decision == 0)  && (SJ1_BEST_scores[0] > 0.5)   )
+						{
+							h_SJ2_mass_tagged_SJs_ATSJ1_1b_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
+							h_SJ2_mass_tagged_SJs_ATSJ1_NN->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
+						}
+					}
+
+
 
 
 
@@ -1889,7 +2095,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					///////////////////
 					////// NN SR //////
 					///////////////////
-					if(  (SJ1_decision == 0) && (SJ2_decision == 0) && (SJ2_BEST_scores[0] > 0.4) && (SJ2_BEST_scores[0])> 0.4) // should kill some of the ST BR
+					if(  (SJ1_decision == 0) && (SJ2_decision == 0) && (SJ1_BEST_scores[0] > 0.5) && (SJ2_BEST_scores[0]> 0.5 ) )  // should kill some of the ST BR
 					{
 						{
 							 double eventWeightToUse_NN = eventScaleFactor;
@@ -1908,7 +2114,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					///////////////////
 					///// NN AT1b /////
 					///////////////////
-					else if(  (SJ1_decision == 0) && (SJ2_decision != 0) && (SJ2_BEST_scores[0] < 0.2) ) // want to be quite sure the second superjet is not tagged
+
+					// SJ2 antitag w/ SJ1 tagged
+					else if(  (SJ1_decision == 0) && (SJ1_BEST_scores[0] > 0.5) && (SJ2_decision != 0) && (SJ2_BEST_scores[0] < 0.2) ) // want to be quite sure the second superjet is not tagged
 					{
 						{
 							 double eventWeightToUse_NN = eventScaleFactor;
@@ -1923,7 +2131,22 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 							h_true_b_jets_NN_AT->Fill(nGenBJets);
 						}
 					} 
+					// SJ1 antitag w/ SJ2 tagged
+					else if(  (SJ2_decision == 0) && (SJ2_BEST_scores[0] > 0.5) && (SJ1_decision != 0) && (SJ1_BEST_scores[0] < 0.2) ) // want to be quite sure the second superjet is not tagged
+					{
+						{
+							 double eventWeightToUse_NN = eventScaleFactor;
+							 if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse_NN*=bTag_eventWeight_M;
+							 eventWeightToUse_NN *= pdf_weight*scale_weight;   // factWeight*renormWeight
 
+							nNN_AT1b +=eventScaleFactor;
+							h_SJ_mass_NN_AT1b->Fill(superJet_mass[1],eventWeightToUse_NN);
+							h_disuperjet_mass_NN_AT1b->Fill(diSuperJet_mass,eventWeightToUse_NN );
+							h_MSJ_mass_vs_MdSJ_NN_AT1b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse_NN );
+							h_true_b_jets_NN_AT1b->Fill(nGenBJets);
+							h_true_b_jets_NN_AT->Fill(nGenBJets);
+						}
+					} 
 					///////////////////
 					///// NN ADT1b /////
 					///////////////////
@@ -2131,7 +2354,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			bool isNNAntiTagged = false;
 
 
-			if(  (SJ1_decision == 0) && (SJ2_decision == 0) && (SJ2_BEST_scores[0] > 0.4) && (SJ2_BEST_scores[0])> 0.4 ) isDoubleNNTagged = true;
+			if(  (SJ1_decision == 0) && (SJ2_decision == 0) && (SJ2_BEST_scores[0] > 0.5) && (SJ2_BEST_scores[0])> 0.5 ) isDoubleNNTagged = true;
 			else if(  (SJ1_decision == 0) && (SJ2_decision != 0) && (SJ2_BEST_scores[0] < 0.2) ) isNNAntiTagged = true;
 			if(nMedBTags_pt150 > 0)
 			{
@@ -2165,13 +2388,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				else if(isNNAntiTagged)   h_MSJ_mass_vs_MdSJ_NN_AT0b_bpt150->Fill(diSuperJet_mass,superJet_mass[1] ,eventScaleFactor_M_pt150   );
 			}
 
-
-
 		}
-
-
-
-
 
 
 
@@ -2201,9 +2418,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 	    h_MSJ_mass_vs_MdSJ_NN_AT1b, h_SJ_mass_NN_AT0b, h_disuperjet_mass_NN_AT0b, h_MSJ_mass_vs_MdSJ_NN_AT0b, h_scale_EventWeight, h_scale_EventWeight_SR, h_scale_EventWeight_CR, h_scale_EventWeight_AT1b, h_scale_EventWeight_AT0b,
 	    h_SJ_mass_tagged_SJs_1b, h_SJ_mass_tagged_SJs_0b, h_SJ_mass_tagged_SJs, h_SJ2_mass_tagged_SJs_ATSJ1_1b,
 		h_SJ2_mass_tagged_SJs_ATSJ1_0b, h_SJ2_mass_tagged_SJs_ATSJ1, h_SJ_mass_total_SJs_1b, h_SJ_mass_total_SJs_0b,
-		h_SJ_mass_total_SJs, h_SJ2_mass_total_SJs_ATSJ1_1b, h_SJ2_mass_total_SJs_ATSJ1_0b, h_SJ2_mass_total_SJs_ATSJ1;
-
-
+		h_SJ_mass_total_SJs, h_SJ2_mass_total_SJs_ATSJ1_1b, h_SJ2_mass_total_SJs_ATSJ1_0b, h_SJ2_mass_total_SJs_ATSJ1, h_SJ_mass_tagged_SJs_1b_NN,
+		h_SJ_mass_tagged_SJs_0b_NN, h_SJ_mass_tagged_SJs_NN, h_SJ2_mass_tagged_SJs_ATSJ1_1b_NN, h_SJ2_mass_tagged_SJs_ATSJ1_0b_NN,
+		h_SJ2_mass_tagged_SJs_ATSJ1_NN, h_SJ2_mass_total_SJs_ATSJ1_1b_NN, h_SJ2_mass_total_SJs_ATSJ1_0b_NN, h_SJ2_mass_total_SJs_ATSJ1_NN;
 	}
 
    outFile->Close();

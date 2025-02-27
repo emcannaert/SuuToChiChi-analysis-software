@@ -30,7 +30,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, us
 
 
 	## list of uncorrelated systematics to the correct hist name is grabbed
-	uncorrelated_systematics = [ "CMS_pu",  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
+	uncorrelated_systematics = ["CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
 
 
 	year_str = "16preAPV"
@@ -89,16 +89,17 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, us
 				#if uncert_to_fix_ == "CMS_jec": continue # this is not set up
 				if uncert_to_fix_ == "CMS_topPt" and sample not in ["allBR","TTbar", "TTTo"] : continue
 				if uncert_to_fix_ not in ["nom"] and sample == "data_obs": continue # data_obs only has this one uncertainty 
-				if (sample == "sig" or sample == "WJets"    )and "stat" in uncert_to_fix_: continue
+				if (sample == "sig" or sample == "WJets" or sample == "TTTo"   )and "stat" in uncert_to_fix_: continue
 				uncert_to_fix = uncert_to_fix_
 				if uncert_to_fix in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
-					if sample == "QCD": uncert_to_fix+= "_QCD"
-					elif  "TTTo" in sample: uncert_to_fix+= "_TTbar"
+					if   sample == "sig":   uncert_to_fix+= "_sig"
+					elif "TTTo" in sample:  uncert_to_fix+= "_TTbar"
+					elif sample == "allBR": uncert_to_fix+= "_allBR"
+					elif uncert_to_fix == "CMS_pdf": uncert_to_fix += "_misc"     ### IF THE systematic is pdf and sample is NOT TTTo or sig, create a combined uncertainty  
+					elif sample == "QCD": uncert_to_fix+= "_QCD"
 					elif sample == "TTbar": uncert_to_fix+= "_TTbar"
 					elif sample == "WJets": uncert_to_fix+= "_WJets"
 					elif sample == "ST": continue
-					elif sample == "allBR": uncert_to_fix+= "_allBR"
-					elif sample == "sig": uncert_to_fix+= "_sig"
 
 				#try: 
 				## get the histogram for this uncert/year/sample/region
@@ -446,7 +447,7 @@ if __name__=="__main__":
 
 	include_WJets    = True
 	include_TTTo     = True
-	all_uncerts = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",  "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+	all_uncerts = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",  "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale", "stat"]  ## systematic namings for cards   "CMS_btagSF", 
 	#uncerts_to_fix = [ "CMS_jer",  "cms_jec",  "CMS_jer_eta193", "CMS_jer_193eta25","CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU", "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",  "CMS_bTagSF_M",  "CMS_bTagSF_T" ]   # name of uncertainty to fix (proper name as written in the linearized root files)
 	
 	uncerts_to_fix =  [ "CMS_jer", "CMS_jec", "CMS_bTagSF_M" ,  "CMS_bTagSF_T",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",   "CMS_bTagSF_bc_T_corr", "CMS_bTagSF_light_T_corr",  "CMS_bTagSF_bc_M_corr", "CMS_bTagSF_light_M_corr", "CMS_bTagSF_bc_T_year",  "CMS_bTagSF_light_T_year",  
