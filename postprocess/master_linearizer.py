@@ -28,23 +28,28 @@ class linearized_plot:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, mass_point, technique_str, all_BR_hists, useMask=False):
+	def __init__(self, year, mass_point, technique_str, all_BR_hists, useMask=False, createDummyChannel=False, run_from_eos = False, debug=False):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
 		self.sig_SF_scale = 1.0
 		self.technique_str = technique_str
 		self.year   = year
+		self.createDummyChannel = createDummyChannel
+		self.run_from_eos = run_from_eos
+		self.debug = debug
 
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 
 		self.eos_path = "root://cmseos.fnal.gov/"
-
 		self.HT_distr_home = "/HT_distributions" # extra folder where output files are saved for HT distribution plots
 
-		#self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles/"
-		#self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
+		if self.run_from_eos:		## grab files from eos if they are not stored locally
+
+			print("Using files stored on EOS.")
+			self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles/"
+			self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
 
 		## region options
 		self.doSideband = all_BR_hists.doSideband
@@ -66,8 +71,6 @@ class linearized_plot:
 
 		if "NN" in self.technique_str: self.doSideband = False
 
-
-
 		self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
 		self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats"
 		self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots"
@@ -81,10 +84,12 @@ class linearized_plot:
 		self.superbin_indices			  	  = self.load_superbin_indices()
 		self.superbin_indices_AT			  = self.load_superbin_indices(region="AT1b")   ## change this to reflect which bin indices should be followed (AT1tb if you are using the tight WP in the SR)
  
-
 		if  self.doSideband: 
 			self.superbin_indices_SB1b = self.load_superbin_indices(region="SB1b")
 			self.superbin_indices_SB0b = self.load_superbin_indices(region="SB1b")
+
+		if self.debug:
+			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/test/"
 
 		self.mass_point = mass_point   # label for the signal mass point
 
@@ -586,6 +591,21 @@ class linearized_plot:
 		self.all_combined_linear_AT1b = []
 		self.all_combined_linear_AT0b = []
 
+
+
+		if createDummyChannel:
+			self.dummy_channel_SR   = []
+			self.dummy_channel_CR   = []
+			self.dummy_channel_AT1b = []
+			self.dummy_channel_AT0b = []
+
+			
+
+
+
+
+
+
 		print("Linearizing histograms.")
 		for iii,systematic_ in enumerate(self.systematic_names):   ### this was originally extending the
 			systematic = systematic_
@@ -613,6 +633,17 @@ class linearized_plot:
 			if self.doSideband:
 				self.QCD_linear_SB0b.append(self.linearize_plot([],"QCD","SB0b",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_SB0b[iii], self.QCD1500to2000_hist_SB0b[iii]]))
 				self.QCD_linear_SB1b.append(self.linearize_plot([],"QCD","SB1b",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_SB1b[iii], self.QCD1500to2000_hist_SB1b[iii]]))
+
+
+			if createDummyChannel:    ## create an empty, dummy channel for each region
+				self.dummy_channel_SR.append(self.create_dummy_channel(  self.QCD1000to1500_hist_SR[iii], "SR",   systematic + sample_type + year_str)) ## pass in QCD hist to get right length
+				self.dummy_channel_CR.append(self.create_dummy_channel(  self.QCD1000to1500_hist_SR[iii], "CR",   systematic + sample_type + year_str))
+				self.dummy_channel_AT1b.append(self.create_dummy_channel(self.QCD1000to1500_hist_SR[iii], "AT1b", systematic + sample_type + year_str))
+				self.dummy_channel_AT0b.append(self.create_dummy_channel(self.QCD1000to1500_hist_SR[iii], "AT0b", systematic + sample_type + year_str))
+
+
+				
+
 
 
 			#if self.doSideband: self.QCD_linear_SB1b.append(self.linearize_plot([],"QCD","SB1b",systematic + sample_type + year_str))
@@ -1091,6 +1122,17 @@ class linearized_plot:
 		allBR_stat_uncert_down = self.all_combined_linear_SR[0][0].Clone("allBR_stat%sDown"%year_str)
 		allBR_stat_uncert_down.SetTitle("linearized allBR in the SR (%s) (statDown)"%self.year)
 		allBR_stat_uncert_down.Reset()
+
+
+		allBR_stat_uncert_up_FULL = self.all_combined_linear_SR[0][0].Clone("dummyChannel_stat%sUp"%year_str)
+		allBR_stat_uncert_up_FULL.SetTitle("linearized dummyChannel in the SR (%s) (statUp)"%self.year)
+		allBR_stat_uncert_up_FULL.Reset()
+		allBR_stat_uncert_down_FULL = self.all_combined_linear_SR[0][0].Clone("dummyChannel_stat%sDown"%year_str)
+		allBR_stat_uncert_down_FULL.SetTitle("linearized dummyChannel in the SR (%s) (statDown)"%self.year)
+		allBR_stat_uncert_down_FULL.Reset()
+
+
+
 		for iii in range(1,self.QCD_linear_SR[0][0].GetNbinsX()+1):
 			total_bin_stat_uncert = combined_hist_SR.GetBinError(iii)
 			total_bin_nom_value   = combined_hist_SR.GetBinContent(iii)
@@ -1149,11 +1191,22 @@ class linearized_plot:
 			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
 			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
+
+			allBR_stat_uncert_up_FULL.SetBinContent(iii,(1 +total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up_FULL.SetBinError(iii, (1 + total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down_FULL.SetBinContent(iii, 1 - (total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down_FULL.SetBinError(iii, 1 - (total_bin_stat_uncert/total_bin_nom_value))
+
+
+
+
 		self.QCD_linear_SR.append([QCD_SR_stat_uncert_up, QCD_SR_stat_uncert_down])
 		self.TTbar_linear_SR.append([ TTbar_SR_stat_uncert_up, TTbar_SR_stat_uncert_down])
 		self.ST_linear_SR.append([  ST_SR_stat_uncert_up, ST_SR_stat_uncert_down	 ])
 		if self.includeWJets: self.WJets_linear_SR.append([  WJets_SR_stat_uncert_up, WJets_SR_stat_uncert_down	 ])
 		if self.includeTTTo: self.TTTo_linear_SR.append([  TTTo_SR_stat_uncert_up, TTTo_SR_stat_uncert_down	 ]) 
+		if self.createDummyChannel: 
+			self.dummy_channel_SR.append([ allBR_stat_uncert_up_FULL, allBR_stat_uncert_down_FULL	  ])
 		self.all_combined_linear_SR.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
 
 
@@ -1210,6 +1263,15 @@ class linearized_plot:
 		allBR_stat_uncert_down = self.all_combined_linear_CR[0][0].Clone("allBR_stat%sDown"%year_str)
 		allBR_stat_uncert_down.SetTitle("linearized allBR in the CR (%s) (statDown)"%self.year)
 		allBR_stat_uncert_down.Reset()
+
+		allBR_stat_uncert_up_FULL = self.all_combined_linear_CR[0][0].Clone("dummyChannel_stat%sUp"%year_str)
+		allBR_stat_uncert_up_FULL.SetTitle("linearized allBR in the CR (%s) (statUp)"%self.year)
+		allBR_stat_uncert_up_FULL.Reset()
+		allBR_stat_uncert_down_FULL = self.all_combined_linear_CR[0][0].Clone("dummyChannel_stat%sDown"%year_str)
+		allBR_stat_uncert_down_FULL.SetTitle("linearized allBR in the CR (%s) (statDown)"%self.year)
+		allBR_stat_uncert_down_FULL.Reset()
+
+
 		for iii in range(1,self.QCD_linear_CR[0][0].GetNbinsX()+1):
 			total_bin_stat_uncert = combined_hist_CR.GetBinError(iii)
 			total_bin_nom_value   = combined_hist_CR.GetBinContent(iii)
@@ -1268,6 +1330,13 @@ class linearized_plot:
 			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
 			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
+			allBR_stat_uncert_up.SetBinContent(iii,1+(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up.SetBinError(iii, 1+(total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down.SetBinContent(iii, 1 - (total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down.SetBinError(iii, 1 - (total_bin_stat_uncert/total_bin_nom_value))
+
+
+
 		self.QCD_linear_CR.append([QCD_CR_stat_uncert_up, QCD_CR_stat_uncert_down])
 		self.TTbar_linear_CR.append([ TTbar_CR_stat_uncert_up, TTbar_CR_stat_uncert_down])
 		self.ST_linear_CR.append([  ST_CR_stat_uncert_up, ST_CR_stat_uncert_down	 ])
@@ -1275,6 +1344,7 @@ class linearized_plot:
 		if self.includeTTTo: self.TTTo_linear_CR.append([  TTTo_CR_stat_uncert_up, TTTo_CR_stat_uncert_down	 ]) 
 
 		self.all_combined_linear_CR.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
+		if self.createDummyChannel: self.dummy_channel_CR.append([ allBR_stat_uncert_up_FULL, allBR_stat_uncert_down_FULL  ])
 
 
 		## kill unecessay histograms
@@ -1332,6 +1402,15 @@ class linearized_plot:
 		allBR_stat_uncert_down = self.all_combined_linear_AT1b[0][0].Clone("allBR_stat%sDown"%year_str)
 		allBR_stat_uncert_down.SetTitle("linearized allBR in the AT1b (%s) (statDown)"%self.year)
 		allBR_stat_uncert_down.Reset()
+
+		allBR_stat_uncert_up_FULL = self.all_combined_linear_AT1b[0][0].Clone("dummyChannel_stat%sUp"%year_str)
+		allBR_stat_uncert_up_FULL.SetTitle("linearized dummyChannel in the AT1b (%s) (statUp)"%self.year)
+		allBR_stat_uncert_up_FULL.Reset()
+		allBR_stat_uncert_down_FULL = self.all_combined_linear_AT1b[0][0].Clone("dummyChannel_stat%sDown"%year_str)
+		allBR_stat_uncert_down_FULL.SetTitle("linearized dummyChannel in the AT1b (%s) (statDown)"%self.year)
+		allBR_stat_uncert_down_FULL.Reset()
+
+
 		for iii in range(1,self.QCD_linear_AT1b[0][0].GetNbinsX()+1):
 			total_bin_stat_uncert = combined_hist_AT1b.GetBinError(iii)
 			total_bin_nom_value   = combined_hist_AT1b.GetBinContent(iii)
@@ -1388,6 +1467,13 @@ class linearized_plot:
 			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
 			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
+			allBR_stat_uncert_up_FULL.SetBinContent(iii,1+(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up_FULL.SetBinError(iii, 1+(total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down_FULL.SetBinContent(iii, 1-(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down_FULL.SetBinError(iii, 1-(total_bin_stat_uncert/total_bin_nom_value))
+
+
+
 		self.QCD_linear_AT1b.append([QCD_AT1b_stat_uncert_up, QCD_AT1b_stat_uncert_down])
 		self.TTbar_linear_AT1b.append([ TTbar_AT1b_stat_uncert_up, TTbar_AT1b_stat_uncert_down])
 		self.ST_linear_AT1b.append([  ST_AT1b_stat_uncert_up, ST_AT1b_stat_uncert_down	 ])
@@ -1395,6 +1481,7 @@ class linearized_plot:
 		if self.includeTTTo: self.TTTo_linear_AT1b.append([  TTTo_AT1b_stat_uncert_up, TTTo_AT1b_stat_uncert_down	 ]) 
 
 		self.all_combined_linear_AT1b.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
+		if self.createDummyChannel: self.dummy_channel_AT1b.append([ allBR_stat_uncert_up_FULL, allBR_stat_uncert_down_FULL	  ])
 
 
 		## kill unecessay histograms
@@ -1451,6 +1538,15 @@ class linearized_plot:
 		allBR_stat_uncert_down = self.all_combined_linear_AT0b[0][0].Clone("allBR_stat%sDown"%year_str)
 		allBR_stat_uncert_down.SetTitle("linearized allBR in the AT0b (%s) (statDown)"%self.year)
 		allBR_stat_uncert_down.Reset()
+
+
+		allBR_stat_uncert_up_FULL = self.all_combined_linear_AT0b[0][0].Clone("dummyChannel_stat%sUp"%year_str)
+		allBR_stat_uncert_up_FULL.SetTitle("linearized dummyChannel in the AT0b (%s) (statUp)"%self.year)
+		allBR_stat_uncert_up_FULL.Reset()
+		allBR_stat_uncert_down_FULL = self.all_combined_linear_AT0b[0][0].Clone("dummyChannel_stat%sDown"%year_str)
+		allBR_stat_uncert_down_FULL.SetTitle("linearized dummyChannel in the AT0b (%s) (statDown)"%self.year)
+		allBR_stat_uncert_down_FULL.Reset()
+
 		for iii in range(1,self.QCD_linear_AT0b[0][0].GetNbinsX()+1):
 			total_bin_stat_uncert = combined_hist_AT0b.GetBinError(iii)
 			total_bin_nom_value   = combined_hist_AT0b.GetBinContent(iii)
@@ -1505,10 +1601,17 @@ class linearized_plot:
 				WJets_AT0b_stat_uncert_down.SetBinContent(iii, WJets_bin_nom_value* (1 - total_bin_stat_uncert/total_bin_nom_value)  )
 				WJets_AT0b_stat_uncert_down.SetBinError(iii, WJets_bin_nom_uncert * (1 - total_bin_stat_uncert/total_bin_nom_value))
 
-			allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up.SetBinContent(iii,(total_bin_stat_uncert/total_bin_nom_value))
 			allBR_stat_uncert_up.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
-			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value))
 			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
+
+			allBR_stat_uncert_up_FULL.SetBinContent(iii,1+(total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_up_FULL.SetBinError(iii,1+(total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down_FULL.SetBinContent(iii, 1-(total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down_FULL.SetBinError(iii, 1-(total_bin_stat_uncert/total_bin_nom_value))
+
+
 
 		self.QCD_linear_AT0b.append([QCD_AT0b_stat_uncert_up, QCD_AT0b_stat_uncert_down])
 		self.TTbar_linear_AT0b.append([ TTbar_AT0b_stat_uncert_up, TTbar_AT0b_stat_uncert_down])
@@ -1516,6 +1619,7 @@ class linearized_plot:
 		if self.includeWJets: self.WJets_linear_AT0b.append([  WJets_AT0b_stat_uncert_up, WJets_AT0b_stat_uncert_down	 ])
 		if self.includeTTTo: self.TTTo_linear_AT0b.append([  TTTo_AT0b_stat_uncert_up, TTTo_AT0b_stat_uncert_down	 ]) 
 		self.all_combined_linear_AT0b.append([ allBR_stat_uncert_up, allBR_stat_uncert_down	  ])
+		if self.createDummyChannel:  self.dummy_channel_AT0b.append([ allBR_stat_uncert_up_FULL, allBR_stat_uncert_down_FULL	 ])
 
 
 		## kill unecessay histograms
@@ -2184,6 +2288,60 @@ class linearized_plot:
 		sigma = 3 # bins
 		mu = 2* (num_bins - 1) / 3
 		return 0.1*np.exp(-0.5 * ((bin_num - mu) / sigma) ** 2) / 200.
+
+
+
+	def create_dummy_channel(self,  _hist,region,   systematic): ## creates a dummy histogram (with 0 yield) for every year, region, and systematic
+		ROOT.TH1.SetDefaultSumw2()
+		ROOT.TH2.SetDefaultSumw2()
+
+		mask_size = 0
+		bin_mask = []
+		if self.useMask:
+			bin_mask   = self.load_bin_masks(region) ## bin mask for this specific region
+			mask_size  = len(bin_mask)
+
+		if systematic in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
+			sample_str = "dummyChannel"
+			if systematic == "CMS_pdf": sample_str = "misc"     ### IF THE systematic is pdf and sample is NOT TTTo or sig, create a combined uncertainty  
+			systematic += "_%s"%sample_str
+		sys_suffix = [""]
+		use_sys = ""
+		if "topPt" in systematic:
+			sys_updown = ["_%sUp"%systematic,"_%sDown"%systematic]
+			use_sys = "topPt"
+		elif systematic == "nom":
+			sys_updown = [""]
+			use_sys = "nom"
+		else:
+			sys_updown = ["_%sUp"%systematic,"_%sDown"%systematic]
+			use_sys = systematic
+
+		all_linear_plots = []
+
+		use_indices = self.superbin_indices
+
+		if region in ["SR","CR"]: use_region = "SR"
+		elif region in ["AT1b","AT0b","AT1tb","AT0tb"]: use_region = "AT1b"   ## THIS IS NOT QUITE RIGHT, WOULD WANT CUSTOM AT1tB REGION INDICES
+		elif region in ["SB1b","SB0b"]: use_region = "SB0b"
+
+		if self.doHTdist: use_indices = all_BR_hists.HT_dist_superbins[use_region]
+		elif self.doSideband and region == "SB1b": use_indices = self.superbin_indices_SB1b
+		elif self.doSideband and region == "SB0b": use_indices = self.superbin_indices_SB0b
+		elif region in ["AT1b", "AT0b", "AT1tb", "AT0tb"]:  use_indices = self.superbin_indices_AT
+		for iii,sys_str in enumerate(sys_updown):
+
+			linear_plot_size = len(use_indices)  - mask_size  ## subtract off mask size
+
+			if self.doHTdist: linear_plot = ROOT.TH1F("%s%s"%("dummyChannel",sys_str),"Event H_{T} (%s) (%s) (%s); H_{T} [GeV]; Events / 200 GeV"%(region, "dummyChannel", self.technique_str ),linear_plot_size,-0.5,linear_plot_size-0.5)
+			else:             linear_plot = ROOT.TH1D("%s%s"%("dummyChannel",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%("dummyChannel",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
+		
+
+			all_linear_plots.append(linear_plot) ## add an empty histogram for the dummy channel
+
+		return all_linear_plots
+
+
 
 	def linearize_plot(self,_hist,BR_type,region,systematic ,forStats=False, hist_type="", split_up_hists_for_systematic = []): 
 		ROOT.TH1.SetDefaultSumw2()
@@ -3148,6 +3306,10 @@ class linearized_plot:
 		if forStats:
 			systematics_ = ["nom"]
 
+		if self.createDummyChannel:
+			dummyHists = [self.dummy_channel_SR, self.dummy_channel_CR,self.dummy_channel_AT1b, self.dummy_channel_AT0b] 
+
+
 		max_index = 5
 		if self.doSideband: max_index +=2
 		if self.doATxtb:    max_index +=2
@@ -3202,6 +3364,26 @@ class linearized_plot:
 						combined_hists_all[kkk][iii][jjj].Write()
 						#f systematic == "CMS_scale": print("Writing scale histogram: %s"%(combined_hists_all[kkk][iii][jjj].GetName()))
 					
+					if self.createDummyChannel and not forStats:
+						#print("ABOUT TO WRITE DUMMY CHANNEL:")
+						#print("kkk/iii/jjj is %s/%s/%s"%(kkk,iii,jjj))
+						#print("dummyHists has size (number of regions) %s"%len(dummyHists[kkk]))
+						#print("dummyHists[%s] has size (number of systematics) %s"%(kkk,  len(dummyHists[kkk]))  )
+ 						#print("dummyHists[%s][%s] has size (number of systematics) %s"%(kkk, iii, len(dummyHists[kkk][iii]))  )
+
+ 						#print("Meanwhile, for the QCD linearized hists - ")
+ 						#print("QCD_hists has size (number of regions) %s"%len(QCD_hists[kkk]))
+						#print("QCD_hists[%s] has size (number of systematics) %s"%(kkk,  len(QCD_hists[kkk]))  )
+ 						#print("QCD_hists[%s][%s] has size (number of systematics) %s"%(kkk, iii, len(QCD_hists[kkk][iii]))  )
+
+						if kkk < 4:  ## didn't bother to make these regions outside SR/CR/AT1b/AT0b
+							#print("Passed k < 4 ")
+							dummyHists[kkk][iii][jjj].Write()
+							#print("Wrote dummyHists[kkk][iii][jjj], %s/%s/%s"%(kkk,iii,jjj))
+
+
+
+
 			systematics_ = self.data_systematics[:]
 			if forStats:
 				systematics_ = ["nom"]
@@ -3404,11 +3586,13 @@ class linearized_plot:
 if __name__=="__main__":
 	start_time = time.time()
 
-	debug = False
+	debug = True
 
 	doHTdist   = False
 	doSideband = False
 	doATxtb	   = False
+	run_from_eos = True
+	createDummyChannel = True
 
 	# get input year
 	parser = argparse.ArgumentParser(description="Linearize 2D histograms in order to reach a minimum stat uncertainty and scaled/unscaled bin yield. ")
@@ -3443,13 +3627,13 @@ if __name__=="__main__":
 		if doHTdist and "NN" in technique_str: continue 
 
 		# create instance of hist_loader (containing all BR histograms) for the year + technique str combination
-		all_BR_hists  = hist_loader(year, technique_str, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets )
+		all_BR_hists  = hist_loader(year, technique_str, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos )
 
 		for mass_point in mass_points:
 			#try:
 			print("Running for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
-			if createMaskedFiles: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, True)   ### run with masked bins
-			final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, False)	### run without masked bins
+			if createMaskedFiles: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, True, createDummyChannel,run_from_eos, debug)   ### run with masked bins
+			final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, False, createDummyChannel,run_from_eos,debug)	### run without masked bins
 
 			#except:
 			#	print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
@@ -3457,10 +3641,3 @@ if __name__=="__main__":
 		all_BR_hists.kill_histograms()
 		del all_BR_hists  # free up a lot of memory 
 	print("Script took %ss to run."%(	np.round(time.time() - start_time,4 )) )
-
-# create one root file for each year containing all the systematics = another level of folders
-#   syst_suffix/region/hists
-#   JEC_up/SR/QCD
-
-
-

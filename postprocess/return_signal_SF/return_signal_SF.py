@@ -18,12 +18,30 @@ def return_signal_SF(year,mass_point,decay, y_uu = 2.0, y_x = 2.0):    ## parame
 	if "chi3" in mass_point: chi_mass = 3000
 
 	# the production xs of Suu depends on y_uu^2, all values below are reference values for y_uu = 2
-	Suu_prod_xs = { "4000": 1000.  * (pow(1.0*y_uu,2) / pow(2.0,2) ),   #fb
+	
+	### These were estimates
+	"""Suu_prod_xs = { "4000": 1000.  * (pow(1.0*y_uu,2) / pow(2.0,2) ),   #fb
 					"5000": 500.   * (pow(1.0*y_uu,2) / pow(2.0,2) ),   #fb
 					"6000": 200.   * (pow(1.0*y_uu,2) / pow(2.0,2) ),   #fb  
 					"7000": 28     * (pow(1.0*y_uu,2) / pow(2.0,2) ),   #fb
 					"8000": 3.5    * (pow(1.0*y_uu,2) / pow(2.0,2) )    #fb
+	    } """
+
+	### these are the "real" number estimates, they use reference y_uu of 0.2
+	Suu_prod_xs = { "4000": 32.0  * (pow(1.0*y_uu,2) / pow(0.2,2) ),   #fb
+					"5000": 6.95   * (pow(1.0*y_uu,2) / pow(0.2,2) ),   #fb
+					"6000": 1.37   * (pow(1.0*y_uu,2) / pow(0.2,2) ),   #fb  
+					"7000": 0.231     * (pow(1.0*y_uu,2) / pow(0.2,2) ),   #fb
+					"8000": 0.0303    * (pow(1.0*y_uu,2) / pow(0.2,2) )    #fb
 	    }
+
+	r""" #this is the reference to Bogdan's new paper
+	\bibitem{Dobrescu:2024mdl}
+	B.~A.~Dobrescu,
+	``TeV-scale particles and LHC events with dijet pairs,''
+	[arXiv:2411.04121 [hep-ph]]. 
+
+	"""
 
 	collected_data = {"2015":19.52,"2016":16.81, "2017":41.48, "2018":59.83}  # collected luminosity per year 
 
@@ -182,7 +200,50 @@ def calculate_Suu_to_chi_chi_BR(Suu_mass, chi_mass, y_uu = 2.0, y_x = 2.0):
 
 
 
+""" ## FROM BOGDAN's EMAIL
 
+Leading order S_uu production cross section at the 13 TeV LHC for y_uu = 0.2:  sigma_LO(pp -> S_uu)
+
+{M_S [TeV]  ,  sigma_LO(p p -> S_uu) [fb] ,  Kfactor} =
+{ 4 ,  32.0 ,  1.28 } 
+{ 5 ,  6.95 ,   1.25 }
+{ 6 ,  1.37 ,   1.22 }
+{ 7 ,  0.231 ,  1.19 }
+{ 8 ,  0.0303 ,  1.17 }
+
+Branching fraction   B(S_uu -> chi chi) =  1/( 1+  (yuu/ychi)^2  (1-2r)^{-1} (1-4r)^{-1/2}  ),
+where  r =  (mchi/M_S)^2   (see second Eq 4.2 of 1912.13155). 
+
+The NLO cross section for  p p -> S_uu -> chi chi with S_uu on-shell is: 
+sigma(p p -> S_uu -> chi chi) = sigma_LO(p p -> S_uu)  Kfactor  B(S_uu -> chi chi) 
+
+For the default values 
+yuu -> 0.2  (coupling of Suu to u u)
+ychi -> 0.3  (coupling of Suu to chi chi)
+I get the following results:
+
+{M_S [TeV]  ,  m_chi [TeV]  ,  B(S_uu -> chi chi) , sigma(p p -> S_uu -> chi chi)  [fb] } =
+{ 4 , 1 ,     0.630 ,  25.8}
+{ 4 , 1.5 ,  0.517 ,  21. 2}
+{ 5 ,  1 ,    0.655 ,  5.69}
+{ 5 ,  1.5 , 0.596 ,  5.18}
+{ 5 ,  2 ,    0.479 ,  4.16}
+{ 6 ,  1,     0.667 , 1.11}
+{ 6 ,  1.5 , 0.630 , 1.05}
+{ 6 ,  2 ,    0.566 , 0.946}
+{ 6 ,  2.5 , 0.448 , 0.749}
+{ 7 ,  1 ,    0.674 , 0.185}
+{ 7 ,  1.5 , 0.649 , 0.178}
+{ 7 ,  2 ,    0.607 , 0.167}
+{ 7 ,  2.5 , 0.540 , 0.148}
+{ 7 ,  3 ,    0.423 , 0.116}
+{ 8 ,  1 ,    0.679 , 0.0241}
+{ 8 ,  1.5 , 0.660 , 0.0234}
+{ 8 ,  2 ,    0.630 , 0.0223}
+{ 8 ,  2.5 , 0.586 , 0.0208}
+{ 8 ,  3 ,    0.517 , 0.0183}
+
+"""
 
 
 
