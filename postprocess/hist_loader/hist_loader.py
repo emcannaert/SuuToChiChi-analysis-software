@@ -17,13 +17,14 @@ class hist_loader:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, technique_str,  doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False):
+	def __init__(self, year, technique_str,  doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
 		self.technique_str = technique_str
 		self.year   = year
-
+		self.run_from_eos = run_from_eos
+		
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 
@@ -31,8 +32,9 @@ class hist_loader:
 
 		self.HT_distr_home = "HT_distributions/" # extra folder where output files are saved for HT distribution plots
 
-		#self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles/"
-		#self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
+		if self.run_from_eos:
+			self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles/"
+			self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
 
 		## region options
 		self.doSideband = doSideband

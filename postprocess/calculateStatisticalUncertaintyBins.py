@@ -30,7 +30,7 @@ import argparse
 
 class combineHistBins:
 
-	def __init__(self,year,region,technique_str,debug=False, dryRun=False):   #constructor will convert TH2 to a 2D array, do the optimized bin merging, and then return a TH2 with those associated bins
+	def __init__(self,year,region,technique_str, debug=False, dryRun=False, runEos=False):   #constructor will convert TH2 to a 2D array, do the optimized bin merging, and then return a TH2 with those associated bins
 
 		self.year = year
 		self.region = region
@@ -84,9 +84,9 @@ class combineHistBins:
 			self.n_bins_x = 15
 			self.n_bins_y = 12
 			self.max_stat_uncert = 0.30  ## maximum statistical uncertainty
-		self.all_hist_values =  histInfo.histInfo(year,region, self.bin_min_x, self.bin_min_y, self.n_bins_x, self.n_bins_y, self.technique_str, self.includeTTJetsMCHT800to1200, self.includeWJets, self.includeTTo,  debug)    #histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
+		self.all_hist_values =  histInfo.histInfo(year,region, self.bin_min_x, self.bin_min_y, self.n_bins_x, self.n_bins_y, self.technique_str, self.includeTTJetsMCHT800to1200, self.includeWJets, self.includeTTo,  debug, runEos)    #histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
 		self.superbin_indices = self.init_superbin_indices()     
-		
+
 		#if not self.dryRun: self.plot_before_syst_plot()   # plot the "before" image of counts and syst uncertainty 
  
 		print("Starting the process of merging bins.")
@@ -96,11 +96,193 @@ class combineHistBins:
 		#self.superbin_indices = self.sort_bins_with_graphs() ## sorts bins by approximate location in 2D
 		#self.superbin_indices = self.sort_bins_by_raw_distance() ## sort bins by their raw distance from the origin in the 2D place
 		self.superbin_indices = self.sort_bins_by_descending_event_yield() ## sort bins by descending bin yield
-
 		#self.print_final_hist()
 
 		self.print_superbins()   ### print out scaled and unscaled counts in each superbin post merging
 		self.print_summary()
+
+
+		self.superbin_groups = self.create_superbin_groups()
+
+		if debug: print("The final superbin groups are %s."%self.superbin_groups)
+	def create_superbin_groups(self):
+
+
+		superbin_groups = [ [superbin_number] for superbin_number in range(0,len(self.superbin_indices) )  ]
+
+		random.seed(12345)
+		random.shuffle(superbin_groups)   ## randomize list so there isn't one area that is preferred
+
+		there_are_ungrouped_superbins = True
+		while there_are_ungrouped_superbins:
+
+
+			## create copy of groups
+			superbin_groups_temp = list(superbin_groups[:])       ##   [ [1], [2,4,5], [3], ..... [N]   ]
+
+			runContingency = False
+
+			## get list of ungrouped superbins
+			ungrouped_superbin_numbers = [   superbin[0] for superbin in  superbin_groups_temp if len(superbin) == 1  ]     # [ [1], ... [i], ...,   [N]    ]
+			if debug: print("ungrouped_superbin_numbers: %s."%(ungrouped_superbin_numbers))
+			cand_superbin_index = random.choice(ungrouped_superbin_numbers)
+			cand_superbin_index_num = superbin_groups_temp.index( [cand_superbin_index] )	  ## the location of this ungrouped superbin in ungrouped_superbin_numbers 
+			cand_superbin_yield = self.all_hist_values.get_scaled_QCD_superbin_counts(self.superbin_indices[ cand_superbin_index ]) 
+
+			if debug: print("Randomly chose superbin %s (superbin number %s in superbin_groups_temp) with yield %s."%(cand_superbin_index, cand_superbin_index_num, cand_superbin_yield))
+
+			## check to see if cand superbin has > 50 events
+			if  cand_superbin_yield > 50: 
+
+				## update superbin_groups
+				superbin_groups  			  = list(superbin_groups_temp[:])
+				there_are_ungrouped_superbins = self.check_for_ungrouped_superbins(superbin_groups)
+
+				continue
+
+			## get list of neighboring bins
+			neighbor_superbins = self.get_list_of_neighbors(  self.superbin_indices[cand_superbin_index][0] )   ## takes a tuple in the superbin
+
+
+			if debug: print("cand_superbin_index %s has neighbors %s."%(cand_superbin_index, neighbor_superbins))
+
+			good_neighbor_superbins = []
+
+			# remove superbins that are already in groups 
+			for neighbor_superbin_index,neighbor_superbin in enumerate(neighbor_superbins):
+				for superbin_group in superbin_groups_temp:
+					if (neighbor_superbin in superbin_group)   and (len(superbin_group) > 1 ): continue # skip neighbor superbins that are in groups of two or more
+					elif (neighbor_superbin in superbin_group) and (len(superbin_group) == 1): good_neighbor_superbins.append(neighbor_superbin)
+
+			if len(good_neighbor_superbins) > 0: 
+
+				## get scaled yields of ungrouped neighboring bins
+				good_neighbor_superbin_yield_diff = []
+				for neighbor_superbin_index in good_neighbor_superbins:
+
+					good_neighbor_superbin_yield_diff.append(  abs( cand_superbin_yield  -   self.all_hist_values.get_scaled_QCD_superbin_counts(self.superbin_indices[ neighbor_superbin_index ])  ) )
+
+				paired_lists = zip(good_neighbor_superbins, good_neighbor_superbin_yield_diff)
+				sorted_pairs = sorted(paired_lists, key=lambda x: x[1], reverse=False)
+				good_neighbor_superbin_yield_diff_sorted_temp, sorted_neighbor_bin_yiel_diff = zip(*sorted_pairs)
+				good_neighbor_superbin_yield_diff_sorted = list(good_neighbor_superbin_yield_diff_sorted_temp)  ## list of neighbor superbin indices sorted by increasing order of bin yields
+
+				if debug: print("Neighboring ungrouped superbins are %s."%good_neighbor_superbin_yield_diff_sorted)
+				if debug: print("sorted_neighbor_bin_yiel_diff is ",sorted_neighbor_bin_yiel_diff)
+				#if debug: print("Neighboring ungrouped sueprbin yields are %s."%sorted_neighbor_bin_yiel_diff)
+
+
+				## create group with at most two neighboring bins with lowest yields
+				new_group_mates = []
+				if len(good_neighbor_superbin_yield_diff_sorted) > 1:
+					new_group_mates.append(good_neighbor_superbin_yield_diff_sorted[0])
+					new_group_mates.append(good_neighbor_superbin_yield_diff_sorted[1])	
+					
+					if debug:
+						print("new_group_mates[0] is %s."%good_neighbor_superbin_yield_diff_sorted[0])
+						print("new_group_mates[1] is %s."%good_neighbor_superbin_yield_diff_sorted[1])
+						print("------- Before the merge ------")
+						print("superbin_groups_temp is %s."%superbin_groups_temp)
+
+					superbin_groups_temp[cand_superbin_index_num].extend( [new_group_mates[0],new_group_mates[1]]    )
+					superbin_groups_temp.remove( [new_group_mates[0]] )
+					superbin_groups_temp.remove( [new_group_mates[1]] )
+					
+					if debug:
+						print("------- After the merge ------")
+						print("superbin_groups_temp is %s."%superbin_groups_temp)
+
+				elif len(good_neighbor_superbin_yield_diff_sorted) > 0:
+					new_group_mates.append(good_neighbor_superbin_yield_diff_sorted[0])
+
+
+					if debug:
+						print("new_group_mates[0] is %s."%good_neighbor_superbin_yield_diff_sorted[0])
+						print("------- Before the merge ------")
+						print("superbin_groups_temp is %s."%superbin_groups_temp)
+					
+					if debug:
+						print("------- After the merge ------")
+						print("superbin_groups_temp is %s."%superbin_groups_temp)
+
+
+					superbin_groups_temp[cand_superbin_index_num].extend( [new_group_mates[0]]    )
+					superbin_groups_temp.remove( [new_group_mates[0]] )
+				else: 
+					print("Need to run contingency plan")
+					runContingency = True
+			else: 
+				print("Need to run contingency plan")
+				runContingency = True
+
+			if runContingency:
+
+				if debug: print("Found no unpaired neighbor bins.")
+				neighbor_superbin_avg_yield_differences = []
+				neighbor_superbin_groups = []
+						# if neighboring bins list is empty, find neighboring group with lowest closest average bin counts and add to that group
+				for neighbor_superbin_index in neighbor_superbins:
+					# for each neighbor superbin, get the group this superbin is associated with
+					neighbor_superbin_groups.append( self.get_superbin_group_by_superbin_index( neighbor_superbin_index,  superbin_groups_temp  ) )  # create list of the full neighbor superbin groups. For example: [  [2,4,3], [1,5], ...   ]
+
+
+				for neighbor_superbin_group_num,neighbor_superbin_group in enumerate(neighbor_superbin_groups):
+
+						# loop over superbin group
+						avg_of_difference = 0
+						for superbin_index in neighbor_superbin_group:
+							avg_of_difference +=  abs(  self.all_hist_values.get_scaled_QCD_superbin_counts(self.superbin_indices[ superbin_index ])  -  cand_superbin_yield) 
+
+						avg_of_difference /= len(neighbor_superbin_group) ##
+						neighbor_superbin_avg_yield_differences.append(avg_of_difference)
+
+
+				## now find the neighbor group with the lowest average yield difference and add this superbin to that	
+				paired_lists = zip(neighbor_superbin_groups, neighbor_superbin_avg_yield_differences)
+				sorted_pairs = sorted(paired_lists, key=lambda x: x[1], reverse=False)
+				neighbor_superbin_groups, sorted_list_B = zip(*sorted_pairs)
+				
+				best_neighbor_superbin_group = list(neighbor_superbin_groups[0]) ## should be the superbin group that is closest in average yield
+
+
+				best_neighbor_superbin_group_num = superbin_groups_temp.index( best_neighbor_superbin_group  )  ## find which superbin group this belongs to 
+				superbin_groups_temp[best_neighbor_superbin_group_num].extend([cand_superbin_index])
+				superbin_groups_temp.remove([cand_superbin_index])
+
+			## update superbin_groups
+			superbin_groups  			  = list(superbin_groups_temp[:])
+			there_are_ungrouped_superbins = self.check_for_ungrouped_superbins(superbin_groups)
+
+			if debug: print("there_are_ungrouped_superbins: %s."%there_are_ungrouped_superbins)
+
+
+		return superbin_groups
+
+
+	def get_superbin_group_by_superbin_index(self, superbin_index_to_locate, superbin_groups_temp):
+
+
+		for superbin_group in superbin_groups_temp:    # superbin_group here would look like this: [ [1,3,4], [2,6], ... ]
+
+			if superbin_index_to_locate in superbin_group:
+				return superbin_group
+
+
+		print("ERROR: did not find superbin %s in list of superbin groups %s"%(superbin_index_to_locate,superbin_groups_temp))
+		return None
+
+	def check_for_ungrouped_superbins(self,superbin_groups):
+
+		n_ungrouped_superbins = 0
+
+		for superbin_group in superbin_groups:
+			if len(superbin_group) == 1: 
+				if  self.all_hist_values.get_scaled_QCD_superbin_counts(self.superbin_indices[ superbin_group[0] ] ) < 50:  
+					n_ungrouped_superbins+=1
+
+		if n_ungrouped_superbins > 0: return True
+		else: return False
+
 
 	def print_final_hist(self):
 		hist_map = [ [-999]*self.n_bins_y for i in range(self.bin_min_x, self.n_bins_x)]
@@ -153,7 +335,7 @@ class combineHistBins:
 				return False
 		return True
 	def get_list_of_neighbors(self,_tuple):
-		# return list of NON-EMPTY neighbor indices of all bins in this superbin  
+		# return list of NON-EMPTY neighbor indices of all superbins in this superbin  
 		list_of_neighbors = [] # will be full of the superbin #s  
 		this_superbin_num = self.get_superbin_number( _tuple )
 		for superbin_tuples in self.superbin_indices[this_superbin_num ]: # 
@@ -755,15 +937,24 @@ class combineHistBins:
 
 if __name__=="__main__":
 
-	debug = False
-	dryRun = False
+	debug  = False
+	dryRun = True
+	runEos = True
 
 	print("Calculating bin groupings for best statistical uncertainties")
 		
-	binMap_path = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps"
+
+	text_output_path  = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
+	group_output_path = os.getenv('CMSSW_BASE') + "/src/postprocess/superbinGroups/"
+
+
 	if not dryRun:
-		os.system('rm %s/superbin_indices*.txt'%binMap_path)
-		os.system('rm %s/superbin_indicesNN_*.txt'%binMap_path)
+		os.system('rm %s/superbin_indices*.txt'%text_output_path)
+		os.system('rm %s/superbin_indicesNN_*.txt'%text_output_path)
+
+	os.system('rm %s/superbin_groups_*.txt'%group_output_path)
+	os.system('rm %s/superbin_groupsNN_*.txt'%group_output_path)
+
 
 	years = ["2015","2016","2017","2018"]
 	regions = ["SR","CR", "AT1b", "AT0b"  ]   # "AT0tb", "AT1tb", "SB1b", "SB0b"
@@ -774,13 +965,20 @@ if __name__=="__main__":
 	hist_names = ["h_MSJ_mass_vs_MdSJ_","h_MSJ_mass_vs_MdSJ_NN_"]
 	output_strs = ["", "NN_"]
 	technique_strs = ["cut-based", "NN-based"]
+
+
+	if debug:
+		years = ["2015"]
+		output_strs = [""]
+		technique_strs = ["cut-based"]
+		hist_names = ["h_MSJ_mass_vs_MdSJ_"]
+
 	for region in regions:
 		for year in years:
 			for iii,hist_name in enumerate(hist_names):
 				if region in ["SB1b","SB0b"] and "NN" in hist_name: continue
 
-				text_output_path = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
-				
+
 				if dryRun: 
 					print("===============================================================================")
 					print("===============================================================================")
@@ -792,6 +990,9 @@ if __name__=="__main__":
 					print("===============================================================================")
 
 				if not dryRun:  out_txt_file = open("%s/superbin_indices%s_%s.txt"%(text_output_path,output_strs[iii],year),"a")
+				
+				superbin_group_txt_file = open("%s/superbin_groups%s_%s.txt"%(group_output_path,output_strs[iii],year),"a")
+
 				print("Creating maps for %s/%s"%(region,year))
 
 				TH2_hist_merged_name   = os.getenv('CMSSW_BASE') + "/src/postprocess/outputs/binMergingOutputs/postMergedFiles/allBR_statUncert_%s%s_%s_MERGED_BINS.root"%(output_strs[iii],region,year)
@@ -799,7 +1000,7 @@ if __name__=="__main__":
 				out_file = ROOT.TFile.Open(TH2_hist_new_bins_name,"RECREATE")
 
 				# give histogram to constructor
-				testCase = combineHistBins(year, region, output_strs[iii], debug,dryRun)
+				testCase = combineHistBins(year, region, output_strs[iii], debug,dryRun,runEos)
 				#create a dummy histogram with dimensions 20x22
 				merged_bins = testCase.superbin_indices
 				bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Map of how bins were merged in %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
@@ -819,6 +1020,11 @@ if __name__=="__main__":
 				if not dryRun:  
 					out_txt_file.write("%s/%s/number of bins = %s/%s\n"%(year,region, len(testCase.superbin_indices), testCase.superbin_indices))
 					out_txt_file.close()
+
+
+				superbin_group_txt_file.write("%s/%s/number of superbin groups = %s/%s\n"%(year,region, len(testCase.superbin_groups), testCase.superbin_groups))
+				superbin_group_txt_file.close()
+
 
 				bin_map_hist.GetZaxis().SetRangeUser(0,10000)
 				bin_map_hist.Draw("colz")
