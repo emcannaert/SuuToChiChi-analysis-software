@@ -214,7 +214,7 @@ private:
    int nCategories = 3;
    double AK4_ptot[100], AK4_eta[100], AK4_phi[100];
    int SJ1_decision,SJ2_decision;
-   double SJ1_BEST_scores[3],SJ2_BEST_scores[3];
+   double SJ1_BEST_scores,SJ2_BEST_scores;
    double bTag_eventWeight_T_nom, bTag_eventWeight_T_up, bTag_eventWeight_T_down, bTag_eventWeight_bc_T_up, bTag_eventWeight_bc_T_down, bTag_eventWeight_light_T_up, bTag_eventWeight_light_T_down;
    double bTag_eventWeight_M_nom, bTag_eventWeight_M_up, bTag_eventWeight_M_down, bTag_eventWeight_bc_M_up, bTag_eventWeight_bc_M_down, bTag_eventWeight_light_M_up, bTag_eventWeight_light_M_down;
 
@@ -894,8 +894,8 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    tree->Branch("AK4_m4",AK4_m4 , "AK4_m4[nSuperJets]/D");
 
    tree->Branch("nCategories", &nCategories, "nCategories/I");
-   tree->Branch("SJ1_BEST_scores", SJ1_BEST_scores, "SJ1_BEST_scores[nCategories]/D");
-   tree->Branch("SJ2_BEST_scores", SJ2_BEST_scores, "SJ2_BEST_scores[nCategories]/D");
+   tree->Branch("SJ1_BEST_scores", &SJ1_BEST_scores, "SJ1_BEST_scores/D");
+   tree->Branch("SJ2_BEST_scores", &SJ2_BEST_scores, "SJ2_BEST_scores/D");
    tree->Branch("SJ1_decision", &SJ1_decision, "SJ1_decision/I");
    tree->Branch("SJ2_decision", &SJ2_decision, "SJ2_decision/I");
 
@@ -4231,8 +4231,28 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
       BESTScores = BEST_->getPrediction(BESTmap);
+   
+
       ///store BEST scores in tree
-      int decision = std::distance(BESTScores.begin(), std::max_element(BESTScores.begin(), BESTScores.end() ) );
+      int decision = (BESTScores[0] > 0.5) ? 0 : 1;
+
+      if(_verbose)std::cout << "Got BEST prediction and decision in SJ " << nSuperJets <<std::endl;
+      if (nSuperJets == 0)
+      {
+         SJ1_BEST_scores = static_cast<double> (BESTScores[0]);
+         SJ1_decision = decision;
+      }
+      else if (nSuperJets == 1)
+      {
+         SJ2_BEST_scores = static_cast<double> (BESTScores[0]);
+         SJ2_decision = decision;
+      } 
+
+
+
+
+      ///store BEST scores in tree
+      /*int decision = std::distance(BESTScores.begin(), std::max_element(BESTScores.begin(), BESTScores.end() ) );
 
       if(_verbose)std::cout << "Got BEST prediction and decision in SJ " << nSuperJets <<std::endl;
       if (nSuperJets == 0)
@@ -4248,7 +4268,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          SJ2_BEST_scores[1] = (double) BESTScores[1];
          SJ2_BEST_scores[2] = (double) BESTScores[2];
          SJ2_decision = decision;
-      } 
+      }  */
 
 
       if(_verbose)std::cout << "Looping over SJ particles to count up momenta in SJ " << nSuperJets <<std::endl;

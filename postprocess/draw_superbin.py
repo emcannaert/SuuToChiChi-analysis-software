@@ -1,7 +1,11 @@
 import ROOT
 import ast
+import random
 
-### this script will show what a specific superbin looks like 
+### this script will show what a specific superbin looks like. Now added functionality to test what superbin groups look like.
+
+def generate_random_numbers(n, lower=1, upper=10000):
+    return [random.randint(lower, upper) for _ in range(n)]
 
 def load_superbin_indices(year,technique_str, region="SR"):    # load in the superbin indices (located in a text file )
 	_superbin_indices = []
@@ -79,22 +83,22 @@ def draw_superbin_group(year, technique_str, superbin_group_number, region, supe
 	# List of bins to be filled, each as a tuple (x_bin_number, y_bin_number)
 	superbin_group = superbin_groups[superbin_group_number]
 
-
+	print("superbin_group: %s."%superbin_group)
 	# Create a 2D histogram with the specified dimensions and limits
 	hist = ROOT.TH2F("selected_superbin_group%s"%superbin_group_number, "%s superbin group %s (containing superbins %s) for %s"%(region,superbin_group_number, superbin_group, year), 22, 1250, 10000, 20, 500, 5000) # x-axis: 22 bins, range [1250, 10000]   # y-axis: 20 bins, range [500, 5000]
 
+	random_numbers = generate_random_numbers(len(superbin_group))
 
-	for superbin_index in superbin_group:
+	print("Length of random_numbers is %s."%len(random_numbers))
+	for iii,superbin_index in enumerate(superbin_group):
 
-		print("For superbin group #%s, drawing superbin #%s"%(superbin_group_number, superbin_index))
-		fill_value = 2.0
-
+		print("For superbin group #%s, drawing superbin #%s"%(superbin_group_number + 1, superbin_index))
 		superbin_indices_to_draw = superbin_indices[superbin_index]
 
 		for x_bin, y_bin in superbin_indices_to_draw:
-			hist.SetBinContent(x_bin+1, y_bin+1, fill_value)
+			hist.SetBinContent(x_bin+1, y_bin+1, random_numbers[iii])
 
-		fill_value += 10.0
+		#fill_value += 10.0
 
 	# Value to fill in each bin
 

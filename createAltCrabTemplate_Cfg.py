@@ -112,7 +112,9 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	newCfg.write("config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_%s%s'\n"%(dateTimeString,sideband_str))
 	newCfg.write("config.Site.storageSite = 'T3_US_FNALLPC'\n")
 
+	newCfg.write("config.Site.blacklist = ['T2_US_MIT']'\n")
 
+	
 
 
 def main():

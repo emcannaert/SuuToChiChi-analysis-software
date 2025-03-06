@@ -296,9 +296,9 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
             newCfg.write('  packedGenParticles = cms.InputTag("packedGenParticles"),\n')
 
 
-         newCfg.write(" BESTname = cms.string('BESTGraph'),  BESTpath = cms.FileInPath('data/BEST_models/constantgraph_%s.pb'),\n"%year)
+         newCfg.write(" BESTname = cms.string('BESTGraph'),  BESTpath = cms.FileInPath('data/BEST_models/constantgraph_combine.pb'),\n")   #OLD constantgraph_%s.pb
 
-         newCfg.write(" BESTscale = cms.FileInPath('data/BESTScalerParameters_all_mass_%s.txt'),\n"%(year))
+         newCfg.write(" BESTscale = cms.FileInPath('data/BESTScalerParameters_all_mass_combine.txt'),\n") # OLD: BESTScalerParameters_all_mass_%s.txt
          if year == "2015":
             newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2016preVFP_UL/puWeights.json'),\n")
          elif year == "2016":
