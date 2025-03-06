@@ -88,10 +88,10 @@ class BESTEvaluation {
     std::vector<tensorflow::TensorShape> inputShapes_;
     tensorflow::NamedTensorList inputTensors_;
     
-    int nCategories = 3;
+    int nCategories = 2;
 
-    int NumBESTInputs_ = 180; // abbott: just grab this from the inputShapes_ vector?
-    std::vector<std::string> inputNames_; // abbott: input/output names can be grabbed from the graphDef?
+    int NumBESTInputs_ = 111; 
+    std::vector<std::string> inputNames_; 
     std::string outputName_;
 };
 #endif

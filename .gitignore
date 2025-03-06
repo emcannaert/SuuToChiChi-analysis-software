@@ -18,7 +18,6 @@ btagging/cfgs/crab/*.sh
 allAltCrabCfgs/*.txt
 crab_projects/
 jsonpog-integration/
-lumimasks/
 *.log
 *.pyc
 *.txt
