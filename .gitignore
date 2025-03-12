@@ -1,6 +1,7 @@
 allAltCrabCfgs/signalCfgs/*.py
 postprocess/plots/*
 allAltCrabCfgs/signalCfgs/*.pyc
+postprocess/pdf
 *.pdf
 *.png
 *.root
