@@ -83,10 +83,16 @@ class linearized_plot:
 
 		self.superbin_indices			  	  = self.load_superbin_indices()
 		self.superbin_indices_AT			  = self.load_superbin_indices(region="AT1b")   ## change this to reflect which bin indices should be followed (AT1tb if you are using the tight WP in the SR)
- 
+
+
 		if  self.doSideband: 
 			self.superbin_indices_SB1b = self.load_superbin_indices(region="SB1b")
 			self.superbin_indices_SB0b = self.load_superbin_indices(region="SB1b")
+
+ 
+		print("DEBUG: SRCR is sorted into %s superbins."%(len(self.superbin_indices)))
+		print("DEBUG: AT region is sorted into %s superbins."%(len(self.superbin_indices_AT)))
+
 
 		if self.debug:
 			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/test/"
@@ -2395,6 +2401,9 @@ class linearized_plot:
 
 			#print("BR_type/sys_str is %s/%s"%(BR_type,sys_str))
 			linear_plot_size = len(use_indices)  - mask_size  ## subtract off mask size
+
+			print("For %s/%s/%s/%s/%s plots created to have %s bins (number of SRCR superbins= %s, number of AT superbins= %s)"%(BR_type, region, systematic,self.year,self.technique_str, linear_plot_size,len(self.superbin_indices),len(self.superbin_indices_AT) ))
+
 			#print("Creating a linearized histogram for %s/%s with %s bins."%(self.year,region,linear_plot_size))
 			if forStats:
 				if self.doHTdist: linear_plot = ROOT.TH1F("%s%s"%(BR_type,sys_str),"Event H_{T} (%s) (%s) (%s) (UNSCALED); H_{T} [GeV]; Events / 200 GeV"%(region, BR_type, self.technique_str ),linear_plot_size,-0.5,linear_plot_size-0.5)
@@ -3586,7 +3595,7 @@ class linearized_plot:
 if __name__=="__main__":
 	start_time = time.time()
 
-	debug = True
+	debug = False
 
 	doHTdist   = False
 	doSideband = False
@@ -3620,7 +3629,7 @@ if __name__=="__main__":
 	includeTTTo            = True
 	includeWJets           = True
 
-	createMaskedFiles      = True
+	createMaskedFiles      = False ## don't need these now
 
 	for iii,technique_str in enumerate(technique_strs):
 
@@ -3633,7 +3642,7 @@ if __name__=="__main__":
 			#try:
 			print("Running for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
 			if createMaskedFiles: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, True, createDummyChannel,run_from_eos, debug)   ### run with masked bins
-			final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, False, createDummyChannel,run_from_eos,debug)	### run without masked bins
+			else: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, False, createDummyChannel,run_from_eos,debug)	### run without masked bins
 
 			#except:
 			#	print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))

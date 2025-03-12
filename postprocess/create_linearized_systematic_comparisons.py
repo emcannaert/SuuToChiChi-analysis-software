@@ -100,12 +100,12 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 
 	canvas = ROOT.TCanvas("canvas", "Histograms", 1250, 1000)
 
-	up_hist.SetTitle("Linearized %s MC in the %s for up/nom/down %s uncertainties (%s) (%s)"%(sample_description,region, systematic,convert_year(year),technique_type))
-	down_hist.SetTitle("Linearized %s MC in the %s for up/nom/down %s uncertainties (%s) (%s)"%(sample_description,region,systematic,convert_year(year),technique_type))
+	up_hist.SetTitle("Linearized %s MC in the %s for the up/nom/down %s uncertainty (%s) (%s)"%(sample_description,region, systematic,convert_year(year),technique_type))
+	down_hist.SetTitle("Linearized %s MC in the %s for the up/nom/down %s uncertainty (%s) (%s)"%(sample_description,region,systematic,convert_year(year),technique_type))
 
 	if isSignal:
-		up_hist.SetTitle("Linearized %s MC in the %s for up/nom/down %s uncertainties (%s) (%s) (%s)"%(sample_description,region, systematic,convert_year(year),mass_point,technique_type))
-		down_hist.SetTitle("Linearized %s MC in the %s for up/nom/down %s uncertainties (%s) (%s) (%s)"%(sample_description,region,systematic,convert_year(year),mass_point,technique_type))
+		up_hist.SetTitle("Linearized %s MC in the %s for the up/nom/down %s uncertainty (%s) (%s) (%s)"%(sample_description,region, systematic,convert_year(year),mass_point,technique_type))
+		down_hist.SetTitle("Linearized %s MC in the %s for the up/nom/down %s uncertainty (%s) (%s) (%s)"%(sample_description,region,systematic,convert_year(year),mass_point,technique_type))
 
 	up_hist.SetLineWidth(3)
 	nom_hist.SetLineWidth(5)
@@ -122,12 +122,33 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 
 	# Upper pad for histogram plots
 	canvas.cd(1)
+
 	up_hist.SetLineColor(ROOT.kRed)
 	nom_hist.SetLineColor(ROOT.kBlack)
 	down_hist.SetLineColor(ROOT.kBlue)
+
+	pad1 = canvas.GetPad(1)
+	#pad1.SetLogy(1)
+
+	#max_bin_content = max(up_hist.GetMaximum(), nom_hist.GetMaximum(), down_hist.GetMaximum())
+	#min_bin_content = min(up_hist.GetMinimum(), nom_hist.GetMinimum(), down_hist.GetMinimum())
+
+	# Force all histograms to use the same Y-axis range
+	#up_hist.SetMaximum(1000)
+	#up_hist.SetMinimum(1e-2)
+
+	#nom_hist.SetMaximum(1000)
+	#nom_hist.SetMinimum(1e-2)
+
+	#down_hist.SetMaximum(1000)
+	#down_hist.SetMinimum(1e-2)
+
 	up_hist.Draw("HIST")
 	nom_hist.Draw("SAME,HIST")
 	down_hist.Draw("SAME.HIST")
+
+	pad1.Update()  # Force the upper pad to redraw
+
 	legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
 	legend.AddEntry(up_hist, "up systematic", "l")
 	legend.AddEntry(nom_hist, "nom systematic", "l")
@@ -139,7 +160,7 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	up_hist.GetYaxis().SetRangeUser(0, max_bin_content * 1.1)
 
 
-	write_cms_text.write_cms_text(CMS_label_pos, SIM_label_pos)
+	write_cms_text.write_cms_text(CMS_label_xpos=0.132, SIM_label_xpos=0.243,CMS_label_ypos = 0.92, SIM_label_ypos = 0.92, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 
 	# Lower pad for ratio plots
 	canvas.cd(2)
@@ -147,16 +168,31 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	ratio1_2 = up_hist.Clone("ratio1_2")
 	ratio1_2 = divide_histograms(ratio1_2,nom_hist)
 
-	ratio1_2.SetTitle(hist_type + " up and down systematics / nom systematic")
-	ratio1_2.GetYaxis().SetTitle("Ratio")
+	ratio1_2.SetTitle("") #hist_type + " up and down systematics / nom systematic"
+	ratio1_2.GetYaxis().SetTitle("Variation / Nominal")
+
+	ratio1_2.GetYaxis().SetTitleSize(0.1)
+	ratio1_2.GetYaxis().SetTitleOffset(0.4)
+	ratio1_2.GetYaxis().SetLabelSize(0.08)
+	ratio1_2.GetXaxis().SetTitleSize(0.12)
+	ratio1_2.GetXaxis().SetLabelSize(0.1)
+
 	ratio1_2.SetLineColor(ROOT.kRed)
 	ratio1_2.Draw("HIST")
 
 	ratio1_3 = down_hist.Clone("ratio1_3")
 
+	ratio1_3.GetYaxis().SetTitleSize(0.1)
+	ratio1_3.GetYaxis().SetTitleOffset(0.4)
+	ratio1_3.GetYaxis().SetLabelSize(0.08)
+	ratio1_3.GetXaxis().SetTitleSize(0.12)
+	ratio1_3.GetXaxis().SetLabelSize(0.1)
+
+
+
 	ratio1_3 = divide_histograms(ratio1_3,nom_hist)
-	ratio1_3.SetTitle(hist_type + " up and down systematics / nom systematic")
-	ratio1_3.GetYaxis().SetTitle("Ratio")
+	ratio1_3.SetTitle("")  #hist_type + " up and down systematics / nom systematic"
+	ratio1_3.GetYaxis().SetTitle("Variation / Nominal")
 	#ratio1_3.Divide(up_hist)
 	ratio1_3.SetLineColor(ROOT.kBlue)
 	ratio1_3.Draw("SAME,HIST")
@@ -206,6 +242,28 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	nom_line_down.Draw("same")
 
 
+	# Define the text
+	text = ROOT.TLatex()
+	text.SetTextSize(0.058)
+	text.SetTextFont(62)
+	text.SetTextAlign(22)  # Center alignment (horizontal and vertical)
+	
+
+
+	technique_desc = "cut-based"
+	if technique_str == "_NN":
+		technique_desc = "NN-based"
+
+	canvas.cd(1)
+
+	# Draw the text lines
+	text.DrawLatexNDC(0.42, 0.82, sample_type + ", " + year)
+	text.DrawLatexNDC(0.42, 0.77, systematic)
+	text.DrawLatexNDC(0.42, 0.72, technique_desc) 
+
+
+
+
 	canvas.Update()
 
 	canvas.SaveAs(output_plot_name)
@@ -245,7 +303,7 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 			break """
 
 
-	uncorrelated_systematics = [ "CMS_pu",  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
+	uncorrelated_systematics = [  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
 
 	year_str = ""			
 	if systematic in uncorrelated_systematics:
@@ -267,6 +325,8 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 		sample_str = histname
 		if histname == "sig":
 			sample_str = "sig"
+		elif histname in ["QCD","WJets"]: sample_str = "misc"
+		elif histname in ["TTTo","TTbar"]: sample_str = "TTbar"
 		systematic += "_%s"%sample_str
 
 
@@ -294,11 +354,11 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 
 	if run_corrected: yield_impact_text = open("txt_files/NP_yield_impacts_corrected.txt","a")
 	else: yield_impact_text = open("txt_files/NP_yield_impacts.txt","a")
-	yield_impact_text.write("%s     %s     %s     %s     %s     %s     %s     %s     %s    %s\n"%(year, histname, region, systematic,   np.round(nom_hist.Integral(),4), np.round(up_hist.Integral(),4), np.round(down_hist.Integral(),4),  np.round(up_hist.Integral()/nom_hist.Integral() - 1.0,4), np.round(down_hist.Integral()/nom_hist.Integral() - 1.0,4),  np.round(max( abs(up_hist.Integral()/nom_hist.Integral() - 1.0), abs(down_hist.Integral()/nom_hist.Integral() - 1.0)     )   ,4) ) )
+	yield_impact_text.write("%s	 %s	 %s	 %s	 %s	 %s	 %s	 %s	 %s	%s\n"%(year, histname, region, systematic,   np.round(nom_hist.Integral(),4), np.round(up_hist.Integral(),4), np.round(down_hist.Integral(),4),  np.round(up_hist.Integral()/nom_hist.Integral() - 1.0,4), np.round(down_hist.Integral()/nom_hist.Integral() - 1.0,4),  np.round(max( abs(up_hist.Integral()/nom_hist.Integral() - 1.0), abs(down_hist.Integral()/nom_hist.Integral() - 1.0)	 )   ,4) ) )
 	yield_impact_text.close()
 
 
-	#shape_impact_text_corrected.write("year     NP_name     mean_var_up     mean_var_down     max_var_up     var_stddev_up     var_stddev_down     max_var_down\n")
+	#shape_impact_text_corrected.write("year	 NP_name	 mean_var_up	 mean_var_down	 max_var_up	 var_stddev_up	 var_stddev_down	 max_var_down\n")
 
 
 
@@ -338,20 +398,20 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 	min_var_down =  np.round(np.min(vars_down),4)
 
 
-	max_var_up = max( abs(max_var_up), abs(min_var_up)    )
-	max_var_down = max( abs(max_var_down), abs(min_var_down)    )
+	max_var_up = max( abs(max_var_up), abs(min_var_up)	)
+	max_var_down = max( abs(max_var_down), abs(min_var_down)	)
 
 	abs_vars_up   = np.array([ abs(a_var_up)  for a_var_up in vars_up  ])
 	abs_vars_down = np.array([ abs(a_var_down)  for a_var_down in vars_down  ])
 
-	mean_abs_var_up      =  np.round(  np.mean(  abs_vars_up    ),4)
-	mean_abs_var_down    =  np.round(  np.mean(  abs_vars_down  ),4)
+	mean_abs_var_up	  =  np.round(  np.mean(  abs_vars_up	),4)
+	mean_abs_var_down	=  np.round(  np.mean(  abs_vars_down  ),4)
 
-	max_var_abs =   np.round(max( max( max(  abs(max_var_up)     ,  abs(max_var_down)   ),  abs(min_var_up)      ),  abs(min_var_down)     ),4)
+	max_var_abs =   np.round(max( max( max(  abs(max_var_up)	 ,  abs(max_var_down)   ),  abs(min_var_up)	  ),  abs(min_var_down)	 ),4)
 
 	if run_corrected: shape_impact_text = open("txt_files/NP_shape_impacts_corrected.txt","a")
 	else: shape_impact_text = open("txt_files/NP_shape_impacts.txt","a")
-	shape_impact_text.write("%s     %s     %s     %s     %s     %s    %s     %s     %s     %s     %s     %s     %s\n"%(year, histname, region, systematic,   mean_var_up,     mean_var_down,  mean_abs_var_up, mean_abs_var_down,   var_stddev_up,     var_stddev_down ,    max_var_up,     max_var_down,       max_var_abs      ))
+	shape_impact_text.write("%s	 %s	 %s	 %s	 %s	 %s	%s	 %s	 %s	 %s	 %s	 %s	 %s\n"%(year, histname, region, systematic,   mean_var_up,	 mean_var_down,  mean_abs_var_up, mean_abs_var_down,   var_stddev_up,	 var_stddev_down ,	max_var_up,	 max_var_down,	   max_var_abs	  ))
 	shape_impact_text.close()
 
 
@@ -494,11 +554,11 @@ def create_linear_SRCR_plots(year, technique_str ):
 if __name__== "__main__":
 
 	###########
-	debug = False
+	debug = True
 	###########
 	#systematics = ["btagSFbc", "jec" ,"jer","pu", "pdf","fact", "renorm" ]
 	#"nom",  
-	systematics = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	       "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF",
+	systematics = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF",
 	regions = ["SR","CR","AT1b","AT0b"]
 
 	histnames = ["allBR","sig","QCD","TTbar"] ## "ST"
@@ -512,11 +572,11 @@ if __name__== "__main__":
 
 	#### REMAKE TEXT FILEs:
 	yield_impact_text = open("txt_files/NP_yield_impacts.txt","w")
-	yield_impact_text.write("year     sample_type     region     NP_name     nom_yield     up_yield     down_yield     up_var     down_var    max_var\n")
+	yield_impact_text.write("year	 sample_type	 region	 NP_name	 nom_yield	 up_yield	 down_yield	 up_var	 down_var	max_var\n")
 	yield_impact_text.close()
 
 	yield_impact_text_corrected = open("txt_files/NP_yield_impacts_corrected.txt","w")
-	yield_impact_text_corrected.write("year     sample_type     region     NP_name     nom_yield     up_yield     down_yield     up_var     down_var    max_var\n")
+	yield_impact_text_corrected.write("year	 sample_type	 region	 NP_name	 nom_yield	 up_yield	 down_yield	 up_var	 down_var	max_var\n")
 	yield_impact_text_corrected.close()
 
 

@@ -11,9 +11,13 @@ import numpy as np
 import pdb
 import time
 from histInfo import histInfo
-import networkx as nx
-
+#import networkx as nx
+from write_cms_text.write_cms_text import write_cms_text
 import argparse
+
+ROOT.TColor.InvertPalette()
+ROOT.gStyle.SetPalette(ROOT.kViridis)
+
 ####  calculateStatisticalUncertaintyBins.py
 ####  Written by Ethan Cannaert, September 2023, updated July 2024, updated again November 2024
 ####  Opens up a TH2 (22x20 bins, avg superjet mass vs diSuperjet mass)
@@ -36,9 +40,10 @@ class combineHistBins:
 		self.region = region
 		self.technique_str = technique_str
 		self.dryRun = dryRun
-		self.max_stat_uncert = 0.20  ## maximum statistical uncertainty
+		self.max_stat_uncert = 0.175  ## maximum statistical uncertainty
+		if "NN" in self.technique_str: self.max_stat_uncert = 0.25  ## maximum statistical uncertainty
 		self.min_unscaled_QCD_bin_counts   = 5.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
-		self.min_scaled_QCD_bin_counts   = 0.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
+		self.min_scaled_QCD_bin_counts   = 3.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
 
 
 		self.includeTTJetsMCHT800to1200 = False
@@ -83,6 +88,7 @@ class combineHistBins:
 			self.bin_min_y = 0  ## start y bin in the 2D distribution (SJ mass)
 			self.n_bins_x = 15
 			self.n_bins_y = 12
+
 			self.max_stat_uncert = 0.30  ## maximum statistical uncertainty
 		self.all_hist_values =  histInfo.histInfo(year,region, self.bin_min_x, self.bin_min_y, self.n_bins_x, self.n_bins_y, self.technique_str, self.includeTTJetsMCHT800to1200, self.includeWJets, self.includeTTo,  debug, runEos)    #histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
 		self.superbin_indices = self.init_superbin_indices()     
@@ -104,7 +110,23 @@ class combineHistBins:
 
 		self.superbin_groups = self.create_superbin_groups()
 
+
+		self.superbin_neighbors = self.get_list_of_all_superbin_neighbors()
+
 		if debug: print("The final superbin groups are %s."%self.superbin_groups)
+
+
+
+	def get_list_of_all_superbin_neighbors(self):
+		superbin_neighbor_list = []
+		for superbin_index,superbin in enumerate(self.superbin_indices):
+			superbin_neighbor_list.append( self.get_list_of_neighbor_superbins(superbin[0]) )
+
+
+		return superbin_neighbor_list
+
+
+
 	def create_superbin_groups(self):
 
 
@@ -141,7 +163,7 @@ class combineHistBins:
 				continue
 
 			## get list of neighboring bins
-			neighbor_superbins = self.get_list_of_neighbors(  self.superbin_indices[cand_superbin_index][0] )   ## takes a tuple in the superbin
+			neighbor_superbins = self.get_list_of_neighbor_superbins(  self.superbin_indices[cand_superbin_index][0] )   ## takes a tuple in the superbin, returns list of neighboring superbin indices
 
 
 			if debug: print("cand_superbin_index %s has neighbors %s."%(cand_superbin_index, neighbor_superbins))
@@ -151,8 +173,10 @@ class combineHistBins:
 			# remove superbins that are already in groups 
 			for neighbor_superbin_index,neighbor_superbin in enumerate(neighbor_superbins):
 				for superbin_group in superbin_groups_temp:
+
 					if (neighbor_superbin in superbin_group)   and (len(superbin_group) > 1 ): continue # skip neighbor superbins that are in groups of two or more
 					elif (neighbor_superbin in superbin_group) and (len(superbin_group) == 1): good_neighbor_superbins.append(neighbor_superbin)
+
 
 			if len(good_neighbor_superbins) > 0: 
 
@@ -256,25 +280,58 @@ class combineHistBins:
 			if debug: print("there_are_ungrouped_superbins: %s."%there_are_ungrouped_superbins)
 
 
+
+
+
+
+		#DON'T THINK THIS WILL WORK
+		### now go through each superbin group and create links between them and at least one neighbor superbin groups
+			## rules:
+				# don't want a superbin in more than 2 superbin groups
+				# don't want more than two superbins in some superbin group A to also be in a superbin group B
+
+			## instructions:
+				# keep looping over all superbin groups until every superbin is in two groups
+					# need a function that returns a list of all superbins that are only in one superbin group
+				# each iteration, get a list of superbins that are not yet in two groups
+				# choose a random superbin, superbin A
+				# get a list of the neighbor superbins to superbin A
+				# convert this to a list of neighboring superbin groups
+				# remove any superbin groups that share supebins with the parent superbin group of superbin A
+				# get the average yields of the remaining superbins 
+				# add superbin A to the superbin group that has the closest average yield to superbin A
+
+				# recalculate the list of superbins that aren't in at least two superbin groups
+
+
+			## new methods needed:
+				# get_list_of_exclusive_superbins   --> takes in no arguemnts, returns a list of all superbins not in at least two superbin groups
+				# get_list_of_neighbor_superbins  --> takes in a tuple in a superbin, returns list of superbins that neighbor this superbin
+				# get_superbin_group_index_by_superbin_index --> takes in superbin index and current superbin group list, returns the index of the parent superbin group
+
+		#for superbin_group in superbin_groups:     # looks like this: [ [1,3,5], [2,7], [8,4], ...     ]
+
+
 		return superbin_groups
 
 
 	def get_superbin_group_by_superbin_index(self, superbin_index_to_locate, superbin_groups_temp):
-
-
 		for superbin_group in superbin_groups_temp:    # superbin_group here would look like this: [ [1,3,4], [2,6], ... ]
-
 			if superbin_index_to_locate in superbin_group:
 				return superbin_group
-
-
 		print("ERROR: did not find superbin %s in list of superbin groups %s"%(superbin_index_to_locate,superbin_groups_temp))
 		return None
 
+	def get_superbin_group_index_by_superbin_index(self, superbin_index_to_locate, superbin_groups_temp):
+		for superbin_group_index,superbin_group in enumerate(superbin_groups_temp):    # superbin_group here would look like this: [ [1,3,4], [2,6], ... ]
+			if superbin_index_to_locate in superbin_group:
+				return superbin_group_index
+		print("ERROR: did not find superbin %s in list of superbin groups %s"%(superbin_index_to_locate,superbin_groups_temp))
+		return None
+
+
 	def check_for_ungrouped_superbins(self,superbin_groups):
-
 		n_ungrouped_superbins = 0
-
 		for superbin_group in superbin_groups:
 			if len(superbin_group) == 1: 
 				if  self.all_hist_values.get_scaled_QCD_superbin_counts(self.superbin_indices[ superbin_group[0] ] ) < 50:  
@@ -334,7 +391,7 @@ class combineHistBins:
 			else:
 				return False
 		return True
-	def get_list_of_neighbors(self,_tuple):
+	def get_list_of_neighbor_superbins(self,_tuple):
 		# return list of NON-EMPTY neighbor indices of all superbins in this superbin  
 		list_of_neighbors = [] # will be full of the superbin #s  
 		this_superbin_num = self.get_superbin_number( _tuple )
@@ -559,14 +616,14 @@ class combineHistBins:
 					continue
 				superbin_index = self.get_superbin_number((iii,jjj))
 				if (iii <= maxBin_column[jjj]) and (iii >= minBin_column[jjj]) and self.counts_in_superbin(self.get_superbin_number((iii,jjj) )) == 0:
-					list_of_neighbors = self.get_list_of_neighbors( (iii,jjj))
+					list_of_neighbors = self.get_list_of_neighbor_superbins( (iii,jjj))
 					neighbor_counts = [self.counts_in_superbin(neighbor_index) for neighbor_index in list_of_neighbors]
 					mergeIndex = list_of_neighbors[neighbor_counts.index(min(neighbor_counts))] # add to the neighbor with the fewest counts
 					print("merged hole %s with %s"%(self.superbin_indices[superbin_index],self.superbin_indices[mergeIndex] ) )
 					self.superbin_indices[mergeIndex].extend(self.superbin_indices[superbin_index])
 					self.superbin_indices.remove(self.superbin_indices[superbin_index])
 				elif (jjj < maxBin_row[iii]) and (jjj > minBin_row[iii]) and self.counts_in_superbin(self.get_superbin_number((iii,jjj) )) == 0:
-					list_of_neighbors = self.get_list_of_neighbors( (iii,jjj))
+					list_of_neighbors = self.get_list_of_neighbor_superbins( (iii,jjj))
 					neighbor_counts = [self.counts_in_superbin(neighbor_index) for neighbor_index in list_of_neighbors]
 					mergeIndex = list_of_neighbors[neighbor_counts.index(min(neighbor_counts))] # add to the neighbor with the fewest counts
 					print("merged hole %s with %s"%(self.superbin_indices[superbin_index],self.superbin_indices[mergeIndex] ) )
@@ -653,7 +710,7 @@ class combineHistBins:
 			random_bad_superbin_tuple = random.choice( self.superbin_indices[random_bad_superbin] ) ### this is a tuple
 			#print("Random bad tuple: ", random_bad_superbin_tuple)
 
-			nearby_superbins = self.get_list_of_neighbors( random_bad_superbin_tuple   ) ## look for non-empty neighbors
+			nearby_superbins = self.get_list_of_neighbor_superbins( random_bad_superbin_tuple   ) ## look for non-empty neighbors
 
 			if len(nearby_superbins) == 0: 
 				nearby_superbins = self.get_list_of_all_neighbors( random_bad_superbin_tuple    )   	### this is a list of superbin numbers				
@@ -736,7 +793,7 @@ class combineHistBins:
 			for _tuple in superbin:
 				hist_unmerged_systUncert.SetBinContent(_tuple[0]+1,_tuple[1]+1,self.all_hist_values.get_bin_total_uncert(superbin))
 
-		c1 = ROOT.TCanvas("","",1200,1000)
+		c1 = ROOT.TCanvas("","",1300,1000)
 		hist_expected_counts_unmerged.Draw("colz")
 		c1.SaveAs("%s/counts_unmerged_%s%s_%s.png"%(plot_path,self.technique_str,region,year))
 		hist_unmerged_systUncert.Draw("colz")
@@ -859,7 +916,7 @@ class combineHistBins:
 	def calculate_yield_difference(self,bin_a, bin_b):
 		return abs(bin_a[1] - bin_b[1])  # where bin_a[1] is the yield value
 
-	def arrange_bins_optimized(self,super_bins_yields, neighbors):
+	"""def arrange_bins_optimized(self,super_bins_yields, neighbors):
 		# Create a graph where each bin is a node and edges are the yield differences
 		G = nx.Graph()
 		
@@ -902,7 +959,7 @@ class combineHistBins:
 			arranged_bins.insert(0, arranged_bins[-1]) # place the last element at the beginning
 			last_element = arranged_bins.pop()
 		
-		return arranged_bins
+		return arranged_bins"""
 
 	def print_summary(self): # check the total integral of the PRE-merged distribution and the post-merged, linearized distribution to make sure they are the same
 
@@ -938,7 +995,7 @@ class combineHistBins:
 if __name__=="__main__":
 
 	debug  = False
-	dryRun = True
+	dryRun = False
 	runEos = True
 
 	print("Calculating bin groupings for best statistical uncertainties")
@@ -946,6 +1003,7 @@ if __name__=="__main__":
 
 	text_output_path  = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
 	group_output_path = os.getenv('CMSSW_BASE') + "/src/postprocess/superbinGroups/"
+	neighbor_output_path = os.getenv('CMSSW_BASE') + "/src/postprocess/superbinNeighbors/"
 
 
 	if not dryRun:
@@ -954,6 +1012,10 @@ if __name__=="__main__":
 
 	os.system('rm %s/superbin_groups_*.txt'%group_output_path)
 	os.system('rm %s/superbin_groupsNN_*.txt'%group_output_path)
+
+
+	os.system('rm %s/superbin_neighbor_*.txt'%neighbor_output_path)
+	os.system('rm %s/superbin_neighborsNN_*.txt'%neighbor_output_path)
 
 
 	years = ["2015","2016","2017","2018"]
@@ -978,6 +1040,10 @@ if __name__=="__main__":
 			for iii,hist_name in enumerate(hist_names):
 				if region in ["SB1b","SB0b"] and "NN" in hist_name: continue
 
+				year_str = "2016preAPV"
+				if year == "2016":  year_str = "2016postAPV"
+				if year == "2017":  year_str = "2017"
+				if year == "2018":  year_str = "2018"
 
 				if dryRun: 
 					print("===============================================================================")
@@ -989,9 +1055,11 @@ if __name__=="__main__":
 					print("===============================================================================")
 					print("===============================================================================")
 
-				if not dryRun:  out_txt_file = open("%s/superbin_indices%s_%s.txt"%(text_output_path,output_strs[iii],year),"a")
-				
-				superbin_group_txt_file = open("%s/superbin_groups%s_%s.txt"%(group_output_path,output_strs[iii],year),"a")
+				if not dryRun:  
+					out_txt_file = open("%s/superbin_indices%s_%s.txt"%(text_output_path,output_strs[iii],year),"a")
+					superbin_group_txt_file = open("%s/superbin_groups%s_%s.txt"%(group_output_path,output_strs[iii],year),"a")
+					superbin_neighbor_txt_file = open("%s/superbin_neighbors%s_%s.txt"%(neighbor_output_path,output_strs[iii],year),"a")
+
 
 				print("Creating maps for %s/%s"%(region,year))
 
@@ -1003,9 +1071,27 @@ if __name__=="__main__":
 				testCase = combineHistBins(year, region, output_strs[iii], debug,dryRun,runEos)
 				#create a dummy histogram with dimensions 20x22
 				merged_bins = testCase.superbin_indices
-				bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Map of how bins were merged in %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
-				stat_uncert_hist = ROOT.TH2F("stat_uncert_hist%s"%output_strs[iii], ("Statistical Uncertainty (post bin merging) in the %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
-				merged_hist_count = ROOT.TH2F("merged_hist_count%s"%output_strs[iii], ("Unscaled Bin Counts (post bin merging) in the %s for %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Superbin Map for the %s for %s (%s); diSuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				stat_uncert_hist = ROOT.TH2F("stat_uncert_hist%s"%output_strs[iii], ("Superbin Statistical Uncertainty in the %s for %s (%s); diSuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				merged_hist_count = ROOT.TH2F("merged_hist_count%s"%output_strs[iii], ("Unscaled Superbin Event Yields (post bin merging) in the %s for %s (%s); diSuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				bin_map_hist.GetYaxis().SetTitleOffset(1.5)
+				stat_uncert_hist.GetYaxis().SetTitleOffset(1.5)
+				merged_hist_count.GetYaxis().SetTitleOffset(1.5)
+
+				stat_uncert_hist.GetZaxis().SetTitle("Stat. Uncertainty")
+				stat_uncert_hist.GetZaxis().SetTitleOffset(1.35)
+				stat_uncert_hist.GetZaxis().SetTitleSize(0.035)
+				stat_uncert_hist.GetZaxis().SetLabelSize(0.035)
+				stat_uncert_hist.GetZaxis().SetLabelOffset(0.005)
+
+				merged_hist_count.GetZaxis().SetTitle("Events")
+				merged_hist_count.GetZaxis().SetTitleOffset(1.35)
+				merged_hist_count.GetZaxis().SetTitleSize(0.035)
+				merged_hist_count.GetZaxis().SetLabelSize(0.035)
+				merged_hist_count.GetZaxis().SetLabelOffset(0.005)
+
+
+
 				R = ROOT.TRandom3()
 				for superbin_index, superbin in enumerate(merged_bins):
 					random.seed(54321)
@@ -1021,20 +1107,33 @@ if __name__=="__main__":
 					out_txt_file.write("%s/%s/number of bins = %s/%s\n"%(year,region, len(testCase.superbin_indices), testCase.superbin_indices))
 					out_txt_file.close()
 
+					superbin_group_txt_file.write("%s/%s/number of superbin groups = %s/%s\n"%(year,region, len(testCase.superbin_groups), testCase.superbin_groups))
+					superbin_group_txt_file.close()
 
-				superbin_group_txt_file.write("%s/%s/number of superbin groups = %s/%s\n"%(year,region, len(testCase.superbin_groups), testCase.superbin_groups))
-				superbin_group_txt_file.close()
+					superbin_neighbor_txt_file.write("%s/%s/number of superbin neighbors = %s/%s\n"%(year,region, len(testCase.superbin_neighbors), testCase.superbin_neighbors))
+					superbin_neighbor_txt_file.close()
+					
 
-
+				ROOT.gStyle.SetPalette(0)  # This hides the color scale
 				bin_map_hist.GetZaxis().SetRangeUser(0,10000)
-				bin_map_hist.Draw("colz")
+
+				bin_map_hist.Draw("col")
+				write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 				c.SaveAs( os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/bin_map_%s%s_%s.png"%(output_strs[iii],region,year)) 
 				
+				ROOT.gStyle.SetPalette(ROOT.kViridis)
+				c.SetRightMargin(0.18)
+
 				stat_uncert_hist.Draw("colz")
+				write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 				c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/stat_uncert_%s%s_%s.png"%(output_strs[iii],region,year)) 
-				
+
+				ROOT.gStyle.SetPalette(ROOT.kViridis)
+
 				merged_hist_count.Draw("colz")
+				write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 				c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/postprocess/plots/statUncertaintyPlots/postMergedPlots/bin_counts_%s%s_%s.png"%(output_strs[iii],region,year)) 
 				
+				c.SetRightMargin(0.05)
 
 
