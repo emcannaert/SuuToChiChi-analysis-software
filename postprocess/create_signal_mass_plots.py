@@ -6,7 +6,7 @@ sys.path.append('../postprocess/')
 from write_cms_text import write_cms_text
 from return_signal_SF import return_signal_SF
 import math
-## (1) make plots of (1D) superjet mass, (1D) disuperjet mass, and (2D) average superjet vs diSuperjet mass for some mass points for each year
+## (1) make plots of (1D) superjet mass, (1D) disuperjet mass, and (2D) average superjet vs disuperjet mass for some mass points for each year
 
 ## (2) make stack plots of signal for all different decays (SJ mass, diSJ mass, 2D mass)
 
@@ -16,7 +16,7 @@ bad_files = []
 import ROOT
 #ROOT.gErrorIgnoreLevel = ROOT.kError;
 ROOT.gStyle.SetPalette(ROOT.kViridis)
-
+ROOT.TColor.InvertPalette();
 
 def take_square_root(hist):
     n_bins = hist.GetNbinsX()  # Get the number of bins along the X-axis
@@ -98,12 +98,15 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 			print("ERROR: Failed finding histogram %s in file %s for %s/%s/%s/%s"%(hist_path,decays[iii], mass_point,year,region,tagging_str))
 			if inFileName2 not in bad_files: bad_files.append(inFileName2)
 
+
+
+
 	# Create the title using \mbox to separate math and text
 	title = r"\mbox{Avg. SJ mass for Signal and Combined Backgrounds } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)}; Mass [GeV]; Events / 125 GeV" % (mass_point_str[mass_point], year_str, region, tagging_str.replace("_", "\\_"))
 
 	# Check for specific histogram names and adjust titles as needed
-	if "h_disuperjet_mass" in hist_name: title = r" \mbox{diSuperjet mass for Signal and Combined Backgrounds } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s) }; Mass [GeV]; Events / 200 GeV" % (mass_point_str[mass_point], year_str, region, tagging_str.replace("_", "\\_"))
-	elif "h_MSJ_mass_vs_MdSJ" in hist_name: title = r"\mbox{Avg. SJ vs diSJ mass for Signal and Combined Backgrounds } (%s) \mbox{ (%s) } \mbox{(%s)} \mbox{(%s)}; diSuperjet mass [GeV]; superjet mass [GeV]" % (mass_point_str[mass_point], year_str, region, tagging_str.replace("_", "\\_"))
+	if "h_disuperjet_mass" in hist_name: title = r" \mbox{disuperjet mass for Signal and Combined Backgrounds } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s) }; Mass [GeV]; Events / 200 GeV" % (mass_point_str[mass_point], year_str, region, tagging_str.replace("_", "\\_"))
+	elif "h_MSJ_mass_vs_MdSJ" in hist_name: title = r"\mbox{Avg. SJ vs diSJ mass for Signal and Combined Backgrounds } (%s) \mbox{ (%s) } \mbox{(%s)} \mbox{(%s)}; disuperjet mass [GeV]; superjet mass [GeV]" % (mass_point_str[mass_point], year_str, region, tagging_str.replace("_", "\\_"))
 	##### sig_hist now has all decays added together and is fully scaled
 
 
@@ -451,18 +454,27 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	h_MSJ_mass_vs_MdSJ_AT0b = f1.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_AT0b"%tagging_type)
 	h_MSJ_mass_vs_MdSJ_AT0b.Scale(return_signal_SF.return_signal_SF(year,mass_point,decays[0]))
 
+
+	if h_MSJ_mass_vs_MdSJ_SR: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"SR",  year, h_MSJ_mass_vs_MdSJ_SR.Integral()))
+	if h_MSJ_mass_vs_MdSJ_CR: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"CR",  year, h_MSJ_mass_vs_MdSJ_CR.Integral()))
+	if h_MSJ_mass_vs_MdSJ_AT1b: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"AT1b",  year, h_MSJ_mass_vs_MdSJ_AT1b.Integral()))
+	if h_MSJ_mass_vs_MdSJ_AT0b: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"AT0b",  year, h_MSJ_mass_vs_MdSJ_AT0b.Integral()))
+
+
+
+
 	# init stack plots
 	h_SJ_mass_SR = ROOT.THStack( "h_SJ_mass_SR_stack", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (SR) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str))
-	h_diSuperjet_mass_SR = ROOT.THStack( "h_diSuperjet_mass_SR", "SuuToChiChi signal diSuperjet mass (combined) (%s) (%s) (SR) (%s); diSuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
+	h_disuperjet_mass_SR = ROOT.THStack( "h_disuperjet_mass_SR", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (SR) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
 	
 	h_SJ_mass_CR = ROOT.THStack( "h_SJ_mass_CR", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (CR) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str));
-	h_diSuperjet_mass_CR = ROOT.THStack( "h_diSuperjet_mass_CR", "SuuToChiChi signal diSuperjet mass (combined) (%s) (%s) (CR) (%s); diSuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
+	h_disuperjet_mass_CR = ROOT.THStack( "h_disuperjet_mass_CR", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (CR) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
 	
 	h_SJ_mass_AT1b = ROOT.THStack( "h_SJ_mass_AT1b","SuuToChiChi signal superjet mass (combined) (%s) (%s) (AT1B) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str));
-	h_diSuperjet_mass_AT1b = ROOT.THStack( "h_diSuperjet_mass_AT1b", "SuuToChiChi signal diSuperjet mass (combined) (%s) (%s) (AT1B) (%s); diSuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
+	h_disuperjet_mass_AT1b = ROOT.THStack( "h_disuperjet_mass_AT1b", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (AT1B) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
 
 	h_SJ_mass_AT0b = ROOT.THStack( "h_SJ_mass_AT0b", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (AT0b) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str));
-	h_diSuperjet_mass_AT0b = ROOT.THStack( "h_diSuperjet_mass_AT0b", "SuuToChiChi signal diSuperjet mass (combined) (%s) (%s) (AT0b) (%s); diSuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
+	h_disuperjet_mass_AT0b = ROOT.THStack( "h_disuperjet_mass_AT0b", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (AT0b) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
 
 
 	legend_SJ_mass_SR 	= ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
@@ -473,6 +485,8 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	legend_diSJ_mass_AT1b = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
 	legend_SJ_mass_AT0b   = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
 	legend_diSJ_mass_AT0b = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
+
+
 
 
 	print("Running year/mass_point/tagging_type/tagging_str:  %s/%s/%s/%s"%( year, mass_point,tagging_type, tagging_str) )
@@ -492,27 +506,27 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 
 		try:
 			h2_SJ_mass_SR = f2.Get(folder_name+"h_SJ_mass%s_SR"%tagging_type).Clone()
-			h2_diSuperjet_mass_SR 	= f2.Get(folder_name+"h_disuperjet_mass%s_SR"%tagging_type).Clone()
+			h2_disuperjet_mass_SR 	= f2.Get(folder_name+"h_disuperjet_mass%s_SR"%tagging_type).Clone()
 
 			h2_SJ_mass_CR 			= f2.Get(folder_name+"h_SJ_mass%s_CR"%tagging_type).Clone()
-			h2_diSuperjet_mass_CR   = f2.Get(folder_name+"h_disuperjet_mass%s_CR"%tagging_type).Clone()
+			h2_disuperjet_mass_CR   = f2.Get(folder_name+"h_disuperjet_mass%s_CR"%tagging_type).Clone()
 
 			h2_SJ_mass_AT1b 		 = f2.Get(folder_name+"h_SJ_mass%s_AT1b"%tagging_type).Clone()
-			h2_diSuperjet_mass_AT1b  = f2.Get(folder_name+"h_disuperjet_mass%s_AT1b"%tagging_type).Clone()
+			h2_disuperjet_mass_AT1b  = f2.Get(folder_name+"h_disuperjet_mass%s_AT1b"%tagging_type).Clone()
 
 			h2_SJ_mass_AT0b 		 = f2.Get(folder_name+"h_SJ_mass%s_AT0b"%tagging_type).Clone()
-			h2_diSuperjet_mass_AT0b  = f2.Get(folder_name+"h_disuperjet_mass%s_AT0b"%tagging_type).Clone()
+			h2_disuperjet_mass_AT0b  = f2.Get(folder_name+"h_disuperjet_mass%s_AT0b"%tagging_type).Clone()
 		except:
 			print("failed for decay %s"%decays[iii])
 			continue
 		h2_SJ_mass_SR.SetDirectory(0)   # histograms lose their references when the file destructor is called
-		h2_diSuperjet_mass_SR.SetDirectory(0)
+		h2_disuperjet_mass_SR.SetDirectory(0)
 		h2_SJ_mass_CR.SetDirectory(0)
-		h2_diSuperjet_mass_CR.SetDirectory(0)
+		h2_disuperjet_mass_CR.SetDirectory(0)
 		h2_SJ_mass_AT1b.SetDirectory(0)
-		h2_diSuperjet_mass_AT1b.SetDirectory(0)
+		h2_disuperjet_mass_AT1b.SetDirectory(0)
 		h2_SJ_mass_AT0b.SetDirectory(0)
-		h2_diSuperjet_mass_AT0b.SetDirectory(0)
+		h2_disuperjet_mass_AT0b.SetDirectory(0)
 
 		if (iii > 0):   # only want to do this for files 2 and beyond 
 			h_MSJ_mass_vs_MdSJ_SR 	= f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_SR"%tagging_type)
@@ -533,51 +547,51 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 		h2_SJ_mass_SR.Scale(decay_SF)
 		h2_SJ_mass_SR.SetFillColor(colors[iii])
 
-		h2_diSuperjet_mass_SR.Scale(decay_SF)
-		h2_diSuperjet_mass_SR.SetFillColor(colors[iii])
+		h2_disuperjet_mass_SR.Scale(decay_SF)
+		h2_disuperjet_mass_SR.SetFillColor(colors[iii])
 
 		h2_SJ_mass_CR.Scale(decay_SF)
 		h2_SJ_mass_CR.SetFillColor(colors[iii])
 
-		h2_diSuperjet_mass_CR.Scale(decay_SF)
-		h2_diSuperjet_mass_CR.SetFillColor(colors[iii])
+		h2_disuperjet_mass_CR.Scale(decay_SF)
+		h2_disuperjet_mass_CR.SetFillColor(colors[iii])
 
 		h2_SJ_mass_AT1b.Scale(decay_SF)
 		h2_SJ_mass_AT1b.SetFillColor(colors[iii])
 
-		h2_diSuperjet_mass_AT1b.Scale(decay_SF)
-		h2_diSuperjet_mass_AT1b.SetFillColor(colors[iii])
+		h2_disuperjet_mass_AT1b.Scale(decay_SF)
+		h2_disuperjet_mass_AT1b.SetFillColor(colors[iii])
 
 		h2_SJ_mass_AT0b.Scale(decay_SF)
 		h2_SJ_mass_AT0b.SetFillColor(colors[iii])
 
-		h2_diSuperjet_mass_AT0b.Scale(decay_SF)
-		h2_diSuperjet_mass_AT0b.SetFillColor(colors[iii])
+		h2_disuperjet_mass_AT0b.Scale(decay_SF)
+		h2_disuperjet_mass_AT0b.SetFillColor(colors[iii])
 		
 
 
 		h_SJ_mass_SR.Add(h2_SJ_mass_SR.Clone())
-		h_diSuperjet_mass_SR.Add(h2_diSuperjet_mass_SR.Clone())
+		h_disuperjet_mass_SR.Add(h2_disuperjet_mass_SR.Clone())
 		
 		h_SJ_mass_CR.Add(h2_SJ_mass_CR.Clone())
-		h_diSuperjet_mass_CR.Add(h2_diSuperjet_mass_CR.Clone())
+		h_disuperjet_mass_CR.Add(h2_disuperjet_mass_CR.Clone())
 	
 		h_SJ_mass_AT1b.Add(h2_SJ_mass_AT1b.Clone())
-		h_diSuperjet_mass_AT1b.Add(h2_diSuperjet_mass_AT1b.Clone())
+		h_disuperjet_mass_AT1b.Add(h2_disuperjet_mass_AT1b.Clone())
 		
 		h_SJ_mass_AT0b.Add(h2_SJ_mass_AT0b.Clone())
-		h_diSuperjet_mass_AT0b.Add(h2_diSuperjet_mass_AT0b.Clone())
+		h_disuperjet_mass_AT0b.Add(h2_disuperjet_mass_AT0b.Clone())
 
 
 	## create legends 
 	hist_list1 =	h_SJ_mass_SR.GetHists()
-	hist_list2 =	h_diSuperjet_mass_SR.GetHists()
+	hist_list2 =	h_disuperjet_mass_SR.GetHists()
 	hist_list3 =	h_SJ_mass_CR.GetHists()
-	hist_list4 =	h_diSuperjet_mass_CR.GetHists()
+	hist_list4 =	h_disuperjet_mass_CR.GetHists()
 	hist_list5 =	h_SJ_mass_AT1b.GetHists()
-	hist_list6 =	h_diSuperjet_mass_AT1b.GetHists()
+	hist_list6 =	h_disuperjet_mass_AT1b.GetHists()
 	hist_list7 =	h_SJ_mass_AT0b.GetHists()
-	hist_list8 =	h_diSuperjet_mass_AT0b.GetHists()
+	hist_list8 =	h_disuperjet_mass_AT0b.GetHists()
 	for iii in range(0,len(hist_list1)):
 		legend_SJ_mass_SR.AddEntry(hist_list1[iii], decays[iii], "f")
 		legend_diSJ_mass_SR.AddEntry(hist_list2[iii], decays[iii], "f")
@@ -623,16 +637,16 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	Suu_mass_point_str_to_use = Suu_mass[0] + " = "  +  r"\mbox{" + Suu_mass[1] + ",}"
 	chi_mass_point_str_to_use = chi_mass[0] + " = "  +  r"\mbox{" + chi_mass[1] + "}"
 
-	#title_SR = r"\mbox{Signal avg. SJ mass vs diSuperjet mass} (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)}; " % (mass_point_str_to_use, year_str, region, tagging_str.replace("_", "\\_"))
-	#title_CR = r"\mbox{Signal avg. SJ mass vs diSuperjet mass } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)};" % (mass_point_str_to_use, year_str, region, tagging_str.replace("_", "\\_"))
-	#title_AT1b = r"\mbox{Signal SJ mass vs diSuperjet mass of signal-tagged SJ } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)};" % (mass_point_str_to_use, year_str, region, tagging_str.replace("_", "\\_"))
-	#title_AT0b = r"\mbox{Signal SJ mass vs diSuperjet mass of signal-tagged SJ } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)};" % (mass_point_str_to_use, year_str, region, tagging_str.replace("_", "\\_"))
+	#title_SR = r"\mbox{Signal avg. SJ mass vs disuperjet mass} (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)}; " % (mass_point_str_to_use, year_str, region, tagging_str.replace("_", "\\_"))
+	#title_CR = r"\mbox{Signal avg. SJ mass vs disuperjet mass } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)};" % (mass_point_str_to_use, year_str, region, tagging_str.replace("_", "\\_"))
+	#title_AT1b = r"\mbox{Signal SJ mass vs disuperjet mass of signal-tagged SJ } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)};" % (mass_point_str_to_use, year_str, region, tagging_str.replace("_", "\\_"))
+	#title_AT0b = r"\mbox{Signal SJ mass vs disuperjet mass of signal-tagged SJ } (%s) \mbox{ (%s) } \mbox{(%s) } \mbox{(%s)};" % (mass_point_str_to_use, year_str, region, tagging_str.replace("_", "\\_"))
 
 
-	title_SR   = " Avg. SJ mass vs diSuperjet mass for signal (%s) (SR) (%s)"%(year_str,tagging_str)
-	title_CR   = "Avg. SJ mass vs diSuperjet mass for signal (%s) (CR) (%s)"%(year_str,tagging_str)
-	title_AT1b = "SJ mass vs diSuperjet mass of tagged SJ for signal (%s) (AT1b) (%s)"%(year_str,tagging_str)
-	title_AT0b = "SJ mass vs diSuperjet mass of tagged SJ for signal (%s) (AT0b) (%s)"%(year_str,tagging_str)
+	title_SR   = " Avg. SJ mass vs disuperjet mass for signal (%s) (SR) (%s)"%(year_str,tagging_str)
+	title_CR   = "Avg. SJ mass vs disuperjet mass for signal (%s) (CR) (%s)"%(year_str,tagging_str)
+	title_AT1b = "SJ mass vs disuperjet mass of tagged SJ for signal (%s) (AT1b) (%s)"%(year_str,tagging_str)
+	title_AT0b = "SJ mass vs disuperjet mass of tagged SJ for signal (%s) (AT0b) (%s)"%(year_str,tagging_str)
 
 
 	# Define the text
@@ -642,10 +656,10 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	text.SetTextAlign(22)  # Center alignment (horizontal and vertical)
 	
 
-	h_MSJ_mass_vs_MdSJ_SR.SetTitle(title_SR) #"Signal avg. SJ mass vs diSuperjet mass (%s) (%s) (SR) (%s)"%(mass_point_str_to_use,year_str,tagging_str)
-	h_MSJ_mass_vs_MdSJ_CR.SetTitle(title_CR) #"Signal avg. SJ mass vs diSuperjet mass (%s) (%s) (CR) (%s)"%(mass_point_str_to_use,year_str,tagging_str)
-	h_MSJ_mass_vs_MdSJ_AT1b.SetTitle(title_AT1b) # "Signal SJ mass vs diSuperjet mass of signal-tagged SJ (%s) (%s) (AT1b) (%s)"%(mass_point_str_to_use,year_str,tagging_str)
-	h_MSJ_mass_vs_MdSJ_AT0b.SetTitle(title_AT0b)  # "Signal SJ mass vs diSuperjet mass of signal-tagged SJ (%s) (%s) (AT0b) (%s)"%(mass_point_str_to_use,year_str,tagging_str)
+	h_MSJ_mass_vs_MdSJ_SR.SetTitle(title_SR) #"Signal avg. SJ mass vs disuperjet mass (%s) (%s) (SR) (%s)"%(mass_point_str_to_use,year_str,tagging_str)
+	h_MSJ_mass_vs_MdSJ_CR.SetTitle(title_CR) #"Signal avg. SJ mass vs disuperjet mass (%s) (%s) (CR) (%s)"%(mass_point_str_to_use,year_str,tagging_str)
+	h_MSJ_mass_vs_MdSJ_AT1b.SetTitle(title_AT1b) # "Signal SJ mass vs disuperjet mass of signal-tagged SJ (%s) (%s) (AT1b) (%s)"%(mass_point_str_to_use,year_str,tagging_str)
+	h_MSJ_mass_vs_MdSJ_AT0b.SetTitle(title_AT0b)  # "Signal SJ mass vs disuperjet mass of signal-tagged SJ (%s) (%s) (AT0b) (%s)"%(mass_point_str_to_use,year_str,tagging_str)
 
 	h_MSJ_mass_vs_MdSJ_SR.GetZaxis().SetTitle("Events")
 	h_MSJ_mass_vs_MdSJ_SR.GetZaxis().SetTitleOffset(1.35)
@@ -686,10 +700,10 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	legend_SJ_mass_SR.Draw()
 	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_SR%s.png"%(mass_point,year,tagging_type))
 
-	h_diSuperjet_mass_SR.Draw("HIST")
+	h_disuperjet_mass_SR.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_diSJ_mass_SR.Draw()
-	c.SaveAs(plot_dir+"h_diSuperjet_mass_%s_allHadDecays_%s_SR%s.png"%(mass_point,year,tagging_type))
+	c.SaveAs(plot_dir+"h_disuperjet_mass_%s_allHadDecays_%s_SR%s.png"%(mass_point,year,tagging_type))
 
 
 	h_SJ_mass_CR.Draw("HIST")
@@ -697,10 +711,10 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	legend_SJ_mass_CR.Draw()
 	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
 
-	h_diSuperjet_mass_CR.Draw("HIST")
+	h_disuperjet_mass_CR.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_diSJ_mass_CR.Draw()
-	c.SaveAs(plot_dir+"h_diSuperjet_mass_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
+	c.SaveAs(plot_dir+"h_disuperjet_mass_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
 
 
 	h_SJ_mass_AT1b.Draw("HIST")
@@ -708,10 +722,10 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	legend_SJ_mass_AT1b.Draw()
 	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_AT1b%s.png"%(mass_point,year,tagging_type))
 
-	h_diSuperjet_mass_AT1b.Draw("HIST")
+	h_disuperjet_mass_AT1b.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_diSJ_mass_AT1b.Draw()
-	c.SaveAs(plot_dir+"h_diSuperjet_mass_%s_allHadDecays_%s_AT1b%s.png"%(mass_point,year,tagging_type))
+	c.SaveAs(plot_dir+"h_disuperjet_mass_%s_allHadDecays_%s_AT1b%s.png"%(mass_point,year,tagging_type))
 
 
 	h_SJ_mass_AT0b.Draw("HIST")
@@ -719,10 +733,10 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	legend_SJ_mass_AT0b.Draw()
 	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_AT0b%s.png"%(mass_point,year,tagging_type))
 
-	h_diSuperjet_mass_AT0b.Draw("HIST")
+	h_disuperjet_mass_AT0b.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_diSJ_mass_AT0b.Draw()
-	c.SaveAs(plot_dir+"h_diSuperjet_mass_%s_allHadDecays_%s_AT0b%s.png"%(mass_point,year,tagging_type))
+	c.SaveAs(plot_dir+"h_disuperjet_mass_%s_allHadDecays_%s_AT0b%s.png"%(mass_point,year,tagging_type))
 
 
 	c.SetRightMargin(0.16)
@@ -730,32 +744,32 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	h_MSJ_mass_vs_MdSJ_SR.GetYaxis().SetTitleOffset(1.5)
 	h_MSJ_mass_vs_MdSJ_SR.Draw("colz")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.84, lumistuff_ypos=0.91, year = "", uses_data=False)
-	text.DrawLatexNDC(0.65, 0.8, Suu_mass_point_str_to_use)
-	text.DrawLatexNDC(0.65, 0.75, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.235, 0.75, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.235, 0.70, chi_mass_point_str_to_use)
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_SR%s.png"%(mass_point,year,tagging_type))
 
 	h_MSJ_mass_vs_MdSJ_CR.GetYaxis().SetTitleOffset(1.5)
 	h_MSJ_mass_vs_MdSJ_CR.Draw("colz")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.84, lumistuff_ypos=0.91, year = "", uses_data=False)
-	text.DrawLatexNDC(0.65, 0.8, Suu_mass_point_str_to_use)
-	text.DrawLatexNDC(0.65, 0.75, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.235, 0.75, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.235, 0.70, chi_mass_point_str_to_use)
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
 
 	h_MSJ_mass_vs_MdSJ_AT1b.GetYaxis().SetTitleOffset(1.5)
 	h_MSJ_mass_vs_MdSJ_AT1b.Draw("colz")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.84, lumistuff_ypos=0.91, year = "", uses_data=False)
-	text.DrawLatexNDC(0.65, 0.8, Suu_mass_point_str_to_use)
-	text.DrawLatexNDC(0.65, 0.75, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.235, 0.75, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.235, 0.70, chi_mass_point_str_to_use)
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_AT1b%s.png"%(mass_point,year,tagging_type))
 
 	h_MSJ_mass_vs_MdSJ_AT0b.GetYaxis().SetTitleOffset(1.5)
 	h_MSJ_mass_vs_MdSJ_AT0b.Draw("colz")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.84, lumistuff_ypos=0.91, year = "", uses_data=False)
-	text.DrawLatexNDC(0.65, 0.8, Suu_mass_point_str_to_use)
-	text.DrawLatexNDC(0.65, 0.75, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.235, 0.75, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.235, 0.70, chi_mass_point_str_to_use)
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_AT0b%s.png"%(mass_point,year,tagging_type))
 
@@ -802,7 +816,7 @@ def make_plots(inFileName, year,decay,mass_point, tagging_type, tagging_str):
 
 	h_totHT 							= sig_file.Get(folder_name+"h_totHT")
 
-
+	_____
 	# scale all histograms 
 	sig_SF = return_signal_SF.return_signal_SF(year,mass_point,decay)
 
@@ -821,20 +835,20 @@ def make_plots(inFileName, year,decay,mass_point, tagging_type, tagging_str):
 	h_totHT.Scale(sig_SF)
 
 	h_SJ_mass_SR.SetTitle("Superjet mass (%s, %s, %s, %s, SR)"%(decay,mass_point,year_str,tagging_str))
-	h_diSJ_mass_SR.SetTitle("diSuperjet mass (%s, %s, %s, %s, SR)"%(decay,mass_point,year_str,tagging_str))
-	h_MSJ_mass_vs_MdSJ_SR.SetTitle("avg. superjet mass vs diSuperjet mass (%s, %s, %s, %s, SR)"%(decay,mass_point,year_str,tagging_str))
+	h_diSJ_mass_SR.SetTitle("disuperjet mass (%s, %s, %s, %s, SR)"%(decay,mass_point,year_str,tagging_str))
+	h_MSJ_mass_vs_MdSJ_SR.SetTitle("avg. superjet mass vs disuperjet mass (%s, %s, %s, %s, SR)"%(decay,mass_point,year_str,tagging_str))
 
 	h_SJ_mass_CR.SetTitle("Superjet mass (%s, %s, %s, %s, CR)"%(decay,mass_point,year_str,tagging_str))
-	h_diSJ_mass_CR.SetTitle("diSuperjet mass (%s, %s, %s, %s, CR)"%(decay,mass_point,year_str,tagging_str))
-	h_MSJ_mass_vs_MdSJ_CR.SetTitle("avg. superjet mass vs diSuperjet mass (%s, %s, %s, %s, CR)"%(decay,mass_point,year_str,tagging_str))
+	h_diSJ_mass_CR.SetTitle("disuperjet mass (%s, %s, %s, %s, CR)"%(decay,mass_point,year_str,tagging_str))
+	h_MSJ_mass_vs_MdSJ_CR.SetTitle("avg. superjet mass vs disuperjet mass (%s, %s, %s, %s, CR)"%(decay,mass_point,year_str,tagging_str))
 
 	h_SJ_mass_AT1b.SetTitle("Superjet mass (%s, %s, %s, %s, AT1b)"%(decay,mass_point,year_str,tagging_str))
-	h_diSJ_mass_AT1b.SetTitle("diSuperjet mass (%s, %s, %s, %s, AT1b)"%(decay,mass_point,year_str,tagging_str))
-	h_MSJ_mass_vs_MdSJ_AT1b.SetTitle("tagged superjet mass vs diSuperjet mass (%s, %s, %s, %s, AT1b)"%(decay,mass_point,year_str,tagging_str))
+	h_diSJ_mass_AT1b.SetTitle("disuperjet mass (%s, %s, %s, %s, AT1b)"%(decay,mass_point,year_str,tagging_str))
+	h_MSJ_mass_vs_MdSJ_AT1b.SetTitle("tagged superjet mass vs disuperjet mass (%s, %s, %s, %s, AT1b)"%(decay,mass_point,year_str,tagging_str))
 
 	h_SJ_mass_AT0b.SetTitle("Superjet mass (%s, %s, %s, %s, AT0b)"%(decay,mass_point,year_str,tagging_str))
-	h_diSJ_mass_AT0b.SetTitle("diSuperjet mass (%s, %s, %s, %s, AT0b)"%(decay,mass_point,year_str,tagging_str))
-	h_MSJ_mass_vs_MdSJ_AT0b.SetTitle("tagged superjet mass vs diSuperjet mass (%s, %s, %s, %s, AT0b)"%(decay,mass_point,year_str,tagging_str))
+	h_diSJ_mass_AT0b.SetTitle("disuperjet mass (%s, %s, %s, %s, AT0b)"%(decay,mass_point,year_str,tagging_str))
+	h_MSJ_mass_vs_MdSJ_AT0b.SetTitle("tagged superjet mass vs disuperjet mass (%s, %s, %s, %s, AT0b)"%(decay,mass_point,year_str,tagging_str))
 
 	h_totHT.SetTitle("Tot HT (%s, %s, %s)"%(decay,mass_point,year_str))
 	write_cms_text.write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.255,CMS_label_ypos = 0.92, SIM_label_ypos = 0.92, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)

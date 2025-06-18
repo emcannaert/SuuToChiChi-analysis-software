@@ -580,7 +580,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    // will comment out this
    else if ((systematicType.find("AbsoluteTheory") != std::string::npos) )     uncertainty_sources = {"AbsoluteScale", "Fragmentation","AbsoluteMPFBias","RelativeFSR"};
 
-   // AT SOME POINT WILL WANT TO REMOVE THESE
+   // THESE ARE ALWAYS 0 
    else if ((systematicType.find("HF") != std::string::npos) )           uncertainty_sources = {"PileUpPtHF", "RelativeJERHF","RelativePtHF"};
    else if ((systematicType.find("EC2_year") != std::string::npos) )     uncertainty_sources = {"RelativeJEREC2","RelativePtEC2"};
    else if ((systematicType.find("BBEC1") != std::string::npos) )        uncertainty_sources = {"PileUpPtBB", "PileUpPtEC1", "RelativePtBB"};
@@ -1852,7 +1852,7 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    //fill superjet variables here ...
    //SJ mass variables
 
-   treeVars["SJ_mass"]    = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2)); 
+   //treeVars["SJ_mass"]    = sqrt(pow(superJetE,2)-pow(superJetpx,2)-pow(superJetpy,2)-pow(superJetpz,2)); 
    treeVars["SJ_mass_25"] = sqrt(pow(SJ_25_E,2)-pow(SJ_25_px,2)-pow(SJ_25_py,2)-pow(SJ_25_pz,2)); 
    treeVars["SJ_mass_50"] = sqrt(pow(SJ_50_E,2)-pow(SJ_50_px,2)-pow(SJ_50_py,2)-pow(SJ_50_pz,2)); 
    treeVars["SJ_mass_100"] = sqrt(pow(SJ_100_E,2)-pow(SJ_100_px,2)-pow(SJ_100_py,2)-pow(SJ_100_pz,2)); 
@@ -2602,10 +2602,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       
       // apply AK4 jet selection (post JEC and JER)
       bool PUID = true;  // assumed true if not applying this
-      if(doPUID)
+      if((doPUID) && (corrJet.pt() < 50.))  // if jet pt > 50 GeV, don't need PU ID, so skip
       {
          PUID = false;
-         PUID = bool( (corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1)) || (corrJet.pt() > 50.) );
+         PUID = bool( corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1));
 
       }
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(), corrJet.pt() )) ) continue;
@@ -3190,6 +3190,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       AK4_eta[nAK4] = corrJet.eta();
       AK4_phi[nAK4] = corrJet.phi();
 
+      passesJetPUID[nAK4] = false;
       if (doPUID) passesJetPUID[nAK4] = PUID;
 
       AK4_bdisc[nAK4] = corrJet.bDiscriminator("pfDeepCSVJetTags:probb") + corrJet.bDiscriminator("pfDeepCSVJetTags:probbb");
@@ -3553,10 +3554,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       if(_verbose)  std::cout << "Checking HEM." << std::endl;
 
-      if(isHEM(corrJet.eta(),corrJet.phi()))
-      {
-         fatjet_isHEM[nfatjets] = true;
-      } 
+      if(isHEM(corrJet.eta(),corrJet.phi())) fatjet_isHEM[nfatjets] = true; 
       else{fatjet_isHEM[nfatjets] = false;}
 
       JEC_uncert_AK8[nfatjets] = AK8_JEC_corr_factor;

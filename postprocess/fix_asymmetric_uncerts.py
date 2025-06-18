@@ -86,9 +86,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, us
 
 	for region in regions:
 
-
 		superbin_neighbors = load_superbin_neighbors(year, region)
-
 
 		## create a folder in the root file and CD into it
 

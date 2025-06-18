@@ -84,8 +84,14 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	output_dir = "plots/linearized_systematic_comparisons/"
 	if run_corrected: output_dir+= "correctedSystematics/"
 
+	
+
 	output_plot_name = output_dir+"background/%s/linearized_%s%s_%s_SysComparison_RatioPlot_%s_%s.png"%(region,technique_str,hist_type,region, systematic,year)
-	if isSignal: output_plot_name = output_dir+"signal/%s/linearized_%s%s_%s_%s_SysComparison_RatioPlot_%s_%s.png"%(region,technique_str,mass_point,hist_type,region, systematic,year)
+	if isSignal: 
+		
+		if not os.path.exists(output_dir+"signal/%s/%s/"%(region, mass_point)):
+			os.makedirs(output_dir+"signal/%s/%s/"%(region, mass_point))
+		output_plot_name = output_dir+"signal/%s/%s/linearized_%s%s_%s_%s_SysComparison_RatioPlot_%s_%s.png"%(region, mass_point, technique_str,mass_point,hist_type,region, systematic,year)
 	#### cms label stuff 
 	CMS_label_pos = 0.152
 	SIM_label_pos = 0.295
@@ -257,7 +263,7 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	canvas.cd(1)
 
 	# Draw the text lines
-	text.DrawLatexNDC(0.42, 0.82, sample_type + ", " + year)
+	text.DrawLatexNDC(0.42, 0.82, sample_type + ", " + year_str)
 	text.DrawLatexNDC(0.42, 0.77, systematic)
 	text.DrawLatexNDC(0.42, 0.72, technique_desc) 
 
@@ -320,19 +326,23 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 		sample_type = "_%s"%sample_str
 
 
+	print("Systematic is %s, histname is %s, year is %s, technique_str is %s"%(systematic, histname, year_str, technique_str))
 
 	if systematic in ["CMS_pdf", "CMS_renorm","CMS_fact", "CMS_scale" ]:
 		sample_str = histname
 		if histname == "sig":
 			sample_str = "sig"
-		elif histname in ["QCD","WJets"]: sample_str = "misc"
-		elif histname in ["TTTo","TTbar"]: sample_str = "TTbar"
+		elif systematic == "CMS_pdf" and histname in ["QCD","WJets", "TTbar"]: sample_str = "misc"
+		elif systematic == "CMS_pdf" and histname in ["TTTo"]: sample_str = "TTbar"
 		systematic += "_%s"%sample_str
+
 
 
 	histname_up = histname + "_" + systematic + year_str + "Up"
 	histname_nom = histname 
 	histname_down = histname + "_" + systematic + year_str + "Down"
+
+	print("histname_up/histname_nom/histname_down: %s/%s/%s"%(histname_up,histname_nom,histname_down))
 
 	#print("up histogram name is %s"%histname_up)
 	#print("nom histogram name is %s"%histname_nom)
@@ -554,16 +564,22 @@ def create_linear_SRCR_plots(year, technique_str ):
 if __name__== "__main__":
 
 	###########
-	debug = True
+	debug     = False
+	runSignal = True
 	###########
 	#systematics = ["btagSFbc", "jec" ,"jer","pu", "pdf","fact", "renorm" ]
 	#"nom",  
-	systematics = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF",
+	systematics = ["CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF",
 	regions = ["SR","CR","AT1b","AT0b"]
 
-	histnames = ["allBR","sig","QCD","TTbar"] ## "ST"
+	histnames = ["allBR","QCD","TTbar"] ## "ST"
+	if runSignal: histnames.append("sig")
 	#mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5", "Suu6_chi2", "Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"]
 	mass_points = ["Suu4_chi1",  "Suu4_chi1p5", "Suu5_chi1p5","Suu5_chi2","Suu6_chi1", "Suu6_chi2", "Suu7_chi2p5", "Suu8_chi2","Suu8_chi3"]
+
+	## reduced mass points
+	mass_points = ["Suu4_chi1",  "Suu5_chi1p5", "Suu6_chi2", "Suu7_chi2p5", "Suu8_chi3"]
+
 
 	years = ["2015","2016","2017","2018"]
 	year_str = ["15","16","17","18"]
@@ -614,18 +630,18 @@ if __name__== "__main__":
 				for histname in histnames:
 					for systematic in systematics:
 						for region in regions:
-							try:
-								if debug:
+							#try:
+							"""	if debug:
 									print("============================================")
 									print("============================================")
 									print("========== WARNING: in debug mode ==========")
 									print("============================================")
-									print("============================================")
+									print("============================================")"""
 
-								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
-								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region, True )
-							except:
-								print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region))
+							if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
+							create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region, True )
+							#except:
+							#	print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region))
 
 
 	print("Running for raw (=uncorrected systematic plots).")
@@ -635,17 +651,17 @@ if __name__== "__main__":
 				for histname in histnames:
 					for systematic in systematics:
 						for region in regions:
-							try:
-								if debug:
+							#try:
+							"""if debug:
 									print("============================================")
 									print("============================================")
 									print("========== WARNING: in debug mode ==========")
 									print("============================================")
-									print("============================================")
-								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
-								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region, False )
-							except:
-								print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region)) 
+									print("============================================")"""
+							if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
+							create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region, False )
+							#except:
+							#	print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region)) 
 
 
 

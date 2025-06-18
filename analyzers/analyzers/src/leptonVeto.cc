@@ -154,7 +154,7 @@ leptonVeto::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<std::vector<pat::Muon>> muons;
     iEvent.getByToken(muonToken_, muons);
     for(auto iM = muons->begin(); iM != muons->end();iM++)
-    {
+    {   // B2G recommends reco::Muon::CutBasedIdLoose 
       if( (iM->passed(reco::Muon::CutBasedIdMedium)) && (iM->pt() > 8.) && (abs(iM->eta()) < 2.4)  && (iM->passed(reco::Muon::PFIsoMedium))   ) nMuon++;
     }
 
@@ -162,7 +162,7 @@ leptonVeto::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<std::vector<pat::Electron>> electrons;
     iEvent.getByToken(electronToken_, electrons);
     for(auto iE = electrons->begin(); iE != electrons->end();iE++)
-    {
+    {                      // B2G recommends mvaEleID-Fall17-iso-V2-wpLoose    could also use this one instead mvaEleID-Fall17-noiso-V2-wpLoose (another B2G recommendation)
       if((iE->electronID("mvaEleID-Fall17-iso-V2-wp90")) && (iE->pt() > 12.) && (abs(iE->eta())<2.5 )    )nE++;   //medium WP
     }
 
@@ -189,7 +189,7 @@ leptonVeto::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
             {
 
             }  
-            */
+            */                  //                                                      B2G recommends: VLoose                             B2G recommends TightVLoose
             if ((iT->tauID("byVVLooseDeepTau2017v2p1VSe") > 0.5) && (iT->tauID("byMediumDeepTau2017v2p1VSjet") > 0.5) && (iT->tauID("byTightDeepTau2017v2p1VSmu") > 0.5)  )
             {
                 nTau++;

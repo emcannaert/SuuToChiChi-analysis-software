@@ -17,14 +17,18 @@ class hist_loader:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, technique_str,  doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False):
+	def __init__(self, year, technique_str,  doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, WP=None):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
 		self.technique_str = technique_str
 		self.year   = year
 		self.run_from_eos = run_from_eos
-		
+		self.WP = WP 
+		self.WP_str = ""
+		if self.WP: 
+			self.WP = "WP" + self.WP
+			self.WP_str = self.WP + "_"
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 
@@ -32,9 +36,21 @@ class hist_loader:
 
 		self.HT_distr_home = "HT_distributions/" # extra folder where output files are saved for HT distribution plots
 
+		if self.WP:
+			self.MC_root_file_home	    = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study/WP%s/"%WP
+			self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study/WP%s/"%WP
+
+
+
 		if self.run_from_eos:
 			self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles/"
 			self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
+
+			if self.WP:
+				self.MC_root_file_home	    =  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study/WP%s/"%WP
+				self.data_root_file_home	=  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study/WP%s/"%WP
+
+
 
 		## region options
 		self.doSideband = doSideband
@@ -47,19 +63,23 @@ class hist_loader:
 			self.final_hist_name = "h_totHT"
 			self.final_hist_title = "Event H_{T}"
 
-
 		### sample inclusion options
 		self.includeWJets = includeWJets
 		self.includeTTTo  = includeTTTo
 		self.includeTTJets800to1200 = includeTTJets800to1200
 		if "NN" in self.technique_str: self.doSideband = False
 
-
-
 		self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
 		self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats"
 		self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots"
 		
+
+		if self.WP:
+			self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/WPStudy/%s/"%WP
+			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/WPStudy/%s/"%WP
+			self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/WPStudy/%s/"%WP
+
+
 		self.data_systematics 	   = ["nom"]
 		self.data_systematic_names = ["nom"]
 
@@ -67,6 +87,13 @@ class hist_loader:
 		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	           "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
 
 		self.uncorrelated_systematics = ["CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
+
+
+		if self.WP:
+			self.systematics 	  = ["nom",   "bTagSF_med",       "JER",	  "JEC",     "PUSF",	  "pdf",	   "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
+			self.systematic_names = ["nom",  "CMS_bTagSF_M" ,   "CMS_jer",  "CMS_jec",  "CMS_pu",   "CMS_pdf",    "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+
+
 
 
 		### HT bin stuff
@@ -564,18 +591,22 @@ class hist_loader:
 			else:
 				sys_strs = ["_up", "_down"]
 
-		for systematic in self.data_systematics:
-			self.data_hist_SR.append(self.load_data_hists("SR",systematic))
-			self.data_hist_CR.append(self.load_data_hists("CR",systematic))
-			self.data_hist_AT0b.append(self.load_data_hists("AT0b",systematic))
-			self.data_hist_AT1b.append(self.load_data_hists("AT1b",systematic))
 
-			if self.doATxtb:
-				self.data_hist_AT0tb.append(self.load_data_hists("AT0tb",systematic))
-				self.data_hist_AT1tb.append(self.load_data_hists("AT1tb",systematic))
-			if self.doSideband:
-				self.data_hist_SB1b.append(self.load_data_hists("SB1b",systematic))
-				self.data_hist_SB0b.append(self.load_data_hists("SB0b",systematic))
+
+		if not self.WP:
+
+			for systematic in self.data_systematics:
+				self.data_hist_SR.append(self.load_data_hists("SR",systematic))
+				self.data_hist_CR.append(self.load_data_hists("CR",systematic))
+				self.data_hist_AT0b.append(self.load_data_hists("AT0b",systematic))
+				self.data_hist_AT1b.append(self.load_data_hists("AT1b",systematic))
+
+				if self.doATxtb:
+					self.data_hist_AT0tb.append(self.load_data_hists("AT0tb",systematic))
+					self.data_hist_AT1tb.append(self.load_data_hists("AT1tb",systematic))
+				if self.doSideband:
+					self.data_hist_SB1b.append(self.load_data_hists("SB1b",systematic))
+					self.data_hist_SB0b.append(self.load_data_hists("SB0b",systematic))
 
 		print("Background and data hists loaded.")
 
@@ -619,9 +650,11 @@ class hist_loader:
 			SF_2000toInf  = {'2015': 1 , '2016':1, '2017': 1,   '2018': 1  }
 
 		### make histogram paths
-		hist_path_1000to1500 = use_filepath + "QCDMC1000to1500_%s_processed.root"%(self.year)
-		hist_path_1500to2000 = use_filepath + "QCDMC1500to2000_%s_processed.root"%(self.year)
-		if region not in ["SB1b", "SB0b"] : hist_path_2000toInf  = use_filepath + "QCDMC2000toInf_%s_processed.root"%(self.year)
+		hist_path_1000to1500 = use_filepath + "QCDMC1000to1500_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_1500to2000 = use_filepath + "QCDMC1500to2000_%s_%sprocessed.root"%(self.year, self.WP_str)
+
+		if region not in ["SB1b", "SB0b"]: 
+			hist_path_2000toInf  = use_filepath + "QCDMC2000toInf_%s_%sprocessed.root"%(self.year, self.WP_str)
 
 		all_combined_QCD_hist = []
 		for sys_str in sys_updown:
@@ -637,7 +670,7 @@ class hist_loader:
 
 			#print("Loading QCD %s/%s/%s"%(region,systematic,self.year))
 
-
+			#print("The technique_str is %s."%self.technique_str)
 			#print("Getting histogram/systematic: %s/%s"%(hist_name,systematic)   )
 			#print("Getting file %s"%hist_path_1000to1500)
 			TH2_file_1000to1500 = ROOT.TFile.Open(hist_path_1000to1500,"READ")
@@ -701,10 +734,10 @@ class hist_loader:
 			if region in ["SB1b", "SB0b"]: use_filepath	  = os.getenv('CMSSW_BASE') + "/src/combinedROOT/sideband_processedFiles/"
 
 
-			hist_path_WJetsMC_LNu_HT800to1200 = use_filepath+ "WJetsMC_LNu-HT800to1200_%s_processed.root"%(self.year)
-			hist_path_WJetsMC_LNu_HT1200to2500 = use_filepath+ "WJetsMC_LNu-HT1200to2500_%s_processed.root"%(self.year)
-			hist_path_WJetsMC_LNu_HT2500toInf = use_filepath+ "WJetsMC_LNu-HT2500toInf_%s_processed.root"%(self.year)
-			hist_path_WJetsMC_QQ_HT800toInf= use_filepath+ "WJetsMC_QQ-HT800toInf_%s_processed.root"%(self.year)
+			hist_path_WJetsMC_LNu_HT800to1200 = use_filepath+ "WJetsMC_LNu-HT800to1200_%s_%sprocessed.root"%(self.year, self.WP_str)
+			hist_path_WJetsMC_LNu_HT1200to2500 = use_filepath+ "WJetsMC_LNu-HT1200to2500_%s_%sprocessed.root"%(self.year, self.WP_str)
+			hist_path_WJetsMC_LNu_HT2500toInf = use_filepath+ "WJetsMC_LNu-HT2500toInf_%s_%sprocessed.root"%(self.year, self.WP_str)
+			hist_path_WJetsMC_QQ_HT800toInf= use_filepath+ "WJetsMC_QQ-HT800toInf_%s_%sprocessed.root"%(self.year, self.WP_str)
 
 			SF_WJetsMC_LNu_HT800to1200  = return_BR_SF(self.year,"WJetsMC_LNu_HT800to1200") 
 			SF_WJetsMC_LNu_HT1200to2500  = return_BR_SF(self.year,"WJetsMC_LNu_HT1200to2500") 
@@ -790,9 +823,9 @@ class hist_loader:
 		SF_TTToSemiLeptonic= {'2015':0.05395328118 , '2016':0.04236184005 , '2017':0.04264829286 , '2018': 0.04563489275 }
 		SF_TTToLeptonic= {'2015':0.0459517611 , '2016':0.03401684391 , '2017':0.03431532926 , '2018': 0.03617828025 }
 
-		hist_path_TTToHadronic = use_filepath+ "TTToHadronicMC_%s_processed.root"%(self.year)
-		hist_path_TTToSemiLeptonic = use_filepath+ "TTToSemiLeptonicMC_%s_processed.root"%(self.year)
-		hist_path_TTToLeptonic = use_filepath+ "TTToLeptonicMC_%s_processed.root"%(self.year)
+		hist_path_TTToHadronic = use_filepath+ "TTToHadronicMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_TTToSemiLeptonic = use_filepath+ "TTToSemiLeptonicMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_TTToLeptonic = use_filepath+ "TTToLeptonicMC_%s_%sprocessed.root"%(self.year, self.WP_str)
 
 
 		sys_suffix = [""]
@@ -875,14 +908,14 @@ class hist_loader:
 			SF_TTJetsMCHT2500toInf = {"2015":1,"2016":1,"2017":1,"2018":1}
 
 
-		#hist_path_TTToHadronic = use_filepath+ "TTToHadronicMC_%s_processed.root"%(self.year)
-		#hist_path_TTToSemiLeptonic = use_filepath+ "TTToSemiLeptonicMC_%s_processed.root"%(self.year)
-		#hist_path_TTToLeptonic = use_filepath+ "TTToLeptonicMC_%s_processed.root"%(self.year)
+		#hist_path_TTToHadronic = use_filepath+ "TTToHadronicMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		#hist_path_TTToSemiLeptonic = use_filepath+ "TTToSemiLeptonicMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		#hist_path_TTToLeptonic = use_filepath+ "TTToLeptonicMC_%s_%sprocessed.root"%(self.year, self.WP_str)
 
 
-		if self.doSideband or self.includeTTJets800to1200: hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_processed.root"%(self.year)
-		hist_path_TTJetsMCHT1200to2500 = use_filepath + "TTJetsMCHT1200to2500_%s_processed.root"%(self.year)
-		if region not in ["SB1b", "SB0b"] :hist_path_TTJetsMCHT2500toInf  = use_filepath + "TTJetsMCHT2500toInf_%s_processed.root"%(self.year)
+		if self.doSideband or self.includeTTJets800to1200: hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_TTJetsMCHT1200to2500 = use_filepath + "TTJetsMCHT1200to2500_%s_%sprocessed.root"%(self.year, self.WP_str)
+		if region not in ["SB1b", "SB0b"] :hist_path_TTJetsMCHT2500toInf  = use_filepath + "TTJetsMCHT2500toInf_%s_%sprocessed.root"%(self.year, self.WP_str)
 
 		sys_suffix = [""]
 		if systematic == "nom":
@@ -907,7 +940,7 @@ class hist_loader:
 			TH2_file_TTJetsMCHT1200to2500 = ROOT.TFile.Open(hist_path_TTJetsMCHT1200to2500,"READ")
 			if region not in ["SB1b", "SB0b"]: TH2_file_TTJetsMCHT2500toInf  = ROOT.TFile.Open(hist_path_TTJetsMCHT2500toInf,"READ")
 			if self.doSideband or self.includeTTJets800to1200: 
-				hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_processed.root"%(self.year)
+				hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_%sprocessed.root"%(self.year, self.WP_str)
 				TH2_file_TTJetsMCHT800to1200 = ROOT.TFile.Open(hist_path_TTJetsMCHT800to1200,"READ")
 				#print("Loading TTbar %s/%s/%s"%(region,systematic,self.year))
 				TH2_hist_TTJetsMCHT800to1200  = self.clean_histogram(TH2_file_TTJetsMCHT800to1200.Get(hist_name_TTbar), systematic, "TTJets800to1200") 
@@ -984,12 +1017,12 @@ class hist_loader:
 			ST_tW_antitop_5f_SF			= {'2015':1,  '2016':1,  '2017':1,  '2018': 1  }
 			ST_tW_top_5f_SF				= {'2015':1,  '2016':1,  '2017':1,  '2018': 1  }
 		
-		hist_path_ST_t_channel_top_5f 	  = use_filepath + "ST_t-channel-top_inclMC_%s_processed.root"%(self.year)
-		hist_path_ST_t_channel_antitop_5f = use_filepath + "ST_t-channel-antitop_inclMC_%s_processed.root"%(self.year)
-		hist_path_ST_s_channel_4f_hadrons = use_filepath + "ST_s-channel-hadronsMC_%s_processed.root"%(self.year)
-		hist_path_ST_s_channel_4f_leptons = use_filepath + "ST_s-channel-leptonsMC_%s_processed.root"%(self.year)
-		hist_path_ST_tW_antitop_5f		  = use_filepath + "ST_tW-antiTop_inclMC_%s_processed.root"%(self.year)
-		hist_path_ST_tW_top_5f 			  = use_filepath + "ST_tW-top_inclMC_%s_processed.root"%(self.year)
+		hist_path_ST_t_channel_top_5f 	  = use_filepath + "ST_t-channel-top_inclMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_ST_t_channel_antitop_5f = use_filepath + "ST_t-channel-antitop_inclMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_ST_s_channel_4f_hadrons = use_filepath + "ST_s-channel-hadronsMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_ST_s_channel_4f_leptons = use_filepath + "ST_s-channel-leptonsMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_ST_tW_antitop_5f		  = use_filepath + "ST_tW-antiTop_inclMC_%s_%sprocessed.root"%(self.year, self.WP_str)
+		hist_path_ST_tW_top_5f 			  = use_filepath + "ST_tW-top_inclMC_%s_%sprocessed.root"%(self.year, self.WP_str)
 
 		sys_suffix = [""]
 		if systematic == "nom":
@@ -1101,10 +1134,10 @@ class hist_loader:
 			else:
 				if self.doHTdist: combined_data_hist = ROOT.TH1F("combined_data_%s"%(region),"Event H_{T} (data_obs) (%s) (%s) (%s); H_{T} [GeV]; Events / 200 GeV"%(region ,self.technique_str, self.year ),50,0.,10000);
 				else: combined_data_hist = ROOT.TH2F("combined_data_%s"%sys_str, ("data events in the %s (%s)"%(region,self.year)), 22,1250., 10000, 20, 500, 5000)
-			#JetHT_"+ *dataBlock+"_"+*year+"_processed.root   -> naming scheme 
+			#JetHT_"+ *dataBlock+"_"+*year+"_%sprocessed.root   -> naming, self.WP_str scheme 
 			for data_block in data_blocks:
 				#print("Looking for %s/%s/%s/%s"%(data_block,self.year,sys_str,region))
-				hist_path_data = use_filepath + "%s_%s_processed.root"%(data_block,self.year)
+				hist_path_data = use_filepath + "%s_%s_%sprocessed.root"%(data_block, self.WP_strk,self.year)
 				TH2_file_data = ROOT.TFile.Open(hist_path_data,"READ")
 				hist_name_data = "%s_%s%s"%(self.final_hist_name,self.technique_str, region )
 

@@ -3636,7 +3636,7 @@ if __name__=="__main__":
 		if doHTdist and "NN" in technique_str: continue 
 
 		# create instance of hist_loader (containing all BR histograms) for the year + technique str combination
-		all_BR_hists  = hist_loader(year, technique_str, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos )
+		all_BR_hists  = hist_loader(year, technique_str, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, None)
 
 		for mass_point in mass_points:
 			#try:

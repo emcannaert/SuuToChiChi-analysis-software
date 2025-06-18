@@ -90,7 +90,7 @@ class BESTEvaluation {
     
     int nCategories = 2;
 
-    int NumBESTInputs_ = 111; 
+    int NumBESTInputs_ = 110; 
     std::vector<std::string> inputNames_; 
     std::string outputName_;
 };

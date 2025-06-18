@@ -17,7 +17,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    double SJ_mass_200[10], SJ_mass_300[10];
    double AK8_partonFlavour[100];
    int AK4_hadronFlavour[100];
-   int eventNumber;
+   int eventNumber,nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse,nMuons_looseID_medIso,nElectrons_looseID_looseISO;
    int AK8_SJ_assignment[100],AK4_SJ_assignment[100];
    bool AK8_is_near_highE_CA4[100],AK4_is_near_highE_CA4[100];
    int SJ1_decision, SJ2_decision;
@@ -25,6 +25,8 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    bool verbose = true;
 
 
+   
+   
 
 	bool jet_isHEM[100], jet_pre_isHEM[100], fatjet_isHEM[100]; 
 	bool AK8_fails_veto_map[100], AK4_fails_veto_map[100];
@@ -188,6 +190,13 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("passesPFHT", &passesPFHT); 
          t1->SetBranchAddress("passesPFJet", &passesPFJet); 
 
+         t1->SetBranchAddress("passesPFHT", &passesPFHT); 
+         t1->SetBranchAddress("passesPFJet", &passesPFJet); 
+         t1->SetBranchAddress("passesPFHT", &passesPFHT); 
+
+         t1->SetBranchAddress("nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse", &nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse); 
+         t1->SetBranchAddress("nMuons_looseID_medIso", &nMuons_looseID_medIso); 
+         t1->SetBranchAddress("nElectrons_looseID_looseISO", &nElectrons_looseID_looseISO); 
 
          if( !(inFileName.find("data") != std::string::npos))
          {
@@ -262,12 +271,12 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          totEventsUncut = 0;
 
          int nFailed_triggers = 0;
-         int nFailed_veto_maps = 0;
-         int nFailed_hem = 0;
          int nFailed_eventNum = 0;
          int nFailed_HT = 0;
          int nFailed_nAK8 = 0;
          int nFailed_nHeavyAK8 = 0;
+         int nFailed_veto_maps = 0;
+         int nFailed_hem = 0;
 
          int totalEvents = 0;
          int passedEvents = 0;
@@ -277,84 +286,62 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          {  
             t1->GetEntry(i);
             totalEvents++;
-            ///// APPLY TRIGGER 
+
+            if ((dataBlock.find("Suu") != std::string::npos)) // use non-NN training signal events
+            {
+               nFailed_eventNum++;
+               if( eventNumber%10 > 2) continue; // should only be for signal
+            }
+
+            ////////////////////////////////////////////////////////////////
+            ////////////////////// Initial Selections //////////////////////
+            ////////////////////////////////////////////////////////////////
+
+            // (A): passes the PFHT1050/PFHT900 and PFJet450/PFJet550 triggers
+            // (B): has no leptons (Tau w/ VLooseVsjet+VLooseVsMuon+VVLooseVse, Muon w/ looseID+medIso, electrons w/ looseID+looseIso)
+            // (C): HT cut (> 1600 GeV for mainband)
+            // (D): nAK8 jet cut (nAK8 > 2)
+            // (E): nHeavyAK8 
+            // (F): Jet veto map over AK8 jets
+            // (G): HEM veto map over AK8 jets
+
+
+            ///// (A) -------> APPLY TRIGGER 
             if ((!passesPFHT) && (!passesPFJet) )
             {
                nFailed_triggers++;
                continue; // skip events that don't pass both triggers
             } 
 		
-
-   
-            // JET VETO MAPS AND HEM VETOES  
-            bool fails_veto_map = false;
-            bool fails_HEM      = false;
-            for(int iii=0;iii<nfatjets;iii++) // a non-zero value is a bad thing from AK8_fails_veto_map 
-            {
-               if( fatjet_isHEM[iii]  )     fails_HEM = true; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
-               if( AK8_fails_veto_map[iii]) fails_veto_map = true;
-            }
+            ///// (B) -------> Apply extra lepton vetoes:
+            if ((nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse >0 ) || (nMuons_looseID_medIso >0) || (nElectrons_looseID_looseISO > 0)) continue;
             
-            /*for(int iii = 0;iii<nAK4;iii++)
-            {   
-               if( jet_isHEM[iii]  ) fails_HEM = true; // CHANGED FROM if (AK4_fails_veto_map[iii]) fails_veto_map = true;
-               if(AK4_fails_veto_map[iii]) fails_veto_map = true;
-            } */
-
-            if(fails_veto_map)
-            {  
-               nFailed_veto_maps++;
-               continue;
-            } 
-
-            if (fails_HEM) 
-            {
-               nFailed_hem++;
-               continue; // skip event if there are bad jets in HEM or veto map regions
-            }
-
-
             totEventsUncut++;
-            if ((dataBlock.find("Suu") != std::string::npos))
-            {
-               nFailed_eventNum++;
-               if( eventNumber%10 > 2) continue; // should only be for signal
-            }
+
             eventWeight = 1.0;
             total_events_unscaled+=1;
             if ((dataBlock.find("MC") != std::string::npos) || (dataBlock.find("Suu") != std::string::npos))
             {
-               if ((bTag_eventWeight_T_nom != bTag_eventWeight_T_nom) || (std::isinf(bTag_eventWeight_T_nom)))
-               {
-                  bTag_eventWeight_T_nom = 1.0;
-                  //std::cout << "ERROR: bad event weight due to bTag event weight." << std::endl;
-                  nBadEvents++;
-               }
                if ((PU_eventWeight_nom != PU_eventWeight_nom) || (std::isinf(PU_eventWeight_nom)))
                {
                   PU_eventWeight_nom = 1.0;
                   nBadEvents++;
-                  //std::cout << "ERROR: bad event weight due to PU weight." << std::endl;
                }
 
                if ((bTag_eventWeight_M_nom != bTag_eventWeight_M_nom) || (std::isinf(bTag_eventWeight_M_nom)))
                {
                   bTag_eventWeight_M_nom = 1.0;
-                  //std::cout << "ERROR: bad event weight due to bTag event weight." << std::endl;
                   nBadEvents++;
                }
 
                eventWeight = PU_eventWeight_nom;
                average_bTagSF+= bTag_eventWeight_T_nom;
                average_PUSF  += PU_eventWeight_nom;
-               //if(eventWeight < 1e-5)std::cout << "ERROR: bad event weight." << std::endl;
             }
-
-
-            //eventWeight = 1.0;
-
-
             nEvents+=eventWeight;
+
+            ///// (C) -------> Apply HT cut
+
             if (runType == "main-band")
             {
                if (totHT < 1600.) 
@@ -367,29 +354,19 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             {
                if ((totHT > 1600) || (totHT < 1200))continue;
             }
-
-
-
-            // check hem and jet veto maps  
-            for(int iii = 0; iii < nfatjets; iii++)
-            {
-            	if(  (fatjet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue; //CHANGED FROM if(  (jet_isHEM[iii] )  || (AK8_fails_veto_map[iii]) )continue;
-            }
-            for(int iii =0;iii < nAK4; iii++)
-            {
-            	// change this to 
-            	if(  (jet_isHEM[iii] )  || (AK4_fails_veto_map[iii]) )continue; //CHANGED FROM if(   (AK4_fails_veto_map[iii]) )continue;
-            }
-
-            
-
             nHTcut+=eventWeight;
+
+
+            ///// (D) -------> Apply nAK8 jet cut
             if( (nfatjets < 3)   ) 
             {
                nFailed_nAK8++;
                continue;
             }
             nAK8JetCut+=eventWeight;
+
+            ///// (E) -------> Apply nHeavyAK8 or diJet mass cuts
+
             if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))
             {
                nFailed_nHeavyAK8++;
@@ -397,19 +374,46 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             }
             nHeavyAK8Cut+=eventWeight;
 
+            bool fails_veto_map = false;
+            bool fails_HEM      = false;
+            for(int iii=0;iii<nfatjets;iii++) // a non-zero value is a bad thing from AK8_fails_veto_map 
+            {
+               if( fatjet_isHEM[iii]  )     fails_HEM = true; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
+               if( AK8_fails_veto_map[iii]) fails_veto_map = true;
+            }
 
+            ///// (E) ------->  Apply Jet Veto map 
+            if(fails_veto_map)
+            {  
+               nFailed_veto_maps++;
+               continue;
+            } 
+            ///// (F) ------->  Apply HEM Veto
+            if (fails_HEM) 
+            {
+               nFailed_hem++;
+               continue; 
+            }
+
+            ////////////////////////////////////////////////////////////////
+            /////////////////// End Initial Selections /////////////////////
+            ////////////////////////////////////////////////////////////////
+
+
+
+
+            // count up b-tagged jets 
             passedEvents++;
             int nTightBTags = 0, nMedBTags = 0;
             for(int iii = 0;iii< nAK4; iii++)
             {
-               if ( (AK4_DeepJet_disc[iii] > tightDeepCSV_DeepJet ) && (AK4_pt[iii] > 30.) )
+               if ( (AK4_DeepJet_disc[iii] > tightDeepCSV_DeepJet ) && (AK4_pt[iii] > 70.) )
                {
                   total_btags++;
                   nTightBTags++;
                } 
 
-
-               if ( (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet ) && (AK4_pt[iii] > 30.) )
+               if ( (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet ) && (AK4_pt[iii] > 70.) )
                {
                   nMedBTags++;
                } 
@@ -434,8 +438,6 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                   if(AK4_hadronFlavour[iii] == 0)nAK4FoundInTaggedSJ_light++;
                   else if(AK4_hadronFlavour[iii] == 4)nAK4FoundInTaggedSJ_c++;
                   else if(AK4_hadronFlavour[iii] == 5)nAK4FoundInTaggedSJ_b++;
-                  
-                     
                }
                if((SJ_nAK4_300[1] > 1) && (AK4_SJ_assignment[iii] == 1))
                {
@@ -445,10 +447,12 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                }
 
             }
+
+
+
+
             if ( (nMedBTags > 0)  )
             {
-
-
                eventWeight*= bTag_eventWeight_T_nom;
 
                nBtagCut+=eventWeight;
@@ -622,7 +626,7 @@ void readTreeApplySelection()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   if (runSelection) years = {"2016"};  // single year to run over 
+   if (runSelection) years = {"2015","2016","2017","2018"};  // single year to run over 
 
    if(runSingleFile)
    {
@@ -732,12 +736,12 @@ void readTreeApplySelection()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"dataF_", "dataG_", "dataH_" };  
+         dataBlocks = {"Suu6_chi2_ZTZT_", "Suu8_chi3_ZTZT_"};  
       }
       else if(runExtras)
       {
          std::cout << "Running WJets and extra TTJets datasets. " << std::endl;
-         dataBlocks = {   "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",  "TTJetsMCHT800to1200_"};
+         dataBlocks = {   "WJetsMC_LNu-HT800to1200_", "WJetsMC_`LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",  "TTJetsMCHT800to1200_"};
       }
       else if(runSimple)
       {

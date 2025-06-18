@@ -20,7 +20,7 @@ ROOT.gStyle.SetPalette(ROOT.kViridis)
 
 ####  calculateStatisticalUncertaintyBins.py
 ####  Written by Ethan Cannaert, September 2023, updated July 2024, updated again November 2024
-####  Opens up a TH2 (22x20 bins, avg superjet mass vs diSuperjet mass)
+####  Opens up a TH2 (22x20 bins, avg superjet mass vs disuperjet mass)
 ####  Merges bins into "superbins" until superbin systematic uncertainties are below 25% ( or desired value) and/or scaled superbin yields are above some threshold.
 ####  Creates histograms showing the bin mappings, final superbin counts, and superbin statistical uncertainties
 ####  The main output of this are text files (superbin_indices*.txt in the binMaps/ directory) that list the merged superbin mappings
@@ -39,13 +39,16 @@ class combineHistBins:
 		self.year = year
 		self.region = region
 		self.technique_str = technique_str
-		self.dryRun = dryRun
+		self.dryRun = dryRun ## perform a "dry run" where text files are not made
 		self.max_stat_uncert = 0.175  ## maximum statistical uncertainty
-		if "NN" in self.technique_str: self.max_stat_uncert = 0.25  ## maximum statistical uncertainty
-		self.min_unscaled_QCD_bin_counts   = 5.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
-		self.min_scaled_QCD_bin_counts   = 3.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
+
+		if "NN" in self.technique_str: self.max_stat_uncert = 0.21  ## maximum statistical uncertainty for NN method
+		
+		self.min_unscaled_QCD_bin_counts   = 5.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
+		self.min_scaled_QCD_bin_counts   = 3.0   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
 
 
+		## options for which MCs to include
 		self.includeTTJetsMCHT800to1200 = False
 		self.includeWJets   			= False
 		self.includeTTo 				= False
@@ -75,14 +78,13 @@ class combineHistBins:
 			print("")
 			print("")
 
-		self.bin_min_x = 3  ## start x bin in the 2D distribution (diSJ mass)
-		self.bin_min_y = 1  ## start y bin in the 2D distribution (SJ mass)
+		self.bin_min_x = 3  ## start x bin in the 2D distribution (diSJ mass) --> this is chosen for analysis purposes
+		self.bin_min_y = 1  ## start y bin in the 2D distribution (SJ mass)   --> this is chosen for analysis purposes
 
 		self.n_bins_x = 22
 		self.n_bins_y = 20
 
 		if region in ["SB1b","SB0b"]:
-
 
 			self.bin_min_x = 0  ## start x bin in the 2D distribution (diSJ mass)
 			self.bin_min_y = 0  ## start y bin in the 2D distribution (SJ mass)
@@ -90,19 +92,22 @@ class combineHistBins:
 			self.n_bins_y = 12
 
 			self.max_stat_uncert = 0.30  ## maximum statistical uncertainty
+		
+		## get container that holds all histogram values
 		self.all_hist_values =  histInfo.histInfo(year,region, self.bin_min_x, self.bin_min_y, self.n_bins_x, self.n_bins_y, self.technique_str, self.includeTTJetsMCHT800to1200, self.includeWJets, self.includeTTo,  debug, runEos)    #histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
+		
+		## initialize list of all superbin indices
 		self.superbin_indices = self.init_superbin_indices()     
-
-		#if not self.dryRun: self.plot_before_syst_plot()   # plot the "before" image of counts and syst uncertainty 
  
 		print("Starting the process of merging bins.")
 		self.do_bin_merging()
 		print("Finished with bin merging.")
 
+
+		## different options for how to order superbins (used for linearizing later in analysis pipeline)
 		#self.superbin_indices = self.sort_bins_with_graphs() ## sorts bins by approximate location in 2D
 		#self.superbin_indices = self.sort_bins_by_raw_distance() ## sort bins by their raw distance from the origin in the 2D place
 		self.superbin_indices = self.sort_bins_by_descending_event_yield() ## sort bins by descending bin yield
-		#self.print_final_hist()
 
 		self.print_superbins()   ### print out scaled and unscaled counts in each superbin post merging
 		self.print_summary()
@@ -110,25 +115,23 @@ class combineHistBins:
 
 		self.superbin_groups = self.create_superbin_groups()
 
-
+		## used later on in analysis pipeline (for bin-by-bin uncertainty parameters that are shared by superbin groups)
 		self.superbin_neighbors = self.get_list_of_all_superbin_neighbors()
 
 		if debug: print("The final superbin groups are %s."%self.superbin_groups)
 
-
+	#####################################################
+	######### superbin group helper functions ###########
+	#####################################################
 
 	def get_list_of_all_superbin_neighbors(self):
 		superbin_neighbor_list = []
 		for superbin_index,superbin in enumerate(self.superbin_indices):
 			superbin_neighbor_list.append( self.get_list_of_neighbor_superbins(superbin[0]) )
-
-
 		return superbin_neighbor_list
 
 
-
 	def create_superbin_groups(self):
-
 
 		superbin_groups = [ [superbin_number] for superbin_number in range(0,len(self.superbin_indices) )  ]
 
@@ -137,7 +140,6 @@ class combineHistBins:
 
 		there_are_ungrouped_superbins = True
 		while there_are_ungrouped_superbins:
-
 
 			## create copy of groups
 			superbin_groups_temp = list(superbin_groups[:])       ##   [ [1], [2,4,5], [3], ..... [N]   ]
@@ -165,7 +167,6 @@ class combineHistBins:
 			## get list of neighboring bins
 			neighbor_superbins = self.get_list_of_neighbor_superbins(  self.superbin_indices[cand_superbin_index][0] )   ## takes a tuple in the superbin, returns list of neighboring superbin indices
 
-
 			if debug: print("cand_superbin_index %s has neighbors %s."%(cand_superbin_index, neighbor_superbins))
 
 			good_neighbor_superbins = []
@@ -176,7 +177,6 @@ class combineHistBins:
 
 					if (neighbor_superbin in superbin_group)   and (len(superbin_group) > 1 ): continue # skip neighbor superbins that are in groups of two or more
 					elif (neighbor_superbin in superbin_group) and (len(superbin_group) == 1): good_neighbor_superbins.append(neighbor_superbin)
-
 
 			if len(good_neighbor_superbins) > 0: 
 
@@ -279,41 +279,7 @@ class combineHistBins:
 
 			if debug: print("there_are_ungrouped_superbins: %s."%there_are_ungrouped_superbins)
 
-
-
-
-
-
-		#DON'T THINK THIS WILL WORK
-		### now go through each superbin group and create links between them and at least one neighbor superbin groups
-			## rules:
-				# don't want a superbin in more than 2 superbin groups
-				# don't want more than two superbins in some superbin group A to also be in a superbin group B
-
-			## instructions:
-				# keep looping over all superbin groups until every superbin is in two groups
-					# need a function that returns a list of all superbins that are only in one superbin group
-				# each iteration, get a list of superbins that are not yet in two groups
-				# choose a random superbin, superbin A
-				# get a list of the neighbor superbins to superbin A
-				# convert this to a list of neighboring superbin groups
-				# remove any superbin groups that share supebins with the parent superbin group of superbin A
-				# get the average yields of the remaining superbins 
-				# add superbin A to the superbin group that has the closest average yield to superbin A
-
-				# recalculate the list of superbins that aren't in at least two superbin groups
-
-
-			## new methods needed:
-				# get_list_of_exclusive_superbins   --> takes in no arguemnts, returns a list of all superbins not in at least two superbin groups
-				# get_list_of_neighbor_superbins  --> takes in a tuple in a superbin, returns list of superbins that neighbor this superbin
-				# get_superbin_group_index_by_superbin_index --> takes in superbin index and current superbin group list, returns the index of the parent superbin group
-
-		#for superbin_group in superbin_groups:     # looks like this: [ [1,3,5], [2,7], [8,4], ...     ]
-
-
 		return superbin_groups
-
 
 	def get_superbin_group_by_superbin_index(self, superbin_index_to_locate, superbin_groups_temp):
 		for superbin_group in superbin_groups_temp:    # superbin_group here would look like this: [ [1,3,4], [2,6], ... ]
@@ -329,7 +295,6 @@ class combineHistBins:
 		print("ERROR: did not find superbin %s in list of superbin groups %s"%(superbin_index_to_locate,superbin_groups_temp))
 		return None
 
-
 	def check_for_ungrouped_superbins(self,superbin_groups):
 		n_ungrouped_superbins = 0
 		for superbin_group in superbin_groups:
@@ -340,27 +305,10 @@ class combineHistBins:
 		if n_ungrouped_superbins > 0: return True
 		else: return False
 
+	#####################################################
+	####### END superbin group helper functions #########
+	#####################################################
 
-	def print_final_hist(self):
-		hist_map = [ [-999]*self.n_bins_y for i in range(self.bin_min_x, self.n_bins_x)]
-		print("Histogram bin map:")
-		for iii in range(self.bin_min_x,self.n_bins_x):
-			for jjj in range(self.bin_min_y, self.n_bins_y):
-				hist_map[iii][jjj] = self.get_superbin_number( (iii,jjj))
-
-		print('\n'.join(' '.join(str(x) for x in row) for row in hist_map))
-
-		print("Histogram bin statistical uncertainties")
-		for iii in range(self.bin_min_x,self.n_bins_x):
-			for jjj in range(self.bin_min_y, self.n_bins_y):
-				if(  self.counts_in_superbin(self.get_superbin_number( (iii,jjj))) > 0  ):
-					hist_map[iii][jjj] = self.all_hist_values.get_bin_total_uncert(self.superbin_indices[self.get_superbin_number( (iii,jjj))] ) #  1.0/sqrt(self.counts_in_superbin(self.get_superbin_number( (iii,jjj ) ) ) ) 
-				else:
-					hist_map[iii][jjj] = 0.0
-
-		print('\n'.join(' '.join(str(x) for x in row) for row in hist_map))
-
-		return
 
 	def init_superbin_indices(self):
 		_superbin_indices = []    # format [ [(x1,x2),(x2,x3),....], [(xi,yi), (xi+1,yi+1),.....], ...., [(xn-1,yn-1),(xn,yn)] ]     _superbin_indices[<superbin #>][<order bin was added>][<coordinate>]
@@ -368,31 +316,23 @@ class combineHistBins:
 			for jjj in range( self.bin_min_y, self.n_bins_y):  
 				_superbin_indices.append([(iii,jjj)])  
 		return _superbin_indices
-	def get_superbin_number(self, index_tuple): # given a tuple of coordinate indices (relative to the original TH2), return the superbin number this coordinate is a part of
+
+
+	# given a tuple of coordinate indices (relative to the original TH2), return the superbin number (index) this coordinate is a part of
+	def get_superbin_number(self, index_tuple): 
 		for iii, superbin in enumerate(self.superbin_indices):
-			#print("The superbin is ", superbin)
-			#print("Index tuple is ", index_tuple)
 			if index_tuple in superbin:
 				return iii
-	def counts_in_superbin(self, superbin_number):  ### UNSCALED counts in superbin, you can get the scaled counts from the histInfo class get_scaled_superbin_counts method
+
+	# return the UNSCALED counts in superbin, you can get the scaled counts from the histInfo class get_scaled_superbin_counts method
+	def counts_in_superbin(self, superbin_number):  
 		_sum = 0
 		for _tuple in self.superbin_indices[superbin_number]:
 			_sum+= self.all_hist_values.list_all_counts[_tuple[0]][_tuple[1]]          #self.hist_values[_tuple[0]][_tuple[1]]
 		return _sum
-	def all_bins_are_good(self):      ## check if all bins have start uncertainty that is too low or too few bin counts
-		for iii, superbin in enumerate(self.superbin_indices):
-			n_counts = self.counts_in_superbin(iii)
-			if n_counts > 0: # don't want to divide by 0
-				#print("Number of counts in superbin: ", n_counts)
-				if self.all_hist_values.get_bin_total_uncert(self.superbin_indices[iii])  > self.max_stat_uncert: return False   # 1.0/sqrt(self.counts_in_superbin( iii ) )
-				### check that the total bin yields
-				if self.all_hist_values.get_unscaled_QCD_superbin_counts(self.superbin_indices[iii])  < self.min_unscaled_QCD_bin_counts: return False
-				if self.all_hist_values.get_scaled_QCD_superbin_counts(self.superbin_indices[iii]    ) < self.min_scaled_QCD_bin_counts: return False
-			else:
-				return False
-		return True
+
+	# return list of NON-EMPTY neighbor indices of all superbins in this superbin  
 	def get_list_of_neighbor_superbins(self,_tuple):
-		# return list of NON-EMPTY neighbor indices of all superbins in this superbin  
 		list_of_neighbors = [] # will be full of the superbin #s  
 		this_superbin_num = self.get_superbin_number( _tuple )
 		for superbin_tuples in self.superbin_indices[this_superbin_num ]: # 
@@ -429,10 +369,9 @@ class combineHistBins:
 		return list_of_neighbor_superbins
 
 
-		#### needs to be changed 
+	# return list of ALL neighbor indices of all bins in this superbin (empty or non-empty!!!)
 	def get_list_of_all_neighbors(self,_tuple):
 
-		# return list of ALL neighbor indices of all bins in this superbin (empty or non-empty!!!)
 		list_of_neighbors = [] # will be full of the superbin #s  
 		this_superbin_num = self.get_superbin_number( _tuple )
 		for superbin_tuples in self.superbin_indices[this_superbin_num ]: # 
@@ -465,6 +404,7 @@ class combineHistBins:
 			if neighbor_superbin_number not in list_of_neighbor_superbins:
 				list_of_neighbor_superbins.append(neighbor_superbin_number)
 		return list_of_neighbor_superbins
+
 
 	def get_list_of_empty_neighbors(self,_tuple):
 		start_time = time.time()
@@ -506,58 +446,9 @@ class combineHistBins:
 				list_of_neighbor_superbins.append(neighbor_superbin_number)
 		#print("get_list_of_empty_neighbors took %s to run"%(time.time() - start_time))
 		return list_of_neighbor_superbins
-	def check_island_neighbors(self,superbin_number):
-		start_time = time.time()
-		#print("island superbin is %s"%self.superbin_indices[superbin_number])
-		#print("island superbin is %s bins long"%len(self.superbin_indices[superbin_number]))
-		for island_tuple in self.superbin_indices[superbin_number]:
-			for adj_superbin in self.superbin_indices:
-				if self.get_superbin_number(adj_superbin[0]) == superbin_number:
-					continue # don't want this superbin to compare to itself.
-				if self.counts_in_superbin(self.get_superbin_number(adj_superbin[0])) == 0:
-					continue
-				if (island_tuple[0]+1,island_tuple[1]) in adj_superbin:
-					#print("check_island_neighbors took %s to run"%(time.time() - start_time))
-					return False
-				if (island_tuple[0]-1,island_tuple[1]) in adj_superbin:
-					#print("check_island_neighbors took %s to run"%(time.time() - start_time))
-					return False
-				if (island_tuple[0],island_tuple[1]+1) in adj_superbin:
-					#print("check_island_neighbors took %s to run"%(time.time() - start_time))
-					return False
-				if (island_tuple[0],island_tuple[1]-1) in adj_superbin:
-					#print("check_island_neighbors took %s to run"%(time.time() - start_time))
-					return False
-		#print("check_island_neighbors took %s to run"%(time.time() - start_time))
-		return True
-	def find_empty_neighbors(self, superbin_tuple):
-		start_time = time.time()
-		list_of_empty_neighbors = []
-		superbin = self.superbin_indices[self.get_superbin_number(superbin_tuple)]  ## the superbin of interest
-		for tuple_ in superbin:
-			if  (tuple_[0]+1,tuple_[1]) not in superbin:
-				if (tuple_[0]+1) < self.n_bins_x:
-					counts = self.counts_in_superbin(self.get_superbin_number( (tuple_[0]+1,tuple_[1])  ))
-					if (counts is not None) and (counts == 0) and (self.get_superbin_number( (tuple_[0]+1,tuple_[1])  ) not in list_of_empty_neighbors) :
-						list_of_empty_neighbors.append( self.get_superbin_number( (tuple_[0]+1,tuple_[1])  ) )
-			if (tuple_[0]-1,tuple_[1]) not in superbin:
-				if (tuple_[0]-1) >= self.bin_min_x: ## changed this to >= from >
-					counts = self.counts_in_superbin(self.get_superbin_number( (tuple_[0]-1,tuple_[1])  ))
-					if (counts is not None) and (counts == 0) and (self.get_superbin_number( (tuple_[0]-1,tuple_[1])  ) not in list_of_empty_neighbors) :
-						list_of_empty_neighbors.append( self.get_superbin_number( (tuple_[0]-1,tuple_[1])  ) )
-			if (tuple_[0],tuple_[1]+1) not in superbin:
-				if (tuple_[1]+1) < self.n_bins_y:
-					counts = self.counts_in_superbin(self.get_superbin_number( (tuple_[0],tuple_[1]+1)  ))
-					if (counts is not None) and (counts == 0) and (self.get_superbin_number( (tuple_[0],tuple_[1]+1)  ) not in list_of_empty_neighbors) :
-						list_of_empty_neighbors.append( self.get_superbin_number( (tuple_[0],tuple_[1]+1)  ) )
-			if (tuple_[0],tuple_[1]-1) not in superbin:
-				if (tuple_[1]-1) >= self.bin_min_y:
-					counts = self.counts_in_superbin(self.get_superbin_number( (tuple_[0],tuple_[1]-1)  ))
-					if (counts is not None) and (counts == 0) and (self.get_superbin_number( (tuple_[0],tuple_[1]-1)  ) not in list_of_empty_neighbors) :
-						list_of_empty_neighbors.append( self.get_superbin_number( (tuple_[0],tuple_[1]-1)  ) )
-		#rint("find_empty_neighbors took %s to run"%(time.time() - start_time))
-		return list_of_empty_neighbors   # return list of empty nearby superbins
 
+
+	### attempt to use the "weighting" method to prevent gerrymandering
 	def find_nearest_neighbor(self,empty_superbin, non_empty_superbins):
 
 		empty_superbin_index = self.get_superbin_number(empty_superbin[0])
@@ -577,60 +468,6 @@ class combineHistBins:
 					nearest_index  = non_empty_superbin
 
 		return nearest_index
-
-
-	def fill_in_holes(self):
-
-		## loop over all rows 
-		# fill in holes within each superjet
-
-		#for each row and column, store the max and min bin index 
-		maxBin_row     = self.n_bins_x*[-9999]  #index refers to the maximum row index for column with this index
-		maxBin_column = self.n_bins_y*[-9999]  #index refers to the maximum column index for row with this index 
-
-		minBin_row     = self.n_bins_x*[9999]  #index refers to the min row index for column with this index
-		minBin_column = self.n_bins_y*[9999]  #index refers to the min column index for 
-
-		# go through all superbins, find these max indices for each row
-		# go through the superbins, find any empty superbins with indices less than this and add them to adjacent non-empty superbins with fewest counts
-
-		for superbin_index,superbin in enumerate(self.superbin_indices):
-			for _tuple in superbin:
-
-				if self.counts_in_superbin(superbin_index) == 0:
-					continue   # only want to use the bin values from superbins that are actually full    ### test to make sure we get the correct values
-				if _tuple[0] > maxBin_column[_tuple[1]]:
-					maxBin_column[_tuple[1]] = _tuple[0]
-				if _tuple[0] < minBin_column[_tuple[1]]:
-					minBin_column[_tuple[1]] = _tuple[0]
-				if _tuple[1] > maxBin_row[_tuple[0]]:
-					maxBin_row[_tuple[0]]  = _tuple[1]
-				if _tuple[1] < minBin_row[_tuple[0]]:
-					minBin_row[_tuple[0]] = _tuple[1]
-
-		for iii in range(0,self.n_bins_x):
-			for jjj in range(0,self.n_bins_y):
-				if maxBin_column[jjj] == -9999 or minBin_column[jjj] == 9999:
-					continue
-				if maxBin_row[iii] == -9999 or minBin_row[iii] == 9999:
-					continue
-				superbin_index = self.get_superbin_number((iii,jjj))
-				if (iii <= maxBin_column[jjj]) and (iii >= minBin_column[jjj]) and self.counts_in_superbin(self.get_superbin_number((iii,jjj) )) == 0:
-					list_of_neighbors = self.get_list_of_neighbor_superbins( (iii,jjj))
-					neighbor_counts = [self.counts_in_superbin(neighbor_index) for neighbor_index in list_of_neighbors]
-					mergeIndex = list_of_neighbors[neighbor_counts.index(min(neighbor_counts))] # add to the neighbor with the fewest counts
-					print("merged hole %s with %s"%(self.superbin_indices[superbin_index],self.superbin_indices[mergeIndex] ) )
-					self.superbin_indices[mergeIndex].extend(self.superbin_indices[superbin_index])
-					self.superbin_indices.remove(self.superbin_indices[superbin_index])
-				elif (jjj < maxBin_row[iii]) and (jjj > minBin_row[iii]) and self.counts_in_superbin(self.get_superbin_number((iii,jjj) )) == 0:
-					list_of_neighbors = self.get_list_of_neighbor_superbins( (iii,jjj))
-					neighbor_counts = [self.counts_in_superbin(neighbor_index) for neighbor_index in list_of_neighbors]
-					mergeIndex = list_of_neighbors[neighbor_counts.index(min(neighbor_counts))] # add to the neighbor with the fewest counts
-					print("merged hole %s with %s"%(self.superbin_indices[superbin_index],self.superbin_indices[mergeIndex] ) )
-					self.superbin_indices[mergeIndex].extend(self.superbin_indices[superbin_index])
-					self.superbin_indices.remove(self.superbin_indices[superbin_index])
-
-		return
 
 
 	def there_are_empty_superbins(self):
@@ -779,33 +616,15 @@ class combineHistBins:
 
 		return
 	
-	def plot_before_syst_plot(self):
-		# go over all_hist_values and plot them
-		plot_path =  os.getenv('CMSSW_BASE') + "/src/postprocess/plots/statUncertaintyPlots/preMergedPlots"
-		hist_expected_counts_unmerged = ROOT.TH2F("hist_expected_counts_unmerged_%s%s_%s"%(self.technique_str,region,year), ("Expected Background bin in the %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year)), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 5000)  # 375 * 125
-		for iii in range(0, self.n_bins_x):
-			for jjj in range(0, self.n_bins_y):
-				hist_expected_counts_unmerged.SetBinContent(iii+1,jjj+1, self.counts_in_superbin(self.get_superbin_number( (iii,jjj))))
 
-		hist_unmerged_systUncert = ROOT.TH2F("hist_unmerged_systUncert_%s%s_%s"%(self.technique_str,region,year), ("Systematic Uncertainty per bin in the %s (%s); diSuperjet mass (GeV); avg superjet mass (GeV)"%(region, year)), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 5000)  # 375 * 125
-
-		for superbin in self.superbin_indices:
-			for _tuple in superbin:
-				hist_unmerged_systUncert.SetBinContent(_tuple[0]+1,_tuple[1]+1,self.all_hist_values.get_bin_total_uncert(superbin))
-
-		c1 = ROOT.TCanvas("","",1300,1000)
-		hist_expected_counts_unmerged.Draw("colz")
-		c1.SaveAs("%s/counts_unmerged_%s%s_%s.png"%(plot_path,self.technique_str,region,year))
-		hist_unmerged_systUncert.Draw("colz")
-		c1.SaveAs("%s/systUncert_unmerged_%s%s_%s.png"%(plot_path,self.technique_str,region,year))
-
-		return
 	def print_superbins(self):
 		for superbin_num in range(0,len(self.superbin_indices)):
 			print("Superbin %s ---- UNSCALED counts = %s, UNSCALED -- QCD -- counts = %s,  SCALED counts = %s"%(superbin_num,self.counts_in_superbin(superbin_num),self.all_hist_values.get_unscaled_QCD_superbin_counts(self.superbin_indices[superbin_num]), self.all_hist_values.get_scaled_superbin_counts( self.superbin_indices[superbin_num]) ))
 		return
 
-	## returns the distance (sqrt(pow(bin_x,2) + pow(bin_y,2))) of the superbin center to the origin
+
+
+	## returns the distance (sqrt(pow(bin_x,2) + pow(bin_y,2))) of the superbin center to the origin, used for an alternate superbin ordering method
 	def get_superbin_distance(self, superbin):
 		avg_x = 0
 		avg_y = 0
@@ -852,7 +671,7 @@ class combineHistBins:
 
 
 		return sorted_superbin_indices
-	## sort bins by their raw distance (sqrt(pow(bin_x,2) + pow(bin_y,2))) to the origin 
+	## sort bins by their raw distance (sqrt(pow(bin_x,2) + pow(bin_y,2))) to the origin, used for an alternate superbin ordering method 
 	def sort_bins_by_raw_distance(self):
 		superbin_indices_copy = self.superbin_indices[:]
 
@@ -877,6 +696,7 @@ class combineHistBins:
 
 		return sorted_superbin_indices
 	## sorts bins by making each superbin a graph node with edges connecting to neighbor superbins, and creating a "traveling salesman" problem
+	## used for an alternate superbin ordering method
 	def sort_bins_with_graphs(self):   
 
 		superbin_indices_copy = self.superbin_indices[:]
@@ -912,54 +732,6 @@ class combineHistBins:
 
 		return new_superbin_indices
 
-	# Function to calculate the yield difference
-	def calculate_yield_difference(self,bin_a, bin_b):
-		return abs(bin_a[1] - bin_b[1])  # where bin_a[1] is the yield value
-
-	"""def arrange_bins_optimized(self,super_bins_yields, neighbors):
-		# Create a graph where each bin is a node and edges are the yield differences
-		G = nx.Graph()
-		
-		# Add nodes to the graph
-		for bin_id, yield_val in super_bins_yields:
-		    G.add_node(bin_id, bin_yield=yield_val)  # Renamed 'yield' to 'bin_yield'
-		
-		# Add edges to the graph with weight as the yield difference
-		for bin_id, neighbor_list in neighbors.iteritems():  # Change iteritems() for Python 2
-		    for neighbor_id in neighbor_list:
-		        if bin_id < neighbor_id:  # Avoid duplicate edges
-		            yield_diff = self.calculate_yield_difference(
-		                super_bins_yields[bin_id], super_bins_yields[neighbor_id])
-		            G.add_edge(bin_id, neighbor_id, weight=yield_diff)
-
-		# Find the minimum spanning tree (MST) using Prim's algorithm
-		mst = nx.minimum_spanning_tree(G)
-
-		# Traverse the MST to obtain the sorted bins in the optimal order
-		arranged_bins = []
-		visited = set()
-		
-		# Start from an arbitrary node (here we take the first bin using index 0)
-		start_bin = max(super_bins_yields, key=lambda x: x[1])[0]    ###super_bins_yields[0][0]  # Index 0 for the first bin's id
-		stack = [start_bin]
-		
-		while stack:
-		    bin_id = stack.pop()
-		    if bin_id not in visited:
-		        visited.add(bin_id)
-		        arranged_bins.append(super_bins_yields[bin_id])
-		        
-		        # Add unvisited neighbors to the stack
-		        for neighbor in mst[bin_id]:
-		            if neighbor not in visited:
-		                stack.append(neighbor)
-
-		# very artificial way of preventing last element from having large yield relative to neighbors
-		if arranged_bins[-1][1] > 3*arranged_bins[-2][1] and arranged_bins[0][1] < 1.5*arranged_bins[-1][1]:
-			arranged_bins.insert(0, arranged_bins[-1]) # place the last element at the beginning
-			last_element = arranged_bins.pop()
-		
-		return arranged_bins"""
 
 	def print_summary(self): # check the total integral of the PRE-merged distribution and the post-merged, linearized distribution to make sure they are the same
 
@@ -990,6 +762,8 @@ class combineHistBins:
 		print("")
 		print("")
 		print("")
+
+		return
 
 
 if __name__=="__main__":
@@ -1071,9 +845,9 @@ if __name__=="__main__":
 				testCase = combineHistBins(year, region, output_strs[iii], debug,dryRun,runEos)
 				#create a dummy histogram with dimensions 20x22
 				merged_bins = testCase.superbin_indices
-				bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Superbin Map for the %s for %s (%s); diSuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
-				stat_uncert_hist = ROOT.TH2F("stat_uncert_hist%s"%output_strs[iii], ("Superbin Statistical Uncertainty in the %s for %s (%s); diSuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
-				merged_hist_count = ROOT.TH2F("merged_hist_count%s"%output_strs[iii], ("Unscaled Superbin Event Yields (post bin merging) in the %s for %s (%s); diSuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Superbin Map for the %s for %s (%s); disuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				stat_uncert_hist = ROOT.TH2F("stat_uncert_hist%s"%output_strs[iii], ("Superbin Statistical Uncertainty in the %s for %s (%s); disuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
+				merged_hist_count = ROOT.TH2F("merged_hist_count%s"%output_strs[iii], ("Unscaled Superbin Event Yields (post bin merging) in the %s for %s (%s); disuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
 				bin_map_hist.GetYaxis().SetTitleOffset(1.5)
 				stat_uncert_hist.GetYaxis().SetTitleOffset(1.5)
 				merged_hist_count.GetYaxis().SetTitleOffset(1.5)

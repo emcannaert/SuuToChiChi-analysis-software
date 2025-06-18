@@ -13,10 +13,11 @@ from return_BR_SF.return_BR_SF import return_BR_SF
 
 class histInfo:    # this needs to be initialized for every new region + year, use when looping over the superbin_indices and filling out the uncertainties
 
-	def __init__(self, year, region, bin_min_x, bin_min_y, n_bins_x, n_bins_y, technique_str, includeTTJetsMCHT800to1200, includeWJets, includeTTo, debug=False, runEos = False):
+	def __init__(self, year, region, bin_min_x, bin_min_y, n_bins_x, n_bins_y, technique_str, includeTTJetsMCHT800to1200, includeWJets, includeTTo, debug=False, runEos = False, WP=None):
 		ROOT.TH1.AddDirectory(False)
 		self.region = region
 		self.year   = year
+		self.WP     = WP
 		self.technique_str = technique_str
 		self.bin_min_x = bin_min_x
 		self.bin_min_y = bin_min_y
@@ -29,6 +30,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 		self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		if runEos:  self.processed_file_path =  self.eos_path + "/store/user/ecannaer/processedFiles/"
+		if WP: self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/WP_study/WP%s/"%self.WP
 
 		self.includeTTJetsMCHT800to1200 = includeTTJetsMCHT800to1200
 		self.includeWJets = includeWJets
@@ -65,7 +67,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 			self.hist_WJetsMC_LNu_HT2500toInf  = self.load_hist("WJetsMC_LNu_HT2500toInf")
 			self.hist_WJetsMC_QQ_HT800toInf    = self.load_hist("WJetsMC_QQ_HT800toInf")
 
-		self.hist_data       = self.load_data_hists()
+		if not self.WP: self.hist_data       = self.load_data_hists()
 		print("--------------------------------------------------------------------")
 		print("region/year are %s/%s"%(region,year))
 		self.all_hist_counts = self.hist_1000to1500.Clone()
@@ -425,25 +427,28 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 	def load_hist(self,dataset_type): ## returns the designated UNSCALED histogram 
 
+		WP_prefix = ""
+		if self.WP: WP_prefix = "WP"+ self.WP + "_"
+
 		#self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		if self.region in ["SB1b", "SB0b"]: self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/sideband_processedFiles/"
 		ROOT.TH1.AddDirectory(False)
 		if "TTToHadronicMC" in dataset_type:
-			hist_path = self.processed_file_path + "%s_%s_processed.root"%(dataset_type,self.year)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_prefix)
 		elif "TTToSemiLeptonicMC" in dataset_type:
-			hist_path = self.processed_file_path + "%s_%s_processed.root"%(dataset_type,self.year)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_prefix)
 		elif "TTToLeptonicMC" in dataset_type:
-			hist_path = self.processed_file_path + "%s_%s_processed.root"%(dataset_type,self.year)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_prefix)
 		elif dataset_type == "WJetsMC_LNu_HT1200to2500":
-			hist_path = self.processed_file_path + "WJetsMC_LNu-HT1200to2500_%s_processed.root"%(self.year)
+			hist_path = self.processed_file_path + "WJetsMC_LNu-HT1200to2500_%s_%sprocessed.root"%(self.year,WP_prefix)
 		elif dataset_type == "WJetsMC_LNu_HT2500toInf":
-			hist_path = self.processed_file_path + " WJetsMC_LNu-HT2500toInf_%s_processed.root"%(self.year)
+			hist_path = self.processed_file_path + " WJetsMC_LNu-HT2500toInf_%s_%sprocessed.root"%(self.year,WP_prefix)
 		elif dataset_type == "WJetsMC_LNu_HT800to1200":
-			hist_path = self.processed_file_path + "WJetsMC_LNu-HT800to1200_%s_processed.root"%(self.year)
+			hist_path = self.processed_file_path + "WJetsMC_LNu-HT800to1200_%s_%sprocessed.root"%(self.year,WP_prefix)
 		elif dataset_type == "WJetsMC_QQ_HT800toInf":
-			hist_path = self.processed_file_path + "WJetsMC_QQ-HT800toInf_%s_processed.root"%(self.year)
+			hist_path = self.processed_file_path + "WJetsMC_QQ-HT800toInf_%s_%sprocessed.root"%(self.year,WP_prefix)
 		else:
-			hist_path = self.processed_file_path + "%s_%s_processed.root"%(dataset_type,self.year)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_prefix)
 		#print("hist_path", hist_path)
 		hist_name = "h_MSJ_mass_vs_MdSJ_%s%s"%(self.technique_str,self.region)   # need to find what the name of this histogram
 		print("hist name is: %s in file %s"%(hist_name,hist_path)  )
@@ -460,6 +465,9 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 	def load_data_hists(self):
 		data_strings = []
 
+
+		WP_prefix = ""
+		if self.WP: WP_prefix = "WP"+self.WP + "_"
 
 		#self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		combined_data = ROOT.TH2F("data_combined_%s"%(self.region),"Double Tagged Superjet mass vs diSuperjet mass (%s) (data combined) (%s); diSuperjet mass [GeV];superjet mass"%(self.region, self.year), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 5000) #375 * 125
@@ -479,7 +487,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 		elif self.year == "2018":
 			data_strings = ["dataA","dataB","dataC","dataD"]
 		for prefix in data_strings:
-			hist_path = self.processed_file_path + "%s_%s_processed.root"%(prefix,self.year)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(prefix,self.year, WP_prefix)
 			TH2_file = ROOT.TFile.Open(hist_path,"READ")
 			TH2_hist = TH2_file.Get("nom/"+hist_name) 
 			combined_data.Add(TH2_hist)

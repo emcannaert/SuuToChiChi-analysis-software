@@ -249,6 +249,7 @@ void setDynamicXScale(THStack* stack) {
 template <typename T> std::vector<T> get_histograms(std::vector<std::string> fnames, std::string hist_name, std::string folderName)
 {
 
+    std::cout << "Looking for histname " << hist_name << " and folder name " << folderName << std::endl;
 
     TH1::AddDirectory(false);
 
@@ -308,6 +309,7 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
 
   TH1::AddDirectory(false);
 
+  std::cout << "Running year " << year << " and hist name " << histName<< std::endl;
 
   std::string year_str = "2016preAPV";
   if (year == "2016") year_str = "2016postAPV";
@@ -345,12 +347,14 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
   T  h_all_TTbar_MC    = combine_histograms<T>(h_TTbar_hists,TTbar_weights);
   h_all_TTbar_MC->SetTitle((plot_description + " (" +year_str+  " combined TTbar MC)").c_str());
   
-
+  std::cout << "Got TTbar histograms" << std::endl;
 
   std::vector<T>  h_WJets_hists    = get_histograms<T>(WJetsFiles, getName.c_str(), folderName);
   T  h_all_WJets_MC    = combine_histograms<T>(h_WJets_hists,WJets_weights);
   h_all_WJets_MC->SetTitle((plot_description + " (" +year_str+  " combined WJets MC)").c_str());
-  
+
+  std::cout << "Got WJets histograms" << std::endl;
+
 
   //std::cout << "Loading data files." << std::endl;
   //std::vector<T>  h_data_hists  = get_histograms<T>(dataFiles, getName.c_str());
@@ -368,7 +372,10 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
 
   //h_all_data->SetTitle((plotName + " (" +*year+  "data)").c_str());
   h_all_QCD_MC->SetTitle((plot_description + " (" +year_str+  " combined QCD MC)").c_str());
+  std::cout << "Gtt QCD histograms" << std::endl;
+
   h_all_ST_MC->SetTitle((plot_description + " (" +year_str+  " combined ST MC)").c_str());
+  std::cout << "Got ST histograms" << std::endl;
 
 
 
@@ -384,6 +391,7 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
  
 
         gStyle->SetPalette(kViridis);
+        TColor::InvertPalette(); // reverse the order of the color palette
 
         h_all_TTbar_MC->GetZaxis()->SetTitle("Events");
         h_all_TTbar_MC->GetZaxis()->SetTitleOffset(1.35);
@@ -707,22 +715,22 @@ void make_combined_sample_plots()
   std::vector<std::string> plot_descriptions_proc = 
   {
     "Superjet mass in the SR (cut-based)",
-    "diSuperjet mass in the SR (cut-based)",
+    "disuperjet mass in the SR (cut-based)",
      "Superjet mass in the CR (cut-based)",
-    "diSuperjet mass in the CR (cut-based)",
+    "disuperjet mass in the CR (cut-based)",
      "Superjet in the AT1b (cut-based)",
-    "diSuperjet mass in the AT1b (cut-based)",
+    "disuperjet mass in the AT1b (cut-based)",
      "Superjet mass in the AT0b (cut-based)",
-    "diSuperjet mass in the AT0b (cut-based)",
+    "disuperjet mass in the AT0b (cut-based)",
 
     "Superjet mass in the SR (NN-tagging)",
-    "diSuperjet mass in the SR (NN-tagging)",
+    "disuperjet mass in the SR (NN-tagging)",
      "Superjet mass in the CR (NN-tagging)",
-    "diSuperjet mass in the CR (NN-tagging)",
+    "disuperjet mass in the CR (NN-tagging)",
      "Superjet in the AT1b (NN-tagging)",
-    "diSuperjet mass in the AT1b (NN-tagging)",
+    "disuperjet mass in the AT1b (NN-tagging)",
      "Superjet mass in the AT0b (NN-tagging)",
-    "diSuperjet mass in the AT0b (NN-tagging)"
+    "disuperjet mass in the AT0b (NN-tagging)"
 
   };
 
@@ -848,7 +856,6 @@ void make_combined_sample_plots()
 (fileDirectory+ "/ST_tW-top_inclMC_"+*year+"_processed.root").c_str()};
 
   
-
     /*
     int counter = 0;
     // make combined/partially combined plots from cutflow files
@@ -870,13 +877,15 @@ void make_combined_sample_plots()
     int counter = 0;
     for(auto histName = histNames_proc .begin(); histName < histNames_proc.end(); histName++)
     {
-      create_plots<TH2F*>(dataFiles, QCDFiles_processed, TTbarFiles_processed, WJetsFiles_processed, STFiles_processed, QCD_weights, TTbar_weights, WJets_weights, ST_weights, *histName, *year,true, makeLog3[counter],noStats3[counter], *histName, plot_descriptions_proc[counter], nomFolderName);
-      counter++;
+        std::cout << "Running 1D plots for year" << *year << " and hist name " << *histName << std::endl;
+        create_plots<TH2F*>(dataFiles, QCDFiles_processed, TTbarFiles_processed, WJetsFiles_processed, STFiles_processed, QCD_weights, TTbar_weights, WJets_weights, ST_weights, *histName, *year,  true, makeLog3[counter],noStats3[counter], *histName, plot_descriptions_proc[counter], nomFolderName);
+        counter++;  
     }
 
     counter =0;
     for(auto histName = histNames_2D .begin(); histName < histNames_2D.end(); histName++)
     {
+        std::cout << "Running 2D plots for year" << *year << " and hist name " << *histName << std::endl;
       create_plots<TH2F*>(dataFiles, QCDFiles_processed, TTbarFiles_processed, WJetsFiles_processed, STFiles_processed, QCD_weights, TTbar_weights, WJets_weights, ST_weights, *histName, *year, false, makeLog2[counter], noStats2[counter],*histName, plot_descriptions_2D[counter], nomFolderName);
       counter++;
     }
