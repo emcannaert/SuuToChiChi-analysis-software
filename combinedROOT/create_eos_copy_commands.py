@@ -308,11 +308,14 @@ if __name__=="__main__":
 			for syst,syst_dict in sample_dict.items():
 				combined_file_name = "%s_%s_%s_combined.root"%(sample, year, syst)
 				if len(syst_dict) > 1:    # if there are actually files in this 
+					rm_cmd = ""
 					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
-						command_path.write(" %s"%one_file.strip()) 
+						command_path.write(" root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s"%one_file.strip()) 
+						rm_cmd += "eosrm $EOSHOME/combinedROOT_temp/%s\n"%one_file.strip()
 						if iii == (len(syst_dict)-1):
 							command_path.write("\n")
+					command_path.write("%s"%rm_cmd)
 				elif len(syst_dict) == 1:
 					## rename the one file 
 					command_path.write("eosmv $EOSHOME/combinedROOT_temp/%s $EOSHOME/combinedROOT/%s\n"%(syst_dict[0], combined_file_name) )

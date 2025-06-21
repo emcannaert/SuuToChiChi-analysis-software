@@ -50,8 +50,8 @@ class combineHistBins:
 
 		## options for which MCs to include
 		self.includeTTJetsMCHT800to1200 = False
-		self.includeWJets   			= False
-		self.includeTTo 				= False
+		self.includeWJets   			= True
+		self.includeTTo 				= True
 
 		if self.min_unscaled_QCD_bin_counts > 0:
 			print("")

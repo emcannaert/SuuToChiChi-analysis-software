@@ -263,7 +263,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			{
 				continue; 
 			}
-			
+
 
 			double eventScaleFactor = 1.0;
 			double bTag_eventWeight_M = 1, bTag_eventWeight_T = 1;
@@ -526,6 +526,9 @@ void processWPStudy()
 
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
+
+   dataYears = {"2018"};
+
    if(runSelection) dataYears = {"2016"};
    std::vector<std::string> systematics = { "nom", "scale", "bTagSF_med",  "JER", "JEC", "PUSF", "pdf"}; 
 
