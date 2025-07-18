@@ -41,8 +41,8 @@ class linearized_plot:
 
 		self.WP = WP
 
-		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/WPStudy/%s/"%WP
-		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/WPStudy/%s/"%WP
+		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/WP_study/WP%s/"%WP
+		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/WP_study/WP%s/"%WP
 
 		self.eos_path = "root://cmseos.fnal.gov/"
 		self.HT_distr_home = "/HT_distributions" # extra folder where output files are saved for HT distribution plots
@@ -780,7 +780,7 @@ class linearized_plot:
 
 		### add stat uncertainty variations to lists	
 		print("Adding stat uncertainty information.")	
-		self.add_stat_uncertainties()
+		#self.add_stat_uncertainties()
 
 
 		print("Writing histograms.")
@@ -2203,7 +2203,8 @@ class linearized_plot:
 		if region in ["SB1b", "SB0b"]: use_filepath	  = os.getenv('CMSSW_BASE') + "/src/combinedROOT/sideband_processedFiles/"
 
 		decays = ["WBWB","HTHT","ZTZT","WBHT","WBZT","HTZT"]
-		file_paths  = [ use_filepath+ "%s_%s_%s_processed.root"%(self.mass_point, decay, self.year) for decay in decays   ]
+		
+		file_paths  = [ use_filepath+ "%s_%s_%s_WP%s_processed.root"%(self.mass_point, decay, self.year, self.WP) for decay in decays   ]
 
 		sig_weights = [ self.sig_SF_scale*return_signal_SF.return_signal_SF(self.year,self.mass_point,decay) for decay in decays	 ]
 		sig_weights_dict = { decay: self.sig_SF_scale*return_signal_SF.return_signal_SF(self.year,self.mass_point,decay) for decay in decays	}   
@@ -2236,51 +2237,23 @@ class linearized_plot:
 				all_combined_signal_hist.append(TH2_hist_signal)
 			else:
 
+				filepath = use_filepath+ "%s_%s_%s_WP%s_processed.root"%(self.mass_point, hist_type, self.year, self.WP)
 
-				### hist_type here is the decay: open this file and get this single histogram out. Do NOT scale it because this is done later
-				
-				filepath = use_filepath+ "%s_%s_%s_processed.root"%(self.mass_point, hist_type, self.year)
-
-				#print("TESTING FOR SIGNAL %s: opening file %s"%(hist_type,filepath))
-				#try:
-				# try to get file and grab histogram from it
 				f1 = ROOT.TFile.Open( filepath  ,"r")
 				if "topPt" in systematic and "down" in sys_str:
 					hist_name = "nom/" + hist_name_signal
 				else:
 					hist_name = sys_str + "/" + hist_name_signal
-				#print("TESTING FOR SIGNAL: hist_name is %s"%(hist_name))
 				
 				signal_hist = None
 				if f1:  signal_hist = f1.Get(hist_name)
 
-				#print("TESTING FOR SIGNAL: unscaled integral is %s for decay %s"%(signal_hist.Integral(), hist_type))
-				
-
-
-				#signal_hist.Scale(sig_weights_dict[hist_type])
-
-
-
-				#print("-----TESTING FOR SIGNAL: scaled integral is %s for decay %s"%(signal_hist.Integral(), hist_type))
-
-
-				# if this doesn't work, append an empty histogram
-				#except:
-				#	print("ERROR: failed on file %s for %s"%(filepath, sys_str))
-				#	signal_hist = ROOT.TH2F("h_MSJ_mass_vs_MdSJ_%s"%(region),"Superjet mass vs diSuperjet mass (%s) (cut-based); diSuperjet mass [GeV];superjet mass"%(region), 22,1250., 10000, 20, 500, 5000) # 375 * 125
 				if not signal_hist: 
 					if self.doHTdist: signal_hist = ROOT.TH1F("h_totHT_%s"%(region),"Event H_{T} (%s) (%s) (%s); H_{T} [GeV]; Events / 200 GeV"%(region, max(hist_type, "sig"),self.technique_str ),50,0.,10000);
 					else: signal_hist = ROOT.TH2F("h_MSJ_mass_vs_MdSJ_%s"%(region),"Superjet mass vs diSuperjet mass (%s) (%s) (%s); diSuperjet mass [GeV];superjet mass"%(region, hist_type,self.technique_str ), 22,1250., 10000, 20, 500, 5000) # 375 * 125
 
 				all_combined_signal_hist.append( signal_hist  )
 
-				"""if hist_type   == "WBWB": all_combined_signal_hist.append( TH2_hist_ST_t_channel_top_5f  )
-				elif hist_type == "HTHT": all_combined_signal_hist.append( TH2_hist_ST_t_channel_antitop_5f  )
-				elif hist_type == "ZTZT": all_combined_signal_hist.append( TH2_hist_ST_s_channel_4f_hadrons  )
-				elif hist_type == "WBHT": all_combined_signal_hist.append( TH2_hist_ST_s_channel_4f_leptons  )
-				elif hist_type == "WBZT": all_combined_signal_hist.append( TH2_hist_ST_tW_antitop_5f  )
-				elif hist_type == "HTZT": all_combined_signal_hist.append( TH2_hist_ST_tW_top_5f  )"""
 
 		return all_combined_signal_hist  # load in TTbar historam, scale it, and return this version
 	
@@ -2397,7 +2370,7 @@ class linearized_plot:
 			#print("BR_type/sys_str is %s/%s"%(BR_type,sys_str))
 			linear_plot_size = len(use_indices)  - mask_size  ## subtract off mask size
 
-			print("For %s/%s/%s/%s/%s plots created to have %s bins (number of SRCR superbins= %s, number of AT superbins= %s)"%(BR_type, region, systematic,self.year,self.technique_str, linear_plot_size,len(self.superbin_indices),len(self.superbin_indices_AT) ))
+			#print("For %s/%s/%s/%s/%s plots created to have %s bins (number of SRCR superbins= %s, number of AT superbins= %s)"%(BR_type, region, systematic,self.year,self.technique_str, linear_plot_size,len(self.superbin_indices),len(self.superbin_indices_AT) ))
 
 			#print("Creating a linearized histogram for %s/%s with %s bins."%(self.year,region,linear_plot_size))
 			if forStats:
@@ -3326,7 +3299,7 @@ class linearized_plot:
 			combine_file.cd(region)
 
 			systematics_ = self.systematic_names[:]
-			systematics_.extend( ["stat"]) 
+			#systematics_.extend( ["stat"]) 
 
 			for iii,systematic in enumerate(systematics_):
 
@@ -3348,8 +3321,7 @@ class linearized_plot:
 						QCD_hists[kkk][iii][jjj].Write()
 						#if systematic == "CMS_scale": print("Writing scale histogram: %s"%(QCD_hists[kkk][iii][jjj].GetName()))
 
-						if "stat" not in systematic:  
-							signal_hists[kkk][iii][jjj].Write()
+						signal_hists[kkk][iii][jjj].Write()
 							#if systematic == "CMS_scale": print("Writing scale histogram: %s"%(signal_hists[kkk][iii][jjj].GetName()))
 
 						if "fact" not in systematic and "renorm" not in systematic and "CMS_scale" not in systematic:  
@@ -3548,6 +3520,29 @@ class linearized_plot:
 		return ast.literal_eval(_superbin_indices)
 
 
+	## return string form of scaled signal contribution in SR
+	def get_signal_counts_SR(self):
+
+
+
+		decays = ["WBWB","HTHT","ZTZT","WBHT","WBZT","HTZT"]
+		sig_weights_dict = { decay: self.sig_SF_scale*return_signal_SF.return_signal_SF(self.year,self.mass_point,decay) for decay in decays	}   
+
+
+
+
+
+		signal_counts_SR = sum( [
+			self.signal_WBWB_hist_SR[0][0].Integral()*sig_weights_dict["WBWB"], 
+			self.signal_HTHT_hist_SR[0][0].Integral()*sig_weights_dict["HTHT"], 
+			self.signal_ZTZT_hist_SR[0][0].Integral()*sig_weights_dict["ZTZT"], 
+			self.signal_WBHT_hist_SR[0][0].Integral()*sig_weights_dict["WBHT"], 
+			self.signal_WBZT_hist_SR[0][0].Integral()*sig_weights_dict["WBZT"], 
+			self.signal_HTZT_hist_SR[0][0].Integral()*sig_weights_dict["HTZT"] ])
+		return signal_counts_SR
+
+
+
 	def kill_histograms(self):   ## kill the linearized and individual signal histograms
 
  		linear_hists = [ self.all_combined_hists_SR,self.all_combined_hists_CR,self.all_combined_hists_AT1b,self.all_combined_hists_AT0b,
@@ -3625,7 +3620,11 @@ if __name__=="__main__":
 
 	createMaskedFiles      = False ## don't need these now
 
-   WPs = [0.25,0.30,0.35,0.40,0.45,0.5,0.55,0.60,0.65,0.70,0.80,0.90]
+	WPs = [0.25,0.30,0.35,0.40,0.45,0.5,0.55,0.60,0.65,0.70,0.80,0.90]
+
+	output_event_summary = open("txt_files/WP_study_yields/SR_event_summary_%s.txt"%(year),"w") ## file where once will write the number of BR/sig events per WP
+	output_event_summary.write("#WP	N_BR_SR	N_Suu4_chi1_SR	N_Suu4_chi1p5_SR	N_Suu5_chi1_SR	N_Suu5_chi1p5_SR	N_Suu5_chi2_SR	N_Suu6_chi1_SR	N_Suu6_chi1p5_SR	N_Suu6_chi2_SR	N_Suu6_chi2p5_SR	N_Suu7_chi1_SR	N_Suu7_chi1p5_SR	N_Suu7_chi2_SR	N_Suu7_chi2p5_SR	N_Suu7_chi3_SR	N_Suu8_chi1_SR	N_Suu8_chi1p5_SR	N_Suu8_chi2_SR	N_Suu8_chi2p5_SR	N_Suu8_chi3_SR\n")
+
 
 	for WP in WPs:
 
@@ -3634,8 +3633,12 @@ if __name__=="__main__":
 
 			if doHTdist and "NN" in technique_str: continue 
 
+
 			# create instance of hist_loader (containing all BR histograms) for the year + technique str combination
 			all_BR_hists  = hist_loader(year, technique_str, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, WP_str)
+
+
+			summary_line = "%s %s "%(WP, all_BR_hists.return_formatted_summary_str() )
 
 			for mass_point in mass_points:
 				#try:
@@ -3643,11 +3646,17 @@ if __name__=="__main__":
 				if createMaskedFiles: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, True, createDummyChannel,run_from_eos, debug, WP_str)   ### run with masked bins
 				else: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, False, createDummyChannel,run_from_eos,debug, WP_str)	### run without masked bins
 
-				#except:
-				#	print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
+				summary_line += " %s"%final_plot.get_signal_counts_SR()
+
+
 				del final_plot
 			all_BR_hists.kill_histograms()
 			del all_BR_hists  # free up a lot of memory 
+
+			summary_line+= "\n"
+			output_event_summary.write(summary_line)
+
+	output_event_summary.close()
 	print("Script took %ss to run."%(	np.round(time.time() - start_time,4 )) )
 
 

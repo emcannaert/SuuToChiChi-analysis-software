@@ -10,7 +10,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 {
 
 
-	double BEST_WP = 0.7;
+	double BEST_WP = 0.5;
 	double BEST_AT_WP = 0.2;
 
    TH1::SetDefaultSumw2();
@@ -426,7 +426,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			   
 
 		TH1F* h_SJ1_BEST_score  = new TH1F("h_SJ1_BEST_score","SJ2 BEST Score (All SJ1); Score; superjets",50,0,1.0);
-
 		TH1F* h_SJ2_BEST_score  = new TH1F("h_SJ2_BEST_score","SJ1 BEST Score (All SJ2); Score; superjets",50,0,1.0);
 
 		TH1F* h_SJ1_decision  = new TH1F("h_SJ1_decision","Superjet 1 decision category;Category; Superjets",3,-0.5,2.5);
@@ -701,8 +700,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
       t1->SetBranchAddress("nMuons_looseID_medIso", &nMuons_looseID_medIso); 
       t1->SetBranchAddress("nElectrons_looseID_looseISO", &nElectrons_looseID_looseISO); 
 
-
-
 		// MC-only vars 
 		if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos))
 		{ 
@@ -927,6 +924,15 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			nomBtaggingWeight=1.0;
 
 			t1->GetEntry(i);
+
+
+			// CHANGE THIS
+			if (!(  ((SJ1_BEST_scores > 0.30) && (SJ1_BEST_scores < 0.60)) || ((SJ2_BEST_scores > 0.30)&&(SJ2_BEST_scores < 0.60))    )) continue;
+ 
+
+
+ 			//////////////////////
+			
 
 			if ((dataBlock.find("Suu") != std::string::npos))
 			{
@@ -2470,6 +2476,11 @@ void readTree()
 
    std::string runType = "main-band";
    std::string outputFolder = "processedFiles/";
+
+
+
+
+
    if(runSideband) outputFolder = "sideband_processedFiles/";
    std::string eos_path	 =  "root://cmseos.fnal.gov//store/user/ecannaer/skimmedFiles/";
 
@@ -2477,6 +2488,23 @@ void readTree()
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
    if(runSelection) dataYears = {"2016"};
    std::vector<std::string> systematics = { "nom", "scale", "bTagSF_med", "bTagSF_tight",   "bTagSF_med_corr", "bTagSF_tight_corr",  "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring", "pdf","renorm", "fact"};  // "scale"    "JEC_HF", "JEC_BBEC1", "JEC_EC2","JEC_HF_year", "JEC_EC2_year",   "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", 
+
+
+
+
+
+   ////// CHANGE THIS
+
+
+
+   outputFolder = "processedFiles/highNNVals/";
+   systematics = {"nom"};
+
+
+
+   ///////////////////
+
+
 
 
    // these were replaced by the below

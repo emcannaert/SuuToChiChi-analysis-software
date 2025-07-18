@@ -42,7 +42,7 @@ class combineHistBins:
 		self.dryRun = dryRun ## perform a "dry run" where text files are not made
 		self.max_stat_uncert = 0.175  ## maximum statistical uncertainty
 
-		if "NN" in self.technique_str: self.max_stat_uncert = 0.21  ## maximum statistical uncertainty for NN method
+		if "NN" in self.technique_str: self.max_stat_uncert = 0.30  ## maximum statistical uncertainty for NN method
 		
 		self.min_unscaled_QCD_bin_counts   = 5.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
 		self.min_scaled_QCD_bin_counts   = 3.0   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff

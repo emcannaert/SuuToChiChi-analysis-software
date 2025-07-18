@@ -10,6 +10,74 @@ do_sideband = False
 sideband_str = ""
 if do_sideband: sideband_str = "_sideband"
 
+
+jec_file_AK4 = { '2015': { 'BR': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+					   "signal": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+				   'dataB-ver1': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataB-ver2': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataC-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt'
+				   },
+		'2016': { 'BR': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+				   'dataF': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataG': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+					"signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt'},
+
+		'2017': {  'BR':	'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+	 			   "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+				   'dataB': 'data/JEC/2017_UL/data/Summer19UL17_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataC': 'data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataD': 'data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataE': 'data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK4PFchs.txt',
+				
+				 },
+		'2018': { 'BR': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+				   'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK4PFPuppi.txt',
+				   'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
+				   'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
+					"signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+					}}
+
+jec_file_AK8 = { '2015': { 'BR': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+					"signal":   'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+				   'dataB-ver1': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+				   'dataB-ver2': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+				   'dataC-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+				   'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+				   'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+				   'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',},
+
+
+				'2016': { 'BR':	'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+				   "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+				   'dataF': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+				   'dataG': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+				   'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',},
+
+				'2017': { 'BR':	'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+	 					"signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+					   'dataB': 'data/JEC/2017_UL/data/Summer19UL17_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+					   'dataC': 'data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+					   'dataD': 'data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+					   'dataE': 'data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+					   'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK8PFPuppi.txt',},
+				'2018': { 'BR':	'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+	 					"signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+					   'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+					   'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+					   'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+					   'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+				 }}
+
+
+
+
+
 def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 	if do_sideband: print("WARNING: RUNNING SIDEBAND REGION.")
@@ -114,9 +182,71 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 	#newCfg.write("config.Site.blacklist = ['T2_US_MIT']\n")
 
-	
 
 
+	## include all aux files
+	inputFiles = []
+
+	# jet veto map
+	if year == "2015" or year == "2016":
+		inputFiles.append("data/jetVetoMaps/hotjets-UL16.root")
+	elif year == "2017":
+		inputFiles.append("data/jetVetoMaps/hotjets-UL17_v2.root")
+	elif year == "2018":
+		inputFiles.append("data/jetVetoMaps/hotjets-UL18.root")
+
+	# BEST model files
+	inputFiles.append("data/BEST_models/constantgraph_combine.pb")
+	inputFiles.append("data/BESTScalerParameters_all_mass_combine.txt")
+
+	if "MC" in sample or "Suu" in sample: ## only valid for MC
+		# PU weights
+		if year == "2015":
+			inputFiles.append("data/POG/LUM/2016preVFP_UL/puWeights.json")
+		elif year == "2016":
+			inputFiles.append("data/POG/LUM/2016postVFP_UL/puWeights.json")
+		elif year == "2017":
+			inputFiles.append("data/POG/LUM/2017_UL/puWeights.json")
+		elif year == "2018":
+			inputFiles.append("data/POG/LUM/2018_UL/puWeights.json")
+
+		# btag files
+		if "QCDMC" in sample:
+			bTagSF_sample = "QCDMC"
+		elif "TTTo" in sample or "TTJetsMC" in sample:
+			bTagSF_sample = "TTbarMC"
+		elif "ST_" in sample:
+			bTagSF_sample = "STMC"
+		elif "Suu" in sample:
+			bTagSF_sample = "SuuToChiChi"
+		elif "WJets" in sample:
+			bTagSF_sample = "WJetsMC"
+		elif "WW" in sample or "ZZ" in sample:
+			bTagSF_sample = "TTbarMC"
+
+
+		inputFiles.append("data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root"%(bTagSF_sample,year))
+		if year == "2015":
+			inputFiles.append("data/bTaggingSFs/2016preVFP_UL/btagging.json'")
+		elif year == "2016":
+			inputFiles.append("data/bTaggingSFs/2016postVFP_UL/btagging.json")
+		elif year == "2017":
+			inputFiles.append("data/bTaggingSFs/2017_UL/btagging.json")
+		elif year == "2018":
+			inputFiles.append("data/bTaggingSFs/2018_UL/btagging.json")
+
+
+	# JEC files
+	sample_type = "BR"
+	if "Suu" in sample: sample_type = "signal"
+	elif "data" in sample: sample_type = sample
+	inputFiles.append(jec_file_AK8[year][sample_type])
+	inputFiles.append(jec_file_AK4[year][sample_type])
+
+
+	## include files that are needed 
+	inputFile_str = "',\n'../".join(inputFiles)
+	newCfg.write("config.JobType.inputFiles = [ '../%s' ]"%inputFile_str)
 def main():
 
 
@@ -132,7 +262,7 @@ def main():
 
 	systematics = [  "JEC1", "JEC2", "JER","nom" ]
 
-	datasets = {    '2015': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
+	datasets = {	'2015': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
 							  'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
 							  'QCDMC2000toInf':  '/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',
 							  'TTToHadronicMC':  '/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM',  
@@ -152,7 +282,7 @@ def main():
 							  'dataD-HIPM': '/JetHT/Run2016D-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
 							  'dataE-HIPM': '/JetHT/Run2016E-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
 							  'dataF-HIPM': '/JetHT/Run2016F-HIPM_UL2016_MiniAODv2-v2/MINIAOD',
-								  "WJetsMC_LNu-HT800to1200":  "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM"    ,
+								  "WJetsMC_LNu-HT800to1200":  "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM"	,
 							   "WJetsMC_LNu-HT1200to2500": "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM"  ,
 							   "WJetsMC_LNu-HT2500toInf":  "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v2/MINIAODSIM"  ,
 							   "WJetsMC_QQ-HT800toInf":  "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v2/MINIAODSIM"   ,
@@ -178,7 +308,7 @@ def main():
 							  'dataF': '/JetHT/Run2016F-UL2016_MiniAODv2-v2/MINIAOD',
 							  'dataG': '/JetHT/Run2016G-UL2016_MiniAODv2-v2/MINIAOD',
 							  'dataH': '/JetHT/Run2016H-UL2016_MiniAODv2-v2/MINIAOD',
-							   "WJetsMC_LNu-HT800to1200": "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM"     ,
+							   "WJetsMC_LNu-HT800to1200": "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM"	 ,
 							   "WJetsMC_LNu-HT1200to2500": "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM"  ,
 							   "WJetsMC_LNu-HT2500toInf": "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v2/MINIAODSIM"   ,
 							   "WJetsMC_QQ-HT800toInf": "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v2/MINIAODSIM"   ,
@@ -206,7 +336,7 @@ def main():
 								 'dataD': '/JetHT/Run2017D-UL2017_MiniAODv2-v1/MINIAOD',
 								 'dataE': '/JetHT/Run2017E-UL2017_MiniAODv2-v1/MINIAOD',
 								 'dataF': '/JetHT/Run2017F-UL2017_MiniAODv2-v1/MINIAOD',
-							   "WJetsMC_LNu-HT800to1200": "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM"     ,
+							   "WJetsMC_LNu-HT800to1200": "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM"	 ,
 							   "WJetsMC_LNu-HT1200to2500": "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM"  ,
 							   "WJetsMC_LNu-HT2500toInf": "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM"  ,
 							   "WJetsMC_QQ-HT800toInf":  "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM"   ,
@@ -232,10 +362,10 @@ def main():
 							  'dataB': '/JetHT/Run2018B-UL2018_MiniAODv2_GT36-v1/MINIAOD',
 							  'dataC': '/JetHT/Run2018C-UL2018_MiniAODv2_GT36-v1/MINIAOD',
 							  'dataD': '/JetHT/Run2018D-UL2018_MiniAODv2_GT36-v1/MINIAOD',
-							  "WJetsMC_LNu-HT800to1200": "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM"     ,
+							  "WJetsMC_LNu-HT800to1200": "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM"	 ,
 							   "WJetsMC_LNu-HT1200to2500":  "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM" ,
 							   "WJetsMC_LNu-HT2500toInf": "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM"   ,
-							   "WJetsMC_QQ-HT800toInf": "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM"    ,
+							   "WJetsMC_QQ-HT800toInf": "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM"	,
 							   "TTJetsMCHT800to1200": "/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM",
 							   "WW_MC": "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
 							   "ZZ_MC": "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM"
@@ -243,12 +373,16 @@ def main():
 
    }
 
-	signal_datasets_pkl = open('data/pkl/signal_datasets.pkl', 'r')    
+
+
+
+
+	signal_datasets_pkl = open('data/pkl/signal_datasets.pkl', 'r')	
 	datasets_signal = pickle.load(signal_datasets_pkl)  # there are 433 files (so far), so the dictionary construction is automated and loaded here
 
 
   	signal_samples_pkl = open('data/pkl/signal_samples.pkl', 'r')
-  	signal_samples     = pickle.load(signal_samples_pkl)
+  	signal_samples	 = pickle.load(signal_samples_pkl)
 	signal_samples = np.array(signal_samples)
 
   	num_files_created = 0
@@ -307,7 +441,7 @@ def main():
    "ST_s-channel-leptonsMC",
    "ST_tW-antiTop_inclMC",
    "ST_tW-top_inclMC" ,
-     ### extras
+	 ### extras
    "WJetsMC_LNu-HT800to1200",
    "WJetsMC_LNu-HT1200to2500",
    "WJetsMC_LNu-HT2500toInf",
@@ -327,7 +461,7 @@ def main():
    "ST_s-channel-leptonsMC",
    "ST_tW-antiTop_inclMC",
    "ST_tW-top_inclMC",
-    ### extras
+	### extras
    "WJetsMC_LNu-HT800to1200",
    "WJetsMC_LNu-HT1200to2500",
    "WJetsMC_LNu-HT2500toInf",

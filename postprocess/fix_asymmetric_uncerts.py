@@ -29,7 +29,7 @@ def load_superbin_neighbors(year, region,technique_str=""):
 
 
 
-def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, useMask=False, debug = False):
+def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, technique_str, useMask=False, debug = False):
 	ROOT.TH1.AddDirectory(False)
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
@@ -64,17 +64,17 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, us
 		year_str = "18"
 
 	infile_dir = "finalCombineFilesNewStats/"
-	infile_name = infile_dir+ "combine_%s_%s.root"%(year,mass_point)
+	infile_name = infile_dir+ "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
 	outfile_dir = "finalCombineFilesNewStats/correctedFinalCombineFiles/"
-	outfile_name = outfile_dir + "combine_%s_%s.root"%(year,mass_point)
+	outfile_name = outfile_dir + "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
 	if useMask:
 		infile_dir = "finalCombineFilesNewStats/maskedFinalCombineFiles/"
-		infile_name = infile_dir+ "combine_%s_%s.root"%(year,mass_point)
+		infile_name = infile_dir+ "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
 		outfile_dir = "finalCombineFilesNewStats/maskedCorrectedFinalCombineFiles/"
-		outfile_name = outfile_dir + "combine_%s_%s.root"%(year,mass_point)
+		outfile_name = outfile_dir + "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
 
 	print("Looking for file %s"%(infile_name))
@@ -86,7 +86,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, us
 
 	for region in regions:
 
-		superbin_neighbors = load_superbin_neighbors(year, region)
+		superbin_neighbors = load_superbin_neighbors(year, region, technique_str)
 
 		## create a folder in the root file and CD into it
 
@@ -711,6 +711,7 @@ if __name__=="__main__":
 
 	mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1","Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"]
 
+	technique_strs = ["NN_",""]
 
 	#### debugging stuff
 	if debug:
@@ -721,14 +722,15 @@ if __name__=="__main__":
 		mass_points = ["Suu4_chi1"]
 
 
-	for year in years:
-			for mass_point in mass_points:
-					#try:
-					#fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, True, debug   )
-					fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, False, debug   )
+	for technique_str in technique_strs:
+		for year in years:
+				for mass_point in mass_points:
+						#try:
+						#fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, True, debug   )
+						fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, technique_str, False, debug   )
 
-					#except: 
-					#print("ERROR: failed %s/%s"%(mass_point,year))
+						#except: 
+						#print("ERROR: failed %s/%s"%(mass_point,year))
 
 
 

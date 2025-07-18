@@ -84,14 +84,18 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	output_dir = "plots/linearized_systematic_comparisons/"
 	if run_corrected: output_dir+= "correctedSystematics/"
 
-	
+	technique_folder = "cutbased"
+	if "NN" in technique_str: technique_folder = "NN_based"
 
-	output_plot_name = output_dir+"background/%s/linearized_%s%s_%s_SysComparison_RatioPlot_%s_%s.png"%(region,technique_str,hist_type,region, systematic,year)
+	if not os.path.exists(output_dir+"background/%s/%s"%(region,technique_folder)):
+		os.makedirs(output_dir+"background/%s/%s"%(region,technique_folder)  ) 
+	output_plot_name = output_dir+"background/%s/%s/linearized_%s%s_%s_SysComparison_RatioPlot_%s_%s.png"%(region,technique_folder,technique_str,hist_type,region, systematic,year)
 	if isSignal: 
 		
-		if not os.path.exists(output_dir+"signal/%s/%s/"%(region, mass_point)):
-			os.makedirs(output_dir+"signal/%s/%s/"%(region, mass_point))
-		output_plot_name = output_dir+"signal/%s/%s/linearized_%s%s_%s_%s_SysComparison_RatioPlot_%s_%s.png"%(region, mass_point, technique_str,mass_point,hist_type,region, systematic,year)
+
+		if not os.path.exists(output_dir+"signal/%s/%s/%s/"%(region, technique_folder, mass_point)):
+			os.makedirs(output_dir+"signal/%s/%s/%s/"%(region, technique_folder, mass_point))
+		output_plot_name = output_dir+"signal/%s/%s/%s/linearized_%s%s_%s_%s_SysComparison_RatioPlot_%s_%s.png"%(region, technique_folder, mass_point, technique_str,mass_point,hist_type,region, systematic,year)
 	#### cms label stuff 
 	CMS_label_pos = 0.152
 	SIM_label_pos = 0.295
@@ -263,7 +267,7 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	canvas.cd(1)
 
 	# Draw the text lines
-	text.DrawLatexNDC(0.42, 0.82, sample_type + ", " + year_str)
+	text.DrawLatexNDC(0.42, 0.82, sample_type + ", " + convert_year(year))
 	text.DrawLatexNDC(0.42, 0.77, systematic)
 	text.DrawLatexNDC(0.42, 0.72, technique_desc) 
 
@@ -451,8 +455,8 @@ def create_2_hist_ratio_plot(year, technique_str,sample_type):   #### hist1 will
 	hist1 = finput.Get(histname_CR)
 	hist2 = finput.Get(histname_SR)
 
-	hist1.Scale(1.0/hist1.Integral())
-	hist2.Scale(1.0/hist2.Integral())
+	hist1.Scale(1.0/hist1.Integral()) if hist1.Integral() > 0 else None
+	hist2.Scale(1.0/hist2.Integral()) if hist2.Integral() > 0 else None
 
 
 
@@ -583,8 +587,8 @@ if __name__== "__main__":
 
 	years = ["2015","2016","2017","2018"]
 	year_str = ["15","16","17","18"]
-	#technique_strs = ["","NN_"]
-	technique_strs = [""]
+	technique_strs = ["NN_",""]
+	#technique_strs = [""]
 
 	#### REMAKE TEXT FILEs:
 	yield_impact_text = open("txt_files/NP_yield_impacts.txt","w")

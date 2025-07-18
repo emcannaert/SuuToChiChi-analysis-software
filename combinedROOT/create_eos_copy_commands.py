@@ -309,7 +309,7 @@ if __name__=="__main__":
 				combined_file_name = "%s_%s_%s_combined.root"%(sample, year, syst)
 				if len(syst_dict) > 1:    # if there are actually files in this 
 					rm_cmd = ""
-					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s '%combined_file_name)
+					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT/%s '%combined_file_name)
 					for iii,one_file in enumerate(syst_dict):
 						command_path.write(" root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s"%one_file.strip()) 
 						rm_cmd += "eosrm $EOSHOME/combinedROOT_temp/%s\n"%one_file.strip()

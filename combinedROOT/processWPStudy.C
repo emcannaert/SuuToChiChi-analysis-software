@@ -102,7 +102,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		std::cout << "Successfully got tree " << tree_name << std::endl;
 		
 
-
+		// main 2D hists
 		TH2F *h_MSJ_mass_vs_MdSJ_NN_SR = new TH2F("h_MSJ_mass_vs_MdSJ_NN_SR","Superjet mass vs diSuperjet mass (Signal Region) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 5000);  /// 375 * 125
 		TH2F *h_MSJ_mass_vs_MdSJ_NN_CR = new TH2F("h_MSJ_mass_vs_MdSJ_NN_CR","Superjet mass vs diSuperjet mass (Control Region) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 5000);  /// 375 * 125
 		TH2F *h_MSJ_mass_vs_MdSJ_NN_AT1b = new TH2F("h_MSJ_mass_vs_MdSJ_NN_AT1b","Superjet mass vs diSuperjet mass (AT1b) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 5000);  /// 375 * 125
@@ -110,6 +110,20 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		
 		TH2F *h_MSJ_mass_vs_MdSJ_NN_ADT0b = new TH2F("h_MSJ_mass_vs_MdSJ_NN_ADT0b","Superjet mass vs diSuperjet mass (ADT0b) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 5000);  /// 375 * 125
 		TH2F *h_MSJ_mass_vs_MdSJ_NN_ADT1b = new TH2F("h_MSJ_mass_vs_MdSJ_NN_ADT1b","Superjet mass vs diSuperjet mass (ADT1b) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 5000);  /// 375 * 125
+
+		// full AT SJ2 2D hists
+		TH2F *h_ATSJ_mass_vs_MdSJ_NN_AT1b = new TH2F("h_ATSJ_mass_vs_MdSJ_NN_AT1b","(Antitagged) Superjet mass vs diSuperjet mass (AT1b) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 5000);  /// 375 * 125
+		TH2F *h_ATSJ_mass_vs_MdSJ_NN_AT0b = new TH2F("h_ATSJ_mass_vs_MdSJ_NN_AT0b","(Antitagged) Superjet mass vs diSuperjet mass (AT0b) (NN-based); diSuperjet mass [GeV];superjet mass", 22,1250., 10000, 20, 500, 5000);  /// 375 * 125
+
+		// full AT SJ2 BEST scores
+		TH1F* h_BEST_score_ATSJ_AT1b  = new TH1F("h_BEST_score_ATSJ_AT1b","Antitagged SJ BEST Score (1b region); NN Score; superjets",50,0,1.0);
+		TH1F* h_BEST_score_ATSJ_AT0b  = new TH1F("h_BEST_score_ATSJ_AT0b","Antitagged SJ BEST Score (0b region); NN Score; superjets",50,0,1.0);
+
+		// ADT BEST scores
+		TH1F* h_BEST_score_ATSJ_ADT1b  = new TH1F("h_BEST_score_ATSJ_ADT1b","SJ BEST Score (ADT1b region); NN Score; superjets",50,0,1.0);
+		TH1F* h_BEST_score_ATSJ_ADT0b  = new TH1F("h_BEST_score_ATSJ_ADT0b","SJ BEST Score (ADT0b region); NN Score; superjets",50,0,1.0);
+
+
 
 
 
@@ -362,6 +376,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			if( nMedBTags < 1 ) 
 			{
 
+				
+
+
 				////////////////////////////////////////////////////////////
 				///////////////////// NN-based tagging /////////////////////
 				////////////////////////////////////////////////////////////
@@ -378,36 +395,55 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					h_MSJ_mass_vs_MdSJ_NN_CR->Fill(diSuperJet_mass,(superJet_mass[1]+superJet_mass[0])/2,eventWeightToUse_NN);
 				}
 
-				///////////////////
-				///// NN AT0b /////
-				///////////////////
+
 				// SJ2 antitag w/ SJ1 tagged
-				else if( (SJ1_BEST_scores > BEST_WP) && (SJ2_BEST_scores < BEST_AT_WP) ) // want to be quite sure the second superjet is not tagged
+				else if( (SJ2_BEST_scores < BEST_AT_WP) ) 
 				{
 					 double eventWeightToUse_NN = eventScaleFactor*=bTag_eventWeight_M;
 					 if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) eventWeightToUse_NN*=bTag_eventWeight_M;
 					 eventWeightToUse_NN *= pdf_weight*scale_weight;   
 					nNN_AT0b +=eventScaleFactor;
-					h_MSJ_mass_vs_MdSJ_NN_AT0b->Fill(diSuperJet_mass,superJet_mass[0],eventWeightToUse_NN);
+
+
+					h_ATSJ_mass_vs_MdSJ_NN_AT0b->Fill(diSuperJet_mass,superJet_mass[0],eventWeightToUse_NN);
+					h_BEST_score_ATSJ_AT0b->Fill(SJ1_BEST_scores, eventWeightToUse_NN);
+					///////////////////
+					///// NN AT0b /////
+					///////////////////
+					if (SJ1_BEST_scores > BEST_WP)
+					{
+						h_MSJ_mass_vs_MdSJ_NN_AT0b->Fill(diSuperJet_mass,superJet_mass[0],eventWeightToUse_NN);
+
+					}
 				} 
 				// SJ1 antitag w/ SJ12tagged
-				else if(  (SJ1_BEST_scores < BEST_AT_WP ) && (SJ2_BEST_scores > BEST_WP) ) // want to be quite sure the second superjet is not tagged
+				else if(  (SJ1_BEST_scores < BEST_AT_WP ) ) // want to be quite sure the second superjet is not tagged
 				{
 					double eventWeightToUse_NN = eventScaleFactor*=bTag_eventWeight_M;
 					if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) eventWeightToUse_NN*=bTag_eventWeight_M;
 					eventWeightToUse_NN *= pdf_weight*scale_weight;   //factWeight*renormWeight
 					nNN_AT0b +=eventScaleFactor;
-					h_MSJ_mass_vs_MdSJ_NN_AT0b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse_NN);
+					
+					h_ATSJ_mass_vs_MdSJ_NN_AT0b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse_NN);
+					h_BEST_score_ATSJ_AT0b->Fill(SJ2_BEST_scores, eventWeightToUse_NN);
+					if (SJ2_BEST_scores > BEST_WP)
+					{
+						h_MSJ_mass_vs_MdSJ_NN_AT0b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse_NN);
+					}
+
 				} 
 				///////////////////
 				///// NN ADT0b /////
 				///////////////////
-				else if(  (SJ1_BEST_scores < BEST_AT_WP) && (SJ2_BEST_scores < BEST_AT_WP) ) // want to be quite sure the second superjet is not tagged
+				else if(  (SJ1_BEST_scores < BEST_WP) && (SJ2_BEST_scores < BEST_WP) ) // want to be quite sure the second superjet is not tagged
 				{
 					double eventWeightToUse_NN = eventScaleFactor*=bTag_eventWeight_M;
-					 if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) eventWeightToUse_NN*=bTag_eventWeight_M;
-					 eventWeightToUse_NN *= pdf_weight*scale_weight;  // factWeight*renormWeight
+					if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) eventWeightToUse_NN*=bTag_eventWeight_M;
+					eventWeightToUse_NN *= pdf_weight*scale_weight;  // factWeight*renormWeight
 					h_MSJ_mass_vs_MdSJ_NN_ADT0b->Fill(diSuperJet_mass, (superJet_mass[0] + superJet_mass[1])/2.0,eventWeightToUse_NN);
+					h_BEST_score_ATSJ_ADT0b->Fill(SJ1_BEST_scores,eventWeightToUse_NN);
+					h_BEST_score_ATSJ_ADT0b->Fill(SJ2_BEST_scores,eventWeightToUse_NN);
+
 				} 
 
 
@@ -446,36 +482,57 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				///////////////////
 
 				// SJ2 antitag w/ SJ1 tagged
-				else if(   (SJ1_BEST_scores > BEST_WP ) && (SJ2_BEST_scores < BEST_AT_WP )  ) // want to be quite sure the second superjet is not tagged
+				else if(   (SJ2_BEST_scores < BEST_AT_WP )  ) // want to be quite sure the second superjet is not tagged
 				{
 					{
 						double eventWeightToUse_NN = eventScaleFactor;
 						if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse_NN*=bTag_eventWeight_M;
 						eventWeightToUse_NN *= pdf_weight*scale_weight;   // factWeight*renormWeight
 						nNN_AT1b +=eventScaleFactor;
-						h_MSJ_mass_vs_MdSJ_NN_AT1b->Fill(diSuperJet_mass,superJet_mass[0],eventWeightToUse_NN );
+
+						h_ATSJ_mass_vs_MdSJ_NN_AT1b->Fill(diSuperJet_mass,superJet_mass[0],eventWeightToUse_NN );
+						h_BEST_score_ATSJ_AT1b->Fill(SJ1_BEST_scores, eventWeightToUse_NN);
+
+						if (SJ1_BEST_scores > BEST_WP )
+						{
+							h_MSJ_mass_vs_MdSJ_NN_AT1b->Fill(diSuperJet_mass,superJet_mass[0],eventWeightToUse_NN );
+						}
 					}
 				} 
+
+
+				
+
 				// SJ1 antitag w/ SJ2 tagged
-				else if(   (SJ1_BEST_scores < BEST_AT_WP ) && (SJ2_BEST_scores > BEST_WP )  ) // want to be quite sure the second superjet is not tagged
+				else if(   (SJ1_BEST_scores < BEST_AT_WP )   ) // want to be quite sure the second superjet is not tagged
 				{
 					{
 						double eventWeightToUse_NN = eventScaleFactor;
 						if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse_NN*=bTag_eventWeight_M;
 						eventWeightToUse_NN *= pdf_weight*scale_weight;   // factWeight*renormWeight
 						nNN_AT1b +=eventScaleFactor;
-						h_MSJ_mass_vs_MdSJ_NN_AT1b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse_NN );
+
+						h_ATSJ_mass_vs_MdSJ_NN_AT1b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse_NN );
+						h_BEST_score_ATSJ_AT1b->Fill(SJ2_BEST_scores, eventWeightToUse_NN);
+
+						if (SJ2_BEST_scores > BEST_WP )
+						{
+							h_MSJ_mass_vs_MdSJ_NN_AT1b->Fill(diSuperJet_mass,superJet_mass[1],eventWeightToUse_NN );
+						}
+						
 					}
 				}
 				///////////////////
 				///// NN ADT1b /////
 				///////////////////
-				else if(  (SJ1_BEST_scores < BEST_AT_WP) && (SJ2_BEST_scores < BEST_AT_WP) ) // want to be quite sure the second superjet is not tagged
+				else if(  (SJ1_BEST_scores < BEST_WP) && (SJ2_BEST_scores < BEST_WP) ) // want to be quite sure the second superjet is not tagged
 				{
 					double eventWeightToUse_NN = eventScaleFactor*=bTag_eventWeight_M;
 					 if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) eventWeightToUse_NN*=bTag_eventWeight_M;
 					 eventWeightToUse_NN *= pdf_weight*scale_weight;  // factWeight*renormWeight
 					h_MSJ_mass_vs_MdSJ_NN_ADT1b->Fill(diSuperJet_mass, (superJet_mass[0] + superJet_mass[1])/2.0,eventWeightToUse_NN);
+					h_BEST_score_ATSJ_ADT1b->Fill(SJ1_BEST_scores,eventWeightToUse_NN);
+					h_BEST_score_ATSJ_ADT1b->Fill(SJ2_BEST_scores,eventWeightToUse_NN);
 				}  
 
 			}
@@ -491,6 +548,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		std::cout << dataBlock << "/" << dataYear << "/" << systematic+ "_" + *systematic_suffix << " : there was a total of " << total_1b << "/" << total_0b << " events in the 1b/0b region (all pre-selected)." << std::endl;
 
 		delete h_MSJ_mass_vs_MdSJ_NN_SR, h_MSJ_mass_vs_MdSJ_NN_CR, h_MSJ_mass_vs_MdSJ_NN_AT1b,h_MSJ_mass_vs_MdSJ_NN_AT0b, h_MSJ_mass_vs_MdSJ_NN_ADT1b, h_MSJ_mass_vs_MdSJ_NN_ADT0b;
+		delete h_ATSJ_mass_vs_MdSJ_NN_AT1b, h_ATSJ_mass_vs_MdSJ_NN_AT0b, h_BEST_score_ATSJ_AT1b, h_BEST_score_ATSJ_AT0b;
+
 	}
 
    outFile->Close();
@@ -515,10 +574,11 @@ void processWPStudy()
 
    bool debug 				= false;
    bool _verbose     	= false;
-   bool runSignal    	= false;
+   bool runSignal    	= true;
    bool runBR	  			= false;
-   bool runAll	 			= true;
+   bool runAll	 			= false;
    bool runSelection 	= false;
+   bool runData  			= false;
    int nFailedFiles = 0;
    std::string failedFiles = "";
 
@@ -527,11 +587,8 @@ void processWPStudy()
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
 
-   dataYears = {"2018"};
-
-   if(runSelection) dataYears = {"2016"};
+   if(runSelection) dataYears = {"2018"};
    std::vector<std::string> systematics = { "nom", "scale", "bTagSF_med",  "JER", "JEC", "PUSF", "pdf"}; 
-
 
    std::vector<std::string> JEC2_ucerts = {"JEC"};
    std::vector<std::string> sig_JEC1_ucerts = {"JEC"}; // the types of uncertainties stored in the "JEC1" file for signal
@@ -540,13 +597,16 @@ void processWPStudy()
 
    std::vector<double> WPs = {0.25,0.30,0.35,0.40,0.45,0.5,0.55,0.60,0.65,0.70,0.80,0.90}; // ,0.92,0.95,0.97,0.98,0.99
 
+
+ 	WPs = {0.90};
+
    double BEST_AT_WP = 0.12;
 
    if(debug)
    {
    	dataYears = {"2017"};
-   	systematics = { "nom", "JER", "JEC", "PUSF"}; 
-   	WPs = {0.40,0.5,0.60};
+   	systematics = { "nom"};  // , "JER", "JEC", "PUSF"
+   	WPs = {0.40,0.50,0.60};
    }
 
 
@@ -556,6 +616,9 @@ void processWPStudy()
    std::vector<std::string> decays = {"WBWB","HTHT","ZTZT","WBHT","WBZT","HTZT"};
    std::vector<std::string> mass_points = {"Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5", "Suu6_chi2",
    "Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"};
+
+
+ 	mass_points = {"Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"};
 
    for(auto decay = decays.begin(); decay!= decays.end();decay++)
    {
@@ -636,6 +699,26 @@ void processWPStudy()
 			{
 				dataBlocks = signalFilePaths;
 			}
+			else if(runData)
+			{
+
+				if(*dataYear == "2015")
+				{
+					dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_"}; // dataB-ver1 not present
+				}
+				else if(*dataYear == "2016")
+				{
+					dataBlocks = {"dataF_", "dataG_", "dataH_"};
+				}
+				else if(*dataYear == "2017")
+				{
+					dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_"};
+				}
+				else if(*dataYear == "2018")
+				{
+					dataBlocks = {"dataA_","dataB_","dataC_","dataD_"};
+				}
+			}
 			else if(runBR)
 			{  
 			  dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
@@ -643,7 +726,7 @@ void processWPStudy()
 			}
 			else if(runSelection)
 			{
-				dataBlocks = { "QCDMC2000toInf_" } ; 
+				dataBlocks = {"Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"} ; 
 			}
 			else
 			{
@@ -658,9 +741,10 @@ void processWPStudy()
 
 				for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
 				{
-					//if(( (*dataBlock).find("Suu")!= std::string::npos ) &&( *systematic == "JER" )) continue; // why am I doing this?
 
-					
+					if (  (dataBlock->find("data") != std::string::npos)  && (*systematic != "nom") ) continue;
+
+
 					double nEvents = 0, nHTcut  = 0, nAK8JetCut = 0, nHeavyAK8Cut = 0, nBtagCut = 0, nDoubleTagged = 0, nNoBjets = 0;
 					double nDoubleTaggedCR = 0, NNDoubleTag = 0, nZeroBtagAntiTag = 0, nOneBtagAntiTag = 0;
 					double nNN_SR = 0, nNN_CR = 0 , nNN_AT1b = 0,nNN_AT0b = 0;
@@ -671,6 +755,8 @@ void processWPStudy()
 					if ((*systematic == "nom" )|| (*systematic == "bTagSF_med") || (*systematic == "bTagSF")|| (*systematic == "PUSF" ) || (*systematic == "pdf") || (*systematic == "scale") ) systematic_str = "nom";
 					else if ( std::find(JEC2_ucerts.begin(), JEC2_ucerts.end(), *systematic) != JEC2_ucerts.end() ) systematic_str = "JEC2";
 					else if ( systematic->find("JER") != std::string::npos ) systematic_str = "JER";
+
+
 
 
 					// find the correct systematic_str for signal
@@ -696,10 +782,7 @@ void processWPStudy()
 
 					if( failedFiles.find( (*dataBlock +"/" + year ).c_str()  ) != std::string::npos) continue; // skip files that failed for other uncertainties
 
-
 					std::cout << "Reading File " << inFileName << " for year,sample,systematic " << year << "/" <<*dataBlock << "/" << *systematic<< std::endl;
-
-
 
 					if (!doThings(inFileName,outFileName,nEvents,nHTcut,nAK8JetCut,nHeavyAK8Cut,nBtagCut,nDoubleTagged,nNoBjets,nDoubleTaggedCR, NNDoubleTag,nZeroBtagAntiTag, nOneBtagAntiTag, nNN_SR, nNN_CR, nNN_AT1b, nNN_AT0b, *dataYear,*systematic, *dataBlock, *WP, BEST_AT_WP, _verbose ))
 					{
@@ -727,6 +810,7 @@ void processWPStudy()
 						std::cout << std::endl;
 						std::cout << std::endl;
 						std::cout << std::endl;
+						std::cout << "Wrote out to " << outFileName << "." << std::endl;
 					}
 				} // end dataBlock loop
 			} // end systematic loop

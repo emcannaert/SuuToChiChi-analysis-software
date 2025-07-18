@@ -605,19 +605,18 @@ void readTreeApplySelection()
    std:string runType = "main-band";
    // you must change these ........
    bool runAll        = false;
-   bool runData       = false;
+   bool runData       = true;
    bool runSignal     = false;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
    bool runDataBR     = false;
    bool runTTbar      = false;
-   bool runSelection  = true;
+   bool runSelection  = false;
    bool runSingleFile = false;
    bool runExtras     = false;
    bool runSideband   = false;
 
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
    std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
-
 
    int yearNum = 0;
    int nFailedFiles = 0;

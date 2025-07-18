@@ -34,7 +34,7 @@ ROOT.gStyle.SetPalette(ROOT.kViridis)
 
 class combineHistBins:
 
-	def __init__(self,year,region,technique_str, debug=False, dryRun=False, runEos=False, WP=None):   #constructor will convert TH2 to a 2D array, do the optimized bin merging, and then return a TH2 with those associated bins
+	def __init__(self,year,region,technique_str, debug=False, dryRun=False, runEos=False, WP=None, max_stat_uncert = 0.175):   #constructor will convert TH2 to a 2D array, do the optimized bin merging, and then return a TH2 with those associated bins
 
 		self.WP = WP
 		self.year = year
@@ -47,7 +47,7 @@ class combineHistBins:
 		self.min_scaled_QCD_bin_counts   = 3.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird migration stuff
 
 
-		self.includeTTJetsMCHT800to1200 = False
+		self.includeTTJetsMCHT800to1200 = True
 		self.includeWJets   			= True
 		self.includeTTo 				= True
 
@@ -824,7 +824,7 @@ if __name__=="__main__":
 	years = ["2015","2016","2017","2018"]
 	regions = ["SR","CR", "AT1b", "AT0b"  ]   # "AT0tb", "AT1tb", "SB1b", "SB0b"
 
-   WPs = [0.25,0.30,0.35,0.40,0.45,0.5,0.55,0.60,0.65,0.70,0.80,0.90]
+	WPs = [0.25,0.30,0.35,0.40,0.45,0.5,0.55,0.60,0.65,0.70,0.80,0.90]
 
 
 	c = ROOT.TCanvas("c", "canvas", 1250, 1000)
@@ -844,7 +844,7 @@ if __name__=="__main__":
 
 	for WP in WPs:
 
-		WP_str = "{:.2f}".format(WP).replace(".","p")
+		WP_str = "WP" + "{:.2f}".format(WP).replace(".","p")
 
 		text_output_path  = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/WPStudy/WP%s"%WP_str
 		group_output_path = os.getenv('CMSSW_BASE') + "/src/postprocess/superbinGroups/WPStudy/WP%s"%WP_str
@@ -889,7 +889,18 @@ if __name__=="__main__":
 					print("Creating maps for %s/%s"%(region,year))
 
 					# give histogram to constructor
-					testCase = combineHistBins(year, region, output_strs[iii], debug,dryRun,runEos, WP_str)
+					try:
+						testCase = combineHistBins(year, region, output_strs[iii], debug,dryRun,runEos, WP_str, max_stat_uncert=0.175)
+						superbin_indices = testCase.superbin_indices
+					except: 
+						## IF THIS FAILS: TRY AGAIN WITH HIGHER STAT UNCERT THRESHOLD
+						try: 
+							higher_stat_uncert_threshold = 0.30
+							testCase = combineHistBins(year, region, output_strs[iii], debug,dryRun,runEos, WP_str, higher_stat_uncert_threshold)
+						except:
+							# give up and just give a placeholder
+							superbin_indices = []
+
 					#create a dummy histogram with dimensions 20x22
 					merged_bins = testCase.superbin_indices
 					bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Superbin Map for the %s for %s (%s); disuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125

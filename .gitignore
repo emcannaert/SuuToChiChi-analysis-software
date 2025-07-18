@@ -7,9 +7,9 @@ postprocess/pdf
 *.png
 *.root
 *.h5
-#data/
+data/**/*
+AN_data/**/*
 allaltCrabCfgs/*.pyc
-LHEWeightsReader/
 allAltCrabCfgs/crab_clusteringAnalyzer*cfg.py
 allAltCrabCfgs/crab_projects/
 #allCrabCfgs/
@@ -27,6 +27,7 @@ jsonpog-integration/
 *.json
 *.pkl
 *.tar
+allAltCrabCfgs/**/*
 *.tar.gz
 *.gz
 *cfg.py

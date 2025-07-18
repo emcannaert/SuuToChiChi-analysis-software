@@ -30,7 +30,10 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 		self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		if runEos:  self.processed_file_path =  self.eos_path + "/store/user/ecannaer/processedFiles/"
-		if WP: self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/WP_study/WP%s/"%self.WP
+		if WP: 
+			if "AT" in WP: WP_folder = WP[2:]
+			else: WP_folder = WP
+			self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/ATWP_study/%s/"%WP_folder
 
 		self.includeTTJetsMCHT800to1200 = includeTTJetsMCHT800to1200
 		self.includeWJets = includeWJets
@@ -62,7 +65,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 			self.hist_TTToLeptonicMC = self.load_hist("TTToLeptonicMC")
 
 		if self.includeWJets:
-			self.hist_WJetsMC_LNu_HT1200to2500 = self.load_hist("WJetsMC_LNu_HT800to1200")
+			self.hist_WJetsMC_LNu_HT800to1200 = self.load_hist("WJetsMC_LNu_HT800to1200")
 			self.hist_WJetsMC_LNu_HT1200to2500 = self.load_hist("WJetsMC_LNu_HT1200to2500")
 			self.hist_WJetsMC_LNu_HT2500toInf  = self.load_hist("WJetsMC_LNu_HT2500toInf")
 			self.hist_WJetsMC_QQ_HT800toInf    = self.load_hist("WJetsMC_QQ_HT800toInf")
@@ -132,6 +135,9 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 				if self.list_2000toInf[iii][jjj] > 0:
 					print("2000toInf bin value from histInfo is %s"%self.list_2000toInf[iii][jjj])
 		"""
+
+
+		if self.includeTTJetsMCHT800to1200: self.list_TTJetsMCHT800to1200 = self.convert_TH2(self.hist_TTJetsMCHT800to1200)
 		self.list_TTJetsMCHT1200to2500 = self.convert_TH2(self.hist_TTJetsMCHT1200to2500)
 		if not self.doSideband: self.list_TTJetsMCHT2500toInf = self.convert_TH2(self.hist_TTJetsMCHT2500toInf)
 
@@ -149,7 +155,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 			self.list_TTToLeptonicMC     = self.convert_TH2(self.hist_TTToLeptonicMC)
 
 		if self.includeWJets:
-			self.list_WJetsMC_LNu_HT1200to2500 = self.convert_TH2(self.hist_WJetsMC_LNu_HT1200to2500)
+			self.list_WJetsMC_LNu_HT800to1200 = self.convert_TH2(self.hist_WJetsMC_LNu_HT800to1200)
 			self.list_WJetsMC_LNu_HT1200to2500 = self.convert_TH2(self.hist_WJetsMC_LNu_HT1200to2500)
 			self.list_WJetsMC_LNu_HT2500toInf  = self.convert_TH2(self.hist_WJetsMC_LNu_HT2500toInf)
 			self.list_WJetsMC_QQ_HT800toInf    = self.convert_TH2(self.hist_WJetsMC_QQ_HT800toInf)
@@ -166,6 +172,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 		hist.FillRandom("gaussian_func", nentries)
 
 		return hist
+
 
 
 	def get_contribution_count(self, contribution, iii,jjj):  #### return the (unscaled) counts in the iii,jjjth bin of contribution type
@@ -428,27 +435,32 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 	def load_hist(self,dataset_type): ## returns the designated UNSCALED histogram 
 
 		WP_prefix = ""
-		if self.WP: WP_prefix = "WP"+ self.WP + "_"
+		WP_name_str = WP_prefix
+		if self.WP: 
+			WP_prefix =  self.WP + "_"
+			#WP_name_str =  WP_prefix[2:]
+			WP_name_str = WP_prefix
+
 
 		#self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		if self.region in ["SB1b", "SB0b"]: self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/sideband_processedFiles/"
 		ROOT.TH1.AddDirectory(False)
 		if "TTToHadronicMC" in dataset_type:
-			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_prefix)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_name_str)
 		elif "TTToSemiLeptonicMC" in dataset_type:
-			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_prefix)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_name_str)
 		elif "TTToLeptonicMC" in dataset_type:
-			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_prefix)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_name_str)
 		elif dataset_type == "WJetsMC_LNu_HT1200to2500":
-			hist_path = self.processed_file_path + "WJetsMC_LNu-HT1200to2500_%s_%sprocessed.root"%(self.year,WP_prefix)
+			hist_path = self.processed_file_path + "WJetsMC_LNu-HT1200to2500_%s_%sprocessed.root"%(self.year,WP_name_str)
 		elif dataset_type == "WJetsMC_LNu_HT2500toInf":
-			hist_path = self.processed_file_path + " WJetsMC_LNu-HT2500toInf_%s_%sprocessed.root"%(self.year,WP_prefix)
+			hist_path = self.processed_file_path + "WJetsMC_LNu-HT2500toInf_%s_%sprocessed.root"%(self.year,WP_name_str)
 		elif dataset_type == "WJetsMC_LNu_HT800to1200":
-			hist_path = self.processed_file_path + "WJetsMC_LNu-HT800to1200_%s_%sprocessed.root"%(self.year,WP_prefix)
+			hist_path = self.processed_file_path + "WJetsMC_LNu-HT800to1200_%s_%sprocessed.root"%(self.year,WP_name_str)
 		elif dataset_type == "WJetsMC_QQ_HT800toInf":
-			hist_path = self.processed_file_path + "WJetsMC_QQ-HT800toInf_%s_%sprocessed.root"%(self.year,WP_prefix)
+			hist_path = self.processed_file_path + "WJetsMC_QQ-HT800toInf_%s_%sprocessed.root"%(self.year,WP_name_str)
 		else:
-			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_prefix)
+			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_name_str)
 		#print("hist_path", hist_path)
 		hist_name = "h_MSJ_mass_vs_MdSJ_%s%s"%(self.technique_str,self.region)   # need to find what the name of this histogram
 		print("hist name is: %s in file %s"%(hist_name,hist_path)  )
@@ -467,7 +479,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 
 		WP_prefix = ""
-		if self.WP: WP_prefix = "WP"+self.WP + "_"
+		if self.WP: WP_prefix = self.WP + "_"
 
 		#self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		combined_data = ROOT.TH2F("data_combined_%s"%(self.region),"Double Tagged Superjet mass vs diSuperjet mass (%s) (data combined) (%s); diSuperjet mass [GeV];superjet mass"%(self.region, self.year), self.n_bins_x,1250., 10000, self.n_bins_y, 500, 5000) #375 * 125

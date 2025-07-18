@@ -27,8 +27,18 @@ class hist_loader:
 		self.WP = WP 
 		self.WP_str = ""
 		if self.WP: 
-			self.WP = "WP" + self.WP
+
+			
+			if "AT" in self.WP: 
+				self.WP_folder = self.WP[2:]
+			else:
+				self.WP = "WP" + self.WP
+				self.WP_folder = self.WP
+
 			self.WP_str = self.WP + "_"
+
+			
+
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 
@@ -37,8 +47,8 @@ class hist_loader:
 		self.HT_distr_home = "HT_distributions/" # extra folder where output files are saved for HT distribution plots
 
 		if self.WP:
-			self.MC_root_file_home	    = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study/WP%s/"%WP
-			self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study/WP%s/"%WP
+			self.MC_root_file_home	    = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
+			self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 
 
 
@@ -47,8 +57,8 @@ class hist_loader:
 			self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
 
 			if self.WP:
-				self.MC_root_file_home	    =  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study/WP%s/"%WP
-				self.data_root_file_home	=  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study/WP%s/"%WP
+				self.MC_root_file_home	    =  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
+				self.data_root_file_home	=  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 
 
 
@@ -90,8 +100,13 @@ class hist_loader:
 
 
 		if self.WP:
-			self.systematics 	  = ["nom",   "bTagSF_med",       "JER",	  "JEC",     "PUSF",	  "pdf",	   "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
-			self.systematic_names = ["nom",  "CMS_bTagSF_M" ,   "CMS_jer",  "CMS_jec",  "CMS_pu",   "CMS_pdf",    "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+			self.systematics 	  = ["nom"]   ## systematic namings as used in analyzer	 "bTagSF",   
+			self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	           "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+
+
+		if self.WP:
+			self.systematics 	  = ["nom"]   
+			self.systematic_names = ["nom"] 
 
 
 
@@ -1137,7 +1152,7 @@ class hist_loader:
 			#JetHT_"+ *dataBlock+"_"+*year+"_%sprocessed.root   -> naming, self.WP_str scheme 
 			for data_block in data_blocks:
 				#print("Looking for %s/%s/%s/%s"%(data_block,self.year,sys_str,region))
-				hist_path_data = use_filepath + "%s_%s_%sprocessed.root"%(data_block, self.WP_strk,self.year)
+				hist_path_data = use_filepath + "%s_%s_%sprocessed.root"%(data_block,self.year,self.WP_str)
 				TH2_file_data = ROOT.TFile.Open(hist_path_data,"READ")
 				hist_name_data = "%s_%s%s"%(self.final_hist_name,self.technique_str, region )
 
@@ -1492,5 +1507,57 @@ class hist_loader:
 			print("Superbin %s: %s scaled counts, %s unscaled counts, %s stat uncertainty."%(iii, self.get_scaled_superbin_counts( iii, "AT1b" ), self.get_unscaled_superbin_counts(iii, "AT1b"), self.get_superbin_uncert(iii, "AT1b")   ))
 
 		return
+
+	def return_formatted_summary_str(self):
+
+	 	BR_SFs = return_BR_SF()
+
+		total_BR = sum([self.QCD1000to1500_hist_SR[0][0].Integral()*BR_SFs["QCDMC1000to1500"][self.year], self.QCD1500to2000_hist_SR[0][0].Integral()*BR_SFs["QCDMC1500to2000"][self.year], self.QCD2000toInf_hist_SR[0][0].Integral()*BR_SFs["QCDMC2000toInf"][self.year],
+
+			self.ST_t_channel_top_hist_SR[0][0].Integral()*BR_SFs["ST_t_channel_top_inclMC"][self.year], 
+			self.ST_t_channel_antitop_hist_SR[0][0].Integral()*BR_SFs["ST_t_channel_antitop_incMC"][self.year], 
+			self.ST_s_channel_hadrons_hist_SR[0][0].Integral()*BR_SFs["ST_s_channel_hadronsMC"][self.year], 
+			self.ST_s_channel_leptons_hist_SR[0][0].Integral()*BR_SFs["ST_s_channel_leptonsMC"][self.year], 
+			self.ST_tW_antitop_hist_SR[0][0].Integral()*BR_SFs["ST_tW_antiTop_inclMC"][self.year], 
+			self.ST_tW_top_hist_SR[0][0].Integral()*BR_SFs["ST_tW_top_inclMC"][self.year], 
+
+			self.TTToHadronicMC_SR[0][0].Integral()*BR_SFs["TTToHadronicMC"][self.year], 
+			self.TTToSemiLeptonicMC_SR[0][0].Integral()*BR_SFs["TTToSemiLeptonicMC"][self.year], 
+			self.TTToLeptonicMC_SR[0][0].Integral()*BR_SFs["TTToLeptonicMC"][self.year], 
+
+			self.WJetsMC_LNu_HT800to1200_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT800to1200"][self.year], 
+			self.WJetsMC_LNu_HT1200to2500_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT1200to2500"][self.year], 
+			self.WJetsMC_LNu_HT2500toInf_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT2500toInf"][self.year], 
+			self.WJetsMC_QQ_HT800toInf_SR[0][0].Integral()*BR_SFs["WJetsMC_QQ_HT800toInf"][self.year] ]  )
+
+		summary_str = "%s"%(total_BR )
+
+		return summary_str
+
+	def return_formatted_AT1b_summary_str(self):
+
+	 	BR_SFs = return_BR_SF()
+
+		total_BR = sum([self.QCD1000to1500_hist_AT1b[0][0].Integral()*BR_SFs["QCDMC1000to1500"][self.year], self.QCD1500to2000_hist_AT1b[0][0].Integral()*BR_SFs["QCDMC1500to2000"][self.year], self.QCD2000toInf_hist_AT1b[0][0].Integral()*BR_SFs["QCDMC2000toInf"][self.year],
+
+			self.ST_t_channel_top_hist_AT1b[0][0].Integral()*BR_SFs["ST_t_channel_top_inclMC"][self.year], 
+			self.ST_t_channel_antitop_hist_AT1b[0][0].Integral()*BR_SFs["ST_t_channel_antitop_incMC"][self.year], 
+			self.ST_s_channel_hadrons_hist_AT1b[0][0].Integral()*BR_SFs["ST_s_channel_hadronsMC"][self.year], 
+			self.ST_s_channel_leptons_hist_AT1b[0][0].Integral()*BR_SFs["ST_s_channel_leptonsMC"][self.year], 
+			self.ST_tW_antitop_hist_AT1b[0][0].Integral()*BR_SFs["ST_tW_antiTop_inclMC"][self.year], 
+			self.ST_tW_top_hist_AT1b[0][0].Integral()*BR_SFs["ST_tW_top_inclMC"][self.year], 
+
+			self.TTToHadronicMC_AT1b[0][0].Integral()*BR_SFs["TTToHadronicMC"][self.year], 
+			self.TTToSemiLeptonicMC_AT1b[0][0].Integral()*BR_SFs["TTToSemiLeptonicMC"][self.year], 
+			self.TTToLeptonicMC_AT1b[0][0].Integral()*BR_SFs["TTToLeptonicMC"][self.year], 
+
+			self.WJetsMC_LNu_HT800to1200_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT800to1200"][self.year], 
+			self.WJetsMC_LNu_HT1200to2500_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT1200to2500"][self.year], 
+			self.WJetsMC_LNu_HT2500toInf_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT2500toInf"][self.year], 
+			self.WJetsMC_QQ_HT800toInf_AT1b[0][0].Integral()*BR_SFs["WJetsMC_QQ_HT800toInf"][self.year] ]  )
+
+		summary_str = "%s"%(total_BR )
+
+		return summary_str
 
 

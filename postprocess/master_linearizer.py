@@ -1387,10 +1387,10 @@ class linearized_plot:
 		ST_AT1b_stat_uncert_down.Reset()
 
 		if self.includeTTTo:
-			TTTo_AT1b_stat_uncert_up = self.TTTo_linear_SR[0][0].Clone("TTTo_stat%sUp"%year_str)
+			TTTo_AT1b_stat_uncert_up = self.TTTo_linear_AT1b[0][0].Clone("TTTo_stat%sUp"%year_str)
 			TTTo_AT1b_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 			TTTo_AT1b_stat_uncert_up.Reset()
-			TTTo_AT1b_stat_uncert_down = self.TTTo_linear_SR[0][0].Clone("ST_stat%sDown"%year_str)
+			TTTo_AT1b_stat_uncert_down = self.TTTo_linear_AT1b[0][0].Clone("ST_stat%sDown"%year_str)
 			TTTo_AT1b_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 			TTTo_AT1b_stat_uncert_down.Reset()
 
@@ -1524,10 +1524,10 @@ class linearized_plot:
 		ST_AT0b_stat_uncert_down.Reset()
 
 		if self.includeTTTo:
-			TTTo_AT0b_stat_uncert_up = self.TTTo_linear_SR[0][0].Clone("TTTo_stat%sUp"%year_str)
+			TTTo_AT0b_stat_uncert_up = self.TTTo_linear_AT0b[0][0].Clone("TTTo_stat%sUp"%year_str)
 			TTTo_AT0b_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 			TTTo_AT0b_stat_uncert_up.Reset()
-			TTTo_AT0b_stat_uncert_down = self.TTTo_linear_SR[0][0].Clone("ST_stat%sDown"%year_str)
+			TTTo_AT0b_stat_uncert_down = self.TTTo_linear_AT0b[0][0].Clone("ST_stat%sDown"%year_str)
 			TTTo_AT0b_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 			TTTo_AT0b_stat_uncert_down.Reset()
 		if self.includeWJets:
@@ -1665,10 +1665,10 @@ class linearized_plot:
 			ST_AT0tb_stat_uncert_down.Reset()
 
 			if self.includeTTTo:
-				TTTo_AT0tb_stat_uncert_up = self.TTTo_linear_SR[0][0].Clone("TTTo_stat%sUp"%year_str)
+				TTTo_AT0tb_stat_uncert_up = self.TTTo_linear_AT0tb[0][0].Clone("TTTo_stat%sUp"%year_str)
 				TTTo_AT0tb_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 				TTTo_AT0tb_stat_uncert_up.Reset()
-				TTTo_AT0tb_stat_uncert_down = self.TTTo_linear_SR[0][0].Clone("ST_stat%sDown"%year_str)
+				TTTo_AT0tb_stat_uncert_down = self.TTTo_linear_AT0tb[0][0].Clone("ST_stat%sDown"%year_str)
 				TTTo_AT0tb_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 				TTTo_AT0tb_stat_uncert_down.Reset()
 			if self.includeWJets:
@@ -1786,10 +1786,10 @@ class linearized_plot:
 			ST_AT1tb_stat_uncert_down.Reset()
 
 			if self.includeTTTo:
-				TTTo_AT1tb_stat_uncert_up = self.TTTo_linear_SR[0][0].Clone("TTTo_stat%sUp"%year_str)
+				TTTo_AT1tb_stat_uncert_up = self.TTTo_linear_AT1tb[0][0].Clone("TTTo_stat%sUp"%year_str)
 				TTTo_AT1tb_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 				TTTo_AT1tb_stat_uncert_up.Reset()
-				TTTo_AT1tb_stat_uncert_down = self.TTTo_linear_SR[0][0].Clone("ST_stat%sDown"%year_str)
+				TTTo_AT1tb_stat_uncert_down = self.TTTo_linear_AT1tb[0][0].Clone("ST_stat%sDown"%year_str)
 				TTTo_AT1tb_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 				TTTo_AT1tb_stat_uncert_down.Reset()
 			if self.includeWJets:
@@ -2402,7 +2402,7 @@ class linearized_plot:
 			#print("BR_type/sys_str is %s/%s"%(BR_type,sys_str))
 			linear_plot_size = len(use_indices)  - mask_size  ## subtract off mask size
 
-			print("For %s/%s/%s/%s/%s plots created to have %s bins (number of SRCR superbins= %s, number of AT superbins= %s)"%(BR_type, region, systematic,self.year,self.technique_str, linear_plot_size,len(self.superbin_indices),len(self.superbin_indices_AT) ))
+			#print("For %s/%s/%s/%s/%s plots created to have %s bins (number of SRCR superbins= %s, number of AT superbins= %s)"%(BR_type, region, systematic,self.year,self.technique_str, linear_plot_size,len(self.superbin_indices),len(self.superbin_indices_AT) ))
 
 			#print("Creating a linearized histogram for %s/%s with %s bins."%(self.year,region,linear_plot_size))
 			if forStats:

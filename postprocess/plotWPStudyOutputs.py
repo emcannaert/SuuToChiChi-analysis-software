@@ -2,128 +2,126 @@ import ROOT
 import os
 from return_BR_SF.return_BR_SF import return_BR_SF
 
-
-# Disable GUI (batch mode)
 ROOT.gROOT.SetBatch(True)
 
-# Working points to loop over
-working_points = ["25","30","35","40","45", "50","55", "60", "65", "70", "80",  "90"]
-years = ["2015","2016","2017","2018"]
+working_points = ["25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "80"]
 
-first_page = True
-
-base_dir = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/WP_study"
-output_pdf = os.path.join(base_dir, "combined_background_hists.pdf")
+working_points = ["05","10","12","15","17","20","25"]
 
 
-for year in years:
+years = ["2015", "2016", "2017", "2018"]
+hist_names = [
+    "h_MSJ_mass_vs_MdSJ_NN_SR",
+    "h_ATSJ_mass_vs_MdSJ_NN_AT1b",
+    "h_BEST_score_ATSJ_AT1b",
+    "h_ATSJ_mass_vs_MdSJ_NN_AT0b",
+    "h_BEST_score_ATSJ_AT0b"
+]
 
-    qcd_samples = {
-        #"QCDMC1000to1500": return_BR_SF(year,"QCD1000to1500".replace("-","_")) ,  # TODO: Replace with actual scale factor
-        #"QCDMC1500to2000": return_BR_SF(year,"QCD1500to2000".replace("-","_")) ,  # TODO: Replace with actual scale factor
-        "QCDMC2000toInf":  return_BR_SF(year,"QCD2000toInf".replace("-","_")) ,   # TODO: Replace with actual scale factor
+base_dir = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study"
 
-        #"WJetsMC_LNu-HT1200to2500": return_BR_SF(year,"WJetsMC_LNu-HT1200to2500".replace("-","_"))  ,
-        #"WJetsMC_LNu-HT2500toInf": return_BR_SF(year,"WJetsMC_LNu-HT2500toInf".replace("-","_")) ,
-        #"WJetsMC_LNu-HT800to1200": return_BR_SF(year,"WJetsMC_LNu-HT800to1200".replace("-","_")) ,
-        #"WJetsMC_QQ-HT800toInf":   return_BR_SF(year,"WJetsMC_QQ-HT800toInf".replace("-","_")) ,
+for hist_name in hist_names:
 
-        #"TTToHadronicMC": return_BR_SF(year,"TTToHadronicMC".replace("-","_")) ,
-        #"TTToLeptonicMC": return_BR_SF(year,"TTToLeptonicMC".replace("-","_")) ,
-        #"TTToSemiLeptonicMC": return_BR_SF(year,"TTToSemiLeptonicMC".replace("-","_")) ,
-        
-        #"TTJetsMCHT800to1200":   return_BR_SF(year,"TTJetsMCHT800to1200".replace("-","_")) ,
-        #"TTJetsMCHT1200to2500": return_BR_SF(year,"TTJetsMCHT1200to2500".replace("-","_")) ,
-        #"TTJetsMCHT2500toInf": return_BR_SF(year,"TTJetsMCHT2500toInf".replace("-","_")) ,
+    output_pdf = os.path.join(base_dir, "combined_" + hist_name + ".pdf")
+    first_page = True
 
+    for year in years:
 
-        #"ST_s-channel-hadronsMC": return_BR_SF(year,"ST_s-channel-hadronsMC".replace("-","_")) ,
-        #"ST_s-channel-leptonsMC": return_BR_SF(year,"ST_s-channel-leptonsMC".replace("-","_")) ,
-        #"ST_t-channel-antitop_inclMC": return_BR_SF(year,"ST_t-channel-antitop_inclMC".replace("-","_")) ,
-        #"ST_t-channel-top_inclMC":return_BR_SF(year,"ST_t-channel-top_inclMC".replace("-","_"))  ,
-        #"ST_tW-antiTop_inclMC": return_BR_SF(year,"ST_tW-antiTop_inclMC".replace("-","_")) ,
-        #"ST_tW-top_inclMC":  return_BR_SF(year,"ST_tW-top_inclMC".replace("-","_")) 
-    }
+        qcd_samples = {
+            "QCDMC1000to1500": return_BR_SF(year, "QCD1000to1500"),
+            "QCDMC1500to2000": return_BR_SF(year, "QCD1500to2000"),
+            "QCDMC2000toInf": return_BR_SF(year, "QCD2000toInf"),
+            "WJetsMC_LNu-HT1200to2500": return_BR_SF(year, "WJetsMC_LNu-HT1200to2500".replace("-","_")),
+            "WJetsMC_LNu-HT2500toInf": return_BR_SF(year, "WJetsMC_LNu-HT2500toInf".replace("-","_")),
+            "WJetsMC_LNu-HT800to1200": return_BR_SF(year, "WJetsMC_LNu-HT800to1200".replace("-","_")),
+            "WJetsMC_QQ-HT800toInf": return_BR_SF(year, "WJetsMC_QQ-HT800toInf".replace("-","_")),
+            "TTToHadronicMC": return_BR_SF(year, "TTToHadronicMC"),
+            "TTToLeptonicMC": return_BR_SF(year, "TTToLeptonicMC"),
+            "TTToSemiLeptonicMC": return_BR_SF(year, "TTToSemiLeptonicMC"),
+            "ST_s-channel-hadronsMC": return_BR_SF(year, "ST_s-channel-hadronsMC".replace("-","_")),
+            "ST_s-channel-leptonsMC": return_BR_SF(year, "ST_s-channel-leptonsMC".replace("-","_")),
+            "ST_t-channel-antitop_inclMC": return_BR_SF(year, "ST_t-channel-antitop_inclMC".replace("-","_")),
+            "ST_t-channel-top_inclMC": return_BR_SF(year, "ST_t-channel-top_inclMC".replace("-","_")),
+            "ST_tW-antiTop_inclMC": return_BR_SF(year, "ST_tW-antiTop_inclMC".replace("-","_")),
+            "ST_tW-top_inclMC": return_BR_SF(year, "ST_tW-top_inclMC".replace("-","_"))
+        }
 
+        for wp in working_points:
 
-    for wp in working_points:
-        wp_dir = os.path.join(base_dir, "WP0p" + wp)
-        print "Processing WP:", wp
+            c = ROOT.TCanvas("c", "c", 1200, 1200)
+            wp_dir = os.path.join(base_dir, "WP0p" + wp)
+            print "Processing WP:", wp, "Hist:", hist_name
 
-        combined_hist = None
+            combined_hist = None
 
-        for sample in qcd_samples:
-            scale = qcd_samples[sample]
-            file_name = "%s_%s_WP0p%s_processed.root" % (sample, year, wp)
-            file_path = os.path.join(wp_dir, file_name)
+            for sample in qcd_samples:
+                scale = qcd_samples[sample]
+                file_name = sample + "_" + year + "_ATWP0p" + wp + "_processed.root"
+                file_path = os.path.join(wp_dir, file_name)
 
-            if not os.path.exists(file_path):
-                print "  WARNING: File not found:", file_path
-                continue
+                if not os.path.exists(file_path):
+                    print "  WARNING: File not found:", file_path
+                    continue
 
-            f = ROOT.TFile.Open(file_path)
-            if not f or f.IsZombie():
-                print "  ERROR: Could not open:", file_path
-                continue
+                f = ROOT.TFile.Open(file_path)
+                if not f or f.IsZombie():
+                    print "  ERROR: Could not open:", file_path
+                    continue
 
-            hist = f.Get("nom/h_MSJ_mass_vs_MdSJ_NN_SR")
-            if not hist:
-                print "  ERROR: Histogram not found in:", file_path
+                hist = f.Get("nom/" + hist_name)
+                if not hist:
+                    print "  ERROR: Histogram not found:", hist_name, "in", file_path
+                    f.Close()
+                    continue
+
+                hist.SetDirectory(0)
+                hist.Scale(scale)
                 f.Close()
-                continue
 
-            hist.SetDirectory(0)
-            f.Close()
+                if combined_hist is None:
+                    combined_hist = hist.Clone("combined_hist")
+                else:
+                    combined_hist.Add(hist)
 
-            hist.Scale(scale)
+            if combined_hist:
+                c.SetRightMargin(0.15)
+                c.SetLogz()
+                combined_hist.SetTitle(hist_name + " (Year " + year + ", AT WP = 0." + wp + ")")
+                combined_hist.GetZaxis().SetTitleOffset(1.2)
+                combined_hist.SetStats(0)
+                combined_hist.Draw("COLZ")
 
-            if combined_hist is None:
-                combined_hist = hist.Clone("combined_hist")
+                label = ROOT.TLatex()
+                label.SetNDC()
+                label.SetTextSize(0.045)
+                label.SetTextFont(62)
+                label.DrawLatex(0.18, 0.92, "Year: " + year + "   AT WP: " + "0."+ wp)
+
+                png_path = os.path.join(wp_dir, "combined_" + hist_name + "_" + year + "_ATWP0p" + wp + ".png")
+                root_out_path = os.path.join(wp_dir, "combined_" + hist_name + "_" + year + "_ATWP0p" + wp + ".root")
+
+                c.SaveAs(png_path)
+
+                if first_page:
+                    c.SaveAs(output_pdf + "[")
+                    first_page = False
+
+                c.SaveAs(output_pdf)
+
+                out_file = ROOT.TFile(root_out_path, "RECREATE")
+                combined_hist.Write()
+                out_file.Close()
+
+                print "Saved", hist_name, "for WP", wp
             else:
-                combined_hist.Add(hist)
+                print "No histograms combined for", hist_name, "WP", wp
 
-        if combined_hist:
-            # Draw and save
-            c = ROOT.TCanvas("c", "c", 800, 700)
-            c.SetRightMargin(0.15)
-            c.SetLogz()
+            del c
 
-            combined_hist.SetTitle("Combined Background (WP %s)" % wp)
-            combined_hist.GetZaxis().SetTitleOffset(1.2)
-            combined_hist.SetStats(0)
-            combined_hist.Draw("COLZ")
-
-            img_path = os.path.join(wp_dir, "combined_hist_WP0p%s.png" % wp)
-            root_out_path = os.path.join(wp_dir, "combined_hist_WP0p%s.root" % wp)
-
-
-            # Add bold label with TLatex
-            label = ROOT.TLatex()
-            label.SetNDC()
-            label.SetTextSize(0.045)
-            label.SetTextFont(62)  # 62 = bold
-            label.DrawLatex(0.18, 0.92, "Year: %s   WP: %s" % (year, wp))
-
-            c.SaveAs(img_path)
-
-            # Append to multi-page PDF
-            if first_page:
-                c.SaveAs(output_pdf + "[")  # Open PDF
-                first_page = False
-
-            c.SaveAs(output_pdf)
-
-            out_file = ROOT.TFile(root_out_path, "RECREATE")
-            combined_hist.Write()
-            out_file.Close()
-
-            print "Saved histogram for WP %s" % wp
-        else:
-            print "No histograms combined for WP %s" % wp
-
-# Close multi-page PDF
-if not first_page:
-    c.SaveAs(output_pdf + "]")  # Close PDF
-    print "All plots written to", output_pdf
-else:
-    print "No plots were created, PDF not generated."
+    c2 = ROOT.TCanvas("", "", 1200, 1200)
+    if not first_page:
+        c2.SaveAs(output_pdf + "]")
+        print "All plots written to", output_pdf
+    else:
+        print "No plots created for", hist_name, "PDF not generated."
+    del c2

@@ -989,7 +989,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       if(_verbose)std::cout << "Setting up MC-specific stuff (genParts tokens, MC-specific TTree vars)" << std::endl;
 
       genPartToken_           = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genPartCollection"));
-      packedGenParticleToken_ = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("packedGenParticles"));
+      //packedGenParticleToken_ = consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("packedGenParticles"));
       genParticleToken_       = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticles"));
       puSummaryToken_         = consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupCollection"));
 
@@ -3482,11 +3482,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             {
                if( systematicType.find("_up") != std::string::npos ) 
                {
-                  sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::UP);    // SF + 1 sigma uncertainty
+                  sJER = resolution_sf.getScaleFactor(parameters, Variation::UP);    // SF + 1 sigma uncertainty
                }
                else if( systematicType.find("_down") != std::string::npos ) 
                {
-                  sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::DOWN);  // SF - 1 sigma uncertainty
+                  sJER = resolution_sf.getScaleFactor(parameters, Variation::DOWN);  // SF - 1 sigma uncertainty
                }
             }
 
