@@ -33,6 +33,18 @@ def make_plots(file_dir, hist_names,output_dir):
         "#F46D43",  # Coral Pink
         "#5E4FA2",  # Cool Blue
         "#006837",  # Forest Green
+
+        # Additional 10 hex colors
+        "#E31A1C",  # Crimson Red
+        "#FF7F00",  # Vivid Orange
+        "#FDBF6F",  # Pale Orange
+        "#CAB2D6",  # Lavender
+        "#6A3D9A",  # Grape Purple
+        "#B15928",  # Brown
+        "#A6CEE3",  # Light Blue
+        "#1F78B4",  # Medium Blue
+        "#33A02C",  # Lime Green
+        "#B2DF8A",  # Mint Green
     ]
 
     colors = [ROOT.TColor.GetColor(hex_code) for hex_code in color_hexes]
@@ -51,8 +63,21 @@ def make_plots(file_dir, hist_names,output_dir):
     "TTToSemiLeptonicMC",
     "TTToHadronicMC",
     "QCDMC1000to1500",
-     "QCDMC1500to2000",
-    "QCDMC2000toInf"] 
+    "QCDMC1500to2000",
+    "QCDMC2000toInf"
+
+    #"QCDMC_Pt_170to300",
+    #"QCDMC_Pt_300to470",
+    #"QCDMC_Pt_470to600",
+    #"QCDMC_Pt_600to800",
+    #"QCDMC_Pt_800to1000",
+    #"QCDMC_Pt_1000to1400",
+    #"QCDMC_Pt_1400to1800",
+    #"QCDMC_Pt_1800to2400",
+    #"QCDMC_Pt_2400to3200",
+    #"QCDMC_Pt_3200toInf"
+
+    ] 
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
@@ -106,6 +131,21 @@ def make_plots(file_dir, hist_names,output_dir):
                 "QCDMC1500to2000": return_BR_SF(year, "QCD1500to2000"),
                 "QCDMC2000toInf": return_BR_SF(year, "QCD2000toInf"),
 
+
+                #"QCDMC_Pt_170to300":   return_BR_SF(year, "QCDMC_Pt_170to300"),
+                #"QCDMC_Pt_300to470":    return_BR_SF(year, "QCDMC_Pt_300to470"),
+                #"QCDMC_Pt_470to600":     return_BR_SF(year, "QCDMC_Pt_470to600"),
+                #"QCDMC_Pt_600to800":    return_BR_SF(year, "QCDMC_Pt_600to800"),
+                #"QCDMC_Pt_800to1000":   return_BR_SF(year, "QCDMC_Pt_800to1000"),
+                #"QCDMC_Pt_1000to1400":   return_BR_SF(year, "QCDMC_Pt_1000to1400"),
+                #"QCDMC_Pt_1400to1800":  return_BR_SF(year, "QCDMC_Pt_1400to1800"),
+                #"QCDMC_Pt_1800to2400":  return_BR_SF(year, "QCDMC_Pt_1800to2400"),
+                #"QCDMC_Pt_2400to3200":  return_BR_SF(year, "QCDMC_Pt_2400to3200"),
+                #"QCDMC_Pt_3200toInf":   return_BR_SF(year, "QCDMC_Pt_3200toInf")
+            
+
+
+
             }
 
             data_samples = {"2015": ["dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM"], 
@@ -113,6 +153,9 @@ def make_plots(file_dir, hist_names,output_dir):
             "2017": ["dataB","dataC","dataD","dataE","dataF"], 
             "2018": ["dataA","dataB", "dataC", "dataD"] }
 
+
+
+            found_samples = []
 
             ### combined BRs
             combined_hist_BR = None
@@ -137,6 +180,8 @@ def make_plots(file_dir, hist_names,output_dir):
                     print "  ERROR: Histogram not found:", hist_name, "in", file_path
                     f.Close()
                     continue
+
+                found_samples.append(sample)
 
                 if iii == 0: 
                     hs.SetTitle("%s %s"%(hist.GetTitle(), hs.GetTitle()))
@@ -282,7 +327,15 @@ def make_plots(file_dir, hist_names,output_dir):
                 legend.SetBorderSize(0)
                 legend.SetFillStyle(0) 
 
-                legend.AddEntry(BR_hists[0], "ST-s-channel-hadrons", "f")
+                print("there are %s BR hists found. "%(len(BR_hists)))
+
+
+
+                for iii,found_sample in enumerate(found_samples):
+                    legend.AddEntry(BR_hists[iii], found_sample, "f")
+
+
+                """legend.AddEntry(BR_hists[0], "ST-s-channel-hadrons", "f")
                 legend.AddEntry(BR_hists[1], "ST_s-channel-leptons", "f")
                 legend.AddEntry(BR_hists[2], "ST_t-channel-antitop", "f")
                 legend.AddEntry(BR_hists[3], "ST_t-channel-top", "f")
@@ -295,9 +348,21 @@ def make_plots(file_dir, hist_names,output_dir):
                 legend.AddEntry(BR_hists[10], "TTToLeptonic", "f")
                 legend.AddEntry(BR_hists[11], "TTToSemiLeptonic", "f")
                 legend.AddEntry(BR_hists[12], "TTToHadronic", "f")
-                legend.AddEntry(BR_hists[13], "QCD1000to1500", "f")
-                legend.AddEntry(BR_hists[14], "QCD1500to2000", "f")
-                legend.AddEntry(BR_hists[15], "QCD2000toInf", "f")
+                #legend.AddEntry(BR_hists[13], "QCD1000to1500", "f")
+                #legend.AddEntry(BR_hists[14], "QCD1500to2000", "f")
+                #legend.AddEntry(BR_hists[15], "QCD2000toInf", "f")
+
+
+                legend.AddEntry(BR_hists[13], "QCDMC_Pt_170to300", "f")
+                legend.AddEntry(BR_hists[14], "QCDMC_Pt_300to470", "f")
+                legend.AddEntry(BR_hists[15], "QCDMC_Pt_470to600", "f")
+                legend.AddEntry(BR_hists[16], "QCDMC_Pt_600to800", "f")
+                legend.AddEntry(BR_hists[17], "QCDMC_Pt_800to1000", "f")
+                legend.AddEntry(BR_hists[18], "QCDMC_Pt_1000to1400", "f")
+                legend.AddEntry(BR_hists[19], "QCDMC_Pt_1400to1800", "f")
+                legend.AddEntry(BR_hists[20], "QCDMC_Pt_1800to2400", "f")
+                legend.AddEntry(BR_hists[21], "QCDMC_Pt_2400to3200", "f")
+                legend.AddEntry(BR_hists[22], "QCDMC_Pt_3200toInf", "f")"""
 
 
                 legend.AddEntry(combined_data, "Data", "p")

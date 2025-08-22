@@ -28,7 +28,7 @@ class linearized_plot:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, mass_point, technique_str, all_BR_hists, useMask=False, createDummyChannel=False, run_from_eos = False, debug=False):
+	def __init__(self, year, mass_point, technique_str, all_BR_hists,output_map_file,  use_QCD_Pt=False, useMask=False, use_1b_bin_maps = False, createDummyChannel=False, run_from_eos = False, debug=False):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
@@ -38,9 +38,18 @@ class linearized_plot:
 		self.createDummyChannel = createDummyChannel
 		self.run_from_eos = run_from_eos
 		self.debug = debug
+		self.use_1b_bin_maps = use_1b_bin_maps
+		self.use_QCD_Pt = use_QCD_Pt
 
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
+
+
+		self.use_QCD_Pt_str = "QCDHT"
+		if self.use_QCD_Pt: self.use_QCD_Pt_str = "QCDPT"
+
+
+		self.output_map_file = output_map_file
 
 		self.eos_path = "root://cmseos.fnal.gov/"
 		self.HT_distr_home = "/HT_distributions" # extra folder where output files are saved for HT distribution plots
@@ -55,7 +64,7 @@ class linearized_plot:
 		self.doSideband = all_BR_hists.doSideband
 		self.doATxtb = 	  all_BR_hists.doATxtb
 		self.doHTdist =   all_BR_hists.doHTdist
-		self.useMask  =   useMask
+		self.useMask = useMask
 		if self.doSideband: self.doHTdist = False
 
 		self.final_hist_name = "h_MSJ_mass_vs_MdSJ"
@@ -72,30 +81,43 @@ class linearized_plot:
 		if "NN" in self.technique_str: self.doSideband = False
 
 		self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
-		self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats"
-		self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots"
+		self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/%s/"%self.use_QCD_Pt_str
+		self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/%s/"%(self.use_QCD_Pt_str)
 
 		if self.useMask: 
-			self.output_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/maskedFinalCombineFiles"
-			self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/maskedFinalCombineFiles/"
+			if self.use_QCD_Pt: 
+				self.output_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/%s/maskedFinalCombineFiles/"%(self.use_QCD_Pt_str)
+				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/%s/maskedFinalCombineFiles/"%(self.use_QCD_Pt_str)
 
 		if self.useMask and self.doHTdist: return
 
-		self.superbin_indices			  	  = self.load_superbin_indices()
-		self.superbin_indices_AT			  = self.load_superbin_indices(region="AT1b")   ## change this to reflect which bin indices should be followed (AT1tb if you are using the tight WP in the SR)
+		self.create_directories()  ## make sure all above directories exist
 
 
-		if  self.doSideband: 
-			self.superbin_indices_SB1b = self.load_superbin_indices(region="SB1b")
-			self.superbin_indices_SB0b = self.load_superbin_indices(region="SB1b")
+		if self.use_1b_bin_maps:  
+			_1b_map = { "SR":"SR", "CR":"SR", "AT1b":"AT1b", "AT0b":"AT1b"   }  
+			self.superbin_indices_dict			  	  =  {  region: self.load_superbin_indices(_1b_map[region], region) for region in ["SR","CR","AT1b","AT0b"]}  ## order: SR, CR, AT1b, AT0b
+		else: 
+			self.superbin_indices_dict			  	  =  {  region: self.load_superbin_indices(region,region) for region in ["SR","CR","AT1b","AT0b"]}  ## order: SR, CR, AT1b, AT0b
+		
+
+
+		#self.superbin_indices_AT			  = self.load_superbin_indices(self.region)   ## change this to reflect which bin indices should be followed (AT1tb if you are using the tight WP in the SR)
+		#if  self.doSideband: 
+		#	self.superbin_indices_SB1b = self.load_superbin_indices(region="SB1b")
+		#	self.superbin_indices_SB0b = self.load_superbin_indices(region="SB1b")
 
  
-		print("DEBUG: SRCR is sorted into %s superbins."%(len(self.superbin_indices)))
-		print("DEBUG: AT region is sorted into %s superbins."%(len(self.superbin_indices_AT)))
+		print("DEBUG: SR is sorted into %s superbins."%(len(self.superbin_indices_dict["SR"])))
+		print("DEBUG: CR is sorted into %s superbins."%(len(self.superbin_indices_dict["CR"])))
+		print("DEBUG: AT1b is sorted into %s superbins."%(len(self.superbin_indices_dict["AT1b"])))
+		print("DEBUG: AT0b is sorted into %s superbins."%(len(self.superbin_indices_dict["AT0b"])))
 
 
 		if self.debug:
 			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/test/"
+
+
 
 		self.mass_point = mass_point   # label for the signal mass point
 
@@ -116,9 +138,24 @@ class linearized_plot:
 		if self.doHTdist: self.HT_dist_superbins =  all_BR_hists.HT_dist_superbins
 
 		### individual bins for SR
-		self.QCD1000to1500_hist_SR 	= all_BR_hists.QCD1000to1500_hist_SR
-		self.QCD1500to2000_hist_SR 	= all_BR_hists.QCD1500to2000_hist_SR
-		self.QCD2000toInf_hist_SR 	= all_BR_hists.QCD2000toInf_hist_SR
+
+		if self.use_QCD_Pt:
+			self.QCDMC_Pt_170to300_hist_SR 		= all_BR_hists.QCDMC_Pt_170to300_hist_SR
+			self.QCDMC_Pt_300to470_hist_SR 		= all_BR_hists.QCDMC_Pt_300to470_hist_SR
+			self.QCDMC_Pt_470to600_hist_SR 		= all_BR_hists.QCDMC_Pt_470to600_hist_SR
+			self.QCDMC_Pt_600to800_hist_SR 		= all_BR_hists.QCDMC_Pt_600to800_hist_SR
+			self.QCDMC_Pt_800to1000_hist_SR 	= all_BR_hists.QCDMC_Pt_800to1000_hist_SR
+			self.QCDMC_Pt_1000to1400_hist_SR 	= all_BR_hists.QCDMC_Pt_1000to1400_hist_SR
+			self.QCDMC_Pt_1400to1800_hist_SR 	= all_BR_hists.QCDMC_Pt_1400to1800_hist_SR
+			self.QCDMC_Pt_1800to2400_hist_SR 	= all_BR_hists.QCDMC_Pt_1800to2400_hist_SR
+			self.QCDMC_Pt_2400to3200_hist_SR 	= all_BR_hists.QCDMC_Pt_2400to3200_hist_SR
+			self.QCDMC_Pt_3200toInf_hist_SR 	= all_BR_hists.QCDMC_Pt_3200toInf_hist_SR
+
+		else:
+			self.QCD1000to1500_hist_SR 	= all_BR_hists.QCD1000to1500_hist_SR
+			self.QCD1500to2000_hist_SR 	= all_BR_hists.QCD1500to2000_hist_SR
+			self.QCD2000toInf_hist_SR 	= all_BR_hists.QCD2000toInf_hist_SR
+
 
 		self.TTJets1200to2500_hist_SR 	= all_BR_hists.TTJets1200to2500_hist_SR
 		self.TTJets2500toInf_hist_SR 	= all_BR_hists.TTJets2500toInf_hist_SR
@@ -152,9 +189,22 @@ class linearized_plot:
 
 		### individual bins for CR
 
-		self.QCD1000to1500_hist_CR 	= all_BR_hists.QCD1000to1500_hist_CR
-		self.QCD1500to2000_hist_CR 	= all_BR_hists.QCD1500to2000_hist_CR
-		self.QCD2000toInf_hist_CR 	= all_BR_hists.QCD2000toInf_hist_CR
+		if self.use_QCD_Pt:
+			self.QCDMC_Pt_170to300_hist_CR 		= all_BR_hists.QCDMC_Pt_170to300_hist_CR
+			self.QCDMC_Pt_300to470_hist_CR 		= all_BR_hists.QCDMC_Pt_300to470_hist_CR
+			self.QCDMC_Pt_470to600_hist_CR 		= all_BR_hists.QCDMC_Pt_470to600_hist_CR
+			self.QCDMC_Pt_600to800_hist_CR 		= all_BR_hists.QCDMC_Pt_600to800_hist_CR
+			self.QCDMC_Pt_800to1000_hist_CR 	= all_BR_hists.QCDMC_Pt_800to1000_hist_CR
+			self.QCDMC_Pt_1000to1400_hist_CR 	= all_BR_hists.QCDMC_Pt_1000to1400_hist_CR
+			self.QCDMC_Pt_1400to1800_hist_CR 	= all_BR_hists.QCDMC_Pt_1400to1800_hist_CR
+			self.QCDMC_Pt_1800to2400_hist_CR 	= all_BR_hists.QCDMC_Pt_1800to2400_hist_CR
+			self.QCDMC_Pt_2400to3200_hist_CR 	= all_BR_hists.QCDMC_Pt_2400to3200_hist_CR
+			self.QCDMC_Pt_3200toInf_hist_CR 	= all_BR_hists.QCDMC_Pt_3200toInf_hist_CR
+
+		else:
+			self.QCD1000to1500_hist_CR 	= all_BR_hists.QCD1000to1500_hist_CR
+			self.QCD1500to2000_hist_CR 	= all_BR_hists.QCD1500to2000_hist_CR
+			self.QCD2000toInf_hist_CR 	= all_BR_hists.QCD2000toInf_hist_CR
 
 		self.TTJets1200to2500_hist_CR 	= all_BR_hists.TTJets1200to2500_hist_CR
 		self.TTJets2500toInf_hist_CR 	= all_BR_hists.TTJets2500toInf_hist_CR
@@ -188,9 +238,22 @@ class linearized_plot:
 
 		### individual bins for AT1b
 
-		self.QCD1000to1500_hist_AT1b 	= all_BR_hists.QCD1000to1500_hist_AT1b
-		self.QCD1500to2000_hist_AT1b 	= all_BR_hists.QCD1500to2000_hist_AT1b
-		self.QCD2000toInf_hist_AT1b 	= all_BR_hists.QCD2000toInf_hist_AT1b
+		if self.use_QCD_Pt:
+			self.QCDMC_Pt_170to300_hist_AT1b 		= all_BR_hists.QCDMC_Pt_170to300_hist_AT1b
+			self.QCDMC_Pt_300to470_hist_AT1b 		= all_BR_hists.QCDMC_Pt_300to470_hist_AT1b
+			self.QCDMC_Pt_470to600_hist_AT1b 		= all_BR_hists.QCDMC_Pt_470to600_hist_AT1b
+			self.QCDMC_Pt_600to800_hist_AT1b 		= all_BR_hists.QCDMC_Pt_600to800_hist_AT1b
+			self.QCDMC_Pt_800to1000_hist_AT1b 	= all_BR_hists.QCDMC_Pt_800to1000_hist_AT1b
+			self.QCDMC_Pt_1000to1400_hist_AT1b 	= all_BR_hists.QCDMC_Pt_1000to1400_hist_AT1b
+			self.QCDMC_Pt_1400to1800_hist_AT1b 	= all_BR_hists.QCDMC_Pt_1400to1800_hist_AT1b
+			self.QCDMC_Pt_1800to2400_hist_AT1b 	= all_BR_hists.QCDMC_Pt_1800to2400_hist_AT1b
+			self.QCDMC_Pt_2400to3200_hist_AT1b 	= all_BR_hists.QCDMC_Pt_2400to3200_hist_AT1b
+			self.QCDMC_Pt_3200toInf_hist_AT1b 	= all_BR_hists.QCDMC_Pt_3200toInf_hist_AT1b
+
+		else:
+			self.QCD1000to1500_hist_AT1b 	= all_BR_hists.QCD1000to1500_hist_AT1b
+			self.QCD1500to2000_hist_AT1b 	= all_BR_hists.QCD1500to2000_hist_AT1b
+			self.QCD2000toInf_hist_AT1b 	= all_BR_hists.QCD2000toInf_hist_AT1b
 
 		self.TTJets1200to2500_hist_AT1b 	= all_BR_hists.TTJets1200to2500_hist_AT1b
 		self.TTJets2500toInf_hist_AT1b 		= all_BR_hists.TTJets2500toInf_hist_AT1b
@@ -223,9 +286,22 @@ class linearized_plot:
 
 		### individual bins for AT0b
 
-		self.QCD1000to1500_hist_AT0b 	= all_BR_hists.QCD1000to1500_hist_AT0b
-		self.QCD1500to2000_hist_AT0b 	= all_BR_hists.QCD1500to2000_hist_AT0b
-		self.QCD2000toInf_hist_AT0b 	= all_BR_hists.QCD2000toInf_hist_AT0b
+		if self.use_QCD_Pt:
+			self.QCDMC_Pt_170to300_hist_AT0b 		= all_BR_hists.QCDMC_Pt_170to300_hist_AT0b
+			self.QCDMC_Pt_300to470_hist_AT0b 		= all_BR_hists.QCDMC_Pt_300to470_hist_AT0b
+			self.QCDMC_Pt_470to600_hist_AT0b 		= all_BR_hists.QCDMC_Pt_470to600_hist_AT0b
+			self.QCDMC_Pt_600to800_hist_AT0b 		= all_BR_hists.QCDMC_Pt_600to800_hist_AT0b
+			self.QCDMC_Pt_800to1000_hist_AT0b 	= all_BR_hists.QCDMC_Pt_800to1000_hist_AT0b
+			self.QCDMC_Pt_1000to1400_hist_AT0b 	= all_BR_hists.QCDMC_Pt_1000to1400_hist_AT0b
+			self.QCDMC_Pt_1400to1800_hist_AT0b 	= all_BR_hists.QCDMC_Pt_1400to1800_hist_AT0b
+			self.QCDMC_Pt_1800to2400_hist_AT0b 	= all_BR_hists.QCDMC_Pt_1800to2400_hist_AT0b
+			self.QCDMC_Pt_2400to3200_hist_AT0b 	= all_BR_hists.QCDMC_Pt_2400to3200_hist_AT0b
+			self.QCDMC_Pt_3200toInf_hist_AT0b 	= all_BR_hists.QCDMC_Pt_3200toInf_hist_AT0b
+
+		else:
+			self.QCD1000to1500_hist_AT0b 	= all_BR_hists.QCD1000to1500_hist_AT0b
+			self.QCD1500to2000_hist_AT0b 	= all_BR_hists.QCD1500to2000_hist_AT0b
+			self.QCD2000toInf_hist_AT0b 	= all_BR_hists.QCD2000toInf_hist_AT0b
 
 		self.TTJets1200to2500_hist_AT0b 	= all_BR_hists.TTJets1200to2500_hist_AT0b
 		self.TTJets2500toInf_hist_AT0b 		= all_BR_hists.TTJets2500toInf_hist_AT0b
@@ -628,11 +704,19 @@ class linearized_plot:
 
 			#if systematic == "CMS_scale": print("Linearizing scale histograms.")
 
+
 			if "renorm" in systematic or "fact" in systematic: sample_type = "_QCD"
-			self.QCD_linear_SR.append(self.linearize_plot([],"QCD","SR",systematic + sample_type + year_str, False, "QCD", [ self.QCD1000to1500_hist_SR[iii], self.QCD1500to2000_hist_SR[iii],  self.QCD2000toInf_hist_SR[iii]]) )
-			self.QCD_linear_CR.append(self.linearize_plot([],"QCD","CR",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_CR[iii], self.QCD1500to2000_hist_CR[iii],  self.QCD2000toInf_hist_CR[iii]]))
-			self.QCD_linear_AT0b.append(self.linearize_plot([],"QCD","AT0b",systematic + sample_type + year_str,False, "QCD", [ self.QCD1000to1500_hist_AT0b[iii], self.QCD1500to2000_hist_AT0b[iii],  self.QCD2000toInf_hist_AT0b[iii]]))
-			self.QCD_linear_AT1b.append(self.linearize_plot([],"QCD","AT1b",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_AT1b[iii], self.QCD1500to2000_hist_AT1b[iii],  self.QCD2000toInf_hist_AT1b[iii]]))
+			if self.use_QCD_Pt:
+				self.QCD_linear_SR.append(self.linearize_plot([],"QCD","SR",systematic + sample_type + year_str, False,"QCD", [ self.QCDMC_Pt_170to300_hist_SR[iii], self.QCDMC_Pt_300to470_hist_SR[iii],  self.QCDMC_Pt_470to600_hist_SR[iii], self.QCDMC_Pt_600to800_hist_SR[iii], self.QCDMC_Pt_800to1000_hist_SR[iii], self.QCDMC_Pt_1000to1400_hist_SR[iii], self.QCDMC_Pt_1400to1800_hist_SR[iii], self.QCDMC_Pt_1800to2400_hist_SR[iii], self.QCDMC_Pt_2400to3200_hist_SR[iii], self.QCDMC_Pt_3200toInf_hist_SR[iii] ]))
+				self.QCD_linear_CR.append(self.linearize_plot([],"QCD","CR",systematic + sample_type + year_str, False,"QCD", [ self.QCDMC_Pt_170to300_hist_CR[iii], self.QCDMC_Pt_300to470_hist_CR[iii],  self.QCDMC_Pt_470to600_hist_CR[iii], self.QCDMC_Pt_600to800_hist_CR[iii], self.QCDMC_Pt_800to1000_hist_CR[iii], self.QCDMC_Pt_1000to1400_hist_CR[iii], self.QCDMC_Pt_1400to1800_hist_CR[iii], self.QCDMC_Pt_1800to2400_hist_CR[iii], self.QCDMC_Pt_2400to3200_hist_CR[iii], self.QCDMC_Pt_3200toInf_hist_CR[iii] ]))
+				self.QCD_linear_AT0b.append(self.linearize_plot([],"QCD","AT0b",systematic + sample_type + year_str, False,"QCD", [ self.QCDMC_Pt_170to300_hist_AT0b[iii], self.QCDMC_Pt_300to470_hist_AT0b[iii],  self.QCDMC_Pt_470to600_hist_AT0b[iii], self.QCDMC_Pt_600to800_hist_AT0b[iii], self.QCDMC_Pt_800to1000_hist_AT0b[iii], self.QCDMC_Pt_1000to1400_hist_AT0b[iii], self.QCDMC_Pt_1400to1800_hist_AT0b[iii], self.QCDMC_Pt_1800to2400_hist_AT0b[iii], self.QCDMC_Pt_2400to3200_hist_AT0b[iii], self.QCDMC_Pt_3200toInf_hist_AT0b[iii] ]))
+				self.QCD_linear_AT1b.append(self.linearize_plot([],"QCD","AT1b",systematic + sample_type + year_str, False,"QCD", [ self.QCDMC_Pt_170to300_hist_AT1b[iii], self.QCDMC_Pt_300to470_hist_AT1b[iii],  self.QCDMC_Pt_470to600_hist_AT1b[iii], self.QCDMC_Pt_600to800_hist_AT1b[iii], self.QCDMC_Pt_800to1000_hist_AT1b[iii], self.QCDMC_Pt_1000to1400_hist_AT1b[iii], self.QCDMC_Pt_1400to1800_hist_AT1b[iii], self.QCDMC_Pt_1800to2400_hist_AT1b[iii], self.QCDMC_Pt_2400to3200_hist_AT1b[iii], self.QCDMC_Pt_3200toInf_hist_AT1b[iii] ]))
+			else:
+				self.QCD_linear_SR.append(self.linearize_plot([],"QCD","SR",systematic + sample_type + year_str, False, "QCD", [ self.QCD1000to1500_hist_SR[iii], self.QCD1500to2000_hist_SR[iii],  self.QCD2000toInf_hist_SR[iii]]) )
+				self.QCD_linear_CR.append(self.linearize_plot([],"QCD","CR",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_CR[iii], self.QCD1500to2000_hist_CR[iii],  self.QCD2000toInf_hist_CR[iii]]))
+				self.QCD_linear_AT0b.append(self.linearize_plot([],"QCD","AT0b",systematic + sample_type + year_str,False, "QCD", [ self.QCD1000to1500_hist_AT0b[iii], self.QCD1500to2000_hist_AT0b[iii],  self.QCD2000toInf_hist_AT0b[iii]]))
+				self.QCD_linear_AT1b.append(self.linearize_plot([],"QCD","AT1b",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_AT1b[iii], self.QCD1500to2000_hist_AT1b[iii],  self.QCD2000toInf_hist_AT1b[iii]]))
+
 			if self.doATxtb:
 				self.QCD_linear_AT1tb.append(self.linearize_plot([],"QCD","AT1tb",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_AT1tb[iii], self.QCD1500to2000_hist_AT1tb[iii],  self.QCD2000toInf_hist_AT1tb[iii]]))
 				self.QCD_linear_AT0tb.append(self.linearize_plot([],"QCD","AT0tb",systematic + sample_type + year_str, False,"QCD", [ self.QCD1000to1500_hist_AT0tb[iii], self.QCD1500to2000_hist_AT0tb[iii],  self.QCD2000toInf_hist_AT0tb[iii]]))
@@ -824,11 +908,6 @@ class linearized_plot:
 				sys_updown = [""]
 			else:
 				sys_updown = ["_%sUp"%systematic_name,"_%sDown"%systematic_name]
-
-
-
-			if "CMS_scale" in systematic_name: 
-				print("Writing scale histogram: %s"%(systematic_name) )
 
 
 			for jjj,sys_str in enumerate(sys_updown):
@@ -2325,16 +2404,16 @@ class linearized_plot:
 
 		all_linear_plots = []
 
-		use_indices = self.superbin_indices
+		use_indices = self.superbin_indices_dict[region]
 
 		if region in ["SR","CR"]: use_region = "SR"
 		elif region in ["AT1b","AT0b","AT1tb","AT0tb"]: use_region = "AT1b"   ## THIS IS NOT QUITE RIGHT, WOULD WANT CUSTOM AT1tB REGION INDICES
 		elif region in ["SB1b","SB0b"]: use_region = "SB0b"
 
 		if self.doHTdist: use_indices = all_BR_hists.HT_dist_superbins[use_region]
-		elif self.doSideband and region == "SB1b": use_indices = self.superbin_indices_SB1b
-		elif self.doSideband and region == "SB0b": use_indices = self.superbin_indices_SB0b
-		elif region in ["AT1b", "AT0b", "AT1tb", "AT0tb"]:  use_indices = self.superbin_indices_AT
+		#elif self.doSideband and region == "SB1b": use_indices = self.superbin_indices_SB1b
+		#elif self.doSideband and region == "SB0b": use_indices = self.superbin_indices_SB0b
+		#elif region in ["AT1b", "AT0b", "AT1tb", "AT0tb"]:  use_indices = self.superbin_indices_AT
 		for iii,sys_str in enumerate(sys_updown):
 
 			linear_plot_size = len(use_indices)  - mask_size  ## subtract off mask size
@@ -2352,8 +2431,6 @@ class linearized_plot:
 	def linearize_plot(self,_hist,BR_type,region,systematic ,forStats=False, hist_type="", split_up_hists_for_systematic = []): 
 		ROOT.TH1.SetDefaultSumw2()
 		ROOT.TH2.SetDefaultSumw2()
-
-
 
 		mask_size = 0
 		bin_mask = []
@@ -2386,21 +2463,28 @@ class linearized_plot:
 
 		all_linear_plots = []
 
-		use_indices = self.superbin_indices
+		use_indices = self.superbin_indices_dict[region]
 
-		if region in ["SR","CR"]: use_region = "SR"
-		elif region in ["AT1b","AT0b","AT1tb","AT0tb"]: use_region = "AT1b"   ## THIS IS NOT QUITE RIGHT, WOULD WANT CUSTOM AT1tB REGION INDICES
-		elif region in ["SB1b","SB0b"]: use_region = "SB0b"
+		linear_plot_size = len(use_indices)  - mask_size  ## subtract off mask size
+
+		if self.useMask and systematic == "nom":
+			print("--- year / region / technique : %s/%s/%s ------ After applying the mask (size = %s bins) to the superbins (original size = %s),  hist has %s bins"%( self.year,region,self.technique_str,mask_size, len(use_indices), linear_plot_size)) 
+
+
+
+		#if region in ["SR","CR"]: use_region = "SR"
+		#elif region in ["AT1b","AT0b","AT1tb","AT0tb"]: use_region = "AT1b"   ## THIS IS NOT QUITE RIGHT, WOULD WANT CUSTOM AT1tB REGION INDICES
+		#elif region in ["SB1b","SB0b"]: use_region = "SB0b"
+		use_region = region
 
 		if self.doHTdist: use_indices = all_BR_hists.HT_dist_superbins[use_region]
-		elif self.doSideband and region == "SB1b": use_indices = self.superbin_indices_SB1b
-		elif self.doSideband and region == "SB0b": use_indices = self.superbin_indices_SB0b
-		elif region in ["AT1b", "AT0b", "AT1tb", "AT0tb"]:  use_indices = self.superbin_indices_AT
+		#elif self.doSideband and region == "SB1b": use_indices = self.superbin_indices_SB1b
+		#elif self.doSideband and region == "SB0b": use_indices = self.superbin_indices_SB0b
+		#elif region in ["AT1b", "AT0b", "AT1tb", "AT0tb"]:  use_indices = self.superbin_indices_AT
 		for iii,sys_str in enumerate(sys_updown):
 
 
 			#print("BR_type/sys_str is %s/%s"%(BR_type,sys_str))
-			linear_plot_size = len(use_indices)  - mask_size  ## subtract off mask size
 
 			#print("For %s/%s/%s/%s/%s plots created to have %s bins (number of SRCR superbins= %s, number of AT superbins= %s)"%(BR_type, region, systematic,self.year,self.technique_str, linear_plot_size,len(self.superbin_indices),len(self.superbin_indices_AT) ))
 
@@ -2418,103 +2502,158 @@ class linearized_plot:
 			#print("Histogram name is %s."%linear_plot.GetName())
 			if hist_type == "QCD":
 
-				SF_1000to1500 = {'2015': 1.578683216 ,   '2016':1.482632755 ,  '2017': 3.126481451,  '2018': 4.289571744   }
-				SF_1500to2000 = {'2015': 0.2119142341,   '2016':0.195224041 ,  '2017': 0.3197450474, '2018': 0.4947703875  }
-				SF_2000toInf  = {'2015': 0.08568186031 , '2016':0.07572795371, '2017': 0.14306915,   '2018': 0.2132134533  }
+				if self.use_QCD_Pt:
 
-				### need to lineraize the histograms separately and THEN add them to linear_plot
+					if self.doSideband or self.doHTdist or self.doATxtb: continue # didn't implement these, shouldn't need
 
+					SFs_QCDMC_Pt = [  {"2015":72.27560548, "2016":58.13790684, "2017":144.0132837, "2018":208.6671047},
+				    {"2015":2.464537119, "2016":2.077524247, "2017":5.087240079, "2018":7.056447936},
+				    {"2015":0.2122207081, "2016":0.1770874866, "2017":0.4500561659, "2018":0.6298074855},
+				    {"2015":0.04929452011, "2016":0.04041858714, "2017":0.09634485522, "2018":0.1387005244},
+				    {"2015":0.01443931658, "2016":0.01169252025, "2017":0.02954986175, "2018":0.04231249731},
+				    {"2015":0.007643465954, "2016":0.006312623165, "2017":0.01566430413, "2018":0.0226523112},
+				    {"2015":0.001150615273, "2016":0.001016564447, "2017":0.00244639185, "2018":0.003532486979},
+				    {"2015":0.000324331737, "2016":0.0002806910428, "2017":0.0006608229592, "2018":0.000952638299},
+				    {"2015":0.00003408026676, "2016":0.00003090490169, "2017":0.00007246889556, "2018":0.0001045278212},
+				    {"2015":0.000002648864, "2016":0.000002290278112, "2017":0.000005628836, "2018":0.000008118931} ]
 
-				linear_plot_QCD1000to1500 = ROOT.TH1D("%s%s"%("QCDMC1000to1500",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC1000to1500",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
-				linear_plot_QCD1500to2000 = ROOT.TH1D("%s%s"%("QCDMC1500to2000",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC1500to2000",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
-				linear_plot_QCD2000toInf = ROOT.TH1D("%s%s"%("QCDMC2000toInf",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%(  "QCDMC2000toInf",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
+					### need to lineraize the histograms separately and THEN add them to linear_plot
+					linear_plots_QCD_Pt =  [ROOT.TH1D("%s%s"%("QCDMC_Pt_170to300",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC_Pt_170to300",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_300to470",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC_Pt_300to470",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_470to600",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%(  "QCDMC_Pt_470to600",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_600to800",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC_Pt_600to800",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_800to1000",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC_Pt_800to1000",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_1000to1400",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%(  "QCDMC_Pt_1000to1400",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_1400to1800",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC_Pt_1400to1800",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_1800to2400",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC_Pt_1800to2400",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_2400to3200",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%(  "QCDMC_Pt_2400to3200",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
+					ROOT.TH1D("%s%s"%("QCDMC_Pt_3200toInf",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%(  "QCDMC_Pt_3200toInf",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5) ] 
 
-				linear_plot_QCD1000to1500.Sumw2(); 
-				linear_plot_QCD1500to2000.Sumw2(); 
-				linear_plot_QCD2000toInf.Sumw2(); 
-
-				####### INFO 
-				#### split_up_hists_for_systematic[0] is the QCD1000to1500 histogram
-				#### split_up_hists_for_systematic[1] is the QCD1500to2000 histogram
-				#### split_up_hists_for_systematic[2] is the QCD2000toInf  histogram
-
-
-				if not self.doHTdist:
+					for hist in linear_plots_QCD_Pt:
+						hist.Sumw2()
 
 					superbin_index = 0
 					for superbin_counter,superbin in enumerate(use_indices):
-						total_counts_QCD1000to1500 = 0
-						total_counts_QCD1500to2000 = 0
-						total_counts_QCD2000toInf  = 0  
+						
+						total_counts = [0]*10
+
 						if superbin_counter in bin_mask: 
 							num_masked_bins+=1
 							continue
 						for _tuple in superbin:
+							for jjj in range(len(total_counts)):
+								total_counts[jjj] +=split_up_hists_for_systematic[jjj][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
 
-							#if ( (split_up_hists_for_systematic[0][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) or (split_up_hists_for_systematic[1][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) or (split_up_hists_for_systematic[2][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) ): ### need to verify if these need the +1 ...
-							#	print("ERROR: negative histogram contribution when adding up superbins (bin = %s/%s, counts = %s)"%(_tuple[0]+1, _tuple[1]+1 ))
-							
-							total_counts_QCD1000to1500+=split_up_hists_for_systematic[0][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
-							total_counts_QCD1500to2000+=split_up_hists_for_systematic[1][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
-							if region not in ["SB1b","SB0b"]: total_counts_QCD2000toInf+=split_up_hists_for_systematic[2][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
-						#print("%s/%s/%s/%s ---- Superbin %s counts: %s"%(self.year, BR_type, region, systematic,superbin_index,  total_counts))
-						linear_plot_QCD1000to1500.SetBinContent(superbin_index+1,total_counts_QCD1000to1500)
-						linear_plot_QCD1000to1500.SetBinError(superbin_index+1,sqrt(total_counts_QCD1000to1500))
-						linear_plot_QCD1500to2000.SetBinContent(superbin_index+1,total_counts_QCD1500to2000)
-						linear_plot_QCD1500to2000.SetBinError(superbin_index+1,sqrt(total_counts_QCD1500to2000))
-						if region not in ["SB1b","SB0b"]:
-							linear_plot_QCD2000toInf.SetBinContent(superbin_index+1,total_counts_QCD2000toInf)
-							linear_plot_QCD2000toInf.SetBinError(superbin_index+1,sqrt(total_counts_QCD2000toInf))
+
+						for jjj in range(len(total_counts)):
+							linear_plots_QCD_Pt[jjj].SetBinContent(superbin_index+1,total_counts[jjj])
+							linear_plots_QCD_Pt[jjj].SetBinError(superbin_index+1,sqrt(total_counts[jjj]))
+
 						superbin_index+=1
-				else:
-					superbin_index = 0 ## the number of superbins that are actually used (i.e. those not masked)
-					for superbin_counter,superbin in enumerate(use_indices):
-						total_counts_QCD1000to1500 = 0
-						total_counts_QCD1500to2000 = 0
-						total_counts_QCD2000toInf  = 0
-						if superbin_counter in bin_mask:
-							num_masked_bins+=1
-							continue
-						for bin_num in superbin:
-							total_counts_QCD1000to1500+=split_up_hists_for_systematic[0][iii].GetBinContent(bin_num)
-							total_counts_QCD1500to2000+=split_up_hists_for_systematic[1][iii].GetBinContent(bin_num)
-							if region not in ["SB1b","SB0b"]: total_counts_QCD2000toInf+=split_up_hists_for_systematic[2][iii].GetBinContent(bin_num)
-						#print("%s/%s/%s/%s ---- Superbin %s counts: %s"%(self.year, BR_type, region, systematic,superbin_index,  total_counts))
-						linear_plot_QCD1000to1500.SetBinContent(superbin_index+1,total_counts_QCD1000to1500)
-						linear_plot_QCD1000to1500.SetBinError(superbin_index+1,sqrt(total_counts_QCD1000to1500))
-						linear_plot_QCD1500to2000.SetBinContent(superbin_index+1,total_counts_QCD1500to2000)
-						linear_plot_QCD1500to2000.SetBinError(superbin_index+1,sqrt(total_counts_QCD1500to2000))
-						if region not in ["SB1b","SB0b"]:
-							linear_plot_QCD2000toInf.SetBinContent(superbin_index+1,total_counts_QCD2000toInf)
-							linear_plot_QCD2000toInf.SetBinError(superbin_index+1,sqrt(total_counts_QCD2000toInf))
-						superbin_index+=1
-					"""
-					linear_plot_QCD1000to1500 = split_up_hists_for_systematic[0][iii]
-					linear_plot_QCD1000to1500.SetName("%s%s"%("QCDMC1000to1500",sys_str))
-					linear_plot_QCD1000to1500.SetTitle("linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC1000to1500",region,year, " ".join(use_sys.split("_"))))
-					linear_plot_QCD1500to2000 = split_up_hists_for_systematic[1][iii]
-					linear_plot_QCD1000to1500.SetName("%s%s"%("QCDMC1500to2000",sys_str))
-					linear_plot_QCD1000to1500.SetTitle("linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC1500to2000",region,year, " ".join(use_sys.split("_"))))
-					linear_plot_QCD2000toInf =  split_up_hists_for_systematic[2][iii]
-					linear_plot_QCD1000to1500.SetName("%s%s"%("QCDMC2000toInf",sys_str))
-					linear_plot_QCD1000to1500.SetTitle("linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC2000toInf",region,year, " ".join(use_sys.split("_"))))"""
+					
 
-				linear_plot_QCD1000to1500.Sumw2(); 
-				linear_plot_QCD1500to2000.Sumw2(); 
-				linear_plot_QCD2000toInf.Sumw2(); 
-				linear_plot.Sumw2(); 
+					for hist in linear_plots_QCD_Pt:
+						hist.Sumw2(); 
+					linear_plot.Sumw2(); 
 
-				## scale histograms 
-				linear_plot_QCD1000to1500.Scale( SF_1000to1500[self.year] )
-				linear_plot_QCD1500to2000.Scale( SF_1500to2000[self.year] )
-				if region not in ["SB1b","SB0b"]: linear_plot_QCD2000toInf.Scale( SF_2000toInf[self.year])
+					## scale histograms 
+					for jjj in range(len(linear_plots_QCD_Pt)):
+						linear_plots_QCD_Pt[jjj].Scale( SFs_QCDMC_Pt[jjj][self.year] )
 
-				### NOW add together with the weight information intact
-				linear_plot.Add(linear_plot_QCD1000to1500)
-				linear_plot.Add(linear_plot_QCD1500to2000)
-				if region not in ["SB1b","SB0b"]: linear_plot.Add(linear_plot_QCD2000toInf)
+						### NOW add together with the weight information intact
+						linear_plot.Add(linear_plots_QCD_Pt[jjj])
 
-				all_linear_plots.append(linear_plot)
+					all_linear_plots.append(linear_plot)
+
+
+				else: 
+					SF_1000to1500 = {'2015': 1.578683216 ,   '2016':1.482632755 ,  '2017': 3.126481451,  '2018': 4.289571744   }
+					SF_1500to2000 = {'2015': 0.2119142341,   '2016':0.195224041 ,  '2017': 0.3197450474, '2018': 0.4947703875  }
+					SF_2000toInf  = {'2015': 0.08568186031 , '2016':0.07572795371, '2017': 0.14306915,   '2018': 0.2132134533  }
+
+					### need to lineraize the histograms separately and THEN add them to linear_plot
+
+
+					linear_plot_QCD1000to1500 = ROOT.TH1D("%s%s"%("QCDMC1000to1500",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC1000to1500",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
+					linear_plot_QCD1500to2000 = ROOT.TH1D("%s%s"%("QCDMC1500to2000",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%( "QCDMC1500to2000",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
+					linear_plot_QCD2000toInf = ROOT.TH1D("%s%s"%("QCDMC2000toInf",sys_str),"linearized %s in the %s (%s) (%s); bin; Events / bin"%(  "QCDMC2000toInf",region,year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5)
+
+					linear_plot_QCD1000to1500.Sumw2(); 
+					linear_plot_QCD1500to2000.Sumw2(); 
+					linear_plot_QCD2000toInf.Sumw2(); 
+
+					####### INFO 
+					#### split_up_hists_for_systematic[0] is the QCD1000to1500 histogram
+					#### split_up_hists_for_systematic[1] is the QCD1500to2000 histogram
+					#### split_up_hists_for_systematic[2] is the QCD2000toInf  histogram
+
+
+					if not self.doHTdist:
+
+						superbin_index = 0
+						for superbin_counter,superbin in enumerate(use_indices):
+							total_counts_QCD1000to1500 = 0
+							total_counts_QCD1500to2000 = 0
+							total_counts_QCD2000toInf  = 0  
+							if superbin_counter in bin_mask: 
+								num_masked_bins+=1
+								continue
+							for _tuple in superbin:
+
+								#if ( (split_up_hists_for_systematic[0][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) or (split_up_hists_for_systematic[1][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) or (split_up_hists_for_systematic[2][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1) < 0) ): ### need to verify if these need the +1 ...
+								#	print("ERROR: negative histogram contribution when adding up superbins (bin = %s/%s, counts = %s)"%(_tuple[0]+1, _tuple[1]+1 ))
+								
+								total_counts_QCD1000to1500+=split_up_hists_for_systematic[0][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
+								total_counts_QCD1500to2000+=split_up_hists_for_systematic[1][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
+								if region not in ["SB1b","SB0b"]: total_counts_QCD2000toInf+=split_up_hists_for_systematic[2][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
+							#print("%s/%s/%s/%s ---- Superbin %s counts: %s"%(self.year, BR_type, region, systematic,superbin_index,  total_counts))
+							linear_plot_QCD1000to1500.SetBinContent(superbin_index+1,total_counts_QCD1000to1500)
+							linear_plot_QCD1000to1500.SetBinError(superbin_index+1,sqrt(total_counts_QCD1000to1500))
+							linear_plot_QCD1500to2000.SetBinContent(superbin_index+1,total_counts_QCD1500to2000)
+							linear_plot_QCD1500to2000.SetBinError(superbin_index+1,sqrt(total_counts_QCD1500to2000))
+							if region not in ["SB1b","SB0b"]:
+								linear_plot_QCD2000toInf.SetBinContent(superbin_index+1,total_counts_QCD2000toInf)
+								linear_plot_QCD2000toInf.SetBinError(superbin_index+1,sqrt(total_counts_QCD2000toInf))
+							superbin_index+=1
+					else:
+						superbin_index = 0 ## the number of superbins that are actually used (i.e. those not masked)
+						for superbin_counter,superbin in enumerate(use_indices):
+							total_counts_QCD1000to1500 = 0
+							total_counts_QCD1500to2000 = 0
+							total_counts_QCD2000toInf  = 0
+							if superbin_counter in bin_mask:
+								num_masked_bins+=1
+								continue
+							for bin_num in superbin:
+								total_counts_QCD1000to1500+=split_up_hists_for_systematic[0][iii].GetBinContent(bin_num)
+								total_counts_QCD1500to2000+=split_up_hists_for_systematic[1][iii].GetBinContent(bin_num)
+								if region not in ["SB1b","SB0b"]: total_counts_QCD2000toInf+=split_up_hists_for_systematic[2][iii].GetBinContent(bin_num)
+							#print("%s/%s/%s/%s ---- Superbin %s counts: %s"%(self.year, BR_type, region, systematic,superbin_index,  total_counts))
+							linear_plot_QCD1000to1500.SetBinContent(superbin_index+1,total_counts_QCD1000to1500)
+							linear_plot_QCD1000to1500.SetBinError(superbin_index+1,sqrt(total_counts_QCD1000to1500))
+							linear_plot_QCD1500to2000.SetBinContent(superbin_index+1,total_counts_QCD1500to2000)
+							linear_plot_QCD1500to2000.SetBinError(superbin_index+1,sqrt(total_counts_QCD1500to2000))
+							if region not in ["SB1b","SB0b"]:
+								linear_plot_QCD2000toInf.SetBinContent(superbin_index+1,total_counts_QCD2000toInf)
+								linear_plot_QCD2000toInf.SetBinError(superbin_index+1,sqrt(total_counts_QCD2000toInf))
+							superbin_index+=1
+
+					linear_plot_QCD1000to1500.Sumw2(); 
+					linear_plot_QCD1500to2000.Sumw2(); 
+					linear_plot_QCD2000toInf.Sumw2(); 
+					linear_plot.Sumw2(); 
+
+					## scale histograms 
+					linear_plot_QCD1000to1500.Scale( SF_1000to1500[self.year] )
+					linear_plot_QCD1500to2000.Scale( SF_1500to2000[self.year] )
+					if region not in ["SB1b","SB0b"]: linear_plot_QCD2000toInf.Scale( SF_2000toInf[self.year])
+
+					### NOW add together with the weight information intact
+					linear_plot.Add(linear_plot_QCD1000to1500)
+					linear_plot.Add(linear_plot_QCD1500to2000)
+					if region not in ["SB1b","SB0b"]: linear_plot.Add(linear_plot_QCD2000toInf)
+
+					all_linear_plots.append(linear_plot)
 
 
 			elif hist_type == "TTbar":
@@ -3265,6 +3404,9 @@ class linearized_plot:
 			combine_file_name = self.output_file_home + self.HT_distr_home + "/combine_%s%s_%s.root"%(self.technique_str,year,mass_point)   
 		else:
 			combine_file_name = self.output_file_home + "/combine_%s%s_%s.root"%(self.technique_str,year,mass_point)   
+
+		# create the directory if it doesn't already exist
+
 		combine_file = ROOT.TFile.Open(combine_file_name,"RECREATE")
 		combine_file.cd()
 
@@ -3530,26 +3672,41 @@ class linearized_plot:
 		
 		return
 
-	def load_superbin_indices(self,region="SR"):	# load in the superbin indices (located in a text file )
+	def load_superbin_indices(self,region, true_region):	
+	# load in the superbin indices (located in a text file ), true region means the actual region this represents, not the region whose bin map is used
 		_superbin_indices = []
-		open_file = open(self.index_file_home+"/superbin_indices%s_%s.txt"%(self.technique_str,self.year),"r")
+		open_file = open(self.index_file_home+"/%s_superbin_indices%s_%s.txt"%(self.use_QCD_Pt_str, self.technique_str,self.year),"r")
 		for line in open_file:
 			columns = line.split('/')
 			if columns[0] == self.year and columns[1] == region:
 				_superbin_indices = columns[3]
+				break
 		open_file.close()
-		return ast.literal_eval(_superbin_indices)
+
+
+		superbins = ast.literal_eval(_superbin_indices)
+		
+		if output_map_file and mass_point == "Suu4_chi1":   # only want to do this once per region / year
+			print("writing actual superbin indices for %s/%s/%s to text file."%(self.year,region,self.technique_str))
+			output_map_file.write("%s/%s/%s/number of superbins=%s/%s\n"%(self.year,true_region,self.technique_str, len(superbins), superbins))
+
+		return superbins
 
 
 	def load_bin_masks(self,region):	# load in the superbin indices (located in a text file )
 		_superbin_indices = []
 		bin_map_path         = "region_masks/"
-		open_file = open(bin_map_path+"/bin_masks_%s.txt"%(year),"r")
+		open_file = open(bin_map_path+"/%s_bin_masks_%s.txt"%(self.use_QCD_Pt_str, year),"r")
+
+		if self.debug: print("Loading bin mask %s for year / region / technique %s/%s/%s:"%(bin_map_path+"/bin_masks_%s.txt"%(year), self.year, region, self.technique_str ))
+
 		#print("Got superbin index file %s."%( bin_map_path+"/superbin_indices%s_%s.txt"%(technique_str,year)  ))
+		if self.debug: print("Bin mask:    ")
 		for line in open_file:
 			columns = line.split('/')
 			if columns[0] == self.year and columns[1] == region and columns[2] == self.technique_str:
 				_superbin_indices = columns[3]
+				if self.debug: print("%s"%line)
 		open_file.close()
 		return ast.literal_eval(_superbin_indices)
 
@@ -3591,18 +3748,38 @@ class linearized_plot:
 
 		return
 
+	def create_directories(self):
+
+		dirs_to_create = [ self.output_file_home , self.final_plot_home    ]
+
+		for dir_to_create in dirs_to_create:
+			if not os.path.exists(dir_to_create):
+				print("Creating directory %s."%(dir_to_create))
+				os.makedirs(dir_to_create)
 
 if __name__=="__main__":
 	start_time = time.time()
 
-	debug = False
+	##################################################
+	##############  Options to change  ###############
+	##################################################
+	debug 					 = False
 
-	doHTdist   = False
-	doSideband = False
-	doATxtb	   = False
-	run_from_eos = True
-	createDummyChannel = True
+	doHTdist   				 = False
+	doSideband 				 = False
+	doATxtb	   				 = False
+	run_from_eos			 = True
+	createDummyChannel 		 = False
 
+	includeTTJets800to1200 	 = True
+	includeTTTo              = True
+	includeWJets             = True
+
+	usMask        			 = False  
+	use_1b_bin_maps 	     = True
+	##################################################
+	##################################################
+	##################################################
 	# get input year
 	parser = argparse.ArgumentParser(description="Linearize 2D histograms in order to reach a minimum stat uncertainty and scaled/unscaled bin yield. ")
 	parser.add_argument("-y", "--year", type=str, required=True, help="Input year on which to run.")
@@ -3611,8 +3788,7 @@ if __name__=="__main__":
 	parser.add_argument( "--doATxtb",   default=False, action='store_true', required=False, help="Option to run over the AT1tb and AT0tb regions (in addition to normal regions).")
 
 	args = parser.parse_args()
-	year = args.year
-	print("Running for year %s."%year)
+	
 
 	mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1","Suu5_chi1p5","Suu5_chi2","Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1",
    "Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"]
@@ -3622,31 +3798,55 @@ if __name__=="__main__":
 	if debug:
 		mass_points = ["Suu4_chi1"]
 
-	technique_strs = ["","NN_"] 
+	technique_strs  = ["","NN_"] 
 	technique_descr = ["cut-based", "NN-based"]
 
-	includeTTJets800to1200 = True
-	includeTTTo            = True
-	includeWJets           = True
+	technique_strs  = [""] 
+	technique_descr = ["cut-based"]
 
-	createMaskedFiles      = False ## don't need these now
+	use_QCD_Pt_opts = [True,False]
+	use_QCD_Pt_strs = ["QCDPT","QCDHT"]
 
-	for iii,technique_str in enumerate(technique_strs):
+	if args.year == "all" or args.year == "All" or args.year == "ALL":
+		years = ["2015","2016","2017","2018"]
+	else:
+		years = [args.year]
 
-		if doHTdist and "NN" in technique_str: continue 
+	for year in years:
 
-		# create instance of hist_loader (containing all BR histograms) for the year + technique str combination
-		all_BR_hists  = hist_loader(year, technique_str, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, None)
+		print("=============== Running for %s ===============."%year)
 
-		for mass_point in mass_points:
-			#try:
-			print("Running for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
-			if createMaskedFiles: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, True, createDummyChannel,run_from_eos, debug)   ### run with masked bins
-			else: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, False, createDummyChannel,run_from_eos,debug)	### run without masked bins
+		for jjj,use_QCD_Pt in enumerate(use_QCD_Pt_opts):
 
-			#except:
-			#	print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
-			del final_plot
-		all_BR_hists.kill_histograms()
-		del all_BR_hists  # free up a lot of memory 
-	print("Script took %ss to run."%(	np.round(time.time() - start_time,4 )) )
+			#remove the old "used binMap" file 
+			if not doHTdist:   ## write out the bin maps that are actually used
+				output_map_file_name = "binMaps/actual/%s_used_superbin_indices_%s.txt"%(use_QCD_Pt_strs[jjj],  year) # meaning the ACTUAL bin maps used in merging (for verification)
+				if os.path.exists(output_map_file_name):
+				    os.remove(output_map_file_name)
+				    print("Deleted:", output_map_file_name)
+				output_map_file = open(output_map_file_name,"w")  
+				output_map_file.write("##### THESE ARE THE SUPERBINS THAT ARE ACTUALLY USED IN MERGING. THIS IS SOLELY FOR VERIFICATION \n")
+			else: output_map_file = None
+			for iii,technique_str in enumerate(technique_strs):
+
+				if doHTdist and "NN" in technique_str: continue 
+
+				# create instance of hist_loader (containing all BR histograms) for the year + technique str combination
+				all_BR_hists  = hist_loader(year, technique_str, use_QCD_Pt, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, None)
+
+				for mass_point in mass_points:
+					#try:
+
+					print("Running for %s/%s/%s/useQCDPT = %s"%(year,mass_point,technique_descr[iii],use_QCD_Pt_strs[jjj] ))
+					if usMask: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file,use_QCD_Pt, True, use_1b_bin_maps, createDummyChannel,run_from_eos, debug)   ### run with masked bins
+					else: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file, use_QCD_Pt, False, use_1b_bin_maps ,createDummyChannel,run_from_eos,debug)	### run without masked bins
+
+					# write out the "effective" bin maps = bin maps that are actually being used, to binMaps/ 
+
+					#except:
+					#	print("Failed for %s/%s/%s"%(year,mass_point,technique_descr[iii]))
+					del final_plot
+				all_BR_hists.kill_histograms()
+				del all_BR_hists  # free up a lot of memory 
+			output_map_file.close()
+			print("Script took %ss to run."%(	np.round(time.time() - start_time,4 )) )

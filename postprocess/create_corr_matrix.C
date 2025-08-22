@@ -6,6 +6,7 @@
 
 void create_corr_matrix()
 {
+
     TFile *file = TFile::Open("your_file.root");
     TTree *tree = (TTree*)file->Get("your_tree");
 
@@ -29,8 +30,7 @@ void create_corr_matrix()
     // Now get the correlation matrix:
     TMatrixD *corr = const_cast<TMatrixD*>(principal->GetCorrelationMatrix());
 
-    corr->Print();
-      
+    corr->Print();   
 }
 
 

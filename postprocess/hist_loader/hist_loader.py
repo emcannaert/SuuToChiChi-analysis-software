@@ -17,7 +17,7 @@ class hist_loader:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, technique_str,  doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, WP=None):
+	def __init__(self, year, technique_str, use_QCD_Pt = False, doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, WP=None):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
@@ -26,6 +26,7 @@ class hist_loader:
 		self.run_from_eos = run_from_eos
 		self.WP = WP 
 		self.WP_str = ""
+		self.use_QCD_Pt = use_QCD_Pt
 		if self.WP: 
 
 			
@@ -36,8 +37,6 @@ class hist_loader:
 				self.WP_folder = self.WP
 
 			self.WP_str = self.WP + "_"
-
-			
 
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
@@ -118,9 +117,30 @@ class hist_loader:
 
 
 		### individual bins for SR
-		self.QCD1000to1500_hist_SR 	= []
-		self.QCD1500to2000_hist_SR 	= []
-		self.QCD2000toInf_hist_SR 	= []
+
+		if self.use_QCD_Pt:
+			self.QCDMC_Pt_170to300_hist_SR 	= []
+			self.QCDMC_Pt_300to470_hist_SR 	= []
+			self.QCDMC_Pt_470to600_hist_SR 	= []
+			self.QCDMC_Pt_600to800_hist_SR 	= []
+			self.QCDMC_Pt_800to1000_hist_SR 	= []
+			self.QCDMC_Pt_1000to1400_hist_SR 	= []
+			self.QCDMC_Pt_1400to1800_hist_SR 	= []
+			self.QCDMC_Pt_1800to2400_hist_SR 	= []
+			self.QCDMC_Pt_2400to3200_hist_SR 	= []
+			self.QCDMC_Pt_3200toInf_hist_SR 	= []
+
+
+		else:
+
+			self.QCD1000to1500_hist_SR 	= []
+			self.QCD1500to2000_hist_SR 	= []
+			self.QCD2000toInf_hist_SR 	= []
+
+
+
+
+
 
 		self.TTJets1200to2500_hist_SR 	= []
 		self.TTJets2500toInf_hist_SR 	= []
@@ -145,10 +165,23 @@ class hist_loader:
 			self.WJetsMC_QQ_HT800toInf_SR 		= []
 
 		### individual bins for CR
+		if self.use_QCD_Pt:
+			self.QCDMC_Pt_170to300_hist_CR 	= []
+			self.QCDMC_Pt_300to470_hist_CR 	= []
+			self.QCDMC_Pt_470to600_hist_CR 	= []
+			self.QCDMC_Pt_600to800_hist_CR 	= []
+			self.QCDMC_Pt_800to1000_hist_CR 	= []
+			self.QCDMC_Pt_1000to1400_hist_CR 	= []
+			self.QCDMC_Pt_1400to1800_hist_CR 	= []
+			self.QCDMC_Pt_1800to2400_hist_CR 	= []
+			self.QCDMC_Pt_2400to3200_hist_CR 	= []
+			self.QCDMC_Pt_3200toInf_hist_CR 	= []
 
-		self.QCD1000to1500_hist_CR 	= []
-		self.QCD1500to2000_hist_CR 	= []
-		self.QCD2000toInf_hist_CR 	= []
+		else:
+
+			self.QCD1000to1500_hist_CR 	= []
+			self.QCD1500to2000_hist_CR 	= []
+			self.QCD2000toInf_hist_CR 	= []
 
 		self.TTJets1200to2500_hist_CR 	= []
 		self.TTJets2500toInf_hist_CR 	= []
@@ -175,9 +208,24 @@ class hist_loader:
 
 		### individual bins for AT1b
 
-		self.QCD1000to1500_hist_AT1b 	= []
-		self.QCD1500to2000_hist_AT1b 	= []
-		self.QCD2000toInf_hist_AT1b 	= []
+		if self.use_QCD_Pt:
+			self.QCDMC_Pt_170to300_hist_AT1b 	= []
+			self.QCDMC_Pt_300to470_hist_AT1b 	= []
+			self.QCDMC_Pt_470to600_hist_AT1b 	= []
+			self.QCDMC_Pt_600to800_hist_AT1b 	= []
+			self.QCDMC_Pt_800to1000_hist_AT1b 	= []
+			self.QCDMC_Pt_1000to1400_hist_AT1b 	= []
+			self.QCDMC_Pt_1400to1800_hist_AT1b 	= []
+			self.QCDMC_Pt_1800to2400_hist_AT1b 	= []
+			self.QCDMC_Pt_2400to3200_hist_AT1b 	= []
+			self.QCDMC_Pt_3200toInf_hist_AT1b 	= []
+
+
+		else:
+
+			self.QCD1000to1500_hist_AT1b 	= []
+			self.QCD1500to2000_hist_AT1b 	= []
+			self.QCD2000toInf_hist_AT1b 	= []
 
 		self.TTJets1200to2500_hist_AT1b 	= []
 		self.TTJets2500toInf_hist_AT1b 	= []
@@ -203,10 +251,24 @@ class hist_loader:
 
 		### individual bins for AT0b
 
-		self.QCD1000to1500_hist_AT0b 	= []
-		self.QCD1500to2000_hist_AT0b 	= []
-		self.QCD2000toInf_hist_AT0b 	= []
+		if self.use_QCD_Pt:
+			self.QCDMC_Pt_170to300_hist_AT0b 	= []
+			self.QCDMC_Pt_300to470_hist_AT0b 	= []
+			self.QCDMC_Pt_470to600_hist_AT0b 	= []
+			self.QCDMC_Pt_600to800_hist_AT0b 	= []
+			self.QCDMC_Pt_800to1000_hist_AT0b 	= []
+			self.QCDMC_Pt_1000to1400_hist_AT0b 	= []
+			self.QCDMC_Pt_1400to1800_hist_AT0b 	= []
+			self.QCDMC_Pt_1800to2400_hist_AT0b 	= []
+			self.QCDMC_Pt_2400to3200_hist_AT0b 	= []
+			self.QCDMC_Pt_3200toInf_hist_AT0b 	= []
 
+
+		else:
+
+			self.QCD1000to1500_hist_AT0b 	= []
+			self.QCD1500to2000_hist_AT0b 	= []
+			self.QCD2000toInf_hist_AT0b 	= []
 		self.TTJets1200to2500_hist_AT0b 	= []
 		self.TTJets2500toInf_hist_AT0b 	= []
 
@@ -384,114 +446,163 @@ class hist_loader:
 			### SR
 			
 			#if systematic == "CMS_scale": print("Loading scale histograms.")
-			self.QCD1000to1500_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC1000to1500"))
-			self.QCD1500to2000_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC1500to2000"))
-			self.QCD2000toInf_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC2000toInf"))
 
-			self.TTJets1200to2500_hist_SR.append(self.load_ttbar_hist("SR",systematic,False,"TTJets1200to2500"))
-			self.TTJets2500toInf_hist_SR.append(self.load_ttbar_hist("SR",systematic,False, "TTJets2500toInf"))
+			if self.use_QCD_Pt:
+				self.QCDMC_Pt_170to300_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_170to300"))
+				self.QCDMC_Pt_300to470_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_300to470"))
+				self.QCDMC_Pt_470to600_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_470to600"))
+				self.QCDMC_Pt_600to800_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_600to800"))
+				self.QCDMC_Pt_800to1000_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_800to1000"))
+				self.QCDMC_Pt_1000to1400_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_1000to1400"))
+				self.QCDMC_Pt_1400to1800_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_1400to1800"))
+				self.QCDMC_Pt_1800to2400_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_1800to2400"))
+				self.QCDMC_Pt_2400to3200_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_2400to3200"))
+				self.QCDMC_Pt_3200toInf_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_3200toInf"))
+			else:
+				self.QCD1000to1500_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC1000to1500"))
+				self.QCD1500to2000_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC1500to2000"))
+				self.QCD2000toInf_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC2000toInf"))
 
-			self.ST_t_channel_top_hist_SR.append(self.load_ST_hists("SR",systematic,False,"ST_t_channel_top" ))
-			self.ST_t_channel_antitop_hist_SR.append(self.load_ST_hists("SR",systematic, False,"ST_t_channel_antitop"))
-			self.ST_s_channel_hadrons_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_s_channel_hadrons"))
-			self.ST_s_channel_leptons_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_s_channel_leptons"))
-			self.ST_tW_antitop_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_tW_antitop"))
-			self.ST_tW_top_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_tW_top"))
+			self.TTJets1200to2500_hist_SR.append(self.load_ttbar_hist("SR",systematic,False,"TTJetsMCHT1200to2500"))
+			self.TTJets2500toInf_hist_SR.append(self.load_ttbar_hist("SR",systematic,False, "TTJetsMCHT2500toInf"))
+
+			self.ST_t_channel_top_hist_SR.append(self.load_ST_hists("SR",systematic,False,"ST_t-channel-top_inclMC" ))
+			self.ST_t_channel_antitop_hist_SR.append(self.load_ST_hists("SR",systematic, False,"ST_t-channel-antitop_inclMC"))
+			self.ST_s_channel_hadrons_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_s-channel-hadronsMC"))
+			self.ST_s_channel_leptons_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_s-channel-leptonsMC"))
+			self.ST_tW_antitop_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_tW-antiTop_inclMC"))
+			self.ST_tW_top_hist_SR.append(self.load_ST_hists("SR",systematic, False, "ST_tW-top_inclMC"))
 
 
-			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SR.append(self.load_ttbar_hist("SR",systematic,False,"TTJets800to1200" ))
+			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SR.append(self.load_ttbar_hist("SR",systematic,False,"TTJetsMCHT800to1200" ))
 			if self.includeTTTo:
 				self.TTToHadronicMC_SR.append(self.load_TTTo_hists("SR",systematic, False,"TTToHadronicMC"))
 				self.TTToSemiLeptonicMC_SR.append(self.load_TTTo_hists("SR",systematic, False, "TTToSemiLeptonicMC"))
 				self.TTToLeptonicMC_SR.append(self.load_TTTo_hists("SR",systematic, False, "TTToLeptonicMC"))
 			if self.includeWJets:
-				self.WJetsMC_LNu_HT800to1200_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu_HT800to1200"))
-				self.WJetsMC_LNu_HT1200to2500_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-				self.WJetsMC_LNu_HT2500toInf_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu_HT2500toInf"))
-				self.WJetsMC_QQ_HT800toInf_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_QQ_HT800toInf"))
+				self.WJetsMC_LNu_HT800to1200_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu-HT800to1200"))
+				self.WJetsMC_LNu_HT1200to2500_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu-HT1200to2500"))
+				self.WJetsMC_LNu_HT2500toInf_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_LNu-HT2500toInf"))
+				self.WJetsMC_QQ_HT800toInf_SR.append(self.load_WJets_hists("SR",systematic, False, "WJetsMC_QQ-HT800toInf"))
 
 			### CR
 
-			self.QCD1000to1500_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC1000to1500"))
-			self.QCD1500to2000_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC1500to2000"))
-			self.QCD2000toInf_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC2000toInf"))
+			if self.use_QCD_Pt:
+				self.QCDMC_Pt_170to300_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_170to300"))
+				self.QCDMC_Pt_300to470_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_300to470"))
+				self.QCDMC_Pt_470to600_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_470to600"))
+				self.QCDMC_Pt_600to800_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_600to800"))
+				self.QCDMC_Pt_800to1000_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_800to1000"))
+				self.QCDMC_Pt_1000to1400_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_1000to1400"))
+				self.QCDMC_Pt_1400to1800_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_1400to1800"))
+				self.QCDMC_Pt_1800to2400_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_1800to2400"))
+				self.QCDMC_Pt_2400to3200_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_2400to3200"))
+				self.QCDMC_Pt_3200toInf_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC_Pt_3200toInf"))
+			else:
+				self.QCD1000to1500_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC1000to1500"))
+				self.QCD1500to2000_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC1500to2000"))
+				self.QCD2000toInf_hist_CR.append(self.load_QCD_hists("CR",systematic,False,"QCDMC2000toInf"))
 
-			self.TTJets1200to2500_hist_CR.append(self.load_ttbar_hist("CR",systematic,False,"TTJets1200to2500"))
-			self.TTJets2500toInf_hist_CR.append(self.load_ttbar_hist("CR",systematic,False, "TTJets2500toInf"))
+			self.TTJets1200to2500_hist_CR.append(self.load_ttbar_hist("CR",systematic,False,"TTJetsMCHT1200to2500"))
+			self.TTJets2500toInf_hist_CR.append(self.load_ttbar_hist("CR",systematic,False, "TTJetsMCHT2500toInf"))
 
-			self.ST_t_channel_top_hist_CR.append(self.load_ST_hists("CR",systematic,False,"ST_t_channel_top" ))
-			self.ST_t_channel_antitop_hist_CR.append(self.load_ST_hists("CR",systematic, False,"ST_t_channel_antitop"))
-			self.ST_s_channel_hadrons_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_s_channel_hadrons"))
-			self.ST_s_channel_leptons_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_s_channel_leptons"))
-			self.ST_tW_antitop_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_tW_antitop"))
-			self.ST_tW_top_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_tW_top"))
+			self.ST_t_channel_top_hist_CR.append(self.load_ST_hists("CR",systematic,False,"ST_t-channel-top_inclMC" ))
+			self.ST_t_channel_antitop_hist_CR.append(self.load_ST_hists("CR",systematic, False,"ST_t-channel-antitop_inclMC"))
+			self.ST_s_channel_hadrons_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_s-channel-hadronsMC"))
+			self.ST_s_channel_leptons_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_s-channel-leptonsMC"))
+			self.ST_tW_antitop_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_tW-antiTop_inclMC"))
+			self.ST_tW_top_hist_CR.append(self.load_ST_hists("CR",systematic, False, "ST_tW-top_inclMC"))
 
-			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_CR.append(self.load_ttbar_hist("CR",systematic,False,"TTJets800to1200" ))
+			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_CR.append(self.load_ttbar_hist("CR",systematic,False,"TTJetsMCHT800to1200" ))
 			if self.includeTTTo:
 				self.TTToHadronicMC_CR.append(self.load_TTTo_hists("CR",systematic, False,"TTToHadronicMC"))
 				self.TTToSemiLeptonicMC_CR.append(self.load_TTTo_hists("CR",systematic, False, "TTToSemiLeptonicMC"))
 				self.TTToLeptonicMC_CR.append(self.load_TTTo_hists("CR",systematic, False, "TTToLeptonicMC"))
 			if self.includeWJets:
-				self.WJetsMC_LNu_HT800to1200_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu_HT800to1200"))
-				self.WJetsMC_LNu_HT1200to2500_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-				self.WJetsMC_LNu_HT2500toInf_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu_HT2500toInf"))
-				self.WJetsMC_QQ_HT800toInf_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_QQ_HT800toInf"))
+				self.WJetsMC_LNu_HT800to1200_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu-HT800to1200"))
+				self.WJetsMC_LNu_HT1200to2500_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu-HT1200to2500"))
+				self.WJetsMC_LNu_HT2500toInf_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_LNu-HT2500toInf"))
+				self.WJetsMC_QQ_HT800toInf_CR.append(self.load_WJets_hists("CR",systematic, False, "WJetsMC_QQ-HT800toInf"))
 
 
 
 			### AT1b
 
-			self.QCD1000to1500_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC1000to1500"))
-			self.QCD1500to2000_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC1500to2000"))
-			self.QCD2000toInf_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC2000toInf"))
+			if self.use_QCD_Pt:
+				self.QCDMC_Pt_170to300_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_170to300"))
+				self.QCDMC_Pt_300to470_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_300to470"))
+				self.QCDMC_Pt_470to600_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_470to600"))
+				self.QCDMC_Pt_600to800_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_600to800"))
+				self.QCDMC_Pt_800to1000_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_800to1000"))
+				self.QCDMC_Pt_1000to1400_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_1000to1400"))
+				self.QCDMC_Pt_1400to1800_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_1400to1800"))
+				self.QCDMC_Pt_1800to2400_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_1800to2400"))
+				self.QCDMC_Pt_2400to3200_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_2400to3200"))
+				self.QCDMC_Pt_3200toInf_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC_Pt_3200toInf"))
+			else:
+				self.QCD1000to1500_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC1000to1500"))
+				self.QCD1500to2000_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC1500to2000"))
+				self.QCD2000toInf_hist_AT1b.append(self.load_QCD_hists("AT1b",systematic,False,"QCDMC2000toInf"))
 
-			self.TTJets1200to2500_hist_AT1b.append(self.load_ttbar_hist("AT1b",systematic,False,"TTJets1200to2500"))
-			self.TTJets2500toInf_hist_AT1b.append(self.load_ttbar_hist("AT1b",systematic,False, "TTJets2500toInf"))
+			self.TTJets1200to2500_hist_AT1b.append(self.load_ttbar_hist("AT1b",systematic,False,"TTJetsMCHT1200to2500"))
+			self.TTJets2500toInf_hist_AT1b.append(self.load_ttbar_hist("AT1b",systematic,False, "TTJetsMCHT2500toInf"))
 
-			self.ST_t_channel_top_hist_AT1b.append(self.load_ST_hists("AT1b",systematic,False,"ST_t_channel_top" ))
-			self.ST_t_channel_antitop_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False,"ST_t_channel_antitop"))
-			self.ST_s_channel_hadrons_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_s_channel_hadrons"))
-			self.ST_s_channel_leptons_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_s_channel_leptons"))
-			self.ST_tW_antitop_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_tW_antitop"))
-			self.ST_tW_top_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_tW_top"))
+			self.ST_t_channel_top_hist_AT1b.append(self.load_ST_hists("AT1b",systematic,False,"ST_t-channel-top_inclMC" ))
+			self.ST_t_channel_antitop_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False,"ST_t-channel-antitop_inclMC"))
+			self.ST_s_channel_hadrons_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_s-channel-hadronsMC"))
+			self.ST_s_channel_leptons_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_s-channel-leptonsMC"))
+			self.ST_tW_antitop_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_tW-antiTop_inclMC"))
+			self.ST_tW_top_hist_AT1b.append(self.load_ST_hists("AT1b",systematic, False, "ST_tW-top_inclMC"))
 
-			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT1b.append(self.load_ttbar_hist("AT1b",systematic,False,"TTJets800to1200" ))
+			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT1b.append(self.load_ttbar_hist("AT1b",systematic,False,"TTJetsMCHT800to1200" ))
 			if self.includeTTTo:
 				self.TTToHadronicMC_AT1b.append(self.load_TTTo_hists("AT1b",systematic, False,"TTToHadronicMC"))
 				self.TTToSemiLeptonicMC_AT1b.append(self.load_TTTo_hists("AT1b",systematic, False, "TTToSemiLeptonicMC"))
 				self.TTToLeptonicMC_AT1b.append(self.load_TTTo_hists("AT1b",systematic, False, "TTToLeptonicMC"))
 			if self.includeWJets:
-				self.WJetsMC_LNu_HT800to1200_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu_HT800to1200"))
-				self.WJetsMC_LNu_HT1200to2500_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-				self.WJetsMC_LNu_HT2500toInf_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
-				self.WJetsMC_QQ_HT800toInf_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_QQ_HT800toInf"))
+				self.WJetsMC_LNu_HT800to1200_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu-HT800to1200"))
+				self.WJetsMC_LNu_HT1200to2500_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu-HT1200to2500"))
+				self.WJetsMC_LNu_HT2500toInf_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_LNu-HT2500toInf"))
+				self.WJetsMC_QQ_HT800toInf_AT1b.append(self.load_WJets_hists("AT1b",systematic, False, "WJetsMC_QQ-HT800toInf"))
 
 			### AT0b
 
-			self.QCD1000to1500_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC1000to1500"))
-			self.QCD1500to2000_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC1500to2000"))
-			self.QCD2000toInf_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC2000toInf"))
+			if self.use_QCD_Pt:
+				self.QCDMC_Pt_170to300_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_170to300"))
+				self.QCDMC_Pt_300to470_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_300to470"))
+				self.QCDMC_Pt_470to600_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_470to600"))
+				self.QCDMC_Pt_600to800_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_600to800"))
+				self.QCDMC_Pt_800to1000_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_800to1000"))
+				self.QCDMC_Pt_1000to1400_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_1000to1400"))
+				self.QCDMC_Pt_1400to1800_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_1400to1800"))
+				self.QCDMC_Pt_1800to2400_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_1800to2400"))
+				self.QCDMC_Pt_2400to3200_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_2400to3200"))
+				self.QCDMC_Pt_3200toInf_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC_Pt_3200toInf"))
+			else:
+				self.QCD1000to1500_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC1000to1500"))
+				self.QCD1500to2000_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC1500to2000"))
+				self.QCD2000toInf_hist_AT0b.append(self.load_QCD_hists("AT0b",systematic,False,"QCDMC2000toInf"))
 
-			self.TTJets1200to2500_hist_AT0b.append(self.load_ttbar_hist("AT0b",systematic,False,"TTJets1200to2500"))
-			self.TTJets2500toInf_hist_AT0b.append(self.load_ttbar_hist("AT0b",systematic,False, "TTJets2500toInf"))
+			self.TTJets1200to2500_hist_AT0b.append(self.load_ttbar_hist("AT0b",systematic,False,"TTJetsMCHT1200to2500"))
+			self.TTJets2500toInf_hist_AT0b.append(self.load_ttbar_hist("AT0b",systematic,False, "TTJetsMCHT2500toInf"))
 
-			self.ST_t_channel_top_hist_AT0b.append(self.load_ST_hists("AT0b",systematic,False,"ST_t_channel_top" ))
-			self.ST_t_channel_antitop_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False,"ST_t_channel_antitop"))
-			self.ST_s_channel_hadrons_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_s_channel_hadrons"))
-			self.ST_s_channel_leptons_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_s_channel_leptons"))
-			self.ST_tW_antitop_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_tW_antitop"))
-			self.ST_tW_top_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_tW_top"))
+			self.ST_t_channel_top_hist_AT0b.append(self.load_ST_hists("AT0b",systematic,False,"ST_t-channel-top_inclMC" ))
+			self.ST_t_channel_antitop_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False,"ST_t-channel-antitop_inclMC"))
+			self.ST_s_channel_hadrons_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_s-channel-hadronsMC"))
+			self.ST_s_channel_leptons_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_s-channel-leptonsMC"))
+			self.ST_tW_antitop_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_tW-antiTop_inclMC"))
+			self.ST_tW_top_hist_AT0b.append(self.load_ST_hists("AT0b",systematic, False, "ST_tW-top_inclMC"))
 			
-			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT0b.append(self.load_ttbar_hist("AT0b",systematic,False,"TTJets800to1200" ))
+			if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT0b.append(self.load_ttbar_hist("AT0b",systematic,False,"TTJetsMCHT800to1200" ))
 			if self.includeTTTo:
 				self.TTToHadronicMC_AT0b.append(self.load_TTTo_hists("AT0b",systematic, False,"TTToHadronicMC"))
 				self.TTToSemiLeptonicMC_AT0b.append(self.load_TTTo_hists("AT0b",systematic, False, "TTToSemiLeptonicMC"))
 				self.TTToLeptonicMC_AT0b.append(self.load_TTTo_hists("AT0b",systematic, False, "TTToLeptonicMC"))
 			if self.includeWJets:
-				self.WJetsMC_LNu_HT800to1200_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu_HT800to1200"))
-				self.WJetsMC_LNu_HT1200to2500_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-				self.WJetsMC_LNu_HT2500toInf_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
-				self.WJetsMC_QQ_HT800toInf_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_QQ_HT800toInf"))
+				self.WJetsMC_LNu_HT800to1200_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu-HT800to1200"))
+				self.WJetsMC_LNu_HT1200to2500_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu-HT1200to2500"))
+				self.WJetsMC_LNu_HT2500toInf_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_LNu-HT2500toInf"))
+				self.WJetsMC_QQ_HT800toInf_AT0b.append(self.load_WJets_hists("AT0b",systematic, False, "WJetsMC_QQ-HT800toInf"))
 
 
 			if self.doATxtb:
@@ -499,51 +610,51 @@ class hist_loader:
 				self.QCD1500to2000_hist_AT1tb.append(self.load_QCD_hists("AT1tb",systematic,False,"QCDMC1500to2000"))
 				self.QCD2000toInf_hist_AT1tb.append(self.load_QCD_hists("AT1tb",systematic,False,"QCDMC2000toInf"))
 
-				self.TTJets1200to2500_hist_AT1tb.append(self.load_ttbar_hist("AT1tb",systematic,False,"TTJets1200to2500"))
-				self.TTJets2500toInf_hist_AT1tb.append(self.load_ttbar_hist("AT1tb",systematic,False, "TTJets2500toInf"))
+				self.TTJets1200to2500_hist_AT1tb.append(self.load_ttbar_hist("AT1tb",systematic,False,"TTJetsMCHT1200to2500"))
+				self.TTJets2500toInf_hist_AT1tb.append(self.load_ttbar_hist("AT1tb",systematic,False, "TTJetsMCHT2500toInf"))
 
-				self.ST_t_channel_top_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic,False,"ST_t_channel_top" ))
-				self.ST_t_channel_antitop_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False,"ST_t_channel_antitop"))
-				self.ST_s_channel_hadrons_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_s_channel_hadrons"))
-				self.ST_s_channel_leptons_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_s_channel_leptons"))
-				self.ST_tW_antitop_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_tW_antitop"))
-				self.ST_tW_top_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_tW_top"))
+				self.ST_t_channel_top_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic,False,"ST_t-channel-top_inclMC" ))
+				self.ST_t_channel_antitop_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False,"ST_t-channel-antitop_inclMC"))
+				self.ST_s_channel_hadrons_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_s-channel-hadronsMC"))
+				self.ST_s_channel_leptons_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_s-channel-leptonsMC"))
+				self.ST_tW_antitop_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_tW-antiTop_inclMC"))
+				self.ST_tW_top_hist_AT1tb.append(self.load_ST_hists("AT1tb",systematic, False, "ST_tW-top_inclMC"))
 
-				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT1tb.append(self.load_ttbar_hist("AT1tb",systematic,False,"TTJets800to1200" ))
+				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT1tb.append(self.load_ttbar_hist("AT1tb",systematic,False,"TTJetsMCHT800to1200" ))
 				if self.includeTTTo:
 					self.TTToHadronicMC_AT1tb.append(self.load_TTTo_hists("AT1tb",systematic, False,"TTToHadronicMC"))
 					self.TTToSemiLeptonicMC_AT1tb.append(self.load_TTTo_hists("AT1tb",systematic, False, "TTToSemiLeptonicMC"))
 					self.TTToLeptonicMC_AT1tb.append(self.load_TTTo_hists("AT1tb",systematic, False, "TTToLeptonicMC"))
 				if self.includeWJets:
-					self.WJetsMC_LNu_HT800to1200_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu_HT800to1200"))
-					self.WJetsMC_LNu_HT1200to2500_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-					self.WJetsMC_LNu_HT2500toInf_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu_HT2500toInf"))
-					self.WJetsMC_QQ_HT800toInf_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_QQ_HT800toInf"))
+					self.WJetsMC_LNu_HT800to1200_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu-HT800to1200"))
+					self.WJetsMC_LNu_HT1200to2500_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu-HT1200to2500"))
+					self.WJetsMC_LNu_HT2500toInf_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_LNu-HT2500toInf"))
+					self.WJetsMC_QQ_HT800toInf_AT1tb.append(self.load_WJets_hists("AT1tb",systematic, False, "WJetsMC_QQ-HT800toInf"))
 
 				self.QCD1000to1500_hist_AT0tb.append(self.load_QCD_hists("AT0tb",systematic,False,"QCDMC1000to1500"))
 				self.QCD1500to2000_hist_AT0tb.append(self.load_QCD_hists("AT0tb",systematic,False,"QCDMC1500to2000"))
 				self.QCD2000toInf_hist_AT0tb.append(self.load_QCD_hists("AT0tb",systematic,False,"QCDMC2000toInf"))
 
-				self.TTJets1200to2500_hist_AT0tb.append(self.load_ttbar_hist("AT0tb",systematic,False,"TTJets1200to2500"))
-				self.TTJets2500toInf_hist_AT0tb.append(self.load_ttbar_hist("AT0tb",systematic,False, "TTJets2500toInf"))
+				self.TTJets1200to2500_hist_AT0tb.append(self.load_ttbar_hist("AT0tb",systematic,False,"TTJetsMCHT1200to2500"))
+				self.TTJets2500toInf_hist_AT0tb.append(self.load_ttbar_hist("AT0tb",systematic,False, "TTJetsMCHT2500toInf"))
 
-				self.ST_t_channel_top_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic,False,"ST_t_channel_top" ))
-				self.ST_t_channel_antitop_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False,"ST_t_channel_antitop"))
-				self.ST_s_channel_hadrons_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_s_channel_hadrons"))
-				self.ST_s_channel_leptons_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_s_channel_leptons"))
-				self.ST_tW_antitop_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_tW_antitop"))
-				self.ST_tW_top_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_tW_top"))
+				self.ST_t_channel_top_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic,False,"ST_t-channel-top_inclMC" ))
+				self.ST_t_channel_antitop_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False,"ST_t-channel-antitop_inclMC"))
+				self.ST_s_channel_hadrons_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_s-channel-hadronsMC"))
+				self.ST_s_channel_leptons_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_s-channel-leptonsMC"))
+				self.ST_tW_antitop_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_tW-antiTop_inclMC"))
+				self.ST_tW_top_hist_AT0tb.append(self.load_ST_hists("AT0tb",systematic, False, "ST_tW-top_inclMC"))
 
-				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT0tb.append(self.load_ttbar_hist("AT0tb",systematic,False,"TTJets800to1200" ))
+				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_AT0tb.append(self.load_ttbar_hist("AT0tb",systematic,False,"TTJetsMCHT800to1200" ))
 				if self.includeTTTo:
 					self.TTToHadronicMC_AT0tb.append(self.load_TTTo_hists("AT0tb",systematic, False,"TTToHadronicMC"))
 					self.TTToSemiLeptonicMC_AT0tb.append(self.load_TTTo_hists("AT0tb",systematic, False, "TTToSemiLeptonicMC"))
 					self.TTToLeptonicMC_AT0tb.append(self.load_TTTo_hists("AT0tb",systematic, False, "TTToLeptonicMC"))
 				if self.includeWJets:
-					self.WJetsMC_LNu_HT800to1200_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu_HT800to1200"))
-					self.WJetsMC_LNu_HT1200to2500_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-					self.WJetsMC_LNu_HT2500toInf_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu_HT2500toInf"))
-					self.WJetsMC_QQ_HT800toInf_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_QQ_HT800toInf"))
+					self.WJetsMC_LNu_HT800to1200_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu-HT800to1200"))
+					self.WJetsMC_LNu_HT1200to2500_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu-HT1200to2500"))
+					self.WJetsMC_LNu_HT2500toInf_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_LNu-HT2500toInf"))
+					self.WJetsMC_QQ_HT800toInf_AT0tb.append(self.load_WJets_hists("AT0tb",systematic, False, "WJetsMC_QQ-HT800toInf"))
 
 
 			## sideband
@@ -551,51 +662,51 @@ class hist_loader:
 				self.QCD1000to1500_hist_SB0b.append(self.load_QCD_hists("SB0b",systematic_SB,False,"QCDMC1000to1500"))
 				self.QCD1500to2000_hist_SB0b.append(self.load_QCD_hists("SB0b",systematic_SB,False,"QCDMC1500to2000"))
 
-				self.TTJets800to1200_hist_SB0b.append(self.load_ttbar_hist("SB0b",systematic_SB,False, "TTJets800to1200"))
-				self.TTJets1200to2500_hist_SB0b.append(self.load_ttbar_hist("SB0b",systematic_SB,False,"TTJets1200to2500"))
+				self.TTJets800to1200_hist_SB0b.append(self.load_ttbar_hist("SB0b",systematic_SB,False, "TTJetsMCHT800to1200"))
+				self.TTJets1200to2500_hist_SB0b.append(self.load_ttbar_hist("SB0b",systematic_SB,False,"TTJetsMCHT1200to2500"))
 
-				self.ST_t_channel_top_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB,False,"ST_t_channel_top" ))
-				self.ST_t_channel_antitop_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False,"ST_t_channel_antitop"))
-				self.ST_s_channel_hadrons_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_s_channel_hadrons"))
-				self.ST_s_channel_leptons_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_s_channel_leptons"))
-				self.ST_tW_antitop_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_tW_antitop"))
-				self.ST_tW_top_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_tW_top"))
+				self.ST_t_channel_top_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB,False,"ST_t-channel-top_inclMC" ))
+				self.ST_t_channel_antitop_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False,"ST_t-channel-antitop_inclMC"))
+				self.ST_s_channel_hadrons_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_s-channel-hadronsMC"))
+				self.ST_s_channel_leptons_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_s-channel-leptonsMC"))
+				self.ST_tW_antitop_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_tW-antiTop_inclMC"))
+				self.ST_tW_top_hist_SB0b.append(self.load_ST_hists("SB0b",systematic_SB, False, "ST_tW-top_inclMC"))
 
-				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SB0b.append(self.load_ttbar_hist("SB0b",systematic,False,"TTJets800to1200" ))
+				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SB0b.append(self.load_ttbar_hist("SB0b",systematic,False,"TTJetsMCHT800to1200" ))
 				if self.includeTTTo:
 					self.TTToHadronicMC_SB0b.append(self.load_TTTo_hists("SB0b",systematic, False,"TTToHadronicMC"))
 					self.TTToSemiLeptonicMC_SB0b.append(self.load_TTTo_hists("SB0b",systematic, False, "TTToSemiLeptonicMC"))
 					self.TTToLeptonicMC_SB0b.append(self.load_TTTo_hists("SB0b",systematic, False, "TTToLeptonicMC"))
 				if self.includeWJets:
-					self.WJetsMC_LNu_HT800to1200_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu_HT800to1200"))
-					self.WJetsMC_LNu_HT1200to2500_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-					self.WJetsMC_LNu_HT2500toInf_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
-					self.WJetsMC_QQ_HT800toInf_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_QQ_HT800toInf"))
+					self.WJetsMC_LNu_HT800to1200_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu-HT800to1200"))
+					self.WJetsMC_LNu_HT1200to2500_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu-HT1200to2500"))
+					self.WJetsMC_LNu_HT2500toInf_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_LNu-HT2500toInf"))
+					self.WJetsMC_QQ_HT800toInf_SB0b.append(self.load_WJets_hists("SB0b",systematic, False, "WJetsMC_QQ-HT800toInf"))
 
 
 				self.QCD1000to1500_hist_SB1b.append(self.load_QCD_hists("SB1b",systematic_SB,False,"QCDMC1000to1500"))
 				self.QCD1500to2000_hist_SB1b.append(self.load_QCD_hists("SB1b",systematic_SB,False,"QCDMC1500to2000"))
 
-				self.TTJets800to1200_hist_SB1b.append(self.load_ttbar_hist("SB1b",systematic_SB,False, "TTJets800to1200"))
-				self.TTJets1200to2500_hist_SB1b.append(self.load_ttbar_hist("SB1b",systematic_SB,False,"TTJets1200to2500"))
+				self.TTJets800to1200_hist_SB1b.append(self.load_ttbar_hist("SB1b",systematic_SB,False, "TTJetsMCHT800to1200"))
+				self.TTJets1200to2500_hist_SB1b.append(self.load_ttbar_hist("SB1b",systematic_SB,False,"TTJetsMCHT1200to2500"))
 
-				self.ST_t_channel_top_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB,False,"ST_t_channel_top" ))
-				self.ST_t_channel_antitop_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False,"ST_t_channel_antitop"))
-				self.ST_s_channel_hadrons_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_s_channel_hadrons"))
-				self.ST_s_channel_leptons_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_s_channel_leptons"))
-				self.ST_tW_antitop_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_tW_antitop"))
-				self.ST_tW_top_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_tW_top"))
+				self.ST_t_channel_top_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB,False,"ST_t-channel-top_inclMC" ))
+				self.ST_t_channel_antitop_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False,"ST_t-channel-antitop_inclMC"))
+				self.ST_s_channel_hadrons_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_s-channel-hadronsMC"))
+				self.ST_s_channel_leptons_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_s-channel-leptonsMC"))
+				self.ST_tW_antitop_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_tW-antiTop_inclMC"))
+				self.ST_tW_top_hist_SB1b.append(self.load_ST_hists("SB1b",systematic_SB, False, "ST_tW-top_inclMC"))
 				
-				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SB1b.append(self.load_ttbar_hist("SB1b",systematic,False,"TTJets800to1200" ))
+				if self.includeTTJets800to1200: self.TTJetsMCHT800to1200_SB1b.append(self.load_ttbar_hist("SB1b",systematic,False,"TTJetsMCHT800to1200" ))
 				if self.includeTTTo:
 					self.TTToHadronicMC_SB1b.append(self.load_TTTo_hists("SB1b",systematic, False,"TTToHadronicMC"))
 					self.TTToSemiLeptonicMC_SB1b.append(self.load_TTTo_hists("SB1b",systematic, False, "TTToSemiLeptonicMC"))
 					self.TTToLeptonicMC_SB1b.append(self.load_TTTo_hists("SB1b",systematic, False, "TTToLeptonicMC"))
 				if self.includeWJets:
-					self.WJetsMC_LNu_HT800to1200_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu_HT800to1200"))
-					self.WJetsMC_LNu_HT1200to2500_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu_HT1200to2500"))
-					self.WJetsMC_LNu_HT2500toInf_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu_HT2500toInf"))
-					self.WJetsMC_QQ_HT800toInf_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_QQ_HT800toInf"))
+					self.WJetsMC_LNu_HT800to1200_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu-HT800to1200"))
+					self.WJetsMC_LNu_HT1200to2500_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu-HT1200to2500"))
+					self.WJetsMC_LNu_HT2500toInf_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_LNu-HT2500toInf"))
+					self.WJetsMC_QQ_HT800toInf_SB1b.append(self.load_WJets_hists("SB1b",systematic, False, "WJetsMC_QQ-HT800toInf"))
 
 
 
@@ -674,43 +785,47 @@ class hist_loader:
 		all_combined_QCD_hist = []
 		for sys_str in sys_updown:
 
-			### get each histogram
-
-			#print("Looking for systematic %s"%sys_str )
-
 			if "topPt" in systematic and "down" in sys_str:
 				hist_name = "nom/%s_%s%s"%(self.final_hist_name, self.technique_str ,region )
 			else:
 				hist_name = "%s/%s_%s%s"%(sys_str,self.final_hist_name,self.technique_str ,region )
 
-			#print("Loading QCD %s/%s/%s"%(region,systematic,self.year))
 
-			#print("The technique_str is %s."%self.technique_str)
-			#print("Getting histogram/systematic: %s/%s"%(hist_name,systematic)   )
-			#print("Getting file %s"%hist_path_1000to1500)
-			TH2_file_1000to1500 = ROOT.TFile.Open(hist_path_1000to1500,"READ")
-			TH2_hist_1000to1500 = self.clean_histogram(TH2_file_1000to1500.Get(hist_name), systematic, "QCDMC1000to1500" )
-			#print("Getting file %s"%hist_path_1500to2000)
-
-			TH2_file_1500to2000 = ROOT.TFile.Open(hist_path_1500to2000,"READ")
-			TH2_hist_1500to2000 = self.clean_histogram(TH2_file_1500to2000.Get(hist_name), systematic, "QCDMC1500to2000" )
-
-			if region not in ["SB1b", "SB0b"] : 
-				#print("Getting file %s"%hist_path_2000toInf)
-				TH2_file_2000toInf = ROOT.TFile.Open(hist_path_2000toInf,"READ")
-				TH2_hist_2000toInf = self.clean_histogram(TH2_file_2000toInf.Get(hist_name), systematic, "QCDMC2000toInf" )
-
-			TH2_hist_1000to1500.SetDirectory(0)   # histograms lose their references when the file destructor is called
-			TH2_hist_1500to2000.SetDirectory(0)   # histograms lose their references when the file destructor is called
-			if region not in ["SB1b", "SB0b"] : TH2_hist_2000toInf.SetDirectory(0)   # histograms lose their references when the file destructor is called
-
-
-
-			if hist_type   == "QCDMC1000to1500": all_combined_QCD_hist.append( TH2_hist_1000to1500  )  #### THESE ARE UNSCALED!!!
-			elif hist_type == "QCDMC1500to2000": all_combined_QCD_hist.append( TH2_hist_1500to2000  )  #### THESE ARE UNSCALED!!!
-			elif hist_type == "QCDMC2000toInf" and region not in ["SB1b", "SB0b"] :  all_combined_QCD_hist.append( TH2_hist_2000toInf   )  #### THESE ARE UNSCALED!!!
+			#if hist_type   == "QCDMC1000to1500": 
+			#all_combined_QCD_hist.append( TH2_hist_1000to1500  )  #### THESE ARE UNSCALED!!!
+			#elif hist_type == "QCDMC1500to2000": 
+			#all_combined_QCD_hist.append( TH2_hist_1500to2000  )  #### THESE ARE UNSCALED!!!
+			#elif hist_type == "QCDMC2000toInf" and region not in ["SB1b", "SB0b"] :  all_combined_QCD_hist.append( TH2_hist_2000toInf   )  #### THESE ARE UNSCALED!!!
   
+
+			if "QCD" in hist_type:
+				hist_path = use_filepath + "%s_%s_%sprocessed.root"%(hist_type, self.year, self.WP_str)
+				#print("hist_name / file name = %s / %s"%(     hist_name,hist_path))
+				TH2_file = ROOT.TFile.Open(hist_path,"READ")
+				TH2_hist = self.clean_histogram(TH2_file.Get(hist_name), systematic, hist_type ) 
+				TH2_hist.SetDirectory(0)
+				all_combined_QCD_hist.append( TH2_hist  )  #### THESE ARE UNSCALED!!!
+
+			## COMBINED PORTION BELOW IS NOT IMPLEMENTED FOR QCD_Pt hists
 			elif hist_type == "":
+
+
+				TH2_file_1000to1500 = ROOT.TFile.Open(hist_path_1000to1500,"READ")
+				TH2_hist_1000to1500 = self.clean_histogram(TH2_file_1000to1500.Get(hist_name), systematic, "QCDMC1000to1500" )
+
+				TH2_file_1500to2000 = ROOT.TFile.Open(hist_path_1500to2000,"READ")
+				TH2_hist_1500to2000 = self.clean_histogram(TH2_file_1500to2000.Get(hist_name), systematic, "QCDMC1500to2000" )
+
+				if region not in ["SB1b", "SB0b"] : 
+					TH2_file_2000toInf = ROOT.TFile.Open(hist_path_2000toInf,"READ")
+					TH2_hist_2000toInf = self.clean_histogram(TH2_file_2000toInf.Get(hist_name), systematic, "QCDMC2000toInf" )
+
+				TH2_hist_1000to1500.SetDirectory(0)   # histograms lose their references when the file destructor is called
+				TH2_hist_1500to2000.SetDirectory(0)   # histograms lose their references when the file destructor is called
+				if region not in ["SB1b", "SB0b"] : TH2_hist_2000toInf.SetDirectory(0)   # histograms lose their references when the file destructor is called
+
+
+
 				### return the COMBINED histograms
 
 				### scale each histogram
@@ -748,17 +863,6 @@ class hist_loader:
 			use_filepath = self.MC_root_file_home 
 			if region in ["SB1b", "SB0b"]: use_filepath	  = os.getenv('CMSSW_BASE') + "/src/combinedROOT/sideband_processedFiles/"
 
-
-			hist_path_WJetsMC_LNu_HT800to1200 = use_filepath+ "WJetsMC_LNu-HT800to1200_%s_%sprocessed.root"%(self.year, self.WP_str)
-			hist_path_WJetsMC_LNu_HT1200to2500 = use_filepath+ "WJetsMC_LNu-HT1200to2500_%s_%sprocessed.root"%(self.year, self.WP_str)
-			hist_path_WJetsMC_LNu_HT2500toInf = use_filepath+ "WJetsMC_LNu-HT2500toInf_%s_%sprocessed.root"%(self.year, self.WP_str)
-			hist_path_WJetsMC_QQ_HT800toInf= use_filepath+ "WJetsMC_QQ-HT800toInf_%s_%sprocessed.root"%(self.year, self.WP_str)
-
-			SF_WJetsMC_LNu_HT800to1200  = return_BR_SF(self.year,"WJetsMC_LNu_HT800to1200") 
-			SF_WJetsMC_LNu_HT1200to2500  = return_BR_SF(self.year,"WJetsMC_LNu_HT1200to2500") 
-			SF_WJetsMC_LNu_HT2500toInf  = return_BR_SF(self.year,"WJetsMC_LNu_HT2500toInf") 
-			SF_WJetsMC_QQ_HT800toInf  = return_BR_SF(self.year,"WJetsMC_QQ_HT800toInf") 
-
 			sys_suffix = [""]
 			if systematic == "nom":
 				sys_updown = ["nom"]
@@ -775,23 +879,42 @@ class hist_loader:
 				else:
 					hist_name_WJets = "%s/%s_%s%s"%(sys_str,self.final_hist_name,self.technique_str ,region )
 
-				TH2_file_WJetsMC_LNu_HT800to1200  = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT800to1200,"READ")
-				TH2_file_WJetsMC_LNu_HT1200to2500 = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT1200to2500,"READ")
-				TH2_file_WJetsMC_LNu_HT2500toInf  = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT2500toInf,"READ")
-				TH2_file_WJetsMC_QQ_HT800toInf    = ROOT.TFile.Open(hist_path_WJetsMC_QQ_HT800toInf,"READ")
 
-				TH2_hist_WJetsMC_LNu_HT800to1200     = self.clean_histogram(TH2_file_WJetsMC_LNu_HT800to1200.Get(hist_name_WJets) , systematic, "WJetsMC_LNu_HT800to1200" )
-				TH2_hist_WJetsMC_LNu_HT1200to2500 = self.clean_histogram(TH2_file_WJetsMC_LNu_HT1200to2500.Get(hist_name_WJets) , systematic, "WJetsMC_LNu_HT1200to2500" )
-				TH2_hist_WJetsMC_LNu_HT2500toInf     = self.clean_histogram(TH2_file_WJetsMC_LNu_HT2500toInf.Get(hist_name_WJets) , systematic, "WJetsMC_LNu_HT2500toInf" )
-				TH2_hist_WJetsMC_QQ_HT800toInf     = self.clean_histogram(TH2_file_WJetsMC_QQ_HT800toInf.Get(hist_name_WJets) , systematic, "WJetsMC_QQ_HT800toInf" )
+				#if hist_type   == "WJetsMC_LNu-HT800to1200": all_combined_WJets_hist.append( TH2_hist_WJetsMC_LNu_HT800to1200  )
+				#elif hist_type == "WJetsMC_LNu-HT1200to2500" : all_combined_WJets_hist.append( TH2_hist_WJetsMC_LNu_HT1200to2500  )
+				#elif hist_type == "WJetsMC_LNu-HT2500toInf": all_combined_WJets_hist.append( TH2_hist_WJetsMC_LNu_HT2500toInf  )
+				#elif hist_type == "WJetsMC_QQ-HT800toInf": all_combined_WJets_hist.append( TH2_hist_WJetsMC_QQ_HT800toInf  )
 
 
-				if hist_type   == "WJetsMC_LNu_HT800to1200": all_combined_WJets_hist.append( TH2_hist_WJetsMC_LNu_HT800to1200  )
-				elif hist_type == "WJetsMC_LNu_HT1200to2500" : all_combined_WJets_hist.append( TH2_hist_WJetsMC_LNu_HT1200to2500  )
-				elif hist_type == "WJetsMC_LNu_HT2500toInf": all_combined_WJets_hist.append( TH2_hist_WJetsMC_LNu_HT2500toInf  )
-				elif hist_type == "WJetsMC_QQ_HT800toInf": all_combined_WJets_hist.append( TH2_hist_WJetsMC_QQ_HT800toInf  )
+				if "WJets" in hist_type:
+					hist_path = use_filepath + "%s_%s_%sprocessed.root"%(hist_type, self.year, self.WP_str)
+					TH2_file = ROOT.TFile.Open(hist_path,"READ")
+					TH2_hist = self.clean_histogram(TH2_file.Get(hist_name_WJets), systematic, hist_type ) 
+					all_combined_WJets_hist.append( TH2_hist  )  #### THESE ARE UNSCALED!!!
 
 				elif hist_type == "":
+
+
+					hist_path_WJetsMC_LNu_HT800to1200 = use_filepath+ "WJetsMC_LNu-HT800to1200_%s_%sprocessed.root"%(self.year, self.WP_str)
+					hist_path_WJetsMC_LNu_HT1200to2500 = use_filepath+ "WJetsMC_LNu-HT1200to2500_%s_%sprocessed.root"%(self.year, self.WP_str)
+					hist_path_WJetsMC_LNu_HT2500toInf = use_filepath+ "WJetsMC_LNu-HT2500toInf_%s_%sprocessed.root"%(self.year, self.WP_str)
+					hist_path_WJetsMC_QQ_HT800toInf= use_filepath+ "WJetsMC_QQ-HT800toInf_%s_%sprocessed.root"%(self.year, self.WP_str)
+
+					SF_WJetsMC_LNu_HT800to1200  = return_BR_SF(self.year,"WJetsMC_LNu-HT800to1200") 
+					SF_WJetsMC_LNu_HT1200to2500  = return_BR_SF(self.year,"WJetsMC_LNu-HT1200to2500") 
+					SF_WJetsMC_LNu_HT2500toInf  = return_BR_SF(self.year,"WJetsMC_LNu-HT2500toInf") 
+					SF_WJetsMC_QQ_HT800toInf  = return_BR_SF(self.year,"WJetsMC_QQ-HT800toInf") 
+
+					TH2_file_WJetsMC_LNu_HT800to1200  = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT800to1200,"READ")
+					TH2_file_WJetsMC_LNu_HT1200to2500 = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT1200to2500,"READ")
+					TH2_file_WJetsMC_LNu_HT2500toInf  = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT2500toInf,"READ")
+					TH2_file_WJetsMC_QQ_HT800toInf    = ROOT.TFile.Open(hist_path_WJetsMC_QQ_HT800toInf,"READ")
+
+					TH2_hist_WJetsMC_LNu_HT800to1200     = self.clean_histogram(TH2_file_WJetsMC_LNu_HT800to1200.Get(hist_name_WJets) , systematic, "WJetsMC_LNu-HT800to1200" )
+					TH2_hist_WJetsMC_LNu_HT1200to2500 = self.clean_histogram(TH2_file_WJetsMC_LNu_HT1200to2500.Get(hist_name_WJets) , systematic, "WJetsMC_LNu-HT1200to2500" )
+					TH2_hist_WJetsMC_LNu_HT2500toInf     = self.clean_histogram(TH2_file_WJetsMC_LNu_HT2500toInf.Get(hist_name_WJets) , systematic, "WJetsMC_LNu-HT2500toInf" )
+					TH2_hist_WJetsMC_QQ_HT800toInf     = self.clean_histogram(TH2_file_WJetsMC_QQ_HT800toInf.Get(hist_name_WJets) , systematic, "WJetsMC_QQ-HT800toInf" )
+
 
 					TH2_file_WJetsMC_LNu_HT800to1200.Scale(self.BR_SF_scale*SF_WJetsMC_LNu_HT800to1200)
 					TH2_file_WJetsMC_LNu_HT800to1200.SetDirectory(0)   # histograms lose their references when the file destructor is called
@@ -859,19 +982,29 @@ class hist_loader:
 			else:
 				hist_name_TTbar = "%s/%s_%s%s"%(sys_str,self.final_hist_name,self.technique_str ,region )
 
-			TH2_file_TTToHadronic     = ROOT.TFile.Open(hist_path_TTToHadronic,"READ")
-			TH2_file_TTToSemiLeptonic = ROOT.TFile.Open(hist_path_TTToSemiLeptonic,"READ")
-			TH2_file_TTToLeptonic 	  = ROOT.TFile.Open(hist_path_TTToLeptonic,"READ")
-
-			TH2_hist_TTToHadronic     = self.clean_histogram(TH2_file_TTToHadronic.Get(hist_name_TTbar) , systematic, "TTToHadronicMC" )
-			TH2_hist_TTToSemiLeptonic = self.clean_histogram(TH2_file_TTToSemiLeptonic.Get(hist_name_TTbar) , systematic, "TTToSemiLeptonicMC" )
-			TH2_hist_TTToLeptonic     = self.clean_histogram(TH2_file_TTToLeptonic.Get(hist_name_TTbar) , systematic, "TTToLeptonicMC" )
 
 
-			if hist_type   == "TTToHadronicMC": all_combined_TTbar_hist.append( TH2_hist_TTToHadronic  )
-			elif hist_type == "TTToSemiLeptonicMC" : all_combined_TTbar_hist.append( TH2_hist_TTToSemiLeptonic  )
-			elif hist_type == "TTToLeptonicMC": all_combined_TTbar_hist.append( TH2_hist_TTToLeptonic  )
+			#if hist_type   == "TTToHadronicMC": all_combined_TTbar_hist.append( TH2_hist_TTToHadronic  )
+			#elif hist_type == "TTToSemiLeptonicMC" : all_combined_TTbar_hist.append( TH2_hist_TTToSemiLeptonic  )
+			#elif hist_type == "TTToLeptonicMC": all_combined_TTbar_hist.append( TH2_hist_TTToLeptonic  )
+
+
+			if "TTTo" in hist_type:
+				hist_path = use_filepath + "%s_%s_%sprocessed.root"%(hist_type, self.year, self.WP_str)
+				TH2_file = ROOT.TFile.Open(hist_path,"READ")
+				TH2_hist = self.clean_histogram(TH2_file.Get(hist_name_TTbar), systematic, hist_type ) 
+				all_combined_TTbar_hist.append( TH2_hist  )  #### THESE ARE UNSCALED!!!
+
 			elif hist_type == "":
+
+				TH2_file_TTToHadronic     = ROOT.TFile.Open(hist_path_TTToHadronic,"READ")
+				TH2_file_TTToSemiLeptonic = ROOT.TFile.Open(hist_path_TTToSemiLeptonic,"READ")
+				TH2_file_TTToLeptonic 	  = ROOT.TFile.Open(hist_path_TTToLeptonic,"READ")
+
+				TH2_hist_TTToHadronic     = self.clean_histogram(TH2_file_TTToHadronic.Get(hist_name_TTbar) , systematic, "TTToHadronicMC" )
+				TH2_hist_TTToSemiLeptonic = self.clean_histogram(TH2_file_TTToSemiLeptonic.Get(hist_name_TTbar) , systematic, "TTToSemiLeptonicMC" )
+				TH2_hist_TTToLeptonic     = self.clean_histogram(TH2_file_TTToLeptonic.Get(hist_name_TTbar) , systematic, "TTToLeptonicMC" )
+
 
 				TH2_hist_TTToHadronic.Scale(self.BR_SF_scale*SF_TTToHadronic[self.year])
 				TH2_hist_TTToHadronic.SetDirectory(0)   # histograms lose their references when the file destructor is called
@@ -948,31 +1081,28 @@ class hist_loader:
 			else:
 				hist_name_TTbar = "%s/%s_%s%s"%(sys_str,self.final_hist_name,self.technique_str ,region )
 
-			#TH2_file_TTToHadronic = ROOT.TFile.Open(hist_path_TTToHadronic,"READ")
-			#TH2_file_TTToSemiLeptonic = ROOT.TFile.Open(hist_path_TTToSemiLeptonic,"READ")
-			#TH2_file_TTToLeptonic = ROOT.TFile.Open(hist_path_TTToLeptonic,"READ")
 
-			TH2_file_TTJetsMCHT1200to2500 = ROOT.TFile.Open(hist_path_TTJetsMCHT1200to2500,"READ")
-			if region not in ["SB1b", "SB0b"]: TH2_file_TTJetsMCHT2500toInf  = ROOT.TFile.Open(hist_path_TTJetsMCHT2500toInf,"READ")
-			if self.doSideband or self.includeTTJets800to1200: 
-				hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_%sprocessed.root"%(self.year, self.WP_str)
-				TH2_file_TTJetsMCHT800to1200 = ROOT.TFile.Open(hist_path_TTJetsMCHT800to1200,"READ")
-				#print("Loading TTbar %s/%s/%s"%(region,systematic,self.year))
-				TH2_hist_TTJetsMCHT800to1200  = self.clean_histogram(TH2_file_TTJetsMCHT800to1200.Get(hist_name_TTbar), systematic, "TTJets800to1200") 
-			#TH2_hist_TTToHadronic = TH2_file_TTToHadronic.Get(hist_name_TTbar) 
-			#TH2_hist_TTToSemiLeptonic = TH2_file_TTToSemiLeptonic.Get(hist_name_TTbar) 
-			#TH2_hist_TTToLeptonic = TH2_file_TTToLeptonic.Get(hist_name_TTbar) 
+			#if hist_type   == "TTJetsMCHT1200to2500": all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT1200to2500  )
+			#elif hist_type == "TTJetsMCHT2500toInf" and region not in ["SB1b", "SB0b"] : all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT2500toInf  )
+			#elif hist_type == "TTJetsMCHT800to1200" and (self.includeTTJets800to1200 or self.doSideband): all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT800to1200  )
+			
+			if "TTJets" in hist_type:
+				hist_path = use_filepath + "%s_%s_%sprocessed.root"%(hist_type, self.year, self.WP_str)
+				TH2_file = ROOT.TFile.Open(hist_path,"READ")
+				TH2_hist = self.clean_histogram(TH2_file.Get(hist_name_TTbar), systematic, hist_type ) 
+				all_combined_TTbar_hist.append( TH2_hist  )  #### THESE ARE UNSCALED!!!
 
-			TH2_hist_TTJetsMCHT1200to2500 = self.clean_histogram(TH2_file_TTJetsMCHT1200to2500.Get(hist_name_TTbar) , systematic, "TTJets1200to2500" )
-			if region not in ["SB1b", "SB0b"] :TH2_hist_TTJetsMCHT2500toInf  = self.clean_histogram(TH2_file_TTJetsMCHT2500toInf.Get(hist_name_TTbar), systematic, "TTJets2500toInf" )
-
-
-
-			if hist_type   == "TTJets1200to2500": all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT1200to2500  )
-			elif hist_type == "TTJets2500toInf" and region not in ["SB1b", "SB0b"] : all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT2500toInf  )
-			elif hist_type == "TTJets800to1200" and (self.includeTTJets800to1200 or self.doSideband): all_combined_TTbar_hist.append( TH2_hist_TTJetsMCHT800to1200  )
 			elif hist_type == "":
 
+				TH2_file_TTJetsMCHT1200to2500 = ROOT.TFile.Open(hist_path_TTJetsMCHT1200to2500,"READ")
+				if region not in ["SB1b", "SB0b"]: TH2_file_TTJetsMCHT2500toInf  = ROOT.TFile.Open(hist_path_TTJetsMCHT2500toInf,"READ")
+				if self.doSideband or self.includeTTJets800to1200: 
+					hist_path_TTJetsMCHT800to1200 = use_filepath + "TTJetsMCHT800to1200_%s_%sprocessed.root"%(self.year, self.WP_str)
+					TH2_file_TTJetsMCHT800to1200 = ROOT.TFile.Open(hist_path_TTJetsMCHT800to1200,"READ")
+					TH2_hist_TTJetsMCHT800to1200  = self.clean_histogram(TH2_file_TTJetsMCHT800to1200.Get(hist_name_TTbar), systematic, "TTJetsMCHT800to1200") 
+
+				TH2_hist_TTJetsMCHT1200to2500 = self.clean_histogram(TH2_file_TTJetsMCHT1200to2500.Get(hist_name_TTbar) , systematic, "TTJetsMCHT1200to2500" )
+				if region not in ["SB1b", "SB0b"] :TH2_hist_TTJetsMCHT2500toInf  = self.clean_histogram(TH2_file_TTJetsMCHT2500toInf.Get(hist_name_TTbar), systematic, "TTJetsMCHT2500toInf" )
 
 				TH2_hist_TTJetsMCHT1200to2500.Scale(self.BR_SF_scale*SF_TTJetsMCHT1200to2500[self.year])
 				TH2_hist_TTJetsMCHT1200to2500.SetDirectory(0)   # histograms lose their references when the file destructor is called
@@ -1000,6 +1130,7 @@ class hist_loader:
 				return []
 		return all_combined_TTbar_hist  # load in TTbar historam, scale it, and return this version
 	def clean_histogram(self,hist,systematic,sample):
+		#print("running for sample/year/systematic: %s/%s/%s"%(sample, self.year, systematic))
 		ROOT.TH1.AddDirectory(False)
 		for iii in range(1, hist.GetNbinsX()+1):
 			for jjj in range(1,hist.GetNbinsY()+1):
@@ -1055,32 +1186,38 @@ class hist_loader:
 			else:
 				hist_name_ST = "%s/%s_%s%s"%(sys_str,self.final_hist_name,self.technique_str ,region )
 
-			#print("Loading Single top %s/%s/%s"%(region,systematic,self.year))
-			TH2_file_ST_t_channel_top_5f 	 = ROOT.TFile.Open(hist_path_ST_t_channel_top_5f,"READ")
-			TH2_file_ST_t_channel_antitop_5f = ROOT.TFile.Open(hist_path_ST_t_channel_antitop_5f,"READ")
-			TH2_file_ST_s_channel_4f_hadrons = ROOT.TFile.Open(hist_path_ST_s_channel_4f_hadrons,"READ")
-			TH2_file_ST_s_channel_4f_leptons = ROOT.TFile.Open(hist_path_ST_s_channel_4f_leptons,"READ")
-			TH2_file_ST_tW_antitop_5f 		 = ROOT.TFile.Open(hist_path_ST_tW_antitop_5f,"READ")
-			TH2_file_ST_tW_top_5f			 = ROOT.TFile.Open(hist_path_ST_tW_top_5f,"READ")
 
-			#print("file name: %s, hist name: %s"%(hist_path_ST_t_channel_top_5f, hist_name_ST)  )
+			#if hist_type   == "ST_t-channel-top_inclMC": all_combined_ST_hist.append( TH2_hist_ST_t_channel_top_5f  )
+			#elif hist_type == "ST_t-channel-antitop_inclMC": all_combined_ST_hist.append( TH2_hist_ST_t_channel_antitop_5f  )
+			#elif hist_type == "ST_s-channel-hadronsMC": all_combined_ST_hist.append( TH2_hist_ST_s_channel_4f_hadrons  )
+			#elif hist_type == "ST_s-channel-leptonsMC": all_combined_ST_hist.append( TH2_hist_ST_s_channel_4f_leptons  )
+			#lif hist_type == "ST_tW-antiTop_inclMC": all_combined_ST_hist.append( TH2_hist_ST_tW_antitop_5f  )
+			#elif hist_type == "ST_tW-top_inclMC": all_combined_ST_hist.append( TH2_hist_ST_tW_top_5f  )
 
-			TH2_hist_ST_t_channel_top_5f 	 = self.clean_histogram(TH2_file_ST_t_channel_top_5f.Get(hist_name_ST), systematic, "ST_t_channel_top" )
-			TH2_hist_ST_t_channel_antitop_5f = self.clean_histogram(TH2_file_ST_t_channel_antitop_5f.Get(hist_name_ST), systematic, "ST_t_channel_antitop" )
-			TH2_hist_ST_s_channel_4f_hadrons = self.clean_histogram(TH2_file_ST_s_channel_4f_hadrons.Get(hist_name_ST), systematic, "ST_s_channel_hadrons" )
-			TH2_hist_ST_s_channel_4f_leptons = self.clean_histogram(TH2_file_ST_s_channel_4f_leptons.Get(hist_name_ST), systematic, "ST_s_channel_leptons"  )
-			TH2_hist_ST_tW_antitop_5f 		 = self.clean_histogram(TH2_file_ST_tW_antitop_5f.Get(hist_name_ST), systematic, "ST_tW_antitop" )
-			TH2_hist_ST_tW_top_5f			 = self.clean_histogram(TH2_file_ST_tW_top_5f.Get(hist_name_ST), systematic, "ST_tW_top" )
-
-
-			if hist_type   == "ST_t_channel_top": all_combined_ST_hist.append( TH2_hist_ST_t_channel_top_5f  )
-			elif hist_type == "ST_t_channel_antitop": all_combined_ST_hist.append( TH2_hist_ST_t_channel_antitop_5f  )
-			elif hist_type == "ST_s_channel_hadrons": all_combined_ST_hist.append( TH2_hist_ST_s_channel_4f_hadrons  )
-			elif hist_type == "ST_s_channel_leptons": all_combined_ST_hist.append( TH2_hist_ST_s_channel_4f_leptons  )
-			elif hist_type == "ST_tW_antitop": all_combined_ST_hist.append( TH2_hist_ST_tW_antitop_5f  )
-			elif hist_type == "ST_tW_top": all_combined_ST_hist.append( TH2_hist_ST_tW_top_5f  )
+			if "ST_" in hist_type:
+				hist_path = use_filepath + "%s_%s_%sprocessed.root"%(hist_type, self.year, self.WP_str)
+				TH2_file = ROOT.TFile.Open(hist_path,"READ")
+				TH2_hist = self.clean_histogram(TH2_file.Get(hist_name_ST), systematic, hist_type ) 
+				all_combined_ST_hist.append( TH2_hist  )  #### THESE ARE UNSCALED!!!
 
 			elif hist_type == "":
+
+				#print("Loading Single top %s/%s/%s"%(region,systematic,self.year))
+				TH2_file_ST_t_channel_top_5f 	 = ROOT.TFile.Open(hist_path_ST_t_channel_top_5f,"READ")
+				TH2_file_ST_t_channel_antitop_5f = ROOT.TFile.Open(hist_path_ST_t_channel_antitop_5f,"READ")
+				TH2_file_ST_s_channel_4f_hadrons = ROOT.TFile.Open(hist_path_ST_s_channel_4f_hadrons,"READ")
+				TH2_file_ST_s_channel_4f_leptons = ROOT.TFile.Open(hist_path_ST_s_channel_4f_leptons,"READ")
+				TH2_file_ST_tW_antitop_5f 		 = ROOT.TFile.Open(hist_path_ST_tW_antitop_5f,"READ")
+				TH2_file_ST_tW_top_5f			 = ROOT.TFile.Open(hist_path_ST_tW_top_5f,"READ")
+
+				#print("file name: %s, hist name: %s"%(hist_path_ST_t_channel_top_5f, hist_name_ST)  )
+
+				TH2_hist_ST_t_channel_top_5f 	 = self.clean_histogram(TH2_file_ST_t_channel_top_5f.Get(hist_name_ST), systematic, "ST_t-channel-top_inclMC" )
+				TH2_hist_ST_t_channel_antitop_5f = self.clean_histogram(TH2_file_ST_t_channel_antitop_5f.Get(hist_name_ST), systematic, "ST_t-channel-antitop_inclMC" )
+				TH2_hist_ST_s_channel_4f_hadrons = self.clean_histogram(TH2_file_ST_s_channel_4f_hadrons.Get(hist_name_ST), systematic, "ST_s-channel-hadronsMC" )
+				TH2_hist_ST_s_channel_4f_leptons = self.clean_histogram(TH2_file_ST_s_channel_4f_leptons.Get(hist_name_ST), systematic, "ST_s-channel-leptonsMC"  )
+				TH2_hist_ST_tW_antitop_5f 		 = self.clean_histogram(TH2_file_ST_tW_antitop_5f.Get(hist_name_ST), systematic, "ST_tW-antiTop_inclMC" )
+				TH2_hist_ST_tW_top_5f			 = self.clean_histogram(TH2_file_ST_tW_top_5f.Get(hist_name_ST), systematic, "ST_tW-top_inclMC" )
 
 				TH2_hist_ST_t_channel_top_5f.Scale(self.BR_SF_scale*ST_t_channel_top_5f_SF[self.year])
 				TH2_hist_ST_t_channel_top_5f.SetDirectory(0)   # histograms lose their references when the file destructor is called
@@ -1169,16 +1306,35 @@ class hist_loader:
 
 	def kill_histograms(self):   ## many histograms to kill ... 
 
-		all_hist_lists = [ self.QCD1000to1500_hist_SR, self.QCD1500to2000_hist_SR, self.QCD2000toInf_hist_SR, self.TTJets1200to2500_hist_SR, self.TTJets2500toInf_hist_SR, self.ST_t_channel_top_hist_SR, 	self.ST_t_channel_antitop_hist_SR, self.ST_s_channel_hadrons_hist_SR, 
+		all_hist_lists = [ self.TTJets1200to2500_hist_SR, self.TTJets2500toInf_hist_SR, self.ST_t_channel_top_hist_SR, 	self.ST_t_channel_antitop_hist_SR, self.ST_s_channel_hadrons_hist_SR, 
 		self.ST_s_channel_leptons_hist_SR,   self.ST_tW_antitop_hist_SR, self.ST_tW_top_hist_SR, 	
-		self.QCD1000to1500_hist_CR, self.QCD1500to2000_hist_CR, self.QCD2000toInf_hist_CR, self.TTJets1200to2500_hist_CR, self.TTJets2500toInf_hist_CR, self.ST_t_channel_top_hist_CR, 	self.ST_t_channel_antitop_hist_CR, 
+		 self.TTJets1200to2500_hist_CR, self.TTJets2500toInf_hist_CR, self.ST_t_channel_top_hist_CR, 	self.ST_t_channel_antitop_hist_CR, 
 		self.ST_s_channel_hadrons_hist_CR, self.ST_s_channel_leptons_hist_CR,   self.ST_tW_antitop_hist_CR, self.ST_tW_top_hist_CR, 	
-		self.QCD1000to1500_hist_AT1b, self.QCD1500to2000_hist_AT1b, self.QCD2000toInf_hist_AT1b, self.TTJets1200to2500_hist_AT1b, self.TTJets2500toInf_hist_AT1b, 
+		 self.TTJets1200to2500_hist_AT1b, self.TTJets2500toInf_hist_AT1b, 
 		self.ST_t_channel_top_hist_AT1b, 	self.ST_t_channel_antitop_hist_AT1b, self.ST_s_channel_hadrons_hist_AT1b, self.ST_s_channel_leptons_hist_AT1b,   self.ST_tW_antitop_hist_AT1b, self.ST_tW_top_hist_AT1b, 	
-		self.QCD1000to1500_hist_AT0b, self.QCD1500to2000_hist_AT0b, self.QCD2000toInf_hist_AT0b, 
 		self.TTJets1200to2500_hist_AT0b, self.TTJets2500toInf_hist_AT0b, self.ST_t_channel_top_hist_AT0b, 	self.ST_t_channel_antitop_hist_AT0b, self.ST_s_channel_hadrons_hist_AT0b, self.ST_s_channel_leptons_hist_AT0b,   
 		self.ST_tW_antitop_hist_AT0b, self.ST_tW_top_hist_AT0b ]
 		
+		if self.use_QCD_Pt:
+			all_hist_lists.extend([
+				self.QCDMC_Pt_170to300_hist_SR,
+				self.QCDMC_Pt_300to470_hist_SR,
+				self.QCDMC_Pt_470to600_hist_SR,
+				self.QCDMC_Pt_600to800_hist_SR,
+				self.QCDMC_Pt_800to1000_hist_SR,
+				self.QCDMC_Pt_1000to1400_hist_SR,
+				self.QCDMC_Pt_1400to1800_hist_SR,
+				self.QCDMC_Pt_1800to2400_hist_SR,
+				self.QCDMC_Pt_2400to3200_hist_SR,
+				self.QCDMC_Pt_3200toInf_hist_SR])
+		else:
+			all_hist_lists.extend([
+				self.QCD1000to1500_hist_SR, self.QCD1500to2000_hist_SR, self.QCD2000toInf_hist_SR,
+				self.QCD1000to1500_hist_CR, self.QCD1500to2000_hist_CR, self.QCD2000toInf_hist_CR,
+				self.QCD1000to1500_hist_AT1b, self.QCD1500to2000_hist_AT1b, self.QCD2000toInf_hist_AT1b,
+				self.QCD1000to1500_hist_AT0b, self.QCD1500to2000_hist_AT0b, self.QCD2000toInf_hist_AT0b ])
+
+
 		for hist_list in all_hist_lists:
 			for hist in hist_list:
 				del hist
@@ -1515,20 +1671,20 @@ class hist_loader:
 		total_BR = sum([self.QCD1000to1500_hist_SR[0][0].Integral()*BR_SFs["QCDMC1000to1500"][self.year], self.QCD1500to2000_hist_SR[0][0].Integral()*BR_SFs["QCDMC1500to2000"][self.year], self.QCD2000toInf_hist_SR[0][0].Integral()*BR_SFs["QCDMC2000toInf"][self.year],
 
 			self.ST_t_channel_top_hist_SR[0][0].Integral()*BR_SFs["ST_t_channel_top_inclMC"][self.year], 
-			self.ST_t_channel_antitop_hist_SR[0][0].Integral()*BR_SFs["ST_t_channel_antitop_incMC"][self.year], 
-			self.ST_s_channel_hadrons_hist_SR[0][0].Integral()*BR_SFs["ST_s_channel_hadronsMC"][self.year], 
-			self.ST_s_channel_leptons_hist_SR[0][0].Integral()*BR_SFs["ST_s_channel_leptonsMC"][self.year], 
-			self.ST_tW_antitop_hist_SR[0][0].Integral()*BR_SFs["ST_tW_antiTop_inclMC"][self.year], 
-			self.ST_tW_top_hist_SR[0][0].Integral()*BR_SFs["ST_tW_top_inclMC"][self.year], 
+			self.ST_t_channel_antitop_hist_SR[0][0].Integral()*BR_SFs["ST_t-channel-antitop_inclMC_incMC"][self.year], 
+			self.ST_s_channel_hadrons_hist_SR[0][0].Integral()*BR_SFs["ST_s-channel-hadronsMCMC"][self.year], 
+			self.ST_s_channel_leptons_hist_SR[0][0].Integral()*BR_SFs["ST_s-channel-leptonsMCMC"][self.year], 
+			self.ST_tW_antitop_hist_SR[0][0].Integral()*BR_SFs["ST_tW-antiTop_inclMC_inclMC"][self.year], 
+			self.ST_tW_top_hist_SR[0][0].Integral()*BR_SFs["ST_tW-top_inclMC_inclMC"][self.year], 
 
 			self.TTToHadronicMC_SR[0][0].Integral()*BR_SFs["TTToHadronicMC"][self.year], 
 			self.TTToSemiLeptonicMC_SR[0][0].Integral()*BR_SFs["TTToSemiLeptonicMC"][self.year], 
 			self.TTToLeptonicMC_SR[0][0].Integral()*BR_SFs["TTToLeptonicMC"][self.year], 
 
-			self.WJetsMC_LNu_HT800to1200_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT800to1200"][self.year], 
-			self.WJetsMC_LNu_HT1200to2500_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT1200to2500"][self.year], 
-			self.WJetsMC_LNu_HT2500toInf_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT2500toInf"][self.year], 
-			self.WJetsMC_QQ_HT800toInf_SR[0][0].Integral()*BR_SFs["WJetsMC_QQ_HT800toInf"][self.year] ]  )
+			self.WJetsMC_LNu_HT800to1200_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu-HT800to1200"][self.year], 
+			self.WJetsMC_LNu_HT1200to2500_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu-HT1200to2500"][self.year], 
+			self.WJetsMC_LNu_HT2500toInf_SR[0][0].Integral()*BR_SFs["WJetsMC_LNu-HT2500toInf"][self.year], 
+			self.WJetsMC_QQ_HT800toInf_SR[0][0].Integral()*BR_SFs["WJetsMC_QQ-HT800toInf"][self.year] ]  )
 
 		summary_str = "%s"%(total_BR )
 
@@ -1541,20 +1697,20 @@ class hist_loader:
 		total_BR = sum([self.QCD1000to1500_hist_AT1b[0][0].Integral()*BR_SFs["QCDMC1000to1500"][self.year], self.QCD1500to2000_hist_AT1b[0][0].Integral()*BR_SFs["QCDMC1500to2000"][self.year], self.QCD2000toInf_hist_AT1b[0][0].Integral()*BR_SFs["QCDMC2000toInf"][self.year],
 
 			self.ST_t_channel_top_hist_AT1b[0][0].Integral()*BR_SFs["ST_t_channel_top_inclMC"][self.year], 
-			self.ST_t_channel_antitop_hist_AT1b[0][0].Integral()*BR_SFs["ST_t_channel_antitop_incMC"][self.year], 
-			self.ST_s_channel_hadrons_hist_AT1b[0][0].Integral()*BR_SFs["ST_s_channel_hadronsMC"][self.year], 
-			self.ST_s_channel_leptons_hist_AT1b[0][0].Integral()*BR_SFs["ST_s_channel_leptonsMC"][self.year], 
-			self.ST_tW_antitop_hist_AT1b[0][0].Integral()*BR_SFs["ST_tW_antiTop_inclMC"][self.year], 
-			self.ST_tW_top_hist_AT1b[0][0].Integral()*BR_SFs["ST_tW_top_inclMC"][self.year], 
+			self.ST_t_channel_antitop_hist_AT1b[0][0].Integral()*BR_SFs["ST_t-channel-antitop_inclMC_incMC"][self.year], 
+			self.ST_s_channel_hadrons_hist_AT1b[0][0].Integral()*BR_SFs["ST_s-channel-hadronsMCMC"][self.year], 
+			self.ST_s_channel_leptons_hist_AT1b[0][0].Integral()*BR_SFs["ST_s-channel-leptonsMCMC"][self.year], 
+			self.ST_tW_antitop_hist_AT1b[0][0].Integral()*BR_SFs["ST_tW-antiTop_inclMC_inclMC"][self.year], 
+			self.ST_tW_top_hist_AT1b[0][0].Integral()*BR_SFs["ST_tW-top_inclMC_inclMC"][self.year], 
 
 			self.TTToHadronicMC_AT1b[0][0].Integral()*BR_SFs["TTToHadronicMC"][self.year], 
 			self.TTToSemiLeptonicMC_AT1b[0][0].Integral()*BR_SFs["TTToSemiLeptonicMC"][self.year], 
 			self.TTToLeptonicMC_AT1b[0][0].Integral()*BR_SFs["TTToLeptonicMC"][self.year], 
 
-			self.WJetsMC_LNu_HT800to1200_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT800to1200"][self.year], 
-			self.WJetsMC_LNu_HT1200to2500_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT1200to2500"][self.year], 
-			self.WJetsMC_LNu_HT2500toInf_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu_HT2500toInf"][self.year], 
-			self.WJetsMC_QQ_HT800toInf_AT1b[0][0].Integral()*BR_SFs["WJetsMC_QQ_HT800toInf"][self.year] ]  )
+			self.WJetsMC_LNu_HT800to1200_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu-HT800to1200"][self.year], 
+			self.WJetsMC_LNu_HT1200to2500_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu-HT1200to2500"][self.year], 
+			self.WJetsMC_LNu_HT2500toInf_AT1b[0][0].Integral()*BR_SFs["WJetsMC_LNu-HT2500toInf"][self.year], 
+			self.WJetsMC_QQ_HT800toInf_AT1b[0][0].Integral()*BR_SFs["WJetsMC_QQ-HT800toInf"][self.year] ]  )
 
 		summary_str = "%s"%(total_BR )
 

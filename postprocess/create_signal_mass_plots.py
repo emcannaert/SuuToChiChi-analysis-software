@@ -455,13 +455,6 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	h_MSJ_mass_vs_MdSJ_AT0b.Scale(return_signal_SF.return_signal_SF(year,mass_point,decays[0]))
 
 
-	if h_MSJ_mass_vs_MdSJ_SR: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"SR",  year, h_MSJ_mass_vs_MdSJ_SR.Integral()))
-	if h_MSJ_mass_vs_MdSJ_CR: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"CR",  year, h_MSJ_mass_vs_MdSJ_CR.Integral()))
-	if h_MSJ_mass_vs_MdSJ_AT1b: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"AT1b",  year, h_MSJ_mass_vs_MdSJ_AT1b.Integral()))
-	if h_MSJ_mass_vs_MdSJ_AT0b: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"AT0b",  year, h_MSJ_mass_vs_MdSJ_AT0b.Integral()))
-
-
-
 
 	# init stack plots
 	h_SJ_mass_SR = ROOT.THStack( "h_SJ_mass_SR_stack", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (SR) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str))
@@ -529,18 +522,18 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 		h2_disuperjet_mass_AT0b.SetDirectory(0)
 
 		if (iii > 0):   # only want to do this for files 2 and beyond 
-			h_MSJ_mass_vs_MdSJ_SR 	= f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_SR"%tagging_type)
-			h_MSJ_mass_vs_MdSJ_CR  = f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_CR"%tagging_type)
-			h_MSJ_mass_vs_MdSJ_AT1b = f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_AT1b"%tagging_type)
-			h_MSJ_mass_vs_MdSJ_AT0b = f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_AT0b"%tagging_type)
-			h_MSJ_mass_vs_MdSJ_SR.Scale(decay_SF)
-			h_MSJ_mass_vs_MdSJ_CR.Scale(decay_SF)
-			h_MSJ_mass_vs_MdSJ_AT1b.Scale(decay_SF)
-			h_MSJ_mass_vs_MdSJ_AT0b.Scale(decay_SF)
-			h_MSJ_mass_vs_MdSJ_SR.Add(h_MSJ_mass_vs_MdSJ_SR)
-			h_MSJ_mass_vs_MdSJ_CR.Add(h_MSJ_mass_vs_MdSJ_CR)
-			h_MSJ_mass_vs_MdSJ_AT1b.Add(h_MSJ_mass_vs_MdSJ_AT1b)
-			h_MSJ_mass_vs_MdSJ_AT0b.Add(h_MSJ_mass_vs_MdSJ_AT0b)
+			h_MSJ_mass_vs_MdSJ_SR_temp 	= f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_SR"%tagging_type)
+			h_MSJ_mass_vs_MdSJ_CR_temp  = f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_CR"%tagging_type)
+			h_MSJ_mass_vs_MdSJ_AT1b_temp = f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_AT1b"%tagging_type)
+			h_MSJ_mass_vs_MdSJ_AT0b_temp = f2.Get(folder_name+"h_MSJ_mass_vs_MdSJ%s_AT0b"%tagging_type)
+			h_MSJ_mass_vs_MdSJ_SR_temp.Scale(decay_SF)
+			h_MSJ_mass_vs_MdSJ_CR_temp.Scale(decay_SF)
+			h_MSJ_mass_vs_MdSJ_AT1b_temp.Scale(decay_SF)
+			h_MSJ_mass_vs_MdSJ_AT0b_temp.Scale(decay_SF)
+			h_MSJ_mass_vs_MdSJ_SR.Add(h_MSJ_mass_vs_MdSJ_SR_temp)
+			h_MSJ_mass_vs_MdSJ_CR.Add(h_MSJ_mass_vs_MdSJ_CR_temp)
+			h_MSJ_mass_vs_MdSJ_AT1b.Add(h_MSJ_mass_vs_MdSJ_AT1b_temp)
+			h_MSJ_mass_vs_MdSJ_AT0b.Add(h_MSJ_mass_vs_MdSJ_AT0b_temp)
 
 		ROOT.TH1.AddDirectory(False)
 
@@ -581,6 +574,12 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 		
 		h_SJ_mass_AT0b.Add(h2_SJ_mass_AT0b.Clone())
 		h_disuperjet_mass_AT0b.Add(h2_disuperjet_mass_AT0b.Clone())
+
+
+	if h_MSJ_mass_vs_MdSJ_SR: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"SR",  year, h_MSJ_mass_vs_MdSJ_SR.Integral()))
+	if h_MSJ_mass_vs_MdSJ_CR: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"CR",  year, h_MSJ_mass_vs_MdSJ_CR.Integral()))
+	if h_MSJ_mass_vs_MdSJ_AT1b: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"AT1b",  year, h_MSJ_mass_vs_MdSJ_AT1b.Integral()))
+	if h_MSJ_mass_vs_MdSJ_AT0b: print("For signal mass %s in the %s for year %s, there %s events expected."%(mass_point,"AT0b",  year, h_MSJ_mass_vs_MdSJ_AT0b.Integral()))
 
 
 	## create legends 

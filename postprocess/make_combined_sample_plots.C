@@ -6,30 +6,42 @@
 
 using namespace std;
 
-  double SuuToChiChi_MSuu8TeV_Mchi3TeV_SF = 1.93E-02;
-  double SuuToChiChi_MSuu5TeV_Mchi2TeV_SF = 8.67E-01;
+double SuuToChiChi_MSuu8TeV_Mchi3TeV_SF = 1.93E-02;
+double SuuToChiChi_MSuu5TeV_Mchi2TeV_SF = 8.67E-01;
 
-  double QCD1000to1500_SF[4] = {1.578683216,1.482632755,3.126481451,4.407417122}; //TODO, 
-  double QCD1500to2000_SF[4] = {0.2119142341,0.195224041,0.3197450474,0.5425809983}; //TODO
-  double QCD2000toInf_SF[4] = {0.08568186031,0.07572795371,0.14306915,0.2277769275}; //TODO
-  double h_TTToHadronic_SF[4] = {0.075592,0.05808655696,0.06651018525,0.06588049107}; //TODO
-  double h_TTToSemiLeptonic_SF[4] = {0.05395328118,0.05808655696,0.04264829286,0.04563489275}; //TODO
-  double h_TTTo2l2nu_SF[4] = {0.0459517611,0.03401684391,0.03431532926,0.03617828025}; //TODO
+double QCD1000to1500_SF[4] = {1.578683216,1.482632755,3.126481451,4.407417122};
+double QCD1500to2000_SF[4] = {0.2119142341,0.195224041,0.3197450474,0.5425809983}; 
+double QCD2000toInf_SF[4] = {0.08568186031,0.07572795371,0.14306915,0.2277769275}; 
+double h_TTToHadronic_SF[4] = {0.075592,0.05808655696,0.06651018525,0.06588049107}; 
+double h_TTToSemiLeptonic_SF[4] = {0.05395328118,0.05808655696,0.04264829286,0.04563489275}; 
+double h_TTTo2l2nu_SF[4] = {0.0459517611,0.03401684391,0.03431532926,0.03617828025}; 
 
-  double h_TTJetsMCHT800to1200_SF[4]   = {0.002884466085,0.002526405224,0.003001100916,0.004897196802};
-  double h_TTJetsMCHT1200to2500_SF[4]  = {0.002722324842,0.002255554525,0.002675947994,0.003918532089};
-  double h_TTJetsMCHT2500toInf_SF[4]   = {0.00005679863673,0.00005025384367,0.00005947217017,0.00008408965681};
-  double ST_t_channel_top_5f_SF[4]     = {0.0409963154,0.03607115071,0.03494669125,0.03859114659}; //TODO
-  double ST_t_channel_antitop_5f_SF[4] = {0.05673857623,0.04102705994,0.04238814865,0.03606630944}; //TODO
-  double ST_s_channel_4f_hadrons_SF[4] = {0.04668187234,0.03564988679,0.03985938616,0.04102795437}; //TODO
-  double ST_s_channel_4f_leptons_SF[4] = {0.01323030083,0.01149139097,0.01117527734,0.01155448784}; //TODO
-  double ST_tW_antitop_5f_SF[4] = {0.2967888696,0.2301666797,0.2556495594,0.2700032391}; //TODO
-  double ST_tW_top_5f_SF[4] = {0.2962796522,0.2355829386,0.2563403788,0.2625270613}; //TODO
+double h_TTJetsMCHT800to1200_SF[4]   = {0.002884466085,0.002526405224,0.003001100916,0.004897196802};
+double h_TTJetsMCHT1200to2500_SF[4]  = {0.002722324842,0.002255554525,0.002675947994,0.003918532089};
+double h_TTJetsMCHT2500toInf_SF[4]   = {0.00005679863673,0.00005025384367,0.00005947217017,0.00008408965681};
+double ST_t_channel_top_5f_SF[4]     = {0.0409963154,0.03607115071,0.03494669125,0.03859114659}; 
+double ST_t_channel_antitop_5f_SF[4] = {0.05673857623,0.04102705994,0.04238814865,0.03606630944}; 
+double ST_s_channel_4f_hadrons_SF[4] = {0.04668187234,0.03564988679,0.03985938616,0.04102795437}; 
+double ST_s_channel_4f_leptons_SF[4] = {0.01323030083,0.01149139097,0.01117527734,0.01155448784}; 
+double ST_tW_antitop_5f_SF[4] = {0.2967888696,0.2301666797,0.2556495594,0.2700032391}; 
+double ST_tW_top_5f_SF[4] = {0.2962796522,0.2355829386,0.2563403788,0.2625270613}; 
 
-  double WJetsMC_LNu_HT800to1200_SF[4] = {0.04172270958,0.04230432205,0.04374224695,0.04394190568}; //TODO
-  double WJetsMC_LNu_HT1200to2500_SF[4] = {0.01068088067,0.00932744847,0.009709510545,0.01070780024}; //TODO
-  double WJetsMC_LNu_HT2500toInf_SF[4] = {0.0001931363546,0.0001895618832,0.0002799036518,0.0007547032677}; //TODO
-  double WJetsMC_QQ_HT800toInf_SF[4] = {0.072501767,0.07139611301,0.08100232455,0.128194465}; //TODO
+double WJetsMC_LNu_HT800to1200_SF[4] = {0.04172270958,0.04230432205,0.04374224695,0.04394190568}; 
+double WJetsMC_LNu_HT1200to2500_SF[4] = {0.01068088067,0.00932744847,0.009709510545,0.01070780024}; 
+double WJetsMC_LNu_HT2500toInf_SF[4] = {0.0001931363546,0.0001895618832,0.0002799036518,0.0007547032677}; 
+double WJetsMC_QQ_HT800toInf_SF[4] = {0.072501767,0.07139611301,0.08100232455,0.128194465}; 
+
+double QCDMC_Pt_170to300_SF[4] = {72.27560548, 58.13790684, 144.0132837, 208.6671047}; 
+double QCDMC_Pt_300to470_SF[4] = {2.464537119, 2.077524247, 5.087240079, 7.056447936}; 
+double QCDMC_Pt_470to600_SF[4] = {0.2122207081, 0.1770874866, 0.4500561659, 0.6298074855}; 
+double QCDMC_Pt_600to800_SF[4] = {0.04929452011, 0.04041858714, 0.09634485522, 0.1387005244}; 
+double QCDMC_Pt_800to1000_SF[4] = {0.01443931658, 0.01169252025, 0.02954986175, 0.04231249731}; 
+double QCDMC_Pt_1000to1400_SF[4] = {0.007643465954, 0.006312623165, 0.01566430413, 0.0226523112}; 
+double QCDMC_Pt_1400to1800_SF[4] = {0.001150615273, 0.001016564447, 0.00244639185, 0.003532486979}; 
+double QCDMC_Pt_1800to2400_SF[4] = {0.000324331737, 0.0002806910428, 0.0006608229592, 0.000952638299}; 
+double QCDMC_Pt_2400to3200_SF[4] = {0.00003408026676, 0.00003090490169, 0.00007246889556, 0.0001045278212}; 
+double QCDMC_Pt_3200toInf_SF[4] = {0.000002648864, 0.000002290278112, 0.000005628836, 0.000008118931}; 
+
 
 void write_cms_text(double CMS_label_pos, double SIM_label_pos, double CMS_label_posy, double SIM_label_posy,  TCanvas * canvas, bool noStats) {
     // do all the fancy formatting 
@@ -735,11 +747,9 @@ void make_combined_sample_plots()
   };
 
   //std::string plotName = "";  // get from histName
-  std::string year = "2018";
   int iii = 0;
   for(auto year = years.begin();year!= years.end();year++)
   {
-
     std::vector<std::string> dataFiles;
 
 /*
@@ -762,7 +772,11 @@ void make_combined_sample_plots()
 
 
 */
-    double QCD_weights[] = {QCD1000to1500_SF[iii],QCD1500to2000_SF[iii],QCD2000toInf_SF[iii]};
+    //double QCD_weights[] = {QCD1000to1500_SF[iii],QCD1500to2000_SF[iii],QCD2000toInf_SF[iii]};
+
+
+    double QCD_weights[] = {QCDMC_Pt_170to300_SF[iii],QCDMC_Pt_300to470_SF[iii],QCDMC_Pt_470to600_SF[iii], QCDMC_Pt_600to800_SF[iii], QCDMC_Pt_800to1000_SF[iii], 
+                            QCDMC_Pt_1000to1400_SF[iii], QCDMC_Pt_1400to1800_SF[iii], QCDMC_Pt_1800to2400_SF[iii], QCDMC_Pt_2400to3200_SF[iii], QCDMC_Pt_3200toInf_SF[iii]    };
     double TTbar_weights[] = {h_TTJetsMCHT800to1200_SF[iii], h_TTJetsMCHT1200to2500_SF[iii],h_TTJetsMCHT2500toInf_SF[iii]};
     double WJets_weights[] = {WJetsMC_LNu_HT800to1200_SF[iii], WJetsMC_LNu_HT1200to2500_SF[iii], WJetsMC_LNu_HT2500toInf_SF[iii],WJetsMC_QQ_HT800toInf_SF[iii]}; 
     double ST_weights[] = {ST_s_channel_4f_hadrons_SF[iii], ST_s_channel_4f_leptons_SF[iii], ST_t_channel_antitop_5f_SF[iii], ST_t_channel_top_5f_SF[iii], ST_tW_antitop_5f_SF[iii],ST_tW_top_5f_SF[iii]};
@@ -831,29 +845,44 @@ void make_combined_sample_plots()
   std::string fileDirectory = "../combinedROOT/processedFiles/";
 
   if(runEOS) fileDirectory=  "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/";
+  /*
+    std::vector<std::string> QCDFiles_processed   = { (fileDirectory+ "/QCDMC1000to1500_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC1500to2000_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC2000toInf_"+*year+"_processed.root").c_str()};*/
 
 
-  std::vector<std::string> QCDFiles_processed   = { (fileDirectory+ "/QCDMC1000to1500_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/QCDMC1500to2000_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/QCDMC2000toInf_"+*year+"_processed.root").c_str()};
+    std::vector<std::string> QCDFiles_processed   = { (fileDirectory+ "/QCDMC_Pt_170to300_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_300to470_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_470to600_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_600to800_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_800to1000_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_1000to1400_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_1400to1800_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_1800to2400_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_2400to3200_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/QCDMC_Pt_3200toInf_"+*year+"_processed.root").c_str()     };  
 
-  std::vector<std::string> TTbarFiles_processed = {(fileDirectory+ "/TTJetsMCHT800to1200_"+*year+"_processed.root").c_str(),
-  (fileDirectory+ "/TTJetsMCHT1200to2500_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/TTJetsMCHT2500toInf_"+*year+"_processed.root").c_str()};
+    
 
 
-  std::vector<std::string> WJetsFiles_processed = {(fileDirectory+ "/WJetsMC_LNu-HT800to1200_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/WJetsMC_LNu-HT1200to2500_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/WJetsMC_LNu-HT2500toInf_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/WJetsMC_QQ-HT800toInf_"+*year+"_processed.root").c_str()};
+
+    std::vector<std::string> TTbarFiles_processed = {(fileDirectory+ "/TTJetsMCHT800to1200_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/TTJetsMCHT1200to2500_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/TTJetsMCHT2500toInf_"+*year+"_processed.root").c_str()};
 
 
-  std::vector<std::string> STFiles_processed = {(fileDirectory+ "/ST_s-channel-hadronsMC_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/ST_s-channel-leptonsMC_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/ST_t-channel-antitop_inclMC_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/ST_t-channel-top_inclMC_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/ST_tW-antiTop_inclMC_"+*year+"_processed.root").c_str(),
-(fileDirectory+ "/ST_tW-top_inclMC_"+*year+"_processed.root").c_str()};
+    std::vector<std::string> WJetsFiles_processed = {(fileDirectory+ "/WJetsMC_LNu-HT800to1200_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/WJetsMC_LNu-HT1200to2500_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/WJetsMC_LNu-HT2500toInf_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/WJetsMC_QQ-HT800toInf_"+*year+"_processed.root").c_str()};
+
+
+      std::vector<std::string> STFiles_processed = {(fileDirectory+ "/ST_s-channel-hadronsMC_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/ST_s-channel-leptonsMC_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/ST_t-channel-antitop_inclMC_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/ST_t-channel-top_inclMC_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/ST_tW-antiTop_inclMC_"+*year+"_processed.root").c_str(),
+    (fileDirectory+ "/ST_tW-top_inclMC_"+*year+"_processed.root").c_str()};
 
   
     /*

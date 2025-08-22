@@ -5,6 +5,7 @@ import random
 from random import uniform, shuffle
 import pdb
 import time
+import numpy as np
 
 from return_BR_SF.return_BR_SF import return_BR_SF
 ### histInfo.py - contains a class that carries information from multiple histograms 
@@ -12,8 +13,7 @@ from return_BR_SF.return_BR_SF import return_BR_SF
 ### Written by Ethan Cannaert, September 2023
 
 class histInfo:    # this needs to be initialized for every new region + year, use when looping over the superbin_indices and filling out the uncertainties
-
-	def __init__(self, year, region, bin_min_x, bin_min_y, n_bins_x, n_bins_y, technique_str, includeTTJetsMCHT800to1200, includeWJets, includeTTo, debug=False, runEos = False, WP=None):
+	def __init__(self, year, region, bin_min_x, bin_min_y,n_bins_x,n_bins_y,technique_str,includeTTJetsMCHT800to1200,includeWJets,includeTTo,useQCDHT,debug=False,runEos = False, WP=None):
 		ROOT.TH1.AddDirectory(False)
 		self.region = region
 		self.year   = year
@@ -24,6 +24,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 		self.n_bins_x = n_bins_x
 		self.n_bins_y = n_bins_y
 		self.doSideband = False
+		self.useQCDHT = useQCDHT
 
 
 		self.eos_path = "root://cmseos.fnal.gov/"
@@ -41,127 +42,113 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 		if self.region in ["SB1b", "SB0b"]: self.doSideband = True
 		hist_name = "h_MSJ_mass_vs_MdSJ_%s%s"%(self.technique_str,self.region )
-		print("Looking for hist name %s"%hist_name)
 
-		self.hist_1000to1500 = self.load_hist("QCDMC1000to1500")
-		self.hist_1500to2000 = self.load_hist("QCDMC1500to2000")
-		if not self.doSideband: self.hist_2000toInf  = self.load_hist("QCDMC2000toInf")
-		self.hist_TTJetsMCHT1200to2500 = self.load_hist("TTJetsMCHT1200to2500")
-		if not self.doSideband: self.hist_TTJetsMCHT2500toInf  = self.load_hist("TTJetsMCHT2500toInf")
+		### load histograms
 
-		if self.doSideband or self.includeTTJetsMCHT800to1200:
-			self.hist_TTJetsMCHT800to1200 = self.load_hist("TTJetsMCHT800to1200")
+		### QCD 
+		self.QCD_hists = {}
+		self.lists_QCD = {}
+		self.QCD_samples = ["QCDMC1000to1500","QCDMC1500to2000"]
+		
+		if self.useQCDHT:
+			self.hist_1000to1500 = self.load_hist("QCDMC1000to1500")
+			self.hist_1500to2000 = self.load_hist("QCDMC1500to2000")
+			self.QCD_hists["QCDMC1000to1500"] = self.hist_1000to1500
+			self.QCD_hists["QCDMC1500to2000"] = self.hist_1500to2000
 
-		self.hist_ST_t_channel_top_inclMC      = self.load_hist("ST_t-channel-top_inclMC")
-		self.hist_ST_t_channel_antitop_inclMC  = self.load_hist("ST_t-channel-antitop_inclMC")
-		self.hist_ST_s_channel_hadronsMC  	   = self.load_hist("ST_s-channel-hadronsMC")
-		self.hist_ST_s_channel_leptonsMC  	   = self.load_hist("ST_s-channel-leptonsMC")
-		self.hist_ST_tW_antiTop_inclMC         = self.load_hist("ST_tW-antiTop_inclMC")
-		self.hist_ST_tW_antiTop_inclMC         = self.load_hist("ST_tW-top_inclMC")
+			if not self.doSideband: 
+				self.hist_2000toInf  = self.load_hist("QCDMC2000toInf")
+				if self.useQCDHT: self.QCD_hists["QCDMC2000toInf"] =  self.hist_2000toInf 
+				self.QCD_samples.append("QCDMC2000toInf")
+		else: 
+			self.QCD_samples = [ "QCDMC_Pt_170to300","QCDMC_Pt_300to470","QCDMC_Pt_470to600", "QCDMC_Pt_600to800","QCDMC_Pt_800to1000" ,"QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200","QCDMC_Pt_3200toInf" ]
+			for QCD_type in self.QCD_samples:
+				self.QCD_hists[QCD_type] =  self.load_hist(QCD_type)
 
-		if self.includeTTo:
-			self.hist_TTToHadronicMC = self.load_hist("TTToHadronicMC")
-			self.hist_TTToSemiLeptonicMC = self.load_hist("TTToSemiLeptonicMC")
-			self.hist_TTToLeptonicMC = self.load_hist("TTToLeptonicMC")
 
+		for QCD_sample,QCD_hist in self.QCD_hists.items():
+				self.lists_QCD[QCD_sample] = self.convert_TH2(QCD_hist)
+
+
+		### TTbar 
+		self.TTbar_hists = {}
+		self.lists_TTbar = {}
+		self.TTbar_samples = ["TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC"]
+		if includeTTo:
+			for TTbar_sample in self.TTbar_samples:
+				self.TTbar_hists[TTbar_sample] = self.load_hist( TTbar_sample)
+		else:
+
+			self.TTbar_samples = ["TTJetsMCHT1200to2500"]
+
+			self.TTbar_hists["TTJetsMCHT1200to2500"] = self.load_hist("TTJetsMCHT1200to2500")
+			if not self.doSideband: 
+				self.TTbar_hists["TTJetsMCHT2500toInf"] = self.load_hist("TTJetsMCHT2500toInf")
+				self.TTbar_samples.append("TTJetsMCHT2500toInf")
+			if self.doSideband or self.includeTTJetsMCHT800to1200: 
+				self.TTbar_hists["TTJetsMCHT800to1200"] = self.load_hist("TTJetsMCHT800to1200")
+				self.TTbar_samples.append("TTJetsMCHT800to1200")
+		
+		for TTbar_sample,TTbar_hist in self.TTbar_hists.items():
+			self.lists_TTbar[TTbar_sample] = self.convert_TH2(TTbar_hist)
+
+		### ST 
+		self.ST_hists = {}
+		self.lists_ST = {}
+		self.ST_samples = ["ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC", "ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"]
+
+		for ST_sample in self.ST_samples: 
+			self.ST_hists[ST_sample] = self.load_hist( ST_sample)
+		for ST_sample,ST_hist in self.ST_hists.items():
+			self.lists_ST[ST_sample] = self.convert_TH2(ST_hist)
+
+		### W+Jets
+		self.WJets_hists = {}
+		self.lists_WJets = {}
+		self.WJets_samples = []
 		if self.includeWJets:
-			self.hist_WJetsMC_LNu_HT800to1200 = self.load_hist("WJetsMC_LNu_HT800to1200")
-			self.hist_WJetsMC_LNu_HT1200to2500 = self.load_hist("WJetsMC_LNu_HT1200to2500")
-			self.hist_WJetsMC_LNu_HT2500toInf  = self.load_hist("WJetsMC_LNu_HT2500toInf")
-			self.hist_WJetsMC_QQ_HT800toInf    = self.load_hist("WJetsMC_QQ_HT800toInf")
+			self.WJets_samples = ["WJetsMC_LNu_HT800to1200","WJetsMC_LNu_HT1200to2500","WJetsMC_LNu_HT2500toInf","WJetsMC_QQ_HT800toInf" ]
+			for WJets_sample in self.WJets_samples: 
+				self.WJets_hists[WJets_sample] = self.load_hist( WJets_sample)
+			for WJets_sample,WJets_hist in self.WJets_hists.items():
+				self.lists_WJets[WJets_sample] = self.convert_TH2(WJets_hist)
+
+
+		n_rows  = len(self.lists_QCD[self.lists_QCD.keys()[0]])        # <-- 22
+		n_cols  = len(self.lists_QCD[self.lists_QCD.keys()[0]][0])     # <-- 20
+
+		self.list_all_counts = [ [0]*n_cols for _ in range(n_rows) ]
+		self.all_hist_counts = self.QCD_hists[ self.QCD_hists.keys()[0] ].Clone()
+
+		for QCD_sample, QCD_hist in self.QCD_hists.items():
+			if QCD_sample == self.QCD_hists.keys()[0]: continue # do not double count!
+			self.all_hist_counts.Add(QCD_hist)
+		for TTbar_sample, TTbar_hist in self.TTbar_hists.items():
+			self.all_hist_counts.Add(TTbar_hist)
+		for ST_sample, ST_hist in self.ST_hists.items():
+			self.all_hist_counts.Add(ST_hist)
+		for WJets_sample, WJets_hist in self.WJets_hists.items():
+			self.all_hist_counts.Add(WJets_hist)
+
+
+		for iii in range(n_rows):
+			for jjj in range(n_cols):
+
+				#print("iii/jjj: %s/%s,   sample_list x/y lengths are %s/%s, list_all_counts x/y lengths are %s/%s."%(iii,jjj,len(self.lists_QCD),len(self.lists_QCD[self.lists_QCD.keys()[0]]), len(self.list_all_counts), len(self.list_all_counts[0])    ))
+				for sample,sample_list in self.lists_QCD.items():
+					#print("iii/jjj: %s/%s,   sample list dims are (%s,%s),    sample_list dims are (%s,%s)"%(iii,jjj,len(self.list_all_counts),len(self.list_all_counts[0]), len(sample_list), len(sample_list[0])   ))
+					self.list_all_counts[iii][jjj] += sample_list[iii][jjj]
+				for sample,sample_list in self.lists_TTbar.items():
+					self.list_all_counts[iii][jjj] += sample_list[iii][jjj]
+				for sample,sample_list in self.lists_ST.items():
+					self.list_all_counts[iii][jjj] += sample_list[iii][jjj]
+				if includeWJets:
+					for sample,sample_list in self.lists_WJets.items():
+						self.list_all_counts[iii][jjj] += sample_list[iii][jjj]
 
 		if not self.WP: self.hist_data       = self.load_data_hists()
-		print("--------------------------------------------------------------------")
-		print("region/year are %s/%s"%(region,year))
-		self.all_hist_counts = self.hist_1000to1500.Clone()
-		#print("grabbed 1000to1500 ")
-		self.all_hist_counts.Add(self.hist_1500to2000)
-		#print("added 1500to2000 ")
-		if not self.doSideband:
-			self.all_hist_counts.Add(self.hist_2000toInf   	)
-			#print("added 2000toInf ")
-		self.all_hist_counts.Add(self.hist_TTJetsMCHT1200to2500)
-		#print("added TTJets1 ")
-		if not self.doSideband:
-			self.all_hist_counts.Add(self.hist_TTJetsMCHT2500toInf)
-			#print("added TTJets2 ")
 
-		if self.doSideband:
-			self.all_hist_counts.Add(self.hist_TTJetsMCHT800to1200)
-
-		self.all_hist_counts.Add(self.hist_ST_t_channel_top_inclMC)
-		self.all_hist_counts.Add(self.hist_ST_t_channel_antitop_inclMC)
-		self.all_hist_counts.Add(self.hist_ST_s_channel_hadronsMC)
-		self.all_hist_counts.Add(self.hist_ST_s_channel_leptonsMC)
-		self.all_hist_counts.Add(self.hist_ST_tW_antiTop_inclMC)
-		self.all_hist_counts.Add(self.hist_ST_tW_antiTop_inclMC)
-
-
-		print("----------   %s/%s   ----------"%(year,region))
-		print("hist_1000to1500 counts: %s"%self.hist_1000to1500.Integral())
-		print("hist_1500to2000 counts: %s"%self.hist_1500to2000.Integral())
-		if not self.doSideband:print("hist_2000toInf counts: %s"%self.hist_2000toInf.Integral())
-
-		if not self.includeTTo:
-			if self.doSideband or self.includeTTJetsMCHT800to1200:  print("hist_TTJetsMCHT800to1200 counts: %s"%self.hist_TTJetsMCHT800to1200.Integral())
-			print("hist_TTJetsMCHT1200to2500 counts: %s"%self.hist_TTJetsMCHT1200to2500.Integral())
-			if not self.doSideband:print("hist_TTJetsMCHT2500toInf counts: %s"%self.hist_TTJetsMCHT2500toInf.Integral())
-		else:
-			print("hist_WJetsMC_LNu_HT1200to2500 counts: %s"%self.hist_WJetsMC_LNu_HT1200to2500.Integral())
-			print("hist_WJetsMC_LNu_HT1200to2500 counts: %s"%self.hist_WJetsMC_LNu_HT1200to2500.Integral())
-			print("hist_WJetsMC_LNu_HT2500toInf counts: %s"%self.hist_WJetsMC_LNu_HT2500toInf.Integral())
-			print("hist_WJetsMC_QQ_HT800toInf counts: %s"%self.hist_WJetsMC_QQ_HT800toInf.Integral())
-
-		print("hist_ST_t_channel_top_inclMC counts: %s"%self.hist_ST_t_channel_top_inclMC.Integral())
-		print("hist_ST_t_channel_antitop_inclMC counts: %s"%self.hist_ST_t_channel_antitop_inclMC.Integral())
-		print("hist_ST_s_channel_hadronsMC counts: %s"%self.hist_ST_s_channel_hadronsMC.Integral())
-		print("hist_ST_s_channel_leptonsMC counts: %s"%self.hist_ST_s_channel_leptonsMC.Integral())
-		print("hist_ST_tW_antiTop_inclMC counts: %s"%self.hist_ST_tW_antiTop_inclMC.Integral())
-		print("hist_ST_tW_antiTop_inclMC counts: %s"%self.hist_ST_tW_antiTop_inclMC.Integral())
-
-		#print("##############################################")
-		#print("Printing the original contribution histograms ")
-		#print("##############################################")
-
-		if self.doSideband: self.list_TTJetsMCHT800to1200   = self.convert_TH2(self.hist_TTJetsMCHT800to1200)
-		self.list_1000to1500   = self.convert_TH2(self.hist_1000to1500)
-		#print('\n'.join(' '.join(str(x) for x in row) for row in self.list_1000to1500))
-		self.list_1500to2000   = self.convert_TH2(self.hist_1500to2000)
-		#print('\n'.join(' '.join(str(x) for x in row) for row in self.list_1500to2000))
-		if not self.doSideband: self.list_2000toInf    = self.convert_TH2(self.hist_2000toInf)
-		"""
-		for iii in range(0, 22):
-			for jjj in range(0,20):
-				if self.list_2000toInf[iii][jjj] > 0:
-					print("2000toInf bin value from histInfo is %s"%self.list_2000toInf[iii][jjj])
-		"""
-
-
-		if self.includeTTJetsMCHT800to1200: self.list_TTJetsMCHT800to1200 = self.convert_TH2(self.hist_TTJetsMCHT800to1200)
-		self.list_TTJetsMCHT1200to2500 = self.convert_TH2(self.hist_TTJetsMCHT1200to2500)
-		if not self.doSideband: self.list_TTJetsMCHT2500toInf = self.convert_TH2(self.hist_TTJetsMCHT2500toInf)
-
-		self.list_ST_t_channel_top_inclMC = self.convert_TH2(self.hist_ST_t_channel_top_inclMC)
-		self.list_ST_t_channel_antitop_inclMC = self.convert_TH2(self.hist_ST_t_channel_antitop_inclMC)
-		self.list_ST_s_channel_hadronsMC = self.convert_TH2(self.hist_ST_s_channel_hadronsMC)
-		self.list_ST_s_channel_leptonsMC = self.convert_TH2(self.hist_ST_s_channel_leptonsMC)
-		self.list_ST_tW_antiTop_inclMC = self.convert_TH2(self.hist_ST_tW_antiTop_inclMC)
-		self.list_ST_tW_top_inclMC = self.convert_TH2(self.hist_ST_tW_antiTop_inclMC)
-
-
-		if self.includeTTo:
-			self.list_TTToHadronicMC     = self.convert_TH2(self.hist_TTToHadronicMC)
-			self.list_TTToSemiLeptonicMC = self.convert_TH2(self.hist_TTToSemiLeptonicMC)
-			self.list_TTToLeptonicMC     = self.convert_TH2(self.hist_TTToLeptonicMC)
-
-		if self.includeWJets:
-			self.list_WJetsMC_LNu_HT800to1200 = self.convert_TH2(self.hist_WJetsMC_LNu_HT800to1200)
-			self.list_WJetsMC_LNu_HT1200to2500 = self.convert_TH2(self.hist_WJetsMC_LNu_HT1200to2500)
-			self.list_WJetsMC_LNu_HT2500toInf  = self.convert_TH2(self.hist_WJetsMC_LNu_HT2500toInf)
-			self.list_WJetsMC_QQ_HT800toInf    = self.convert_TH2(self.hist_WJetsMC_QQ_HT800toInf)
-
-
-		self.list_all_counts = self.convert_TH2(self.all_hist_counts)
+		
 	def fill_dummy_data(self,sample,mean_x,mean_y,sigma_x,sigma_y,nentries):
 		ROOT.TH1.AddDirectory(False)
 
@@ -173,160 +160,59 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 		return hist
 
+	def get_contribution_count(self, contribution, iii,jjj):  #### return the (unscaled) counts in the iii,jjjth bin of sample type "contribution"
 
-
-	def get_contribution_count(self, contribution, iii,jjj):  #### return the (unscaled) counts in the iii,jjjth bin of contribution type
-		if contribution == "QCDMC1000to1500":
-			return self.list_1000to1500[iii][jjj]
-		elif contribution == "QCDMC1500to2000":
-			return self.list_1500to2000[iii][jjj]
-		elif contribution == "QCDMC2000toInf":
-			return self.list_2000toInf[iii][jjj]
-
-		elif contribution == "TTJetsMCHT1200to2500":
-			return self.list_TTJetsMCHT1200to2500[iii][jjj]
-		elif contribution == "TTJetsMCHT2500toInf":
-			return self.list_TTJetsMCHT2500toInf[iii][jjj]
-
-		elif contribution == "ST_t-channel-top_inclMC":
-			return self.list_ST_t_channel_top_inclMC[iii][jjj]
-		elif contribution == "ST_t-channel-antitop_inclMC":
-			return self.list_ST_t_channel_antitop_inclMC[iii][jjj]
-		elif contribution == "ST_s-channel-hadronsMC":
-			return self.list_ST_s_channel_hadronsMC[iii][jjj]
-		elif contribution == "ST_s-channel-leptonsMC":
-			return self.list_ST_s_channel_leptonsMC[iii][jjj]
-		elif contribution == "ST_tW-antiTop_inclMC":
-			return self.list_ST_tW_antiTop_inclMC[iii][jjj]
-		elif contribution == "ST_tW-top_inclMC":
-			return self.list_ST_tW_top_inclMC[iii][jjj]
-
-		elif contribution == "TTJetsMCHT800to1200":
-			return self.list_TTJetsMCHT800to1200[iii][jjj]
-
-		elif contribution == "WJetsMC_LNu_HT800to1200":
-			return self.list_WJetsMC_LNu_HT800to1200[iii][jjj]
-
-		elif contribution == "WJetsMC_LNu_HT1200to2500":
-			return self.list_WJetsMC_LNu_HT1200to2500[iii][jjj]
-
-		elif contribution == "WJetsMC_LNu_HT2500toInf":
-			return self.list_WJetsMC_LNu_HT2500toInf[iii][jjj]
-
-		elif contribution == "WJetsMC_QQ_HT800toInf":
-			return self.list_WJetsMC_QQ_HT800toInf[iii][jjj]
-
-		elif contribution == "TTToHadronicMC":
-			return self.list_TTToHadronicMC[iii][jjj]
-		elif contribution == "TTToSemiLeptonicMC":
-			return self.list_TTToSemiLeptonicMC[iii][jjj]
-		elif contribution == "TTToLeptonicMC":
-			return self.list_TTToLeptonicMC[iii][jjj]
-
+		if "QCD" in contribution:
+			return self.lists_QCD[contribution][iii][jjj]
+		elif "TTbar" in contribution or "TTTo" in contribution or "TTJets" in contribution:
+			return self.lists_TTbar[contribution][iii][jjj]
+		elif "WJets" in contribution:
+			return self.lists_WJets[contribution][iii][jjj]
+		elif "ST" in contribution:
+			return self.lists_ST[contribution][iii][jjj]
 		else:
-			print("ERROR: wrong contribution type")
-
-
+			print("ERROR: wrong sample type: %s. Valid samle types are %s, %s, %s, %s"%(contribution, " ".join(self.lists_QCD.keys() )," ".join(self.lists_TTbar.keys() )," ".join(self.lists_ST.keys() ), " ".join(self.lists_WJets.keys() )  ))
 		return
 
 	def get_bin_total_uncert(self, superbin):   # give a list of tuples that represent all the bins in your superbin
 
 		### calculates the bin stat uncertainty as the sum of weights / total scaled bin yield
 
-		total_1000to1500 = 0
-		total_1500to2000 = 0
-		total_2000toInf  = 0
+		totals_QCD 	 = [0]*len(self.QCD_samples)
+		totals_TTbar = [0]*len(self.TTbar_samples)
+		totals_ST    = [0]*len(self.ST_samples)
+		totals_WJets = [0]*len(self.WJets_samples)
 
+		SFs_QCD   = [return_BR_SF(self.year,sample) for sample in self.QCD_samples]
+		SFs_TTbar = [return_BR_SF(self.year,sample) for sample in self.TTbar_samples]
+		SFs_ST 	  = [return_BR_SF(self.year,sample) for sample in self.ST_samples]
+		SFs_WJets = [return_BR_SF(self.year,sample) for sample in self.WJets_samples]
 
-		total_TTJets800to1200  = 0
-		total_TTJets1200to2500 = 0
-		total_TTJets2500toInf  = 0
-
-		total_TTToHadronicMC = 0 
-		total_TTToSemiLeptonicMC = 0 
-		total_TTToLeptonicMC = 0
-
-		total_ST_t_channel_top_inclMC = 0
-		total_ST_t_channel_antitop_inclMC = 0
-		total_ST_s_channel_hadronsMC = 0
-		total_ST_s_channel_leptonsMC = 0
-		total_ST_tW_antiTop_inclMC = 0
-		total_ST_tW_top_inclMC = 0
-
-		total_WJetsMC_LNu_HT800to1200 = 0
-		total_WJetsMC_LNu_HT1200to2500 = 0
-		total_WJetsMC_LNu_HT2500toInf = 0
-		total_WJetsMC_QQ_HT800toInf = 0
-
-		## go through each bin in superbin and count the total number of each of these events in the entire supebin
-
-
-
-
-		## get scale factors for each BR process
-		SF_1000to1500 = return_BR_SF(self.year,"QCDMC1000to1500")
-		SF_1500to2000 = return_BR_SF(self.year,"QCDMC1500to2000")
-		SF_2000toInf  = return_BR_SF(self.year,"QCDMC2000toInf") 
-
-		SF_TTJets800to1200  = return_BR_SF(self.year,"TTJetsMCHT800to1200")
-		SF_TTJets1200to2500 = return_BR_SF(self.year,"TTJetsMCHT1200to2500")
-		SF_TTJets2500toInf  = return_BR_SF(self.year,"TTJetsMCHT2500toInf")
-
-		SF_ST_t_channel_top_inclMC 		= return_BR_SF(self.year,"ST_t_channel_top_inclMC")
-		SF_ST_t_channel_antitop_inclMC  =  return_BR_SF(self.year,"ST_t_channel_antitop_inclMC")
-		SF_ST_s_channel_hadronsMC 		=  return_BR_SF(self.year,"ST_s_channel_hadronsMC")
-		SF_ST_s_channel_leptonsMC 		=  return_BR_SF(self.year,"ST_s_channel_leptonsMC")
-		SF_ST_tW_antiTop_inclMC		    =  return_BR_SF(self.year,"ST_tW_antiTop_inclMC")
-		SF_ST_tW_top_inclMC 			=  return_BR_SF(self.year,"ST_tW_top_inclMC")
- 
-		SF_WJetsMC_LNu_HT800to1200     = return_BR_SF(self.year,"WJetsMC_LNu_HT800to1200")
-		SF_WJetsMC_LNu_HT1200to2500    = return_BR_SF(self.year,"WJetsMC_LNu_HT1200to2500")
-		SF_WJetsMC_LNu_HT2500toInf     = return_BR_SF(self.year,"WJetsMC_LNu_HT2500toInf")
-		SF_WJetsMC_QQ_HT800toInf       = return_BR_SF(self.year,"WJetsMC_QQ_HT800toInf")
-
-		SF_TTToHadronic					 = return_BR_SF(self.year,"TTToHadronicMC")
-		SF_TTToSemiLeptonic				 = return_BR_SF(self.year,"TTToSemiLeptonicMC")
-		SF_TTToSemiLeptonic				 = return_BR_SF(self.year,"TTToLeptonicMC")
-
+	
 		for _bin in superbin:
-			total_1000to1500+= self.get_contribution_count("QCDMC1000to1500", _bin[0],_bin[1])
-			total_1500to2000+= self.get_contribution_count("QCDMC1500to2000", _bin[0],_bin[1])
-			if not self.doSideband: total_2000toInf+= self.get_contribution_count("QCDMC2000toInf", _bin[0],_bin[1])
-
-			if not self.includeTTo:
-				if self.doSideband or self.includeTTJetsMCHT800to1200: total_TTJets800to1200+= self.get_contribution_count("TTJetsMCHT800to1200", _bin[0],_bin[1])
-				total_TTJets1200to2500+= self.get_contribution_count("TTJetsMCHT1200to2500", _bin[0],_bin[1])
-				if not self.doSideband: total_TTJets2500toInf+= self.get_contribution_count("TTJetsMCHT2500toInf", _bin[0],_bin[1])
-
-			total_ST_t_channel_top_inclMC+= self.get_contribution_count("ST_t-channel-top_inclMC", _bin[0],_bin[1])
-			total_ST_t_channel_antitop_inclMC+= self.get_contribution_count("ST_t-channel-antitop_inclMC", _bin[0],_bin[1])
-			total_ST_s_channel_hadronsMC+= self.get_contribution_count("ST_s-channel-hadronsMC", _bin[0],_bin[1])
-			total_ST_s_channel_leptonsMC+= self.get_contribution_count("ST_s-channel-leptonsMC", _bin[0],_bin[1])
-			total_ST_tW_antiTop_inclMC+= self.get_contribution_count("ST_tW-antiTop_inclMC", _bin[0],_bin[1])
-			total_ST_tW_top_inclMC+= self.get_contribution_count("ST_tW-top_inclMC", _bin[0],_bin[1])
-
-			if self.includeTTo:
-				total_TTToHadronicMC+= self.get_contribution_count("TTToHadronicMC", _bin[0],_bin[1])
-				total_TTToSemiLeptonicMC+= self.get_contribution_count("TTToSemiLeptonicMC", _bin[0],_bin[1])
-				total_TTToLeptonicMC+= self.get_contribution_count("TTToLeptonicMC", _bin[0],_bin[1])
-
-
+			for iii,QCD_sample in enumerate(self.QCD_samples):
+				totals_QCD[iii] += self.get_contribution_count(QCD_sample, _bin[0],_bin[1])
+			for iii,TTbar_sample in enumerate(self.TTbar_samples):
+				totals_TTbar[iii] += self.get_contribution_count(TTbar_sample, _bin[0],_bin[1])
+			for iii,ST_sample in enumerate(self.ST_samples):
+				totals_ST[iii] += self.get_contribution_count(ST_sample, _bin[0],_bin[1])
 			if self.includeWJets:
-				total_WJetsMC_LNu_HT800to1200 += self.get_contribution_count("WJetsMC_LNu_HT800to1200", _bin[0],_bin[1])
-				total_WJetsMC_LNu_HT1200to2500 += self.get_contribution_count("WJetsMC_LNu_HT1200to2500", _bin[0],_bin[1])
-				total_WJetsMC_LNu_HT2500toInf += self.get_contribution_count("WJetsMC_LNu_HT2500toInf", _bin[0],_bin[1])
-				total_WJetsMC_QQ_HT800toInf += self.get_contribution_count("WJetsMC_QQ_HT800toInf", _bin[0],_bin[1])
+				for iii,WJets_sample in enumerate(self.WJets_samples):
+					totals_WJets[iii] += self.get_contribution_count(WJets_sample, _bin[0],_bin[1])
 
+		QCD_scaled_event_content = np.array([ totals_QCD[iii]*SFs_QCD[iii] for iii in range(len(totals_QCD))   ])
+		TTbar_scaled_event_content = np.array([ totals_TTbar[iii]*SFs_TTbar[iii] for iii in range(len(totals_TTbar))   ])
+		ST_scaled_event_content = np.array([ totals_ST[iii]*SFs_ST[iii] for iii in range(len(totals_ST))   ])
+		WJets_scaled_event_content = np.array([ totals_WJets[iii]*SFs_WJets[iii] for iii in range(len(totals_WJets))   ])
 
-
-		total_scaled_event_content =  total_1000to1500*pow(SF_1000to1500,1) +  total_1500to2000*pow(SF_1500to2000,1) + total_2000toInf*pow(SF_2000toInf,1) +    total_ST_t_channel_top_inclMC*pow(SF_ST_t_channel_top_inclMC,1)  + total_ST_t_channel_antitop_inclMC*pow(SF_ST_t_channel_antitop_inclMC,1)  +  total_ST_s_channel_hadronsMC*pow(SF_ST_s_channel_hadronsMC,1)  +  total_ST_s_channel_leptonsMC*pow(SF_ST_s_channel_leptonsMC,1) +  total_ST_tW_antiTop_inclMC*pow(SF_ST_tW_antiTop_inclMC,1)  +  total_ST_tW_top_inclMC*pow(SF_ST_tW_top_inclMC,1)  + 		total_WJetsMC_LNu_HT800to1200*pow(SF_WJetsMC_LNu_HT800to1200,1) + total_WJetsMC_LNu_HT1200to2500*pow(SF_WJetsMC_LNu_HT1200to2500,1) + total_WJetsMC_LNu_HT2500toInf*pow(SF_WJetsMC_LNu_HT2500toInf,1) + total_WJetsMC_QQ_HT800toInf*pow(SF_WJetsMC_QQ_HT800toInf,1)
+		total_scaled_event_content =  sum(QCD_scaled_event_content)+ sum(TTbar_scaled_event_content)+ sum(ST_scaled_event_content)+ sum(WJets_scaled_event_content) 
 		
-		if not self.includeTTo: total_scaled_event_content += (total_TTJets800to1200*pow(SF_TTJets800to1200,1) +  total_TTJets1200to2500*pow(SF_TTJets1200to2500,1)  +  total_TTJets2500toInf*pow(SF_TTJets2500toInf,1) )
-		else: total_scaled_event_content +=  (total_TTToHadronicMC*pow(SF_TTToHadronic,1) + total_TTToSemiLeptonicMC*pow(SF_TTToSemiLeptonic,1) + total_TTToLeptonicMC*pow(SF_TTToSemiLeptonic,1) ) 
-		sum_of_weights  =  total_1000to1500*pow(SF_1000to1500,2) +  total_1500to2000*pow(SF_1500to2000,2) + total_2000toInf*pow(SF_2000toInf,2) +  total_TTJets800to1200*pow(SF_TTJets800to1200,2) +  total_TTJets1200to2500*pow(SF_TTJets1200to2500,2)  +  total_TTJets2500toInf*pow(SF_TTJets2500toInf,2)  +   total_ST_t_channel_top_inclMC*pow(SF_ST_t_channel_top_inclMC,2)  + total_ST_t_channel_antitop_inclMC*pow(SF_ST_t_channel_antitop_inclMC,2)  +  total_ST_s_channel_hadronsMC*pow(SF_ST_s_channel_hadronsMC,2)  +  total_ST_s_channel_leptonsMC*pow(SF_ST_s_channel_leptonsMC,2) +  total_ST_tW_antiTop_inclMC*pow(SF_ST_tW_antiTop_inclMC,2)  +  total_ST_tW_top_inclMC*pow(SF_ST_tW_top_inclMC,2)  + 		total_WJetsMC_LNu_HT800to1200*pow(SF_WJetsMC_LNu_HT800to1200,2) + total_WJetsMC_LNu_HT1200to2500*pow(SF_WJetsMC_LNu_HT1200to2500,2) + total_WJetsMC_LNu_HT2500toInf*pow(SF_WJetsMC_LNu_HT2500toInf,2) + total_WJetsMC_QQ_HT800toInf*pow(SF_WJetsMC_QQ_HT800toInf,2)
-		if not self.includeTTo: sum_of_weights+= (total_TTJets800to1200*pow(SF_TTJets800to1200,2) +  total_TTJets1200to2500*pow(SF_TTJets1200to2500,2)  +  total_TTJets2500toInf*pow(SF_TTJets2500toInf,2)   )
-		else: sum_of_weights+= ( total_TTToHadronicMC*pow(SF_TTToHadronic,2) + total_TTToSemiLeptonicMC*pow(SF_TTToSemiLeptonic,2) + total_TTToLeptonicMC*pow(SF_TTToSemiLeptonic,2) )
-		sum_of_weights = sqrt(sum_of_weights)
+		QCD_sow = np.array([ totals_QCD[iii]*pow(SFs_QCD[iii],2) for iii in range(len(totals_QCD))   ])
+		TTbar_sow = np.array([ totals_TTbar[iii]*pow(SFs_TTbar[iii],2) for iii in range(len(totals_TTbar))   ])
+		ST_sow = np.array([ totals_ST[iii]*pow(SFs_ST[iii],2) for iii in range(len(totals_ST))   ])
+		WJets_sow = np.array([ totals_WJets[iii]*pow(SFs_WJets[iii],2) for iii in range(len(totals_WJets))   ])
+
+		sum_of_weights =  sqrt(sum( QCD_sow)+ sum(TTbar_sow)+ sum(ST_sow)+ sum(WJets_sow  ))
 
 		if total_scaled_event_content == 0: return 1.0
 		total_stat_uncert = sum_of_weights / total_scaled_event_content
@@ -336,99 +222,60 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 	def get_scaled_superbin_counts(self, superbin):   ### return the SCALED number of counts in a specific superbin
 
-		total_counts_in_superbin = 0
+		### calculates the bin stat uncertainty as the sum of weights / total scaled bin yield
 
-		total_1000to1500 = 0
-		total_1500to2000 = 0
-		total_2000toInf  = 0
+		totals_QCD 	 = [0]*len(self.QCD_samples)
+		totals_TTbar = [0]*len(self.TTbar_samples)
+		totals_ST    = [0]*len(self.ST_samples)
+		totals_WJets = [0]*len(self.WJets_samples)
 
-
-		total_TTJets800to1200  = 0
-		total_TTJets1200to2500 = 0
-		total_TTJets2500toInf  = 0
-
-		total_TTToHadronicMC = 0 
-		total_TTToSemiLeptonicMC = 0 
-		total_TTToLeptonicMC = 0
-
-		total_ST_t_channel_top_inclMC = 0
-		total_ST_t_channel_antitop_inclMC = 0
-		total_ST_s_channel_hadronsMC = 0
-		total_ST_s_channel_leptonsMC = 0
-		total_ST_tW_antiTop_inclMC = 0
-		total_ST_tW_top_inclMC = 0
-
-		total_WJetsMC_LNu_HT800to1200 = 0
-		total_WJetsMC_LNu_HT1200to2500 = 0
-		total_WJetsMC_LNu_HT2500toInf = 0
-		total_WJetsMC_QQ_HT800toInf = 0
+		SFs_QCD   = [return_BR_SF(self.year,sample) for sample in self.QCD_samples]
+		SFs_TTbar = [return_BR_SF(self.year,sample) for sample in self.TTbar_samples]
+		SFs_ST 	  = [return_BR_SF(self.year,sample) for sample in self.ST_samples]
+		SFs_WJets = [return_BR_SF(self.year,sample) for sample in self.WJets_samples]
 
 		for _bin in superbin:
-			total_1000to1500+= self.get_contribution_count("QCDMC1000to1500", _bin[0],_bin[1])
-			total_1500to2000+= self.get_contribution_count("QCDMC1500to2000", _bin[0],_bin[1])
-			if not self.doSideband: total_2000toInf+= self.get_contribution_count("QCDMC2000toInf", _bin[0],_bin[1])
-
-			if not self.includeTTo:
-				if self.doSideband or self.includeTTJetsMCHT800to1200: total_TTJets800to1200+= self.get_contribution_count("TTJetsMCHT800to1200", _bin[0],_bin[1])
-				total_TTJets1200to2500+= self.get_contribution_count("TTJetsMCHT1200to2500", _bin[0],_bin[1])
-				if not self.doSideband: total_TTJets2500toInf+= self.get_contribution_count("TTJetsMCHT2500toInf", _bin[0],_bin[1])
-
-			total_ST_t_channel_top_inclMC+= self.get_contribution_count("ST_t-channel-top_inclMC", _bin[0],_bin[1])
-			total_ST_t_channel_antitop_inclMC+= self.get_contribution_count("ST_t-channel-antitop_inclMC", _bin[0],_bin[1])
-			total_ST_s_channel_hadronsMC+= self.get_contribution_count("ST_s-channel-hadronsMC", _bin[0],_bin[1])
-			total_ST_s_channel_leptonsMC+= self.get_contribution_count("ST_s-channel-leptonsMC", _bin[0],_bin[1])
-			total_ST_tW_antiTop_inclMC+= self.get_contribution_count("ST_tW-antiTop_inclMC", _bin[0],_bin[1])
-			total_ST_tW_top_inclMC+= self.get_contribution_count("ST_tW-top_inclMC", _bin[0],_bin[1])
-
-			if self.includeTTo:
-				total_TTToHadronicMC+= self.get_contribution_count("TTToHadronicMC", _bin[0],_bin[1])
-				total_TTToSemiLeptonicMC+= self.get_contribution_count("TTToSemiLeptonicMC", _bin[0],_bin[1])
-				total_TTToLeptonicMC+= self.get_contribution_count("TTToLeptonicMC", _bin[0],_bin[1])
-
+			for iii,QCD_sample in enumerate(self.QCD_samples):
+				totals_QCD[iii] += self.get_contribution_count(QCD_sample, _bin[0],_bin[1])
+			for iii,TTbar_sample in enumerate(self.TTbar_samples):
+				totals_TTbar[iii] += self.get_contribution_count(TTbar_sample, _bin[0],_bin[1])
+			for iii,ST_sample in enumerate(self.ST_samples):
+				totals_ST[iii] += self.get_contribution_count(ST_sample, _bin[0],_bin[1])
 			if self.includeWJets:
-				total_WJetsMC_LNu_HT800to1200 += self.get_contribution_count("WJetsMC_LNu_HT800to1200", _bin[0],_bin[1])
-				total_WJetsMC_LNu_HT1200to2500 += self.get_contribution_count("WJetsMC_LNu_HT1200to2500", _bin[0],_bin[1])
-				total_WJetsMC_LNu_HT2500toInf += self.get_contribution_count("WJetsMC_LNu_HT2500toInf", _bin[0],_bin[1])
-				total_WJetsMC_QQ_HT800toInf += self.get_contribution_count("WJetsMC_QQ_HT800toInf", _bin[0],_bin[1])
+				for iii,WJets_sample in enumerate(self.WJets_samples):
+					totals_WJets[iii] += self.get_contribution_count(WJets_sample, _bin[0],_bin[1])
 
-		total_counts_in_superbin = total_1000to1500*return_BR_SF(self.year,"QCDMC1000to1500") + total_1500to2000*return_BR_SF(self.year,"QCDMC1500to2000") + total_2000toInf*return_BR_SF(self.year,"QCDMC2000toInf") + total_TTJets800to1200*return_BR_SF(self.year, "TTJetsMCHT800to1200") * total_TTJets1200to2500*return_BR_SF(self.year,"TTJetsMCHT1200to2500") + total_TTJets2500toInf*return_BR_SF(self.year,"TTJetsMCHT2500toInf") + total_ST_t_channel_top_inclMC*return_BR_SF(self.year,"ST_t_channel_top_inclMC") + total_ST_t_channel_antitop_inclMC*return_BR_SF(self.year,"ST_t_channel_antitop_inclMC") + total_ST_s_channel_leptonsMC*return_BR_SF(self.year,"ST_s_channel_leptonsMC") +  total_ST_tW_antiTop_inclMC*return_BR_SF(self.year,"ST_tW_antiTop_inclMC") + total_ST_tW_top_inclMC*return_BR_SF(self.year,"ST_tW_top_inclMC")   #total_TTToHadronicMC + total_TTToSemiLeptonicMC + total_TTToLeptonicMC
-		return total_counts_in_superbin
+		QCD_scaled_event_content = np.array([ totals_QCD[iii]*SFs_QCD[iii] for iii in range(len(totals_QCD))   ])
+		TTbar_scaled_event_content = np.array([ totals_TTbar[iii]*SFs_TTbar[iii] for iii in range(len(totals_TTbar))   ])
+		ST_scaled_event_content = np.array([ totals_ST[iii]*SFs_ST[iii] for iii in range(len(totals_ST))   ])
+		WJets_scaled_event_content = np.array([ totals_WJets[iii]*SFs_WJets[iii] for iii in range(len(totals_WJets))   ])
+
+		total_scaled_event_content =  sum(QCD_scaled_event_content)+ sum(TTbar_scaled_event_content)+ sum(ST_scaled_event_content)+ sum(WJets_scaled_event_content)  
+		
+		return total_scaled_event_content
 
 	def get_unscaled_QCD_superbin_counts(self, superbin):   ### return the UNSCALED number of QCD counts in a specific superbin
 		
-		total_counts_in_superbin = 0
+		totals_QCD 	 = np.array([0]*len(self.QCD_samples))
+		for _bin in superbin:
+			for iii,QCD_sample in enumerate(self.QCD_samples):
+				totals_QCD[iii] += self.get_contribution_count(QCD_sample, _bin[0],_bin[1])
 
-		total_1000to1500 = 0
-		total_1500to2000 = 0
-		total_2000toInf = 0
-
-		for _bin in superbin:  
-			total_1000to1500+= self.get_contribution_count("QCDMC1000to1500", _bin[0],_bin[1])
-			total_1500to2000+= self.get_contribution_count("QCDMC1500to2000", _bin[0],_bin[1])
-			if not self.doSideband: total_2000toInf+= self.get_contribution_count("QCDMC2000toInf", _bin[0],_bin[1])
-
-		total_QCD_counts_in_superbin = total_1000to1500 + total_1500to2000 + total_2000toInf
-		return total_QCD_counts_in_superbin
+		return sum(totals_QCD)
 
 
 	def get_scaled_QCD_superbin_counts(self, superbin):   ### return the SCALED number of QCD counts in a specific superbin
-		total_counts_in_superbin = 0
 
-		total_1000to1500 = 0
-		total_1500to2000 = 0
-		total_2000toInf = 0
+		totals_QCD 	 = [0]*len(self.QCD_samples)
+		SFs_QCD   = [return_BR_SF(self.year,sample) for sample in self.QCD_samples]
 
-		SF_1000to1500 = return_BR_SF(self.year,"QCDMC1000to1500")
-		SF_1500to2000 = return_BR_SF(self.year,"QCDMC1500to2000")
-		SF_2000toInf  = return_BR_SF(self.year,"QCDMC2000toInf")  
+		for _bin in superbin:
+			for iii,QCD_sample in enumerate(self.QCD_samples):
+				totals_QCD[iii] += self.get_contribution_count(QCD_sample, _bin[0],_bin[1])
 
-		for _bin in superbin:  
-			total_1000to1500+= self.get_contribution_count("QCDMC1000to1500", _bin[0],_bin[1])
-			total_1500to2000+= self.get_contribution_count("QCDMC1500to2000", _bin[0],_bin[1])
-			if not self.doSideband: total_2000toInf+= self.get_contribution_count("QCDMC2000toInf", _bin[0],_bin[1])
+		QCD_scaled_event_content = np.array([ totals_QCD[iii]*SFs_QCD[iii] for iii in range(len(totals_QCD))   ])
 
-		total_scaled_QCD_counts_in_superbin = SF_1000to1500*total_1000to1500 + SF_1500to2000*total_1500to2000 + SF_2000toInf*total_2000toInf
-		return total_scaled_QCD_counts_in_superbin
+		return sum(QCD_scaled_event_content)
 
 
 
@@ -463,7 +310,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 			hist_path = self.processed_file_path + "%s_%s_%sprocessed.root"%(dataset_type,self.year,WP_name_str)
 		#print("hist_path", hist_path)
 		hist_name = "h_MSJ_mass_vs_MdSJ_%s%s"%(self.technique_str,self.region)   # need to find what the name of this histogram
-		print("hist name is: %s in file %s"%(hist_name,hist_path)  )
+		print("Loaded hist %s in file %s."%(hist_name,hist_path)  )
 
 		#print("hist_name", hist_name)
 
@@ -471,7 +318,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 		TH2_hist = TH2_file.Get("nom/"+hist_name) 
 		TH2_hist.SetDirectory(0)   # histograms lose their references when the file destructor is called
 
-		print("The %s histogram has %f entries"%(dataset_type, TH2_hist.Integral()))
+		print("------ histogram (%s) has %f integrated events."%(dataset_type, TH2_hist.Integral()))
 		return TH2_hist
 
 	def load_data_hists(self):

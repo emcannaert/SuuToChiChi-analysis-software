@@ -26,10 +26,14 @@ def load_superbin_neighbors(year, region,technique_str=""):
 	return ast.literal_eval(_superbin_indices)
 
 
+def create_directories(dirs_to_create):
+
+	for dir_to_create in dirs_to_create:
+		if not os.path.exists(dir_to_create):
+			os.makedirs(dir_to_create)
 
 
-
-def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, technique_str, useMask=False, debug = False):
+def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, technique_str, useMask=False, use_QCD_Pt=False, debug = False):
 	ROOT.TH1.AddDirectory(False)
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
@@ -54,6 +58,10 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 	## list of uncorrelated systematics to the correct hist name is grabbed
 	uncorrelated_systematics = ["CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
 
+	use_QCD_Pt_str = "QCDHT"
+	if use_QCD_Pt:
+		use_QCD_Pt_str = "QCDPT"
+
 
 	year_str = "16preAPV"
 	if year == "2016":
@@ -63,19 +71,20 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 	elif year == "2018":
 		year_str = "18"
 
-	infile_dir = "finalCombineFilesNewStats/"
+	infile_dir = "finalCombineFilesNewStats/%s/"%(use_QCD_Pt_str)
 	infile_name = infile_dir+ "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
-	outfile_dir = "finalCombineFilesNewStats/correctedFinalCombineFiles/"
+	outfile_dir = "finalCombineFilesNewStats/%s/correctedFinalCombineFiles/"%(use_QCD_Pt_str)
 	outfile_name = outfile_dir + "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
 	if useMask:
-		infile_dir = "finalCombineFilesNewStats/maskedFinalCombineFiles/"
+		infile_dir = "finalCombineFilesNewStats/%s/maskedFinalCombineFiles/"%(use_QCD_Pt_str)
 		infile_name = infile_dir+ "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
-		outfile_dir = "finalCombineFilesNewStats/maskedCorrectedFinalCombineFiles/"
+		outfile_dir = "finalCombineFilesNewStats/%s/maskedCorrectedFinalCombineFiles/"%(use_QCD_Pt_str)
 		outfile_name = outfile_dir + "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
+	create_directories([infile_dir,outfile_dir])
 
 	print("Looking for file %s"%(infile_name))
 	## open root file
@@ -679,6 +688,12 @@ if __name__=="__main__":
 
 	include_WJets    = True
 	include_TTTo     = True
+	useMask 		 = False
+
+	if useMask:
+		toMask   		 = [True,False]
+	else:
+		toMask   		 = [False]
 	all_uncerts = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec", "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",  "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale", "stat"]  ## systematic namings for cards   "CMS_btagSF", 
 	#uncerts_to_fix = [ "CMS_jer",  "cms_jec",  "CMS_jer_eta193", "CMS_jer_193eta25","CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU", "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",  "CMS_bTagSF_M",  "CMS_bTagSF_T" ]   # name of uncertainty to fix (proper name as written in the linearized root files)
 	
@@ -713,6 +728,8 @@ if __name__=="__main__":
 
 	technique_strs = ["NN_",""]
 
+	technique_strs = [""]
+
 	#### debugging stuff
 	if debug:
 		#uncerts_to_fix =  ["CMS_jec_AbsolutePU"] 
@@ -722,15 +739,22 @@ if __name__=="__main__":
 		mass_points = ["Suu4_chi1"]
 
 
-	for technique_str in technique_strs:
-		for year in years:
-				for mass_point in mass_points:
-						#try:
-						#fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, True, debug   )
-						fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, technique_str, False, debug   )
+	use_QCD_Pt_opts = [True,False]
+	use_QCD_Pt_strs = ["QCDPT","QCDHT"]
 
-						#except: 
-						#print("ERROR: failed %s/%s"%(mass_point,year))
+
+	for jjj,use_QCD_Pt in enumerate(use_QCD_Pt_opts):
+
+		for mask_opt in toMask:
+			for technique_str in technique_strs:
+				for year in years:
+						for mass_point in mass_points:
+								#try:
+								#fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, True, debug   )
+								fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, technique_str, mask_opt, use_QCD_Pt, debug   )
+
+								#except: 
+								#print("ERROR: failed %s/%s"%(mass_point,year))
 
 
 
