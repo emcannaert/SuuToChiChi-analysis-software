@@ -81,7 +81,19 @@ if __name__ == "__main__":
 	   "ST_s-channel-hadronsMC",
 	   "ST_s-channel-leptonsMC",
 	   "ST_tW-antiTop_inclMC",
-	   "ST_tW-top_inclMC" ]
+	   "ST_tW-top_inclMC",
+		"QCDMC_Pt_170to300",
+            "QCDMC_Pt_300to470",
+            "QCDMC_Pt_470to600",
+            "QCDMC_Pt_600to800",
+            "QCDMC_Pt_800to1000",
+            "QCDMC_Pt_1000to1400",
+            "QCDMC_Pt_1400to1800",
+            "QCDMC_Pt_1800to2400",
+            "QCDMC_Pt_2400to3200",
+            "QCDMC_Pt_3200toInf" 
+
+	    ]
 
 
 	signal_samples_pkl = open('../data/pkl/signal_samples.pkl', 'r')
@@ -108,7 +120,17 @@ if __name__ == "__main__":
 	   "ST_s-channel-hadronsMC",
 	   "ST_s-channel-leptonsMC",
 	   "ST_tW-antiTop_inclMC",
-	   "ST_tW-top_inclMC" ]
+	   "ST_tW-top_inclMC",
+	   	"QCDMC_Pt_170to300",
+            "QCDMC_Pt_300to470",
+            "QCDMC_Pt_470to600",
+            "QCDMC_Pt_600to800",
+            "QCDMC_Pt_800to1000",
+            "QCDMC_Pt_1000to1400",
+            "QCDMC_Pt_1400to1800",
+            "QCDMC_Pt_1800to2400",
+            "QCDMC_Pt_2400to3200",
+            "QCDMC_Pt_3200toInf"  ]
    		use_samples = samples
 		use_samples.extend(data_samples[year])
 		use_samples.extend( signal_samples )
@@ -156,7 +178,17 @@ if __name__ == "__main__":
 	   "ST_s-channel-hadronsMC",
 	   "ST_s-channel-leptonsMC",
 	   "ST_tW-antiTop_inclMC",
-	   "ST_tW-top_inclMC" ]
+	   "ST_tW-top_inclMC",
+	   	"QCDMC_Pt_170to300",
+            "QCDMC_Pt_300to470",
+            "QCDMC_Pt_470to600",
+            "QCDMC_Pt_600to800",
+            "QCDMC_Pt_800to1000",
+            "QCDMC_Pt_1000to1400",
+            "QCDMC_Pt_1400to1800",
+            "QCDMC_Pt_1800to2400",
+            "QCDMC_Pt_2400to3200",
+            "QCDMC_Pt_3200toInf"  ]
    		use_samples = samples
 		use_samples.extend(data_samples[year])
 		use_samples.extend( signal_samples )
@@ -212,7 +244,17 @@ if __name__ == "__main__":
 	   "ST_s-channel-hadronsMC",
 	   "ST_s-channel-leptonsMC",
 	   "ST_tW-antiTop_inclMC",
-	   "ST_tW-top_inclMC" ]
+	   "ST_tW-top_inclMC",
+	   	"QCDMC_Pt_170to300",
+            "QCDMC_Pt_300to470",
+            "QCDMC_Pt_470to600",
+            "QCDMC_Pt_600to800",
+            "QCDMC_Pt_800to1000",
+            "QCDMC_Pt_1000to1400",
+            "QCDMC_Pt_1400to1800",
+            "QCDMC_Pt_1800to2400",
+            "QCDMC_Pt_2400to3200",
+            "QCDMC_Pt_3200toInf"  ]
 		use_samples = samples
 		use_samples.extend( signal_samples )
 		use_samples.extend(data_samples[year])
@@ -321,7 +363,17 @@ if __name__ == "__main__":
 	   "ST_s-channel-hadronsMC",
 	   "ST_s-channel-leptonsMC",
 	   "ST_tW-antiTop_inclMC",
-	   "ST_tW-top_inclMC" ]
+	   "ST_tW-top_inclMC",
+	   	"QCDMC_Pt_170to300",
+            "QCDMC_Pt_300to470",
+            "QCDMC_Pt_470to600",
+            "QCDMC_Pt_600to800",
+            "QCDMC_Pt_800to1000",
+            "QCDMC_Pt_1000to1400",
+            "QCDMC_Pt_1400to1800",
+            "QCDMC_Pt_1800to2400",
+            "QCDMC_Pt_2400to3200",
+            "QCDMC_Pt_3200toInf" ]
 		use_samples = samples
 		use_samples.extend( signal_samples )
 		use_samples.extend(data_samples[year])

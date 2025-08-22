@@ -26,6 +26,14 @@ else
 	source eos_copy_commands.sh
 	eosrm $EOSBASE/combinedROOT_temp/ZZ_MC*_combined_*.root
 
+
+	echo "Copying QCD Pt Files"
+	python create_eos_copy_commands.py QCD_Pt_eos_paths.txt
+	source eos_copy_commands.sh
+	eosrm $EOSBASE/combinedROOT_temp/QCDMC_Pt_*_combined_*.root
+
+
+
 	echo "Copying W+Jets Files"
 	python create_eos_copy_commands.py WJets_eos_paths.txt
 	source eos_copy_commands.sh
@@ -53,7 +61,7 @@ else
 	source eos_copy_commands.sh
 	if source eos_copy_commands.sh; then
 		echo "QCD files successfully merged. Now removing any residual files in combinedROOT_temp."
-		eosrm $EOSBASE/combinedROOT_temp/QCD*_combined_*.root
+		eosrm $EOSBASE/combinedROOT_temp/QCDMC*_combined_*.root
 	else
 	    echo "---------------> ERROR: QCD file merging failed."
 	fi

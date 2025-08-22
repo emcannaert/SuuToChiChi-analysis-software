@@ -2,7 +2,7 @@
 #include <string>
 #include "TLorentzVector.h"
 
-bool doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::vector<std::string> systematics, std::string dataBlock, std::string runType)
+bool doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::vector<std::string> systematics, std::string dataBlock, std::string runType, bool dryRun)
 {
    double totHT, dijetMassOne, dijetMassTwo;
    int nfatjets, nfatjet_pre,nAK4;
@@ -287,11 +287,11 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
             t1->GetEntry(i);
             totalEvents++;
 
-            if ((dataBlock.find("Suu") != std::string::npos)) // use non-NN training signal events
+            /*if ((dataBlock.find("Suu") != std::string::npos)) // use non-NN training signal events
             {
                nFailed_eventNum++;
                if( eventNumber%10 > 2) continue; // should only be for signal
-            }
+            }*/
 
             ////////////////////////////////////////////////////////////////
             ////////////////////// Initial Selections //////////////////////
@@ -587,7 +587,7 @@ void readTreeApplySelection()
    std::vector<std::string> signal_samples = {
 "Suu4_chi1_HTHT_","Suu4_chi1p5_HTHT_","Suu5_chi1_HTHT_","Suu5_chi1p5_HTHT_","Suu5_chi2_HTHT_","Suu6_chi1_HTHT_","Suu6_chi1p5_HTHT_","Suu6_chi2_HTHT_","Suu6_chi2p5_HTHT_","Suu7_chi1_HTHT_","Suu7_chi1p5_HTHT_",
 "Suu7_chi2_HTHT_","Suu7_chi2p5_HTHT_","Suu7_chi3_HTHT_","Suu8_chi1_HTHT_","Suu8_chi1p5_HTHT_","Suu8_chi2_HTHT_","Suu8_chi2p5_HTHT_","Suu8_chi3_HTHT_",
-"Suu4_chi1_HTZT_","Suu4_chi1p5_HTZT_","Suu5_chi1_HTZT_","Suu5_chi1p5_HTZT_","Suu5_chi2_HTZT_","Suu6_chi1_HTZT_","Suu6_chi1p5_HTZT_","Suu6_chi2p5_HTZT_","Suu7_chi1_HTZT_",
+"Suu4_chi1_HTZT_","Suu4_chi1p5_HTZT_","Suu5_chi1_HTZT_","Suu5_chi1p5_HTZT_","Suu5_chi2_HTZT_","Suu6_chi1_HTZT_","Suu6_chi1p5_HTZT_","Suu6_chi2_HTZT_",  "Suu6_chi2p5_HTZT_","Suu7_chi1_HTZT_",
 "Suu7_chi1p5_HTZT_","Suu7_chi2_HTZT_","Suu7_chi2p5_HTZT_","Suu7_chi3_HTZT_","Suu8_chi1_HTZT_","Suu8_chi1p5_HTZT_","Suu8_chi2_HTZT_","Suu8_chi2p5_HTZT_","Suu8_chi3_HTZT_",
 "Suu4_chi1_WBHT_","Suu4_chi1p5_WBHT_","Suu5_chi1_WBHT_","Suu5_chi1p5_WBHT_","Suu5_chi2_WBHT_","Suu6_chi1_WBHT_","Suu6_chi1p5_WBHT_","Suu6_chi2_WBHT_","Suu6_chi2p5_WBHT_",
 "Suu7_chi1_WBHT_","Suu7_chi1p5_WBHT_","Suu7_chi2_WBHT_","Suu7_chi2p5_WBHT_","Suu7_chi3_WBHT_","Suu8_chi1_WBHT_","Suu8_chi1p5_WBHT_","Suu8_chi2_WBHT_","Suu8_chi2p5_WBHT_",
@@ -596,8 +596,8 @@ void readTreeApplySelection()
 "Suu8_chi2p5_WBWB_","Suu8_chi3_WBWB_","Suu4_chi1_WBZT_","Suu4_chi1p5_WBZT_","Suu5_chi1_WBZT_","Suu5_chi1p5_WBZT_","Suu5_chi2_WBZT_","Suu6_chi1_WBZT_","Suu6_chi1p5_WBZT_",
 "Suu6_chi2_WBZT_","Suu6_chi2p5_WBZT_","Suu7_chi1_WBZT_","Suu7_chi1p5_WBZT_","Suu7_chi2_WBZT_","Suu7_chi2p5_WBZT_","Suu7_chi3_WBZT_","Suu8_chi1_WBZT_","Suu8_chi1p5_WBZT_",
 "Suu8_chi2_WBZT_","Suu8_chi2p5_WBZT_","Suu8_chi3_WBZT_","Suu4_chi1_ZTZT_","Suu4_chi1p5_ZTZT_","Suu5_chi1_ZTZT_","Suu5_chi1p5_ZTZT_","Suu5_chi2_ZTZT_","Suu6_chi1_ZTZT_",
-"Suu6_chi1p5_ZTZT_","Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
-"Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_"};  
+"Suu6_chi1p5_ZTZT_","Suu6_chi2_ZTZT_", "Suu6_chi2p5_ZTZT_","Suu7_chi1_ZTZT_","Suu7_chi1p5_ZTZT_","Suu7_chi2_ZTZT_","Suu7_chi2p5_ZTZT_","Suu7_chi3_ZTZT_","Suu8_chi1_ZTZT_","Suu8_chi1p5_ZTZT_",
+"Suu8_chi2_ZTZT_","Suu8_chi2p5_ZTZT_","Suu8_chi3_ZTZT_"};  
    //std::vector<std::string> signal_samples = {"Suu8_chi2_WBZT_"};
    std::string combinedROOT_eos_path       =  "root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT/";       //  "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
    std::string skimmedFiles_eos_path       =  "root://cmseos.fnal.gov//store/user/ecannaer/skimmedFiles/";       //  "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
@@ -605,16 +605,21 @@ void readTreeApplySelection()
    std:string runType = "main-band";
    // you must change these ........
    bool runAll        = false;
-   bool runData       = true;
+   bool runData       = false;
    bool runSignal     = false;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
    bool runDataBR     = false;
    bool runTTbar      = false;
-   bool runSelection  = false;
+   bool runSelection  = true;
    bool runSingleFile = false;
    bool runExtras     = false;
    bool runSideband   = false;
 
+
+
+
+
+   bool dryRun        = true;   // run without creating a file (testing)
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
    std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
 
@@ -640,7 +645,7 @@ void readTreeApplySelection()
       std::string inFileName_ = (pathToFile + dataBlock_ + year_ +  systematic_str_ + "_combined.root").c_str();
       std::string outFileName_ = (dataBlock_ + year_ +  systematic_str_ + "_SKIMMED.root").c_str();
 
-      doThings(inFileName_, outFileName_, eventScaleFactor, year_, use_systematic_, dataBlock_, runType);
+      doThings(inFileName_, outFileName_, eventScaleFactor, year_, use_systematic_, dataBlock_, runType,dryRun);
       return;
    }
 
@@ -735,7 +740,23 @@ void readTreeApplySelection()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = {"Suu6_chi2_ZTZT_", "Suu8_chi3_ZTZT_"};  
+         dataBlocks = {
+            "Suu6_chi2_ZTZT_",
+            "Suu6_chi2_HTZT_",
+            "Suu8_chi3_ZTZT_"
+
+            /*"QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"  */
+
+            };  
       }
       else if(runExtras)
       {
@@ -834,6 +855,9 @@ void readTreeApplySelection()
       for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
       {
          std::vector<std::string> use_systematics;
+
+         //if (dataBlock->find("QCDMC_Pt") != std::string::npos ) systematics = {"nom"}; 
+
          for( auto systematic = systematics.begin(); systematic < systematics.end();systematic++)
          {
 
@@ -927,7 +951,7 @@ void readTreeApplySelection()
             std::cout << "======================================================================================================================= " << std::endl;
             std::cout << "======================================================================================================================= " << std::endl;
 
-            if (!doThings(inFileName, outFileName, eventScaleFactor, year, use_systematics, *dataBlock, runType))
+            if (!doThings(inFileName, outFileName, eventScaleFactor, year, use_systematics, *dataBlock, runType, dryRun))
             {
 
                std::cout << "ERROR: Failed with file " << inFileName << "  ----   (" << *dataBlock << "/" << year  << "/"  << systematic_str <<")"  <<std::endl;

@@ -902,6 +902,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		}
 
 		double sum_eventSF_1b_antiTag = 0.0, sum_eventSF_0b_antiTag = 0, sum_eventSF_SR = 0, sum_eventSF_CR = 0;
+		double sum_eventSF_AT1b = 0, sum_eventSF_AT0b = 0;
 		double sum_btagSF_1b_antiTag = 0.0, sum_btagSF_0b_antiTag = 0, sum_btagSF_SR = 0.0, sum_btagSF_CR = 0.0;
 		double sum_PUSF_1b_antiTag = 0.0, sum_PUSF_0b_antiTag = 0, sum_PUSF_SR = 0.0, sum_PUSF_CR = 0.0;
 
@@ -1648,6 +1649,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 							sum_eventSF_0b_antiTag+=eventWeightToUse;
 							nEvents_unscaled_0b_antiTag+=1;
 							h_nAK4_AT0b->Fill(nAK4_recount,eventWeightToUse);
+							sum_eventSF_AT1b+=eventWeightToUse;
 							h_true_b_jets_AT->Fill(nGenBJets);
 							h_true_b_jets_AT0b->Fill(nGenBJets);
 						}  
@@ -2059,6 +2061,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 							sum_eventSF_1b_antiTag+= eventWeightToUse;
 							nEvents_unscaled_1b_antiTag+=1;
 							h_nAK4_AT1b->Fill(nAK4_recount);
+							sum_eventSF_AT1b+=eventWeightToUse;
 							h_nTightbTags_AT1b->Fill(nTightBTags);
 						}
 					}
@@ -2430,6 +2433,11 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		std::cout << "In " << inFileName << " there were " << num_bad_btagSF<< "/" << num_bad_PUSF<< "/"<< num_bad_topPt<< "/"<< num_bad_scale<< "/"<<num_bad_pdf << "/" <<num_bad_prefiring << " bad btag/PU/topPt/scale/pdf/prefiring event weights" << std::endl; 
 		std::cout << "There were " << badEventSF << " bad events." << std::endl;
 		std::cout << "Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear  << " : total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<   sum_eventSF_SR   << std::endl;
+		std::cout << "Control  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear  << " : total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<   sum_eventSF_CR   << std::endl;
+		std::cout << "AT1b  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear  << " : total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<   sum_eventSF_AT1b   << std::endl;
+		std::cout << "AT0b  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear  << " : total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<   sum_eventSF_AT0b   << std::endl;
+
+
 		std::cout << dataBlock << "/" << dataYear << "/" << systematic+ "_" + *systematic_suffix << " : there was a total of " << total_1b << "/" << total_0b << " events in the 1b/0b region (all pre-selected)." << std::endl;
 
 		g_bTagSF_T_vs_HT->Write();
@@ -2466,9 +2474,9 @@ void readTree()
    bool runData			= false;
    bool runSignal    	= false;
    bool runBR	  			= false;
-   bool runAll	 			= true;
+   bool runAll	 			= false;
    bool runDataBR    	= false;
-   bool runSelection 	= false;
+   bool runSelection 	= true;
    bool runSingleFile 	= false;
    bool runSideband 		= false;
    int nFailedFiles = 0;
@@ -2486,25 +2494,9 @@ void readTree()
 
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
-   if(runSelection) dataYears = {"2016"};
+
+   if(runSelection) dataYears = {"2015"};
    std::vector<std::string> systematics = { "nom", "scale", "bTagSF_med", "bTagSF_tight",   "bTagSF_med_corr", "bTagSF_tight_corr",  "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring", "pdf","renorm", "fact"};  // "scale"    "JEC_HF", "JEC_BBEC1", "JEC_EC2","JEC_HF_year", "JEC_EC2_year",   "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", 
-
-
-
-
-
-   ////// CHANGE THIS
-
-
-
-   outputFolder = "processedFiles/highNNVals/";
-   systematics = {"nom"};
-
-
-
-   ///////////////////
-
-
 
 
    // these were replaced by the below
@@ -2654,7 +2646,24 @@ void readTree()
 			else if(runSelection)
 			{
 
-				dataBlocks = { "QCDMC2000toInf_" } ; 
+				dataBlocks = {
+
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"
+				//"Suu6_chi2_ZTZT_",
+				//"Suu6_chi2_HTZT_",
+				//"Suu8_chi3_ZTZT_"
+				/*"QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"  */
+
+            } ; 
 				//dataBlocks = {"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};
 			}
 			else if ( runSingleFile)
