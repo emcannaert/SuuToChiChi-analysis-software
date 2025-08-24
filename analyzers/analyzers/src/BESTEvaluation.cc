@@ -52,7 +52,7 @@ void BESTEvaluation::configure(const edm::ParameterSet& iConfig){
 
   // single NN for every year
   inputNames_.push_back("input_1");
-  outputName_ = "dense_9/Sigmoid";
+  outputName_ = "dense_7/Sigmoid";
 
 
 

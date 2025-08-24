@@ -2357,7 +2357,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     iEvent.getByToken(electronToken_, electrons);
     for(auto iE = electrons->begin(); iE != electrons->end();iE++)
     {
-      if((iE->electronID("mvaEleID-Fall17-iso-V2-wpLoose")) &&  (iE->pt() > 12.) && (abs(iE->eta())<2.5 ))   nElectrons_looseID_looseISO++;   //medium WP
+      if((iE->electronID("mvaEleID-Fall17-iso-V2-wpLoose")) &&  (iE->pt() > 12.) && (abs(iE->eta())<2.5 ))   nElectrons_looseID_looseISO++;   //loose WP
       if((iE->electronID("mvaEleID-Fall17-noIso-V2-wpLoose"))  &&  (iE->pt() > 12.) && (abs(iE->eta())<2.5 )) nElectrons_looseID_NOISO++;   //medium WP
 
     }

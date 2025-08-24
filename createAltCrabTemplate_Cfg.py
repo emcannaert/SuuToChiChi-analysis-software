@@ -141,6 +141,7 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 			if "2000toInf" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
 			elif "1500to2000" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3250 \n")
 			elif "1000to1500" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
+			else: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
 	elif "TTJets" in sample or "TTTo" in sample:
@@ -188,12 +189,14 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	inputFiles = []
 
 	# jet veto map
-	if year == "2015" or year == "2016":
-		inputFiles.append("data/jetVetoMaps/hotjets-UL16.root")
-	elif year == "2017":
-		inputFiles.append("data/jetVetoMaps/hotjets-UL17_v2.root")
-	elif year == "2018":
-		inputFiles.append("data/jetVetoMaps/hotjets-UL18.root")
+	if "Suu" in sample:
+		if year == "2015" or year == "2016":
+			inputFiles.append("data/jetVetoMaps/hotjets-UL16.root")
+		elif year == "2017":
+			inputFiles.append("data/jetVetoMaps/hotjets-UL17_v2.root")
+		elif year == "2018":
+			inputFiles.append("data/jetVetoMaps/hotjets-UL18.root")
+
 
 	# BEST model files
 	inputFiles.append("data/BEST_models/constantgraph_combine.pb")
@@ -227,7 +230,7 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 		inputFiles.append("data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root"%(bTagSF_sample,year))
 		if year == "2015":
-			inputFiles.append("data/bTaggingSFs/2016preVFP_UL/btagging.json'")
+			inputFiles.append("data/bTaggingSFs/2016preVFP_UL/btagging.json")
 		elif year == "2016":
 			inputFiles.append("data/bTaggingSFs/2016postVFP_UL/btagging.json")
 		elif year == "2017":
@@ -245,8 +248,15 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 
 	## include files that are needed 
-	inputFile_str = "',\n'../".join(inputFiles)
-	newCfg.write("config.JobType.inputFiles = [ '../%s' ]"%inputFile_str)
+	if "Suu" in sample:
+		inputFile_str = "',\n'../../".join(inputFiles)
+		newCfg.write("config.JobType.inputFiles = [ '../../%s' ]"%inputFile_str)
+
+	else:
+		inputFile_str = "',\n'../".join(inputFiles)
+		newCfg.write("config.JobType.inputFiles = [ '../%s' ]"%inputFile_str)
+
+
 def main():
 
 
@@ -288,7 +298,18 @@ def main():
 							   "WJetsMC_QQ-HT800toInf":  "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v2/MINIAODSIM"   ,
 							   "TTJetsMCHT800to1200":"/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v2/MINIAODSIM",
 							   "WW_MC": "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM"   ,
-							   "ZZ_MC":  "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM" 
+							   "ZZ_MC":  "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+
+							   "QCDMC_Pt_170to300":   "/QCD_Pt_170to300_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+								"QCDMC_Pt_300to470":  "/QCD_Pt_300to470_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+								"QCDMC_Pt_470to600":  "/QCD_Pt_470to600_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+								"QCDMC_Pt_600to800":  "/QCD_Pt_600to800_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+								"QCDMC_Pt_800to1000": "/QCD_Pt_800to1000_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+						   		"QCDMC_Pt_1000to1400":"/QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+								"QCDMC_Pt_1400to1800":"/QCD_Pt_1400to1800_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+								"QCDMC_Pt_1800to2400":"/QCD_Pt_1800to2400_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+								"QCDMC_Pt_2400to3200":"/QCD_Pt_2400to3200_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM",
+								"QCDMC_Pt_3200toInf": "/QCD_Pt_3200toInf_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODAPVv2-106X_mcRun2_asymptotic_preVFP_v11-v1/MINIAODSIM" 
 
 							   },
 					'2016': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM',
@@ -314,7 +335,18 @@ def main():
 							   "WJetsMC_QQ-HT800toInf": "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v2/MINIAODSIM"   ,
 							   "TTJetsMCHT800to1200":	"/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v2/MINIAODSIM",
 							   "WW_MC": "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
-							   "ZZ_MC": "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM"
+							   "ZZ_MC": "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+
+							   "QCDMC_Pt_170to300": "/QCD_Pt_170to300_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+								"QCDMC_Pt_300to470": "/QCD_Pt_300to470_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+								"QCDMC_Pt_470to600": "/QCD_Pt_470to600_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+								"QCDMC_Pt_600to800": "/QCD_Pt_600to800_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+								"QCDMC_Pt_800to1000":" /QCD_Pt_800to1000_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+						   		"QCDMC_Pt_1000to1400": "/QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+								"QCDMC_Pt_1400to1800": "/QCD_Pt_1400to1800_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+								"QCDMC_Pt_1800to2400": "/QCD_Pt_1800to2400_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+								"QCDMC_Pt_2400to3200": "/QCD_Pt_2400to3200_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM",
+								"QCDMC_Pt_3200toInf": "/QCD_Pt_3200toInf_TuneCP5_13TeV_pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM"
 							  },
 
 					   '2017': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM',
@@ -342,7 +374,17 @@ def main():
 							   "WJetsMC_QQ-HT800toInf":  "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM"   ,
 							   "TTJetsMCHT800to1200": "/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM",
 							   "WW_MC": "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
-							   "ZZ_MC": "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM"
+							   "ZZ_MC": "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+							   	"QCDMC_Pt_170to300": "/QCD_Pt_170to300_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+								"QCDMC_Pt_300to470": "/QCD_Pt_300to470_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+								"QCDMC_Pt_470to600": "/QCD_Pt_470to600_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+								"QCDMC_Pt_600to800": "/QCD_Pt_600to800_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+								"QCDMC_Pt_800to1000": "/QCD_Pt_800to1000_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+						   		"QCDMC_Pt_1000to1400": "/QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+								"QCDMC_Pt_1400to1800": "/QCD_Pt_1400to1800_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+								"QCDMC_Pt_1800to2400": "/QCD_Pt_1800to2400_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+								"QCDMC_Pt_2400to3200": "/QCD_Pt_2400to3200_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM",
+								"QCDMC_Pt_3200toInf": "/QCD_Pt_3200toInf_TuneCP5_13TeV_pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM"
 								 },
 					'2018': { 'QCDMC1000to1500': '/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
 							  'QCDMC1500to2000': '/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
@@ -368,7 +410,20 @@ def main():
 							   "WJetsMC_QQ-HT800toInf": "/WJetsToQQ_HT-800toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM"	,
 							   "TTJetsMCHT800to1200": "/TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM",
 							   "WW_MC": "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
-							   "ZZ_MC": "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM"
+							   "ZZ_MC": "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM",
+
+
+								"QCDMC_Pt_170to300":  "/QCD_Pt_170to300_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+								"QCDMC_Pt_300to470":  "/QCD_Pt_300to470_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+								"QCDMC_Pt_470to600":  "/QCD_Pt_470to600_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+								"QCDMC_Pt_600to800":  "/QCD_Pt_600to800_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+								"QCDMC_Pt_800to1000": "/QCD_Pt_800to1000_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+						   		"QCDMC_Pt_1000to1400": "/QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+								"QCDMC_Pt_1400to1800": "/QCD_Pt_1400to1800_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+								"QCDMC_Pt_1800to2400": "/QCD_Pt_1800to2400_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+								"QCDMC_Pt_2400to3200": "/QCD_Pt_2400to3200_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
+								"QCDMC_Pt_3200toInf": "/QCD_Pt_3200toInf_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM"
+
 							  }
 
    }
@@ -378,7 +433,7 @@ def main():
 
 
 	signal_datasets_pkl = open('data/pkl/signal_datasets.pkl', 'r')	
-	datasets_signal = pickle.load(signal_datasets_pkl)  # there are 433 files (so far), so the dictionary construction is automated and loaded here
+	datasets_signal = pickle.load(signal_datasets_pkl)  # there are 456 signal datasets, so the dictionary construction is automated and loaded here
 
 
   	signal_samples_pkl = open('data/pkl/signal_samples.pkl', 'r')
@@ -406,8 +461,18 @@ def main():
    "WJetsMC_QQ-HT800toInf",
    "TTJetsMCHT800to1200",
    "WW_MC",
-   "ZZ_MC"]
-   
+   "ZZ_MC",
+   "QCDMC_Pt_170to300",
+	"QCDMC_Pt_300to470",
+	"QCDMC_Pt_470to600",
+	"QCDMC_Pt_600to800",
+	"QCDMC_Pt_800to1000",
+	"QCDMC_Pt_1000to1400",
+	"QCDMC_Pt_1400to1800",
+	"QCDMC_Pt_1800to2400",
+	"QCDMC_Pt_2400to3200",
+	"QCDMC_Pt_3200toInf"]
+	   
 		elif year == "2016":
 			samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500",
 	"TTJetsMCHT2500toInf",
@@ -427,7 +492,17 @@ def main():
    "WJetsMC_QQ-HT800toInf",
    "TTJetsMCHT800to1200",
    "WW_MC",
-   "ZZ_MC"
+   "ZZ_MC",
+   "QCDMC_Pt_170to300",
+	"QCDMC_Pt_300to470",
+	"QCDMC_Pt_470to600",
+	"QCDMC_Pt_600to800",
+	"QCDMC_Pt_800to1000",
+	"QCDMC_Pt_1000to1400",
+	"QCDMC_Pt_1400to1800",
+	"QCDMC_Pt_1800to2400",
+	"QCDMC_Pt_2400to3200",
+	"QCDMC_Pt_3200toInf"
    ]
 		elif year == "2017":
 			samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf", "TTJetsMCHT1200to2500",
@@ -448,7 +523,17 @@ def main():
    "WJetsMC_QQ-HT800toInf",
    "TTJetsMCHT800to1200",
    "WW_MC",
-   "ZZ_MC"]
+   "ZZ_MC",
+   "QCDMC_Pt_170to300",
+	"QCDMC_Pt_300to470",
+	"QCDMC_Pt_470to600",
+	"QCDMC_Pt_600to800",
+	"QCDMC_Pt_800to1000",
+	"QCDMC_Pt_1000to1400",
+	"QCDMC_Pt_1400to1800",
+	"QCDMC_Pt_1800to2400",
+	"QCDMC_Pt_2400to3200",
+	"QCDMC_Pt_3200toInf"]
 		elif year == "2018":
 			samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500",
    "TTJetsMCHT2500toInf",
@@ -468,7 +553,17 @@ def main():
    "WJetsMC_QQ-HT800toInf",
    "TTJetsMCHT800to1200",
    "WW_MC",
-   "ZZ_MC"]
+   "ZZ_MC",
+   "QCDMC_Pt_170to300",
+	"QCDMC_Pt_300to470",
+	"QCDMC_Pt_470to600",
+	"QCDMC_Pt_600to800",
+	"QCDMC_Pt_800to1000",
+	"QCDMC_Pt_1000to1400",
+	"QCDMC_Pt_1400to1800",
+	"QCDMC_Pt_1800to2400",
+	"QCDMC_Pt_2400to3200",
+	"QCDMC_Pt_3200toInf"]
    		samples.extend(signal_samples)
 		for iii, sample in enumerate(samples):
 			for systematic in systematics:
