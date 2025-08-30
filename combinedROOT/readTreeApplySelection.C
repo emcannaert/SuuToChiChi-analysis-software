@@ -741,9 +741,8 @@ void readTreeApplySelection()
       {
          std::cout << "Running a selection of samples" << std::endl;
          dataBlocks = {
-            "Suu6_chi2_ZTZT_",
-            "Suu6_chi2_HTZT_",
-            "Suu8_chi3_ZTZT_"
+
+            "QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_"
 
             /*"QCDMC_Pt_170to300_",
             "QCDMC_Pt_300to470_",

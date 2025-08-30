@@ -77,11 +77,11 @@ def get_maxmin_bin_content(histogram):
 			min_content = bin_content
 	return max_content,min_content
 
-def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, year, sample_type, sample_description, mass_point, technique_str,region, run_corrected,  isSignal=False):
+def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, year, sample_type, sample_description, mass_point, technique_str,region, run_corrected, QCD_type, isSignal=False, ):
 
 	ROOT.TH1.AddDirectory(False)
 
-	output_dir = "plots/linearized_systematic_comparisons/"
+	output_dir = "plots/linearized_systematic_comparisons/%s/"%QCD_type
 	if run_corrected: output_dir+= "correctedSystematics/"
 
 	technique_folder = "cutbased"
@@ -283,7 +283,7 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 
 
 
-def create_systematic_comparison_plot(year, mass_point,histname,systematic, year_str, technique_str,region, run_corrected = False ):
+def create_systematic_comparison_plot(year, mass_point,histname,systematic, year_str, technique_str,region,QCD_type ,run_corrected = False ):
 
 	if systematic == "CMS_topPt" and histname not in ["allBR", "TTbar"]: return # skip these
 	if systematic == "stat" and histname == "sig": return
@@ -292,9 +292,9 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 	if technique_str == "_NN":
 		technique_desc = "NN-based"
 
-	inputFile = "finalCombineFilesNewStats/combine_%s%s_%s.root"%(technique_str, year,mass_point) 
+	inputFile = "finalCombineFilesNewStats/%s/combine_%s%s_%s.root"%(QCD_type, technique_str, year,mass_point) 
 
-	if run_corrected: inputFile = "finalCombineFilesNewStats/correctedFinalCombineFiles/combine_%s%s_%s.root"%(technique_str, year,mass_point) 
+	if run_corrected: inputFile = "finalCombineFilesNewStats/%s/correctedFinalCombineFiles/combine_%s%s_%s.root"%(QCD_type, technique_str, year,mass_point) 
 
 	print("Opening file %s"%(inputFile))
 
@@ -436,15 +436,15 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 	
 
 	if histname == "sig":
-		create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, histname, systematic, year, histname, histname, mass_point, technique_str, region, run_corrected, True)
+		create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, histname, systematic, year, histname, histname, mass_point, technique_str, region, run_corrected, QCD_type, True)
 	else:
-		create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, histname, systematic, year, histname, histname, mass_point, technique_str,region, run_corrected)
+		create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, histname, systematic, year, histname, histname, mass_point, technique_str,region, run_corrected, QCD_type)
 
-def create_2_hist_ratio_plot(year, technique_str,sample_type):   #### hist1 will be CR hist, hist2 will be SR hist
+def create_2_hist_ratio_plot(year, technique_str,sample_type,QCD_type):   #### hist1 will be CR hist, hist2 will be SR hist
 	# Create a canvas
 
 
-	input_path = "finalCombineFilesNewStats/" 
+	input_path = "finalCombineFilesNewStats/%s/"%QCD_type 
 	output_path = "plots/SRCR_shape_comparisons/"
 	inputFile = input_path+ "combine_%s%s_Suu4_chi1.root"%(technique_str, year) 
 	finput = ROOT.TFile(inputFile)
@@ -455,7 +455,9 @@ def create_2_hist_ratio_plot(year, technique_str,sample_type):   #### hist1 will
 	hist1 = finput.Get(histname_CR)
 	hist2 = finput.Get(histname_SR)
 
+	print("Looking for %s in file %s."%(histname_CR,  inputFile ))
 	hist1.Scale(1.0/hist1.Integral()) if hist1.Integral() > 0 else None
+	print("Looking for %s in file %s."%( histname_SR, inputFile  ))
 	hist2.Scale(1.0/hist2.Integral()) if hist2.Integral() > 0 else None
 
 
@@ -552,14 +554,14 @@ def create_2_hist_ratio_plot(year, technique_str,sample_type):   #### hist1 will
 
 
 #### create plots comparing the shape of the linearized SR QCD and CR QCD
-def create_linear_SRCR_plots(year, technique_str ):
+def create_linear_SRCR_plots(year, technique_str, QCD_type ):
 
 	print("Creating SRCR plot for %s/%s"%(year, technique_str))
 
-	create_2_hist_ratio_plot(year, technique_str,"QCD")
-	create_2_hist_ratio_plot(year, technique_str,"TTbar")
-	create_2_hist_ratio_plot(year, technique_str,"ST")
-	create_2_hist_ratio_plot(year, technique_str,"allBR")
+	create_2_hist_ratio_plot(year, technique_str,"QCD",QCD_type)
+	create_2_hist_ratio_plot(year, technique_str,"TTbar",QCD_type)
+	create_2_hist_ratio_plot(year, technique_str,"ST",QCD_type)
+	create_2_hist_ratio_plot(year, technique_str,"allBR",QCD_type)
 
 	return
 
@@ -569,11 +571,11 @@ if __name__== "__main__":
 
 	###########
 	debug     = False
-	runSignal = True
+	runSignal = False
 	###########
 	#systematics = ["btagSFbc", "jec" ,"jer","pu", "pdf","fact", "renorm" ]
 	#"nom",  
-	systematics = ["CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF",
+	systematics = ["CMS_bTagSF_M" , 	"CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", "CMS_bTagSF_T",
 	regions = ["SR","CR","AT1b","AT0b"]
 
 	histnames = ["allBR","QCD","TTbar"] ## "ST"
@@ -587,85 +589,93 @@ if __name__== "__main__":
 
 	years = ["2015","2016","2017","2018"]
 	year_str = ["15","16","17","18"]
-	technique_strs = ["NN_",""]
-	#technique_strs = [""]
+	technique_strs = [""] #"NN_",
 
-	#### REMAKE TEXT FILEs:
-	yield_impact_text = open("txt_files/NP_yield_impacts.txt","w")
-	yield_impact_text.write("year	 sample_type	 region	 NP_name	 nom_yield	 up_yield	 down_yield	 up_var	 down_var	max_var\n")
-	yield_impact_text.close()
+	QCD_types = ["QCDPT","QCDHT"]
 
-	yield_impact_text_corrected = open("txt_files/NP_yield_impacts_corrected.txt","w")
-	yield_impact_text_corrected.write("year	 sample_type	 region	 NP_name	 nom_yield	 up_yield	 down_yield	 up_var	 down_var	max_var\n")
-	yield_impact_text_corrected.close()
+	QCD_types = ["QCDPT"]
 
 
+	for QCD_type in QCD_types:
 
+		#technique_strs = [""]
 
+		#### REMAKE TEXT FILEs:
+		yield_impact_text = open("txt_files/NP_%s_yield_impacts.txt"%QCD_type,"w")
+		yield_impact_text.write("year	 sample_type	 region	 NP_name	 nom_yield	 up_yield	 down_yield	 up_var	 down_var	max_var\n")
+		yield_impact_text.close()
 
-	shape_impact_text = open("txt_files/NP_shape_impacts.txt","w")
-	shape_impact_text.write("year   sample_type   region   NP_name   mean_var_up   mean_var_down   mean_abs_var_up   mean_abs_var_down   var_stddev_up   var_stddev_down   max_var_up   max_var_down   max_var_abs\n") #  max_var_up   max_var_down   min_var_up   min_var_down
-	shape_impact_text.close()
-
-	shape_impact_text_corrected = open("txt_files/NP_shape_impacts_corrected.txt","w")
-	shape_impact_text_corrected.write("year   sample_type   region   NP_name   mean_var_up   mean_var_down   mean_abs_var_up   mean_abs_var_down   var_stddev_up   var_stddev_down   max_var_up   max_var_down   max_var_abs\n") # max_var_up   max_var_down   min_var_up   min_var_down 
-	shape_impact_text_corrected.close()
-
-
-	if debug:
-		histnames = ["QCD"] ## "ST"
-		mass_points = ["Suu4_chi1"]
-		years = ["2017"]
-		year_str = ["17"]
-		systematics = ["CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",
-		regions = ["SR"]
-	for iii,year in enumerate(years):
-		for technique_str in technique_strs:
-			create_linear_SRCR_plots(year,technique_str)
+		yield_impact_text_corrected = open("txt_files/NP_%s_yield_impacts_corrected.txt"%QCD_type,"w")
+		yield_impact_text_corrected.write("year	 sample_type	 region	 NP_name	 nom_yield	 up_yield	 down_yield	 up_var	 down_var	max_var\n")
+		yield_impact_text_corrected.close()
 
 
 
 
-	## run for the "corrected" systematic plots
-	print("Running for corrected systematic plots.")
-	for iii,year in enumerate(years):
-		for technique_str in technique_strs:
-			for mass_point in mass_points:
-				for histname in histnames:
-					for systematic in systematics:
-						for region in regions:
-							#try:
-							"""	if debug:
-									print("============================================")
-									print("============================================")
-									print("========== WARNING: in debug mode ==========")
-									print("============================================")
-									print("============================================")"""
 
-							if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
-							create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region, True )
-							#except:
-							#	print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region))
+		shape_impact_text = open("txt_files/NP_%s_shape_impacts.txt"%QCD_type,"w")
+		shape_impact_text.write("year   sample_type   region   NP_name   mean_var_up   mean_var_down   mean_abs_var_up   mean_abs_var_down   var_stddev_up   var_stddev_down   max_var_up   max_var_down   max_var_abs\n") #  max_var_up   max_var_down   min_var_up   min_var_down
+		shape_impact_text.close()
+
+		shape_impact_text_corrected = open("txt_files/NP_%s_shape_impacts_corrected.txt"%QCD_type,"w")
+		shape_impact_text_corrected.write("year   sample_type   region   NP_name   mean_var_up   mean_var_down   mean_abs_var_up   mean_abs_var_down   var_stddev_up   var_stddev_down   max_var_up   max_var_down   max_var_abs\n") # max_var_up   max_var_down   min_var_up   min_var_down 
+		shape_impact_text_corrected.close()
 
 
-	print("Running for raw (=uncorrected systematic plots).")
-	for iii,year in enumerate(years):
-		for technique_str in technique_strs:
-			for mass_point in mass_points:
-				for histname in histnames:
-					for systematic in systematics:
-						for region in regions:
-							#try:
-							"""if debug:
-									print("============================================")
-									print("============================================")
-									print("========== WARNING: in debug mode ==========")
-									print("============================================")
-									print("============================================")"""
-							if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
-							create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region, False )
-							#except:
-							#	print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region)) 
+		if debug:
+			histnames = ["QCD"] ## "ST"
+			mass_points = ["Suu4_chi1"]
+			years = ["2017"]
+			year_str = ["17"]
+			systematics = ["CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",
+			regions = ["SR"]
+		for iii,year in enumerate(years):
+			for technique_str in technique_strs:
+				create_linear_SRCR_plots(year,technique_str,QCD_type)
+
+
+
+
+		## run for the "corrected" systematic plots
+		print("Running for corrected systematic plots.")
+		for iii,year in enumerate(years):
+			for technique_str in technique_strs:
+				for mass_point in mass_points:
+					for histname in histnames:
+						for systematic in systematics:
+							for region in regions:
+								#try:
+								"""	if debug:
+										print("============================================")
+										print("============================================")
+										print("========== WARNING: in debug mode ==========")
+										print("============================================")
+										print("============================================")"""
+
+								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
+								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region,QCD_type, True )
+								#except:
+								#	print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region))
+
+
+		print("Running for raw (=uncorrected systematic plots).")
+		for iii,year in enumerate(years):
+			for technique_str in technique_strs:
+				for mass_point in mass_points:
+					for histname in histnames:
+						for systematic in systematics:
+							for region in regions:
+								#try:
+								"""if debug:
+										print("============================================")
+										print("============================================")
+										print("========== WARNING: in debug mode ==========")
+										print("============================================")
+										print("============================================")"""
+								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
+								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region,QCD_type, False )
+								#except:
+								#	print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region)) 
 
 
 

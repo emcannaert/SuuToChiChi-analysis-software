@@ -50,7 +50,7 @@ def plot_nom_weight_comparisons_by_sample(hist_name, sample_type):
     canvas.Update()
 
     # Save the canvas
-    output_name = "plots/nom_systematic_comparisons/years_by_sample/{}_{}_comparison.png".format(sample_type, hist_name)
+    output_name = "plots/nom_systematic_comparisons/jec/years_by_sample/{}_{}_comparison.png".format(sample_type, hist_name)
     canvas.SaveAs(output_name)
 
 
@@ -103,7 +103,7 @@ def plot_nom_weight_comparisons_by_sample_and_region(hist_name, sample_type,year
     canvas.Update()
 
     # Save the canvas
-    output_name = "plots/nom_systematic_comparisons/regions_by_sample_and_year/{}_{}_{}_comparison.png".format(sample_type, hist_name,year)
+    output_name = "plots/nom_systematic_comparisons/jec/regions_by_sample_and_year/{}_{}_{}_comparison.png".format(sample_type, hist_name,year)
     canvas.SaveAs(output_name)
 
 
@@ -111,14 +111,20 @@ def plot_nom_weight_comparisons_by_sample_and_region(hist_name, sample_type,year
 if __name__=="__main__":
 
     systematics = [ 
-        #"h_pdf_EventWeight",
+        "h_pdf_EventWeight",
         #"h_renorm_EventWeight",
         #"h_factor_EventWeight",
-        #"h_scale_EventWeight",
+        "h_scale_EventWeight",
         "h_PU_eventWeight",
         #"h_bTag_eventWeight_T",
         "h_bTag_eventWeight_M",
         "h_L1PrefiringWeight"    ]
+
+
+
+    ## do event weight comparison
+        ## for each of these, need to grab from a different folder of the root file
+
 
 
     #systematic_folders = [  "PUSF", "nom" ]   # "pdf", "renorm", "fact", "scale",

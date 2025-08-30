@@ -200,12 +200,22 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 						if (   (abs(distance_down ) > 0) and ( abs(distance_up) > 0   ) and     (( abs(distance_up)/abs(distance_down) < asymmetry_threshold) or (abs(distance_down)/abs(distance_up)  < asymmetry_threshold)) or (  (distance_up *distance_down)  > 0     ) ):
 
 							## find which uncertainty is further from nom ( abs(up - nom) / abs(nom - down)   )
-							if abs(distance_up) > abs(distance_down): 
+							
+
+							var_ratio = abs(distance_up) / abs(distance_down)
+
+							if var_ratio > 0.50:
+
+								avg_var = (abs(distance_up) + abs(distance_down))/2.0
+
+								distance_up   = avg_var * distance_up / abs(distance_up) # same direction as up
 								distance_down = -1*distance_up
 
 							else:
-								distance_up = -1*distance_down
-
+								if abs(distance_up) > abs(distance_down): 
+									distance_down = -1*distance_up
+								else:
+									distance_up = -1*distance_down
 							## set bin content (and bin error) for the new, "corrected" histogram 
 
 							new_yield_up = max(0, yield_nom + distance_up)
@@ -298,7 +308,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 								avg_neighbor_superbin_absolute_up /= num_nonzero_neighbors
 								avg_neighbor_superbin_absolute_down /= num_nonzero_neighbors
 
-							else: 
+							"""else: this was very artificial, so removing
 
 								## if there are nonzero neighbors, don't even both with the rest of this process
 								## just check if the uncertainty is greater than 25% and cut it off if so
@@ -309,13 +319,13 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 									## cut uncertainties off at 20% 
 
 									if var_up_old > 0.25:
-										hist_up_corr.SetBinContent(iii,  (1+0.2)*yield_nom)
-										hist_up_corr.SetBinError(iii,   sqrt(abs((1+0.2)*yield_nom  )) ) 
+										hist_up_corr.SetBinContent(iii,  (1+0.25)*yield_nom)
+										hist_up_corr.SetBinError(iii,   sqrt(abs((1+0.25)*yield_nom  )) ) 
 									if var_down_old > 0.25: 
-										hist_down_corr.SetBinContent(iii,(1-0.2)*yield_nom)
-										hist_down_corr.SetBinError(iii, sqrt(abs((1-0.2)*yield_nom)) ) 
+										hist_down_corr.SetBinContent(iii,(1-0.25)*yield_nom)
+										hist_down_corr.SetBinError(iii, sqrt(abs((1-0.25)*yield_nom)) ) 
 									## otherwise, just ignore this 
-								continue
+								continue""" 
 
 							#print("Bin %s has abs up var average %s and abs down var average %s."%(iii,avg_neighbor_superbin_absolute_up,avg_neighbor_superbin_absolute_down ))
 
@@ -355,9 +365,13 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 								if abs(var_up_corr)    > 0.25: 
 									if "sig" in sample: continue 
 									if debug: print("----- CHANGED:  var_up_corr > 0.25: %s, setting to %s"%(var_up_corr, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0) )
-									var_up_corr = min( 0.2, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0   )
+									#var_up_corr = min( 0.2, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0   ) #CHANGED 29/08/2025
+									var_up_corr = (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0    #CHANGED 29/08/2025
+
 								if abs(var_down_corr) > 0.25: 
-									var_down_corr = min( 0.2, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0   )
+									#var_down_corr = min( 0.2, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0   ) #CHANGED 29/08/2025
+									var_down_corr = (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0   #CHANGED 29/08/2025
+
 									if debug: print("----- CHANGED:  var_down_corr > 0.25: %s, setting to %s"%(var_down_corr,(avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0))
 
 
@@ -404,7 +418,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 								if debug: print("sign_up_var/sign_down_var= %s/%s"%(sign_up_var,sign_down_var))
 
 								if (abs(var_up_corr > 0.25)) or (abs(var_down_corr )> 0.25):
-									print("ERROR: large up/down variation was not fixed: %s / %s"%(var_up_corr,var_down_corr))
+									if debug: print("=========================== ERROR: large up/down variation was not fixed: %s / %s"%(var_up_corr,var_down_corr))
 
 								## now apply the new, average uncertainties 
 								hist_up_corr.SetBinContent(iii,  (1+var_up_corr)*yield_nom)
@@ -622,6 +636,9 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 							hist_up_corr.SetBinError(iii, sqrt( abs(new_yield_up)) ) 
 							hist_down_corr.SetBinError(iii, sqrt(abs(new_yield_down)) ) 	
+
+
+
 
 
 

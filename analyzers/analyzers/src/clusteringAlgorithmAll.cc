@@ -3772,7 +3772,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          // PDF weight information: 
          // -------------------------------------------------------------
 
-         // FOR QCD MC
+         // FOR QCD HT MC
          //PDF nom == 325300
          //Scale: ID=1002-1045, [MUR,MU=0.5/1/1.5, DynScale=1-4]
          //Renomalization Scale: ID = 1006 (MU_R=2.0), 1011 (MU_R=0.5) 

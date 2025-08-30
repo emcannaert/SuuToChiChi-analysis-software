@@ -49,10 +49,10 @@ def divide_histograms(hist1, hist2):
 def get_combined_histogram(file_names, hist_name,folder, weights,systematic):
 
 	ROOT.TH1.AddDirectory(False)
-	f1 = ROOT.TFile(file_names[0],"r")
+	f1 = ROOT.TFile.Open(file_names[0],"r")
 
 	folder_name = folder+"/"+hist_name
-	print("Looking for TFile %s and histogram name %s"%(file_names[0],folder_name))
+	#print("Looking for TFile %s and histogram name %s"%(file_names[0],folder_name))
 	combined_hist = f1.Get(folder_name)
 	combined_hist.Scale(weights[0])
 	for iii in range(1,len(file_names)):
@@ -60,7 +60,7 @@ def get_combined_histogram(file_names, hist_name,folder, weights,systematic):
 		#print("Looking at %s"%file_names[iii])
 
 		try:
-			f2 = ROOT.TFile(file_names[iii],"r")
+			f2 = ROOT.TFile.Open(file_names[iii],"r")
 			h2 = clean_histogram( f2.Get(folder+"/"+hist_name), file_names[iii], systematic)
 			h2.Scale(weights[iii])
 			combined_hist.Add(h2)
@@ -83,13 +83,13 @@ def get_maxmin_bin_content(histogram):
 			min_content = bin_content
 	return max_content,min_content
 
-def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, year, sample_type, sample_description, isSignal=False):
+def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, year, sample_type, sample_description, QCD_type, isSignal=False):
 
 	ROOT.TH1.AddDirectory(False)
 	if isSignal:
-		output_dir = "plots/systematic_comparison_plots/signal/"
+		output_dir = "plots/systematic_comparison_plots/%s/signal/"%QCD_type
 	else:
-		output_dir = "plots/systematic_comparison_plots/"
+		output_dir = "plots/systematic_comparison_plots/%s/"%QCD_type
 	output_plot_name = output_dir+"%s_%s_%s_SysComparison_RatioPlot_SR_%s.png"%(hist_name,sample_type, systematic,year)
 	#### cms label stuff 
 	CMS_label_pos = 0.152
@@ -220,12 +220,33 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 	return
 
 
-def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,sample_type):
+def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,sample_type, QCD_type, runEOS):
 
 	ROOT.TH1.AddDirectory(False)
 	input_file_dir = "../combinedROOT/processedFiles/"
+	if runEOS:
+		input_file_dir = "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/"
 
-	QCD_samples = ["QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_"]
+	if QCD_type == "QCDHT":
+		QCD_samples = ["QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_"]
+
+	elif QCD_type == "QCDPT":
+		QCD_samples = [
+				"QCDMC_Pt_170to300_",
+	            "QCDMC_Pt_300to470_",
+	            "QCDMC_Pt_470to600_",
+	            "QCDMC_Pt_600to800_",
+	            "QCDMC_Pt_800to1000_",
+	            "QCDMC_Pt_1000to1400_",
+	            "QCDMC_Pt_1400to1800_",
+	            "QCDMC_Pt_1800to2400_",
+	            "QCDMC_Pt_2400to3200_",
+	            "QCDMC_Pt_3200toInf_"  ]
+	else:
+		print("ERROR: invalid QCD_type: %s"%QCD_type)
+		return
+
+
 	TTbar_samples = ["TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"]
 	ST_samples = ["ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"]	
 	WJets_samples = ["WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"]	
@@ -239,11 +260,10 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 
 	all_weights = return_BR_SF()
 
-	QCD_weights 		= [all_weights["QCDMC1000to1500"][year],all_weights["QCDMC1500to2000"][year],all_weights["QCDMC2000toInf"][year] ]
+	QCD_weights 		= [all_weights[QCD_sample.strip("_")][year] for QCD_sample in QCD_samples]        #[all_weights["QCDMC1000to1500"][year],all_weights["QCDMC1500to2000"][year],all_weights["QCDMC2000toInf"][year] ]
 	TTbar_weights 		= [all_weights["TTJetsMCHT1200to2500"][year],all_weights["TTJetsMCHT2500toInf"][year]]
 	ST_weights			= [all_weights["ST_t_channel_top_inclMC"][year],all_weights["ST_t_channel_antitop_incMC"][year],all_weights["ST_s_channel_hadronsMC"][year],all_weights["ST_s_channel_leptonsMC"][year],all_weights["ST_tW_antiTop_inclMC"][year],all_weights["ST_tW_top_inclMC"][year]]
 	WJets_weights		= [all_weights["WJetsMC_LNu_HT800to1200"][year],all_weights["WJetsMC_LNu_HT1200to2500"][year],all_weights["WJetsMC_LNu_HT2500toInf"][year],all_weights["WJetsMC_QQ_HT800toInf"][year]]
-
 
 	QCD_combined_nom	= get_combined_histogram(QCD_file_names, hist_name, 			"nom", QCD_weights, systematic)
 
@@ -301,22 +321,24 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 
 	### now make histograms
 
-	create_3_hist_ratio_plot(allBR_up,allBR_nom,allBR_down, hist_type, systematic, year, "allBR", "Combined BR")
+	create_3_hist_ratio_plot(allBR_up,allBR_nom,allBR_down, hist_type, systematic, year, "allBR", "Combined BR", QCD_type)
 
 
 	## create the ratio plots for the partially-merged backgrounds
 
-	create_3_hist_ratio_plot(QCD_combined_up,QCD_combined_nom,QCD_combined_down, hist_type, systematic, year, "QCD", "QCD")
-	create_3_hist_ratio_plot(TTbar_combined_up,TTbar_combined_nom,TTbar_combined_down, hist_type, systematic, year, "TTbar","TTbar")
-	create_3_hist_ratio_plot(WJets_combined_up,WJets_combined_nom,WJets_combined_down, hist_type, systematic, year, "WJets","WJets")
-	create_3_hist_ratio_plot(ST_combined_up,ST_combined_nom,ST_combined_down, hist_type, systematic, year, "ST", "Single Top")
+	create_3_hist_ratio_plot(QCD_combined_up,QCD_combined_nom,QCD_combined_down, hist_type, systematic, year, "QCD", "QCD", QCD_type)
+	create_3_hist_ratio_plot(TTbar_combined_up,TTbar_combined_nom,TTbar_combined_down, hist_type, systematic, year, "TTbar","TTbar", QCD_type)
+	create_3_hist_ratio_plot(WJets_combined_up,WJets_combined_nom,WJets_combined_down, hist_type, systematic, year, "WJets","WJets", QCD_type)
+	create_3_hist_ratio_plot(ST_combined_up,ST_combined_nom,ST_combined_down, hist_type, systematic, year, "ST", "Single Top", QCD_type)
 
 	return
 
-def create_signal_systematic_comparison_plot(hist_name, hist_type, systematic, year,sample_type, masss_point):
+def create_signal_systematic_comparison_plot(hist_name, hist_type, systematic, year,sample_type, masss_point, QCD_type, runEOS):
 	ROOT.TH1.AddDirectory(False)
 
 	input_file_dir = "../combinedROOT/processedFiles/"
+	if runEOS:
+		input_file_dir = "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles"
 
 	decays = ["WBWB","ZTZT","HTHT","WBHT","WBZT","HTZT"]
 
@@ -328,32 +350,39 @@ def create_signal_systematic_comparison_plot(hist_name, hist_type, systematic, y
 	signal_down		= get_combined_histogram(signal_file_names, hist_name, systematic+"_down", signal_weights, systematic)
 	signal_up		= get_combined_histogram(signal_file_names, hist_name, systematic+"_up",   signal_weights, systematic)
 	
-	create_3_hist_ratio_plot(signal_up,signal_nom,signal_down, hist_type, systematic, year, mass_point, "Combined Signal (%s)"%mass_point)
+	create_3_hist_ratio_plot(signal_up,signal_nom,signal_down, hist_type, systematic, year, mass_point, "Combined Signal (%s)"%mass_point, QCD_type, True)
 
 	return
 
 if __name__== "__main__":
 
 	years 	= ["2015","2016","2017","2018"]
-	systematics = ["nom",   "bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",	  "JEC_AbsolutePU",	     "JEC_AbsoluteScale",		  "JEC_Fragmentation",	     "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ]  # , "bTagSF_tight", "bTagSF_med" 
+	systematics = ["bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",	  "JEC_AbsolutePU",	     "JEC_AbsoluteScale",		  "JEC_Fragmentation",	     "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ]  # , "bTagSF_tight", "bTagSF_med" 
 
-	hist_names = ["h_SJ_mass_SR", "h_disuperjet_mass_SR","h_SJ_mass_NN_SR", "h_disuperjet_mass_NN_SR"]  #histogram name for Getting
-	hist_types = ["superjet mass (cut-based)", "diSuperjet mass (cut-based)", "superjet mass (NN-based)", "diSuperjet mass (NN-based)"]   # description of histogram
+	hist_names = ["h_SJ_mass_SR", "h_disuperjet_mass_SR"]  #histogram name for Getting, "h_SJ_mass_NN_SR", "h_disuperjet_mass_NN_SR"
+	hist_types = ["superjet mass (cut-based)", "diSuperjet mass (cut-based)"]   # description of histogram, , "superjet mass (NN-based)", "diSuperjet mass (NN-based)"
 
 	mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1","Suu5_chi1p5","Suu5_chi2","Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1","Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"]
 
 	#### don't want all mass points, will crash pc 
 	#mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1p5","Suu6_chi2","Suu7_chi2p5", "Suu8_chi3"]
 
+	runEOS = True
 
-	for year in years:
-		for iii,hist_name in enumerate(hist_names):
-			for systematic in systematics:
-				try:
 
-					create_systematic_comparison_plot(hist_name, hist_types[iii], systematic, year, hist_types[iii])
-				except:
-					print("ERROR: Failed for %s, %s %s"%(hist_name,systematic,year))
+	QCD_types = ["QCDHT", "QCDPT"]
+	QCD_types = ["QCDPT"]
+
+
+	for QCD_type in QCD_types:
+		for year in years:
+			for iii,hist_name in enumerate(hist_names):
+				for systematic in systematics:
+					#try:
+
+					create_systematic_comparison_plot(hist_name, hist_types[iii], systematic, year, hist_types[iii],QCD_type, runEOS)
+					#except:
+					#	print("ERROR: Failed for %s, %s %s %s"%(hist_name,systematic,year,QCD_type))
 	"""
 	for year in years:
 		for iii,hist_name in enumerate(hist_names):
@@ -361,7 +390,7 @@ if __name__== "__main__":
 				if systematic == "topPt": continue
 				for mass_point in mass_points:
 					print("----- Making plot for %s/%s/%s/%s"%(mass_point,hist_name,systematic,year))
-					create_signal_systematic_comparison_plot(hist_name, hist_types[iii], systematic, year, hist_types[iii],mass_point)
+					create_signal_systematic_comparison_plot(hist_name, hist_types[iii], systematic, year, hist_types[iii],mass_point, QCD_type, runEOS)
 	"""
 
 

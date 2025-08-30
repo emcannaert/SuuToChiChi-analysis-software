@@ -9,7 +9,14 @@ import datetime
 ROOT.gROOT.SetBatch(True)
 
 
-def make_plots(file_dir, hist_names,output_dir):
+def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
+
+
+    legend_translator = {"ST_":"Single Top", "TTTo":r"t \bar{t}","WJets":"W+Jets","QCD":"QCD"}
+
+
+    if not file_dir:
+        file_dir    =  "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/"
 
     years = ["2015", "2016", "2017", "2018"]
 
@@ -62,20 +69,20 @@ def make_plots(file_dir, hist_names,output_dir):
      "TTToLeptonicMC",
     "TTToSemiLeptonicMC",
     "TTToHadronicMC",
-    "QCDMC1000to1500",
-    "QCDMC1500to2000",
-    "QCDMC2000toInf"
+    #"QCDMC1000to1500",
+    #"QCDMC1500to2000",
+    #"QCDMC2000toInf"
 
-    #"QCDMC_Pt_170to300",
-    #"QCDMC_Pt_300to470",
-    #"QCDMC_Pt_470to600",
-    #"QCDMC_Pt_600to800",
-    #"QCDMC_Pt_800to1000",
-    #"QCDMC_Pt_1000to1400",
-    #"QCDMC_Pt_1400to1800",
-    #"QCDMC_Pt_1800to2400",
-    #"QCDMC_Pt_2400to3200",
-    #"QCDMC_Pt_3200toInf"
+    "QCDMC_Pt_170to300",
+    "QCDMC_Pt_300to470",
+    "QCDMC_Pt_470to600",
+    "QCDMC_Pt_600to800",
+    "QCDMC_Pt_800to1000",
+    "QCDMC_Pt_1000to1400",
+    "QCDMC_Pt_1400to1800",
+    "QCDMC_Pt_1800to2400",
+    "QCDMC_Pt_2400to3200",
+    "QCDMC_Pt_3200toInf"
 
     ] 
 
@@ -107,7 +114,7 @@ def make_plots(file_dir, hist_names,output_dir):
 
             BR_hists            = []
 
-            hs = ROOT.THStack("h_BR", "(%s) (%s);"%(region,year_str))
+            hs = ROOT.THStack("h_BR", "(%s);"%(year_str)) # region (%s)
 
             qcd_samples = {
 
@@ -132,16 +139,16 @@ def make_plots(file_dir, hist_names,output_dir):
                 "QCDMC2000toInf": return_BR_SF(year, "QCD2000toInf"),
 
 
-                #"QCDMC_Pt_170to300":   return_BR_SF(year, "QCDMC_Pt_170to300"),
-                #"QCDMC_Pt_300to470":    return_BR_SF(year, "QCDMC_Pt_300to470"),
-                #"QCDMC_Pt_470to600":     return_BR_SF(year, "QCDMC_Pt_470to600"),
-                #"QCDMC_Pt_600to800":    return_BR_SF(year, "QCDMC_Pt_600to800"),
-                #"QCDMC_Pt_800to1000":   return_BR_SF(year, "QCDMC_Pt_800to1000"),
-                #"QCDMC_Pt_1000to1400":   return_BR_SF(year, "QCDMC_Pt_1000to1400"),
-                #"QCDMC_Pt_1400to1800":  return_BR_SF(year, "QCDMC_Pt_1400to1800"),
-                #"QCDMC_Pt_1800to2400":  return_BR_SF(year, "QCDMC_Pt_1800to2400"),
-                #"QCDMC_Pt_2400to3200":  return_BR_SF(year, "QCDMC_Pt_2400to3200"),
-                #"QCDMC_Pt_3200toInf":   return_BR_SF(year, "QCDMC_Pt_3200toInf")
+                "QCDMC_Pt_170to300":   return_BR_SF(year, "QCDMC_Pt_170to300"),
+                "QCDMC_Pt_300to470":    return_BR_SF(year, "QCDMC_Pt_300to470"),
+                "QCDMC_Pt_470to600":     return_BR_SF(year, "QCDMC_Pt_470to600"),
+                "QCDMC_Pt_600to800":    return_BR_SF(year, "QCDMC_Pt_600to800"),
+                "QCDMC_Pt_800to1000":   return_BR_SF(year, "QCDMC_Pt_800to1000"),
+                "QCDMC_Pt_1000to1400":   return_BR_SF(year, "QCDMC_Pt_1000to1400"),
+                "QCDMC_Pt_1400to1800":  return_BR_SF(year, "QCDMC_Pt_1400to1800"),
+                "QCDMC_Pt_1800to2400":  return_BR_SF(year, "QCDMC_Pt_1800to2400"),
+                "QCDMC_Pt_2400to3200":  return_BR_SF(year, "QCDMC_Pt_2400to3200"),
+                "QCDMC_Pt_3200toInf":   return_BR_SF(year, "QCDMC_Pt_3200toInf")
             
 
 
@@ -155,19 +162,47 @@ def make_plots(file_dir, hist_names,output_dir):
 
 
 
-            found_samples = []
 
             ### combined BRs
-            combined_hist_BR = None
+
+            # loop over backgrounds and add each group to a list [    ]
+
+
+            # problems: order of BRs or the color association are wrong
+                        # order of sample names in legend must match the order of histograms
+            # titles
+
+
+
+            # ROUND 2: 
+                #colors are still wrong
+
+
+            if split_BRs:
+                BR_types = BR_samples
+            else: 
+                BR_types = ["ST_", "WJets", "TTTo", "QCD" ]
+            BR_groups = {BR_type: None for BR_type in BR_types}
+
             for iii,sample in enumerate(BR_samples):
                 scale = qcd_samples[sample]
+
+                # find out which type of BR this is
+                BR_type = ""
+                for _BR_type in BR_types:
+                    if _BR_type in sample: 
+                        BR_type = _BR_type
+                        break
+
 
                 file_name = sample + "_" + year + "_processed.root"
                 file_path = os.path.join(file_dir, file_name)
 
-                if not os.path.exists(file_path):
-                    print "  WARNING: File not found:", file_path
-                    continue
+
+                if not "cmseos" in file_dir:
+                    if not os.path.exists(file_path):
+                        print "  WARNING: File not found:", file_path
+                        continue
 
                 f = ROOT.TFile.Open(file_path)
                 if not f or f.IsZombie():
@@ -181,32 +216,53 @@ def make_plots(file_dir, hist_names,output_dir):
                     f.Close()
                     continue
 
-                found_samples.append(sample)
-
-                if iii == 0: 
-                    hs.SetTitle("%s %s"%(hist.GetTitle(), hs.GetTitle()))
-                #hs.SetXaxis().SetTitle(hist.GetXaxis().GetTitle())
-                #hs.SetYaxis().SetTitle(hist.GetYaxis().GetTitle()) # this might not work
-
                 hist.SetDirectory(0)
                 hist.Scale(scale)
                 hist.SetMinimum(1e-2)
                 hist.SetFillColor(colors[iii])
                 hist.SetLineColor(colors[iii])
-
                 hist.SetStats(0)
-                BR_hists.append(hist)
-                hs.Add(hist)
 
+                if BR_groups[BR_type] is None:
+                    BR_groups[BR_type] = hist.Clone("combined_hist_%s"%BR_type)
+                    BR_groups[BR_type].SetDirectory(0)
+                else:
+                    BR_groups[BR_type].Add(hist)
+
+                hist.SetDirectory(0)
+                f.Close()
+
+
+            found_samples = []
+            # Now add these to a combined BR hist and the stack plot
+            combined_hist_BR = None
+            iii = 0
+            
+            for BR_type in BR_types:
+
+                hist = BR_groups[BR_type]
+
+                if not hist:
+                    print "  ERROR: Histogram not found:", BR_group
+                    continue
+
+                if iii == 0: 
+                    print("hist is %s, title is %s"%(hist.GetName(),hist.GetTitle()))
+                    hs.SetTitle("%s %s"%(hist.GetTitle(), year))
+
+                BR_hists.append(hist)
+                found_samples.append(BR_type)
+
+                hs.Add(hist)
 
                 if combined_hist_BR is None:
                     combined_hist_BR = hist.Clone("combined_hist_BR")
                     combined_hist_BR.SetDirectory(0)
                 else:
                     combined_hist_BR.Add(hist)
+                iii+=1
 
-                hist.SetDirectory(0)
-                f.Close()
+
 
             combined_data = None
             ## get combined data hist
@@ -215,9 +271,11 @@ def make_plots(file_dir, hist_names,output_dir):
                 file_name = sample + "_" + year + "_processed.root"
                 file_path = os.path.join(file_dir, file_name)
 
-                if not os.path.exists(file_path):
-                    print "  WARNING: File not found:", file_path
-                    continue
+
+                if not "cmseos" in file_dir:
+                    if not os.path.exists(file_path):
+                        print "  WARNING: File not found:", file_path
+                        continue
 
                 f = ROOT.TFile.Open(file_path)
                 if not f or f.IsZombie():
@@ -229,6 +287,7 @@ def make_plots(file_dir, hist_names,output_dir):
                     print "  ERROR: Histogram not found:", hist_name, "in", file_path
                     f.Close()
                     continue
+
 
                 hist.SetDirectory(0)
                 hist.SetMinimum(1e-2)
@@ -240,6 +299,22 @@ def make_plots(file_dir, hist_names,output_dir):
                     combined_data = hist.Clone("combined_data")
                 else:
                     combined_data.Add(hist)
+
+
+
+            if masks:
+                if hist_name in masks:
+                    # mask the histogram at the designated value
+                    data_masked = combined_data.Clone(combined_data.GetName() + "_masked")
+                    data_masked.SetDirectory(0)  # detach from any TFile
+
+                    xmax = masks[hist_name]
+
+                    for iii in range(1, data_masked.GetNbinsX()+1):
+                        if data_masked.GetBinCenter(iii) > xmax:
+                            data_masked.SetBinContent(iii, 0.0)
+                            data_masked.SetBinError(iii, 0.0)
+                    combined_data = data_masked
 
 
             c = ROOT.TCanvas("c", "c", 1200, 1200)
@@ -298,6 +373,26 @@ def make_plots(file_dir, hist_names,output_dir):
 
                 hRatio.Draw()
 
+                if masks:
+                    if hist_name in masks:
+                        x_mask_min = masks[hist_name]
+
+                        ymin = hRatio.GetMinimum()
+                        ymax = hRatio.GetMaximum()
+                        xmin = hRatio.GetXaxis().GetXmin()
+                        xmax = hRatio.GetXaxis().GetXmax()
+
+                        box = ROOT.TBox(x_mask_min, ymin, xmax, ymax)
+                        box.SetFillColor(ROOT.kGray+1)
+                        box.SetFillStyle(3001)   
+                        box.SetLineColor(0)
+                        box.Draw("same")
+
+                        latex = ROOT.TLatex()
+                        latex.SetTextSize(0.15)
+                        latex.SetTextColor(ROOT.kRed+2)
+                        latex.SetTextAlign(22)
+                        latex.DrawLatex((x_mask_min+xmax)/2.0, (ymin+ymax)/2.0, "MASKED")
 
                 x_min = hRatio.GetXaxis().GetXmin()
                 x_max = hRatio.GetXaxis().GetXmax()
@@ -320,19 +415,25 @@ def make_plots(file_dir, hist_names,output_dir):
                 # Add legend and TLatex text
                 pad1.cd()
 
-                legend = ROOT.TLegend(0.155, 0.70, 0.80, 0.88)
-                legend.SetNColumns(4);  
-                legend.SetTextSize(0.01) 
+                if split_BRs:
+                    legend = ROOT.TLegend(0.155, 0.70, 0.80, 0.88)
+                    legend.SetNColumns(4);  
+                    legend.SetTextSize(0.01) 
+                    legend.SetBorderSize(0)
+                    legend.SetFillStyle(0) 
+                else:
+                    legend = ROOT.TLegend(0.7, 0.50, 0.86, 0.74)
+                
+                
 
-                legend.SetBorderSize(0)
-                legend.SetFillStyle(0) 
 
-                print("there are %s BR hists found. "%(len(BR_hists)))
+
+                print("Made %s total combined BR hists. "%(len(BR_hists)))
 
 
 
                 for iii,found_sample in enumerate(found_samples):
-                    legend.AddEntry(BR_hists[iii], found_sample, "f")
+                    legend.AddEntry(BR_hists[iii], legend_translator[found_sample], "f")
 
 
                 """legend.AddEntry(BR_hists[0], "ST-s-channel-hadrons", "f")
@@ -402,14 +503,29 @@ def make_plots(file_dir, hist_names,output_dir):
 
 if __name__=="__main__":
 
+
     parser = argparse.ArgumentParser(description="Parse input ROOT file and histogram names.")
-    parser.add_argument("--file_dir", required=True, help="Path to where input ROOT files are stored")
+    parser.add_argument("--file_dir", required=False, help="Path to where input ROOT files are stored, default is on EOS.")
     parser.add_argument("--hist_names", required=True, help="Comma-separated list of histogram names")
     parser.add_argument("--output_dir", required=True, help="Path to desired output directory")
-    
+    parser.add_argument("--mask",     default=None ,required=False, help="Lower bound to mask certain input hists. Ex: --mask h_totHT:1500,h_jet_mass:1000, ...")
+    parser.add_argument("--split_BRs",     action="store_true" , help="Option to combine like backgrounds into processes.")
+
     args = parser.parse_args()
     hist_names = [name.strip() for name in args.hist_names.split(',')]
 
-    make_plots(args.file_dir, hist_names,args.output_dir)
+    if args.mask:
+        for mask_pair in args.mask.split(','):
+            if len(mask_pair.split(":"))< 2:
+                raise ValueError("ERROR with %s: unpaired mask/value"%(mask_pair))
+        masks = {mask_pair.split(":")[0]: float(mask_pair.split(":")[1]) for mask_pair in args.mask.split(',')}
+    else:
+        masks = None
+
+    make_plots(args.file_dir, hist_names,args.output_dir,masks, args.split_BRs)
 
 
+
+
+# EX:
+#python plot_var_dataMC.py --hist_names h_nAK4_all,h_totHT,h_AK8_jet_mass,h_AK8_jet_pt,h_nfatjets,h_nfatjets_pre,h_dijet_mass,h_AK8_jet_mass_CR,h_AK4_jet_mass_CR,h_totHT_CR,h_totHT_AT1b,h_totHT_AT0b,h_nfatjets_CR,h_nAK4_CR,h_SJ_nAK4_100_CR,h_SJ_nAK4_200_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_SJ_mass_AT0b,h_disuperjet_mass_AT0b,h_nAK4_AT0b,h_nMedBTags --output_dir plots/B2G_update --mask h_totHT:3000,h_AK8_jet_mass:500,h_AK8_jet_pt:1200,h_dijet_mass:1200,h_AK8_jet_mass_CR:500,h_AK4_jet_mass_CR:250,h_totHT_CR:3000,h_totHT_AT1b:4000,h_SJ_mass_CR:2000,h_disuperjet_mass_CR:4000
