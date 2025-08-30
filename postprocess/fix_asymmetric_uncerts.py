@@ -233,7 +233,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 
 
-
+					"""
 
 					if not useMask:
 
@@ -301,14 +301,18 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 									avg_neighbor_superbin_absolute_down += abs(neighbor_down_var)
 
 									num_nonzero_neighbors+=1
+	
 
+
+							"""
+							"""
 							if num_nonzero_neighbors >0:
 								avg_neighbor_superbin_up /= num_nonzero_neighbors
 								avg_neighbor_superbin_down /= num_nonzero_neighbors
 								avg_neighbor_superbin_absolute_up /= num_nonzero_neighbors
 								avg_neighbor_superbin_absolute_down /= num_nonzero_neighbors
 
-							"""else: this was very artificial, so removing
+							else: this was very artificial, so removing
 
 								## if there are nonzero neighbors, don't even both with the rest of this process
 								## just check if the uncertainty is greater than 25% and cut it off if so
@@ -325,7 +329,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 										hist_down_corr.SetBinContent(iii,(1-0.25)*yield_nom)
 										hist_down_corr.SetBinError(iii, sqrt(abs((1-0.25)*yield_nom)) ) 
 									## otherwise, just ignore this 
-								continue""" 
+								continue
 
 							#print("Bin %s has abs up var average %s and abs down var average %s."%(iii,avg_neighbor_superbin_absolute_up,avg_neighbor_superbin_absolute_down ))
 
@@ -387,7 +391,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 									#print("var_down_old was found to be too large relative to neighbors: var_down_old = %s, avg_neighbor = %s"%(var_down_old,  (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0 ))
 
-								"""
+								
 								if 4*abs(var_up_old) < ( avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down): # a factor of 2* canceled out wih the /2 of the denom
 									var_up_corr = (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0
 									print("var_up_corr was found to be too small relative to neighbors: var_up_old = %s, avg_neighbor = %s"%(var_up_corr,  (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0 ))
@@ -395,7 +399,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 								if 4*abs(var_down_old) < ( avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down): # a factor of 2* canceled out wih the /2 of the denom
 									var_down_corr = (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0
 									print("var_down_old was found to be too small relative to neighbors: var_down_old = %s, avg_neighbor = %s"%(var_down_old,  (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0 ))
-								"""
+								
 
 								## now make sure the up and down are still fairly symmetric
 								if (abs(var_up_corr )> 0.12)  or (abs(var_up_corr) > 0.12) :
@@ -436,7 +440,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 									print("#######################################################################")
 									print("##  In the end, for bin %s, var_up_corr = %s, var_down_corr = %s  ##"%(var_up_corr,var_down_corr))
 									print("#######################################################################")
-									print("#######################################################################")
+									print("#######################################################################") """
 
 					if fix_small_sandwiched_uncerts:
 						for iii in range(1, hist_up.GetNbinsX()+1):
