@@ -453,7 +453,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
             if ( (nMedBTags > 0)  )
             {
-               eventWeight*= bTag_eventWeight_T_nom;
+               eventWeight*= bTag_eventWeight_M_nom;
 
                nBtagCut+=eventWeight;
 
@@ -630,7 +630,7 @@ void readTreeApplySelection()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   if (runSelection) years = {"2015","2016","2017","2018"};  // single year to run over 
+   //if (runSelection) years = {"2016"};  // single year to run over 
 
    if(runSingleFile)
    {
@@ -714,22 +714,58 @@ void readTreeApplySelection()
          if(*datayear == "2015")
          {
             dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"}; // dataB-ver1 not present
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"}; // dataB-ver1 not present
          }
          else if(*datayear == "2016")
          {
             dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"};
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
          }
          else if(*datayear == "2017")
          {
             dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"};
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
          }
          else if(*datayear == "2018")
          {
             dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
-         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"};
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
          }   
          else{std::cout << "ERROR: incorrect year. "; return;} 
       }
@@ -742,7 +778,7 @@ void readTreeApplySelection()
          std::cout << "Running a selection of samples" << std::endl;
          dataBlocks = {
 
-            "QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_"
+             "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"
 
             /*"QCDMC_Pt_170to300_",
             "QCDMC_Pt_300to470_",
