@@ -242,8 +242,8 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
 
                 hist = BR_groups[BR_type]
 
-                if not hist:
-                    print "  ERROR: Histogram not found:", BR_group
+                if not hist: 
+                    print("ERROR: Histogram not found: %s, %s, %s"%(BR_types,hist_name, year))
                     continue
 
                 if iii == 0: 
@@ -528,4 +528,4 @@ if __name__=="__main__":
 
 
 # EX:
-#python plot_var_dataMC.py --hist_names h_nAK4_all,h_totHT,h_AK8_jet_mass,h_AK8_jet_pt,h_nfatjets,h_nfatjets_pre,h_dijet_mass,h_AK8_jet_mass_CR,h_AK4_jet_mass_CR,h_totHT_CR,h_totHT_AT1b,h_totHT_AT0b,h_nfatjets_CR,h_nAK4_CR,h_SJ_nAK4_100_CR,h_SJ_nAK4_200_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_SJ_mass_AT0b,h_disuperjet_mass_AT0b,h_nAK4_AT0b,h_nMedBTags --output_dir plots/B2G_update --mask h_totHT:3000,h_AK8_jet_mass:500,h_AK8_jet_pt:1200,h_dijet_mass:1200,h_AK8_jet_mass_CR:500,h_AK4_jet_mass_CR:250,h_totHT_CR:3000,h_totHT_AT1b:4000,h_SJ_mass_CR:2000,h_disuperjet_mass_CR:4000
+#python plot_var_dataMC.py --hist_names h_nAK4_all,h_totHT,h_AK8_jet_mass,h_AK8_jet_pt,h_nfatjets,h_nfatjets_pre,h_dijet_mass,h_AK8_jet_mass_CR,h_AK4_jet_mass_CR,h_totHT_CR,h_totHT_AT1b,h_totHT_AT0b,h_nfatjets_CR,h_nAK4_CR,h_SJ_nAK4_100_CR,h_SJ_nAK4_200_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_SJ_mass_AT0b,h_disuperjet_mass_AT0b,h_nAK4_AT0b,h_nMedBTags,h_AK8_eta,h_AK8_phi,h_AK4_eta,h_AK4_phi --output_dir plots/B2G_update --mask h_totHT:3000,h_AK8_jet_mass:500,h_AK8_jet_pt:1200,h_dijet_mass:1200,h_AK8_jet_mass_CR:500,h_AK4_jet_mass_CR:250,h_totHT_CR:3000,h_totHT_AT1b:4000,h_SJ_mass_CR:2000,h_disuperjet_mass_CR:4000

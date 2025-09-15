@@ -2,8 +2,6 @@
 #include <string>
 #include "TLorentzVector.h"
 #include <cstdlib>
-// check out the SJ mass ratio, this might be really weird for TTbar and could be used to kill some of this
-
 
 using namespace std;
 bool doThings(std::string inFileName, std::string outFileName, double& nEvents, double& nHTcut, double& nAK8JetCut,double& nHeavyAK8Cut, double& nBtagCut, double& nDoubleTagged,double& nNoBjets, double& nDoubleTaggedCR, double& NNDoubleTag, double& nZeroBtagAntiTag, double & nOneBtagAntiTag, double & nNN_SR, double & nNN_CR, double & nNN_AT1b, double & nNN_AT0b,  std::string dataYear,std::string systematic, std::string dataBlock, std::string runType, bool verbose = false)
@@ -71,6 +69,15 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
    double prefiringWeight = 1;
    double pdf_weight = 1.0,factWeight=1.0, renormWeight = 1.0, scale_weight = 1.0,topPtWeight=1.0;
    std::vector<std::string> systematic_suffices;
+
+
+   double largest_JEC_corr = -1e12;
+   double avg_JEC_corr     = 0;
+   int total_jets 			= 0;
+
+   double largest_JEC_corr_AK4 = -1e12;
+   double avg_JEC_corr_AK4     = 0;
+   int total_jets_AK4 			= 0;
 
 
    double nfatjets_double, nfatjets_pre_double, nAK4_double;
@@ -461,92 +468,92 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1I * h_numTrueInteractions= new TH1I("h_numTrueInteractions", "Number of true pileup interactions per event; PU interactions; Events",100,-0.5,99.5);
 
 
-		TH1F * h_pdf_EventWeight= new TH1F("h_pdf_EventWeight", "PDF event weight; event weight; Events",200,0.0,10.0);
-		TH1F * h_renorm_EventWeight= new TH1F("h_renorm_EventWeight", "Renorm. event weight; event weight; Events",200,0.0,2.5);
-		TH1F * h_factor_EventWeight= new TH1F("h_factor_EventWeight", "Fact. event weight; event weight; Events",200,0.0,2.5);
-		TH1F * h_scale_EventWeight= new TH1F("h_scale_EventWeight", "Scale event weight (using envelope); event weight; Events",200,0.0,2.5);
+		TH1F * h_pdf_EventWeight= new TH1F("h_pdf_EventWeight", "PDF event weight; event weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight= new TH1F("h_renorm_EventWeight", "Renorm. event weight; event weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight= new TH1F("h_factor_EventWeight", "Fact. event weight; event weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight= new TH1F("h_scale_EventWeight", "Scale event weight (using envelope); event weight; Events",40,0.0,2.5);
 
-		TH1F* h_PU_eventWeight  = new TH1F("h_PU_eventWeight","Pileup Event Weights;Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_T  = new TH1F("h_bTag_eventWeight_T","b tagging Event Weights (tight WP);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_M  = new TH1F("h_bTag_eventWeight_M","b tagging Event Weights (medium WP);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_L1PrefiringWeight  = new TH1F("h_L1PrefiringWeight","L1 Prefiring Event Weights ;Event Weight; Events",100,0.0,3.0);
+		TH1F* h_PU_eventWeight  = new TH1F("h_PU_eventWeight","Pileup Event Weights;Event Weight; Events",40,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T  = new TH1F("h_bTag_eventWeight_T","b tagging Event Weights (tight WP);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_bTag_eventWeight_M  = new TH1F("h_bTag_eventWeight_M","b tagging Event Weights (medium WP);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_L1PrefiringWeight  = new TH1F("h_L1PrefiringWeight","L1 Prefiring Event Weights ;Event Weight; Events",40,0.0,1.5);
 		//TH1F* h_topPtWeight  = new TH1F("h_topPtWeight","Top p_{T} Event Weights ;Event Weight  (SR); Events",50,0.0,3.0);
 		
 
-		TH1F* h_JEC_uncert_AK8  = new TH1F("h_JEC_uncert_AK8","AK8 JEC Uncertainty ;JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_JEC_uncert_AK4  = new TH1F("h_JEC_uncert_AK4","AK8 JEC Uncertainty ;JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_AK8_JER  = new TH1F("h_AK8_JER","AK8 JER Correction Factor ;Correction Factor; Jets",100,0.0,3.0);
 
+		TH1F* h_JEC_uncert_AK8  = new TH1F("h_JEC_uncert_AK8","AK8 JEC Uncertainty ;JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4  = new TH1F("h_JEC_uncert_AK4","AK8 JEC Uncertainty ;JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_AK8_JER  = new TH1F("h_AK8_JER","AK8 JER Correction Factor ;Correction Factor; Jets",100,0.94,1.06);
 
 
 
 		// event weights by region
 
+
 		// SR
-		TH1F * h_pdf_EventWeight_SR= new TH1F("h_pdf_EventWeight_SR", "PDF event weight (SR) ; event weight; Events",200,0.0,10.0);
-		TH1F * h_renorm_EventWeight_SR= new TH1F("h_renorm_EventWeight_SR", "Renorm. event weight  (SR); event weight; Events",200,0.0,2.5);
-		TH1F * h_factor_EventWeight_SR= new TH1F("h_factor_EventWeight_SR", "Fact. event weight  (SR); event weight; Events",200,0.0,2.5);
-		TH1F * h_scale_EventWeight_SR= new TH1F("h_scale_EventWeight_SR", "Scale event weight (using envelope) (SR); event weight; Events",200,0.0,2.5);
+		TH1F * h_pdf_EventWeight_SR= new TH1F("h_pdf_EventWeight_SR", "PDF event weight (SR) ; event weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight_SR= new TH1F("h_renorm_EventWeight_SR", "Renorm. event weight  (SR); event weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight_SR= new TH1F("h_factor_EventWeight_SR", "Fact. event weight  (SR); event weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight_SR= new TH1F("h_scale_EventWeight_SR", "Scale event weight (using envelope) (SR); event weight; Events",40,0.0,2.5);
 
-		TH1F* h_PU_eventWeight_SR  = new TH1F("h_PU_eventWeight_SR","Pileup Event Weights  (SR);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_T_SR  = new TH1F("h_bTag_eventWeight_T_SR","b tagging Event Weights (tight WP)  (SR);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_M_SR  = new TH1F("h_bTag_eventWeight_M_SR","b tagging Event Weights (medium WP)  (SR);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_L1PrefiringWeight_SR  = new TH1F("h_L1PrefiringWeight_SR","L1 Prefiring Event Weights ;Event Weight  (SR); Events",100,0.0,3.0);
-		TH1F* h_topPtWeight_SR  = new TH1F("h_topPtWeight_SR","Top p_{T} Event Weights ;Event Weight  (SR); Events",100,0.0,3.0);
+		TH1F* h_PU_eventWeight_SR  = new TH1F("h_PU_eventWeight_SR","Pileup Event Weights  (SR);Event Weight; Events",40,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T_SR  = new TH1F("h_bTag_eventWeight_T_SR","b tagging Event Weights (tight WP)  (SR);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_bTag_eventWeight_M_SR  = new TH1F("h_bTag_eventWeight_M_SR","b tagging Event Weights (medium WP)  (SR);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_L1PrefiringWeight_SR  = new TH1F("h_L1PrefiringWeight_SR","L1 Prefiring Event Weights ;Event Weight  (SR); Events",40,0.0,1.5);
+		TH1F* h_topPtWeight_SR  = new TH1F("h_topPtWeight_SR","Top p_{T} Event Weights ;Event Weight  (SR); Events",40,0.0,2.0);
 
-		TH1F* h_JEC_uncert_AK8_SR  = new TH1F("h_JEC_uncert_AK8_SR","AK8 JEC Uncertainty (SR);JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_JEC_uncert_AK4_SR  = new TH1F("h_JEC_uncert_AK4_SR","AK8 JEC Uncertainty (SR);JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_AK8_JER_SR  = new TH1F("h_AK8_JER_SR","AK8 JER Correction Factor (SR);Correction Factor; Jets",100,0.0,3.0);
-
-
+		TH1F* h_JEC_uncert_AK8_SR  = new TH1F("h_JEC_uncert_AK8_SR","AK8 JEC Uncertainty (SR);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4_SR  = new TH1F("h_JEC_uncert_AK4_SR","AK8 JEC Uncertainty (SR);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_AK8_JER_SR  = new TH1F("h_AK8_JER_SR","AK8 JER Correction Factor (SR);Correction Factor; Jets",100,0.94,1.06);
 
 		// CR
-		TH1F * h_pdf_EventWeight_CR= new TH1F("h_pdf_EventWeight_CR", "PDF event weight (CR) ; event weight; Events",200,0.0,10.0);
-		TH1F * h_renorm_EventWeight_CR= new TH1F("h_renorm_EventWeight_CR", "Renorm. event weight  (CR); event weight; Events",200,0.0,2.5);
-		TH1F * h_factor_EventWeight_CR= new TH1F("h_factor_EventWeight_CR", "Fact. event weight  (CR); event weight; Events",200,0.0,2.5);
-		TH1F * h_scale_EventWeight_CR= new TH1F("h_scale_EventWeight_CR", "Scale event weight (using envelope) (CR); event weight; Events",200,0.0,2.5);
+		TH1F * h_pdf_EventWeight_CR= new TH1F("h_pdf_EventWeight_CR", "PDF event weight (CR) ; event weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight_CR= new TH1F("h_renorm_EventWeight_CR", "Renorm. event weight  (CR); event weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight_CR= new TH1F("h_factor_EventWeight_CR", "Fact. event weight  (CR); event weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight_CR= new TH1F("h_scale_EventWeight_CR", "Scale event weight (using envelope) (CR); event weight; Events",40,0.0,2.5);
 
-		TH1F* h_PU_eventWeight_CR  = new TH1F("h_PU_eventWeight_CR","Pileup Event Weights  (CR);Event Weight; Events",50,0.0,3.0);
-		TH1F* h_bTag_eventWeight_T_CR  = new TH1F("h_bTag_eventWeight_T_CR","b tagging Event Weights (tight WP)  (CR);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_M_CR  = new TH1F("h_bTag_eventWeight_M_CR","b tagging Event Weights (medium WP)  (CR);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_L1PrefiringWeight_CR  = new TH1F("h_L1PrefiringWeight_CR","L1 Prefiring Event Weights ;Event Weight  (CR); Events",100,0.0,3.0);
-		TH1F* h_topPtWeight_CR  = new TH1F("h_topPtWeight_CR","Top p_{T} Event Weights ;Event Weight  (CR); Events",100,0.0,3.0);
+		TH1F* h_PU_eventWeight_CR  = new TH1F("h_PU_eventWeight_CR","Pileup Event Weights  (CR);Event Weight; Events",40,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T_CR  = new TH1F("h_bTag_eventWeight_T_CR","b tagging Event Weights (tight WP)  (CR);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_bTag_eventWeight_M_CR  = new TH1F("h_bTag_eventWeight_M_CR","b tagging Event Weights (medium WP)  (CR);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_L1PrefiringWeight_CR  = new TH1F("h_L1PrefiringWeight_CR","L1 Prefiring Event Weights ;Event Weight  (CR); Events",40,0.0,1.5);
+		TH1F* h_topPtWeight_CR  = new TH1F("h_topPtWeight_CR","Top p_{T} Event Weights ;Event Weight  (CR); Events",40,0.0,2.0);
 
-		TH1F* h_JEC_uncert_AK8_CR  = new TH1F("h_JEC_uncert_AK8_CR","AK8 JEC Uncertainty (CR);JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_JEC_uncert_AK4_CR  = new TH1F("h_JEC_uncert_AK4_CR","AK8 JEC Uncertainty (CR);JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_AK8_JER_CR  = new TH1F("h_AK8_JER_CR","AK8 JER Correction Factor (CR);Correction Factor; Jets",100,0.0,3.0);
+		TH1F* h_JEC_uncert_AK8_CR  = new TH1F("h_JEC_uncert_AK8_CR","AK8 JEC Uncertainty (CR);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4_CR  = new TH1F("h_JEC_uncert_AK4_CR","AK8 JEC Uncertainty (CR);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_AK8_JER_CR  = new TH1F("h_AK8_JER_CR","AK8 JER Correction Factor (CR);Correction Factor; Jets",100,0.94,1.06);
 
 		// AT1b
-		TH1F * h_pdf_EventWeight_AT1b= new TH1F("h_pdf_EventWeight_AT1b", "PDF event weight (AT1b) ; event weight; Events",200,0.0,10.0);
-		TH1F * h_renorm_EventWeight_AT1b= new TH1F("h_renorm_EventWeight_AT1b", "Renorm. event weight  (AT1b); event weight; Events",200,0.0,2.5);
-		TH1F * h_factor_EventWeight_AT1b= new TH1F("h_factor_EventWeight_AT1b", "Fact. event weight  (AT1b); event weight; Events",200,0.0,2.5);
-		TH1F * h_scale_EventWeight_AT1b= new TH1F("h_scale_EventWeight_AT1b", "Scale event weight (using envelope) (AT1b); event weight; Events",200,0.0,2.5);
+		TH1F * h_pdf_EventWeight_AT1b= new TH1F("h_pdf_EventWeight_AT1b", "PDF event weight (AT1b) ; event weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight_AT1b= new TH1F("h_renorm_EventWeight_AT1b", "Renorm. event weight  (AT1b); event weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight_AT1b= new TH1F("h_factor_EventWeight_AT1b", "Fact. event weight  (AT1b); event weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight_AT1b= new TH1F("h_scale_EventWeight_AT1b", "Scale event weight (using envelope) (AT1b); event weight; Events",40,0.0,2.5);
 
-		TH1F* h_PU_eventWeight_AT1b  = new TH1F("h_PU_eventWeight_AT1b","Pileup Event Weights  (AT1b);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_T_AT1b  = new TH1F("h_bTag_eventWeight_T_AT1b","b tagging Event Weights (tight WP)  (AT1b);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_M_AT1b  = new TH1F("h_bTag_eventWeight_M_AT1b","b tagging Event Weights (medium WP)  (AT1b);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_L1PrefiringWeight_AT1b  = new TH1F("h_L1PrefiringWeight_AT1b","L1 Prefiring Event Weights ;Event Weight  (AT1b); Events",100,0.0,3.0);
-		TH1F* h_topPtWeight_AT1b  = new TH1F("h_topPtWeight_AT1b","Top p_{T} Event Weights ;Event Weight  (AT1b); Events",100,0.0,3.0);
+		TH1F* h_PU_eventWeight_AT1b  = new TH1F("h_PU_eventWeight_AT1b","Pileup Event Weights  (AT1b);Event Weight; Events",40,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T_AT1b  = new TH1F("h_bTag_eventWeight_T_AT1b","b tagging Event Weights (tight WP)  (AT1b);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_bTag_eventWeight_M_AT1b  = new TH1F("h_bTag_eventWeight_M_AT1b","b tagging Event Weights (medium WP)  (AT1b);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_L1PrefiringWeight_AT1b  = new TH1F("h_L1PrefiringWeight_AT1b","L1 Prefiring Event Weights ;Event Weight  (AT1b); Events",40,0.0,1.5);
+		TH1F* h_topPtWeight_AT1b  = new TH1F("h_topPtWeight_AT1b","Top p_{T} Event Weights ;Event Weight  (AT1b); Events",40,0.0,2.0);
 
-		TH1F* h_JEC_uncert_AK8_AT1b  = new TH1F("h_JEC_uncert_AK8_AT1b","AK8 JEC Uncertainty (AT1b);JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_JEC_uncert_AK4_AT1b  = new TH1F("h_JEC_uncert_AK4_AT1b","AK8 JEC Uncertainty (AT1b) ;JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_AK8_JER_AT1b  = new TH1F("h_AK8_JER_AT1b","AK8 JER Correction Factor (AT1b);Correction Factor; Jets",100,0.0,3.0);
+		TH1F* h_JEC_uncert_AK8_AT1b  = new TH1F("h_JEC_uncert_AK8_AT1b","AK8 JEC Uncertainty (AT1b);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4_AT1b  = new TH1F("h_JEC_uncert_AK4_AT1b","AK8 JEC Uncertainty (AT1b);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_AK8_JER_AT1b  = new TH1F("h_AK8_JER_AT1b","AK8 JER Correction Factor (AT1b);Correction Factor; Jets",100,0.94,1.06);
 
 		// AT0b
-		TH1F * h_pdf_EventWeight_AT0b= new TH1F("h_pdf_EventWeight_AT0b", "PDF event weight (AT0b) ; event weight; Events",200,0.0,10.0);
-		TH1F * h_renorm_EventWeight_AT0b= new TH1F("h_renorm_EventWeight_AT0b", "Renorm. event weight  (AT0b); event weight; Events",200,0.0,2.5);
-		TH1F * h_factor_EventWeight_AT0b= new TH1F("h_factor_EventWeight_AT0b", "Fact. event weight  (AT0b); event weight; Events",200,0.0,2.5);
-		TH1F * h_scale_EventWeight_AT0b= new TH1F("h_scale_EventWeight_AT0b", "Scale event weight (using envelope) (AT0b); event weight; Events",200,0.0,2.5);
+		TH1F * h_pdf_EventWeight_AT0b= new TH1F("h_pdf_EventWeight_AT0b", "PDF event weight (AT0b) ; event weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight_AT0b= new TH1F("h_renorm_EventWeight_AT0b", "Renorm. event weight  (AT0b); event weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight_AT0b= new TH1F("h_factor_EventWeight_AT0b", "Fact. event weight  (AT0b); event weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight_AT0b= new TH1F("h_scale_EventWeight_AT0b", "Scale event weight (using envelope) (AT0b); event weight; Events",40,0.0,2.5);
 
-		TH1F* h_PU_eventWeight_AT0b  = new TH1F("h_PU_eventWeight_AT0b","Pileup Event Weights  (AT0b);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_T_AT0b  = new TH1F("h_bTag_eventWeight_T_AT0b","b tagging Event Weights (tight WP)  (AT0b);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_bTag_eventWeight_M_AT0b  = new TH1F("h_bTag_eventWeight_M_AT0b","b tagging Event Weights (medium WP)  (AT0b);Event Weight; Events",100,0.0,3.0);
-		TH1F* h_L1PrefiringWeight_AT0b  = new TH1F("h_L1PrefiringWeight_AT0b","L1 Prefiring Event Weights ;Event Weight  (AT0b); Events",100,0.0,3.0);
-		TH1F* h_topPtWeight_AT0b  = new TH1F("h_topPtWeight_AT0b","Top p_{T} Event Weights ;Event Weight  (AT0b); Events",100,0.0,3.0);
+		TH1F* h_PU_eventWeight_AT0b  = new TH1F("h_PU_eventWeight_AT0b","Pileup Event Weights  (AT0b);Event Weight; Events",40,0.0,3.0);
+		TH1F* h_bTag_eventWeight_T_AT0b  = new TH1F("h_bTag_eventWeight_T_AT0b","b tagging Event Weights (tight WP)  (AT0b);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_bTag_eventWeight_M_AT0b  = new TH1F("h_bTag_eventWeight_M_AT0b","b tagging Event Weights (medium WP)  (AT0b);Event Weight; Events",100,0.0,4.0);
+		TH1F* h_L1PrefiringWeight_AT0b  = new TH1F("h_L1PrefiringWeight_AT0b","L1 Prefiring Event Weights ;Event Weight  (AT0b); Events",40,0.0,1.5);
+		TH1F* h_topPtWeight_AT0b  = new TH1F("h_topPtWeight_AT0b","Top p_{T} Event Weights ;Event Weight  (AT0b); Events",40,0.0,2.0);
 
-		TH1F* h_JEC_uncert_AK8_AT0b  = new TH1F("h_JEC_uncert_AK8_AT0b","AK8 JEC Uncertainty (AT0b);JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_JEC_uncert_AK4_AT0b  = new TH1F("h_JEC_uncert_AK4_AT0b","AK8 JEC Uncertainty (AT0b) ;JEC Uncertainty; Jets",100,0.0,3.0);
-		TH1F* h_AK8_JER_AT0b  = new TH1F("h_AK8_JER_AT0b","AK8 JER Correction Factor (AT0b);Correction Factor; Jets",100,0.0,3.0);
+		TH1F* h_JEC_uncert_AK8_AT0b  = new TH1F("h_JEC_uncert_AK8_AT0b","AK8 JEC Uncertainty (AT0b);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4_AT0b  = new TH1F("h_JEC_uncert_AK4_AT0b","AK8 JEC Uncertainty (AT0b);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_AK8_JER_AT0b  = new TH1F("h_AK8_JER_AT0b","AK8 JER Correction Factor (AT0b);Correction Factor; Jets",100,0.94,1.06);
+
 
 		///////////////////////////////
 		////////// b-tagging //////////
@@ -1208,6 +1215,13 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			int nGenBJets;
 			for(int iii = 0;iii< nAK4; iii++)
 			{
+
+
+				largest_JEC_corr_AK4 = max(abs(1.0-JEC_uncert_AK4[iii]),largest_JEC_corr_AK4);
+				avg_JEC_corr_AK4 += abs(1.0-JEC_uncert_AK4[iii]);
+				total_jets_AK4++;
+
+
 				// try different AK4 pt cuts
 				if (AK4_pt[iii] > 150) 
 				{
@@ -1301,12 +1315,20 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			}
 
 
+			//std::cout << "---- New event ----" << std::endl;
 			for(int iii = 0 ; iii < nfatjets; iii++)
 			{
 				h_AK8_jet_mass->Fill(jet_mass[iii],eventScaleFactor);
 				h_AK8_jet_pt->Fill(jet_pt[iii],eventScaleFactor);
 				h_JEC_uncert_AK8->Fill(JEC_uncert_AK8[iii]);
 				h_AK8_JER->Fill(AK8_JER[iii]);
+
+
+				largest_JEC_corr = max(abs(1.0-JEC_uncert_AK8[iii]),largest_JEC_corr);
+				avg_JEC_corr += abs(1.0-JEC_uncert_AK8[iii]);
+				total_jets++;
+
+				//std::cout << "AK8 jet #" << iii << ", JEC uncert value is " <<JEC_uncert_AK8[iii] << std::endl;
 
 				h_AK8_eta->Fill(jet_eta[iii], eventScaleFactor);
 				h_AK8_phi->Fill(jet_phi[iii], eventScaleFactor);
@@ -2546,6 +2568,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 		std::cout << dataBlock << "/" << dataYear << "/" << systematic+ "_" + *systematic_suffix << " : there was a total of " << total_1b << "/" << total_0b << " events in the 1b/0b region (all pre-selected)." << std::endl;
 
+
+
+
+		std::cout << "-------- The largest AK8 JEC Uncertainty corr for " << dataBlock << "/" << dataYear << "/" << systematic+ "_" + *systematic_suffix  << " was " <<largest_JEC_corr << " with average corr " << avg_JEC_corr / (1.0*total_jets) << std::endl;
+		std::cout << "-------- The largest AK4 JEC Uncertainty corr for " << dataBlock << "/" << dataYear << "/" << systematic+ "_" + *systematic_suffix  << " was " <<largest_JEC_corr_AK4 << " with average corr " << avg_JEC_corr_AK4 / (1.0*total_jets_AK4) << std::endl;
+
+
+
 		g_bTagSF_T_vs_HT->Write();
 		g_bTagSF_M_vs_HT->Write();
 
@@ -2584,8 +2614,8 @@ void readTree()
    bool runSignal    	= false;
    bool runBR	  			= false;
    bool runAll	 			= false;
-   bool runDataBR    	= true;
-   bool runSelection 	= false;
+   bool runDataBR    	= false;
+   bool runSelection 	= true;
    bool runSingleFile 	= false;
    bool runSideband 		= false;
    int nFailedFiles = 0;
@@ -2604,8 +2634,15 @@ void readTree()
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
 
-   //if(runSelection) dataYears = {"2018"};
+   if(runSelection) dataYears = {"2018"};
+
+
+
+
    std::vector<std::string> systematics = { "nom", "scale", "bTagSF_med", "bTagSF_tight",   "bTagSF_med_corr", "bTagSF_tight_corr",  "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring", "pdf","renorm", "fact"};  // "scale"    "JEC_HF", "JEC_BBEC1", "JEC_EC2","JEC_HF_year", "JEC_EC2_year",   "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", 
+
+
+   //if(runSelection) systematics = {"JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year"};
 
 
    // these were replaced by the below
@@ -2680,22 +2717,58 @@ void readTree()
 				if(*dataYear == "2015")
 				{
 					dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_",  "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"}; // dataB-ver1 not present
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_",  "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2016")
 				{
 					dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
 				}
 				else if(*dataYear == "2017")
 				{
 					dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
 				}
 				else if(*dataYear == "2018")
 				{
 					dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
 				}   
 				dataBlocks.insert(dataBlocks.end(), signalFilePaths.begin(), signalFilePaths.end());
 			}
@@ -2726,7 +2799,16 @@ void readTree()
 			else if(runBR)
 			{  
 			  dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",
+			"QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
 			}
 			else if(runDataBR)
 			{
@@ -2734,22 +2816,62 @@ void readTree()
 				if(*dataYear == "2015")
 				{
 					dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"}; // dataB-ver1 not present
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",
+				"QCDMC_Pt_170to300_",
+				"QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2016")
 				{
 					dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",
+				"QCDMC_Pt_170to300_",
+				"QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
 				}
 				else if(*dataYear == "2017")
 				{
 					dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",
+				"QCDMC_Pt_170to300_",
+				"QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
 				}
 				else if(*dataYear == "2018")
 				{
 					dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_",
+				"QCDMC_Pt_170to300_",
+				"QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};
 				}   
 			}
 			else if(runSelection)
@@ -2757,7 +2879,13 @@ void readTree()
 
 				dataBlocks = {
 
-					"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_",
+
+
+				"QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_"
+
+				/*"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_",
 				//"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"
 
 				"QCDMC_Pt_170to300_",
@@ -2769,7 +2897,7 @@ void readTree()
             "QCDMC_Pt_1400to1800_",
             "QCDMC_Pt_1800to2400_",
             "QCDMC_Pt_2400to3200_",
-            "QCDMC_Pt_3200toInf_"  
+            "QCDMC_Pt_3200toInf_"  */
 
             } ; 
 				//dataBlocks = {"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"};

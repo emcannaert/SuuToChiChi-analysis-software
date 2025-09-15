@@ -457,17 +457,17 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 
 
 	# init stack plots
-	h_SJ_mass_SR = ROOT.THStack( "h_SJ_mass_SR_stack", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (SR) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str))
-	h_disuperjet_mass_SR = ROOT.THStack( "h_disuperjet_mass_SR", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (SR) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
+	h_SJ_mass_SR = ROOT.THStack( "h_SJ_mass_SR_stack", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (SR) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year_str,tagging_str))
+	h_disuperjet_mass_SR = ROOT.THStack( "h_disuperjet_mass_SR", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (SR) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year_str,tagging_str));
 	
-	h_SJ_mass_CR = ROOT.THStack( "h_SJ_mass_CR", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (CR) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str));
-	h_disuperjet_mass_CR = ROOT.THStack( "h_disuperjet_mass_CR", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (CR) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
+	h_SJ_mass_CR = ROOT.THStack( "h_SJ_mass_CR", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (CR) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year_str,tagging_str));
+	h_disuperjet_mass_CR = ROOT.THStack( "h_disuperjet_mass_CR", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (CR) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year_str,tagging_str));
 	
-	h_SJ_mass_AT1b = ROOT.THStack( "h_SJ_mass_AT1b","SuuToChiChi signal superjet mass (combined) (%s) (%s) (AT1B) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str));
-	h_disuperjet_mass_AT1b = ROOT.THStack( "h_disuperjet_mass_AT1b", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (AT1B) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
+	h_SJ_mass_AT1b = ROOT.THStack( "h_SJ_mass_AT1b","SuuToChiChi signal superjet mass (combined) (%s) (%s) (AT1B) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year_str,tagging_str));
+	h_disuperjet_mass_AT1b = ROOT.THStack( "h_disuperjet_mass_AT1b", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (AT1B) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year_str,tagging_str));
 
-	h_SJ_mass_AT0b = ROOT.THStack( "h_SJ_mass_AT0b", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (AT0b) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year,tagging_str));
-	h_disuperjet_mass_AT0b = ROOT.THStack( "h_disuperjet_mass_AT0b", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (AT0b) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year,tagging_str));
+	h_SJ_mass_AT0b = ROOT.THStack( "h_SJ_mass_AT0b", "SuuToChiChi signal superjet mass (combined) (%s) (%s) (AT0b) (%s); superjet mass [GeV]; events / 125 GeV"%(mass_point,year_str,tagging_str));
+	h_disuperjet_mass_AT0b = ROOT.THStack( "h_disuperjet_mass_AT0b", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (AT0b) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year_str,tagging_str));
 
 
 	legend_SJ_mass_SR 	= ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
@@ -815,7 +815,6 @@ def make_plots(inFileName, year,decay,mass_point, tagging_type, tagging_str):
 
 	h_totHT 							= sig_file.Get(folder_name+"h_totHT")
 
-	_____
 	# scale all histograms 
 	sig_SF = return_signal_SF.return_signal_SF(year,mass_point,decay)
 

@@ -4,7 +4,11 @@
 #include "TRatioPlot.h"
 #include "THStack.h"
 
+
 using namespace std;
+
+#include "TStyle.h"
+#include "TColor.h"
 
 double SuuToChiChi_MSuu8TeV_Mchi3TeV_SF = 1.93E-02;
 double SuuToChiChi_MSuu5TeV_Mchi2TeV_SF = 8.67E-01;
@@ -41,7 +45,6 @@ double QCDMC_Pt_1400to1800_SF[4] = {0.001150615273, 0.001016564447, 0.0024463918
 double QCDMC_Pt_1800to2400_SF[4] = {0.000324331737, 0.0002806910428, 0.0006608229592, 0.000952638299}; 
 double QCDMC_Pt_2400to3200_SF[4] = {0.00003408026676, 0.00003090490169, 0.00007246889556, 0.0001045278212}; 
 double QCDMC_Pt_3200toInf_SF[4] = {0.000002648864, 0.000002290278112, 0.000005628836, 0.000008118931}; 
-
 
 void write_cms_text(double CMS_label_pos, double SIM_label_pos, double CMS_label_posy, double SIM_label_posy,  TCanvas * canvas, bool noStats) {
     // do all the fancy formatting 
@@ -400,10 +403,7 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
 
         double CMS_label_posy = 0.875;
         double SIM_label_posy = 0.84; 
- 
 
-        gStyle->SetPalette(kViridis);
-        TColor::InvertPalette(); // reverse the order of the color palette
 
         h_all_TTbar_MC->GetZaxis()->SetTitle("Events");
         h_all_TTbar_MC->GetZaxis()->SetTitleOffset(1.35);
@@ -498,6 +498,7 @@ template <typename T> void create_plots(std::vector<std::string> dataFiles, std:
       write_cms_text(CMS_label_pos,SIM_label_pos,CMS_label_posy, SIM_label_posy, c1, noStats);
 
       c1->SaveAs( (plot_home + plotName +"_allBR_"+ year+".png").c_str()); 
+
       return;  /// ?
   }
   else
@@ -609,6 +610,10 @@ void make_combined_sample_plots()
   if(debug) years = {"2015"};
   
 
+    gStyle->SetPalette(kViridis);
+    TColor::InvertPalette();
+    gStyle->SetNumberContours(255);
+
 
   //double weights[20];
   //std::fill_n(weights, 20, 1.0);
@@ -674,13 +679,19 @@ void make_combined_sample_plots()
     "h_MSJ_mass_vs_MdSJ_AT1b",
     "h_MSJ_mass_vs_MdSJ_AT0b",
 
+
+
+  };
+  /*
+
     "h_MSJ_mass_vs_MdSJ_NN_SR",
     "h_MSJ_mass_vs_MdSJ_NN_CR",
     "h_MSJ_mass_vs_MdSJ_NN_AT1b",
     "h_MSJ_mass_vs_MdSJ_NN_AT0b"
 
 
-  };
+  */
+
 
   if(debug) histNames_2D = {"h_MSJ_mass_vs_MdSJ_SR"};
   std::vector<bool> makeLog2 = {false,false,false,false,false,false,false,false};

@@ -220,7 +220,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 		return total_stat_uncert
 
 
-	def get_scaled_superbin_counts(self, superbin):   ### return the SCALED number of counts in a specific superbin
+	def get_scaled_superbin_counts(self, superbin):   ### return the SCALED number of counts in a specific superbin given the actual superbin indices (not superbin num)
 
 		### calculates the bin stat uncertainty as the sum of weights / total scaled bin yield
 

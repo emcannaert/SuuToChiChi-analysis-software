@@ -23,8 +23,8 @@ def create_sqrt_histogram(original_hist):
 # plots linearized signal and BR (stacked) with signal sensitity as a function of linerized bin number
 def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_type,QCD_type):
 
-    CMS_label_pos = 0.152
-    SIM_label_pos = 0.255
+    CMS_label_pos = 0.132
+    SIM_label_pos = 0.270
 
     technique_str = "cut-based"
     if "NN" in technique_type:

@@ -83,7 +83,7 @@ def return_BR_SF(year=None,sample=None):
 			if "t_channel_top_incl" in sample:
 				scale_factor = scale_factors["ST_t_channel_top_inclMC"][year]
 			elif "t_channel_antitop_inc":
-				scale_factor = scale_factors["ST_t_channel_antitop_incMC"][year]
+				scale_factor = scale_factors["ST_t_channel_antitop_inclMC"][year]
 			elif "s_channel_hadrons":
 				scale_factor = scale_factors["ST_s_channel_hadronsMC"][year]
 			elif "s_channel_leptons":

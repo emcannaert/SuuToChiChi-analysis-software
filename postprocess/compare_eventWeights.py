@@ -15,6 +15,9 @@ file_path = "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/" if use
 
 pdf_folder = "pdf"
 
+
+ROOT.gStyle.SetLineScalePS(1)
+
 # PDF canvas setup
 c1 = ROOT.TCanvas("pdf_canvas", "pdf", 2400, 2000)
 nx, ny = 4, 4  # 4x4 grid = 16 plots per page
@@ -33,7 +36,7 @@ pad_num = 1  # global pad counter for PDF
 def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
     global pad_num
     years = ["2015", "2016", "2017", "2018"]
-    colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, ROOT.kOrange]
+    colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, ROOT.kViolet]
 
     hist_name_str = hist_name[2:]
 
@@ -50,7 +53,7 @@ def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
     for var in variations:
 
         canvas.Clear()  # Clear the PNG canvas
-        legend = ROOT.TLegend(0.6, 0.6, 0.8, 0.8)
+        legend = ROOT.TLegend(0.75, 0.6, 0.92, 0.8)
         legend.SetBorderSize(0)
         legend.SetFillStyle(0)
         ROOT.gStyle.SetOptStat(0)  # Disable stats box
@@ -110,7 +113,7 @@ def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
 def plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year,systematic):
     global pad_num
     regions = ["SR","CR","AT1b","AT0b"]
-    colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, ROOT.kOrange]
+    colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, ROOT.kViolet]
     
     variations = [""] if systematic == "nom" else ["_up", "_down"] 
     hist_name_str = hist_name[2:]
@@ -129,7 +132,7 @@ def plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year
         var_str = "nom" if var == "" else var.split("_")[1]
 
         canvas.Clear()  
-        legend = ROOT.TLegend(0.6, 0.6, 0.8, 0.8)
+        legend = ROOT.TLegend(0.75, 0.6, 0.92, 0.8)
         legend.SetBorderSize(0)
         legend.SetFillStyle(0)
         ROOT.gStyle.SetOptStat(0)  
@@ -150,7 +153,7 @@ def plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year
             )
 
             hist.SetDirectory(0)  
-            hist.SetLineWidth(1)  
+            hist.SetLineWidth(2)  
             hist.SetTitle("%s  (%s) (%s) (%s var) (%s)"%(hist.GetTitle(), BR_type, systematic, var_str, year))
 
             if hist.Integral() > 0:
@@ -242,10 +245,10 @@ if __name__=="__main__":
         for year in years:
             for sample_list in samples:
                 for hist_name in hist_names:
-                    try:
-                        plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year,systematic)
-                    except:
-                        print("ERROR: failed on %s/%s/%s"%(year,hist_name, sample_list))
+                    #try:
+                    plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year,systematic)
+                    #except:
+                    #    print("ERROR: failed on %s/%s/%s"%(year,hist_name, sample_list))
 
     for systematic in systematics:
         if "JEC" in systematic:
@@ -266,10 +269,10 @@ if __name__=="__main__":
         for sample_list in samples:
             for hist_name in hist_names:
                 print("Running for systematic %s, and sample type %s"%(systematic, sample_list ))
-                try:
-                    plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic)
-                except:
-                    print("ERROR: failed on %s/%s"%(hist_name, sample_list))
+                #try:
+                plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic)
+                #except:
+                print("ERROR: failed on %s/%s"%(hist_name, sample_list))
 
 
 # flush remaining plots if last page not full

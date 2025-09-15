@@ -244,30 +244,13 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    newCfg.write(")\n")
 
    for systematic in systematic_:
-      """
-      # NO LONGER DOING HADRON FILTER, this messes with systematics 
-      if not isSignal:  # do NOT run the hadron filter for signal, this messes with systematic stuff
-         newCfg.write('process.hadronFilter_%s = cms.EDFilter("hadronFilter",\n'%systematic)
-         newCfg.write(' year = cms.string("%s"),\n'%year)
 
-         newCfg.write(' fatJetCollection = cms.InputTag("updatedPatJetsAK8UpdatedJEC"),\n')
-         newCfg.write(' metCollection = cms.InputTag("slimmedMETs"),\n')
-         if apply_pu_ID:
-            newCfg.write(' jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')
-         else:
-            newCfg.write(' jetCollection = cms.InputTag("updatedPatJetsAK4UpdatedJEC"),\n')
-         newCfg.write(' bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
-         newCfg.write(' triggers = cms.string("%s"),\n'%trigger)
-         newCfg.write(' systematicType = cms.string("%s"),\n'%systematic)
-         newCfg.write(' JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
-         if apply_pu_ID:
-            newCfg.write(' doPUID = cms.bool(True),\n')
-         else:
-            newCfg.write(' doPUID = cms.bool(False),\n')
-         newCfg.write(' runType = cms.string("%s")  #types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTToHadronicMC, TTToSemiLeptonic, TTToLeptonic, DataA, etc. , Suu8_chi3, etc.\n'%sample)
-         newCfg.write(")\n")
+      #### VERY IMPORTANT: 
+      slimmedSelection = False if (systematic == "nom" and "Suu" not in sample) else True
+     
 
-      """
+
+
       systematicSuffices = ["_up", "_down"]
       for iii, suffix in enumerate(systematicSuffices):
 

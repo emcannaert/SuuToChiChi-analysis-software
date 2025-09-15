@@ -1225,7 +1225,7 @@ double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type,
       if( jet_type == "AK4")
       {  
 
-         if(_verbose)std::cout << "For AK8: Trying to access source " << *uncert_source << std::endl;
+         if(_verbose)std::cout << "For AK4: Trying to access source " << *uncert_source << std::endl;
          JEC_map_AK4[*uncert_source]->setJetEta(eta );
          JEC_map_AK4[*uncert_source]->setJetPt( pt );
          AK4_JEC_uncertainty = fabs(JEC_map_AK4[*uncert_source]->getUncertainty(true));
@@ -1247,7 +1247,7 @@ double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type,
       }
       uncertainty_number++;
    }
-   if(_verbose)std::cout << "Total uncertainty: " << uncert << " from uncertainties: " << uncertainty_names << "(" << uncertainty_number << " total sources)."  << std::endl;
+   if(_verbose)std::cout << "Total uncertainty: " << sqrt(uncert) << " from uncertainties: " << uncertainty_names << "(" << uncertainty_number << " total sources)."  << std::endl;
 
    return sqrt(uncert);  // sqrt because these are added in quadrature
 }  
@@ -2383,7 +2383,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             }  
             */
 
-
             // nTau_looseVsJet_looseVsMuon_VVLooseVse 
             // nTau_VLooseVsJet_looseVsMuon_VVLooseVse 
             // nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse 
@@ -2402,29 +2401,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
         }          
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2525,7 +2501,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          {
             AK4_JEC_corr_factor = 1 - AK4_JEC_uncertainty;
          }   
+
          AK4_sf_total*= AK4_JEC_corr_factor;
+         JEC_uncert_AK4[nAK4] = AK4_JEC_corr_factor;
+
+         if(debug)std::cout << "for systematic type " << systematicType << ", AK4_JEC_corr_factor = " << AK4_JEC_corr_factor << std::endl;
 
       }
 
@@ -2593,7 +2573,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       pat::Jet corrJet(*iJet);
       LorentzVector corrJetP4(AK4_sf_total*iJet->px(),AK4_sf_total*iJet->py(),AK4_sf_total*iJet->pz(),AK4_sf_total*iJet->energy());
       corrJet.setP4(corrJetP4);
-      if(_verbose)std::cout << "The PU id bool is " << bool(corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1) )<< std::endl;
+      if(_verbose)std::cout << "The AK4 PU jet id bool is " << bool(corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1) )<< std::endl;
 
       nAK4_uncut++;
 
@@ -2608,11 +2588,13 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          PUID = bool( corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1));
 
       }
-      if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(), corrJet.pt() )) ) continue;
-      
+      if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(), corrJet.pt() )) ) 
+      {
+         if(debug) std::cout << "Jet does not pass initial selection " << std::endl;
+         continue;
+      }
 
       double deepJetScore = corrJet.bDiscriminator("pfDeepFlavourJetTags:probb") + corrJet.bDiscriminator("pfDeepFlavourJetTags:probbb")+ corrJet.bDiscriminator("pfDeepFlavourJetTags:problepb");
-      JEC_uncert_AK4[nAK4] = AK4_JEC_corr_factor;
       if(_verbose)std::cout << "the year is " << year << " with working point value of " << deepjet_wp_tight << ". The hadronFlavour is " << corrJet.hadronFlavour() <<  " and deepjet score " << deepJetScore<< std::endl;
       
 
@@ -3280,7 +3262,13 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
    lab_nAK4 = nAK4;
 
-   if(nAK4 <2)return;   // RETURN cut, any event with only 1 selected AK4 jet isn't going to be very interesting ...
+   if(nAK4 <2)
+   {
+      if(debug)std::cout << "Failed nAK4 selection: nAK4 = " << nAK4 << std::endl; 
+      return;   // RETURN cut, any event with only 1 selected AK4 jet isn't going to be very interesting ...
+
+   }
+
 
 
 
@@ -3445,6 +3433,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          {
             AK8_JEC_corr_factor = 1 - AK8_JEC_uncertainty;
          }
+         if(debug)std::cout << "for systematic type " << systematicType << ", AK8_JEC_corr_factor = " << AK8_JEC_corr_factor << std::endl;
 
          AK8_JEC[nfatjets] = AK8_JEC_corr_factor;
          AK8_sf_total*=AK8_JEC_corr_factor;

@@ -608,9 +608,9 @@ void readTreeApplySelection()
    bool runData       = false;
    bool runSignal     = false;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
-   bool runDataBR     = false;
+   bool runDataBR     = true;
    bool runTTbar      = false;
-   bool runSelection  = true;
+   bool runSelection  = false;
    bool runSingleFile = false;
    bool runExtras     = false;
    bool runSideband   = false;
