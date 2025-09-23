@@ -7,6 +7,7 @@ It is organized as a CMSSW package under `${CMSSW_BASE}/src`.
 ---
 
 ## Directory Layout
+```
 CMSSW_BASE/src/
 |-- selectionStudier/     # Utilities for initial selection cut optimization studies
 |-- AN_data/              # Supplementary correction, model, etc. data
@@ -18,7 +19,7 @@ CMSSW_BASE/src/
 |-- allCfgs/              # Storage for cmsRun cfg templates (signal cfgs in signal/ folder)
 |-- btagging/             # B-tagging study utilities
 `-- combinedROOT/         # Scripts/utilities for processing NTuples into histograms for the stat analysis
-
+```
 ---
 
 ## Main Analysis Workflow
