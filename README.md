@@ -11,7 +11,7 @@ It is organized as a CMSSW package under `${CMSSW_BASE}/src`.
 CMSSW_BASE/src/
 |-- selectionStudier/     # Utilities for initial selection cut optimization studies
 |-- AN_data/              # Supplementary correction, model, etc. data
-|-- postprocess/          # Post TTree-to-Histogram plotting and processing utilities
+|-- postprocess/          # Post TTree-to-Histogram plotting and processing utilities for the stat analysis
 |-- package/              # Headers and src EDAnalyzer files (NTuplizer code)
 |-- data/                 # Main correction, model, etc. data
 |-- templates/            # Python cmsRun and crab cfg templates
