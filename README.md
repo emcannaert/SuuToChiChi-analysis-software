@@ -8,16 +8,16 @@ It is organized as a CMSSW package under `${CMSSW_BASE}/src`.
 
 ## Directory Layout
 CMSSW_BASE/src/
-├─ selectionStudier/ # Utilities for initial selection cut optimization studies
-├─ AN_data/ # Supplementary correction, model, etc. data
-├─ postprocess/ # Post TTree-to-Histogram plotting and processing utilities
-├─ package/ # Headers and src EDAnalyzer files (NTuplizer code)
-├─ data/ # Main correction, model, etc. data
-├─ templates/ # Python cmsRun and crab cfg templates
-├─ allAltCrabCfgs/ # Storage for crab cfg templates (signal cfgs in signal/ folder)
-├─ allCfgs/ # Storage for cmsRun cfg templates (signal cfgs in signal/ folder)
-├─ btagging/ # B-tagging study utilities
-└─ combinedROOT/ # Scripts/utilities for processing NTuples into histograms for the stat analysis
+|-- selectionStudier/     # Utilities for initial selection cut optimization studies
+|-- AN_data/              # Supplementary correction, model, etc. data
+|-- postprocess/          # Post TTree-to-Histogram plotting and processing utilities
+|-- package/              # Headers and src EDAnalyzer files (NTuplizer code)
+|-- data/                 # Main correction, model, etc. data
+|-- templates/            # Python cmsRun and crab cfg templates
+|-- allAltCrabCfgs/       # Storage for crab cfg templates (signal cfgs in signal/ folder)
+|-- allCfgs/              # Storage for cmsRun cfg templates (signal cfgs in signal/ folder)
+|-- btagging/             # B-tagging study utilities
+`-- combinedROOT/         # Scripts/utilities for processing NTuples into histograms for the stat analysis
 
 ---
 
@@ -106,7 +106,7 @@ cmsenv
 ```
 2. Clone this repository into `src/` and build:
 ```
-git clone <SuuToChiChi-analysis-software>
+git clone https://github.com/emcannaert/SuuToChiChi-analysis-software.git
 scram b
 ```
 3. Follow the workflow above to produce NTuples, histograms, and final combine files.
