@@ -676,6 +676,11 @@ void rootSkimmer()
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
    std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
 
+
+   years = {"2017","2018"};  
+
+
+
    int yearNum = 0;
    int nFailedFiles = 0;
    std::string failedFiles = "";
@@ -1041,10 +1046,10 @@ void rootSkimmer()
                std::cout << "Moving file " << outFileName << " to " << skimmedFiles_eos_path << std::endl;
                int delete_result = 1;
 
-               delete_result = system( ("source  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/scp_file.sh " + outFileName + " " + skimmedFiles_eos_path).c_str() ) ;
+               delete_result = system( ("source  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/utils/scp_file.sh " + outFileName + " " + skimmedFiles_eos_path).c_str() ) ;
                if (delete_result > 0) std::cout << "ERROR: failed to run scp_file.sh to copy file to eos --- " << outFileName + " /  " + skimmedFiles_eos_path << std::endl;
                //delete_result *= system( ("rm  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str() ) ;
-               delete_result = system( ("source /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/remove_file.sh  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str()  );
+               delete_result = system( ("source /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/utils/remove_file.sh  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str()  );
                if (delete_result > 0)
                {
 

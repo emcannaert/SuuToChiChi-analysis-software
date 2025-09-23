@@ -30,14 +30,16 @@ class hist_loader:
 		self.runCorrected = runCorrected
 		if self.WP: 
 
-			
-			if "AT" in self.WP: 
-				self.WP_folder = self.WP[2:]
+			if "ET" in self.WP:
+				self.WP_folder = "selectionStudy/%s/"%WP
 			else:
-				self.WP = "WP" + self.WP
-				self.WP_folder = self.WP
+				if "AT" in self.WP: 
+					self.WP_folder = self.WP[2:]
+				else:
+					self.WP = "WP" + self.WP
+					self.WP_folder = self.WP
 
-			self.WP_str = self.WP + "_"
+				self.WP_str = self.WP + "_"
 
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
@@ -51,8 +53,13 @@ class hist_loader:
 		self.HT_distr_home = "HT_distributions/" # extra folder where output files are saved for HT distribution plots
 
 		if self.WP:
-			self.MC_root_file_home	    = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
-			self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
+
+			if "ET" in self.WP:
+				self.MC_root_file_home	    = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/%s/"%self.WP_folder
+				self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/%s/"%self.WP_folder
+			else:
+				self.MC_root_file_home	    = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
+				self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 
 
 		if self.run_from_eos:
@@ -91,9 +98,18 @@ class hist_loader:
 		
 
 		if self.WP:
-			self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/WPStudy/%s/"%WP
-			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/WPStudy/%s/"%WP
-			self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/WPStudy/%s/"%WP
+
+			if "ET" in self.WP:
+				self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/selectionStudy/%s/finalCombineFilesNewStats"%self.WP
+				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/selectionStudy/%s/finalCombinePlots"%self.WP
+				if not os.path.exists(self.output_file_home):
+    				os.mkdir(self.output_file_home) 
+    			if not os.path.exists(self.final_plot_home):
+    				os.mkdir(self.final_plot_home) 
+			else:
+				self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/WPStudy/%s/"%WP
+				self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/WPStudy/%s/"%WP
+				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/WPStudy/%s/"%WP
 
 
 		self.data_systematics 	   = ["nom"]
@@ -108,13 +124,14 @@ class hist_loader:
 			self.systematic_names.extend(["CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" , "CMS_topPt"])
 
 		if self.WP:
-			self.systematics 	  = ["nom"]   ## systematic namings as used in analyzer	 "bTagSF",   
-			self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	           "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
 
 
-		if self.WP:
-			self.systematics 	  = ["nom"]   
-			self.systematic_names = ["nom"] 
+			if "ET" not in self.WP:
+				self.systematics 	  = ["nom",  "JEC",           "PUSF",    "bTagSF_med" ]
+				self.systematic_names = ["nom",   "CMS_jec",    "CMS_pu",  "CMS_bTagSF_M" ]  
+			else:
+				self.systematics 	  = ["nom"]   ## systematic namings as used in analyzer	 "bTagSF",   
+				self.systematic_names = ["nom"] 
 
 
 

@@ -373,13 +373,21 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
 		}
 
 		outFile->Write();
+		std::cout << std::endl;
+		std::cout << std::endl;
+		std::cout << std::endl;
+		std::cout << std::endl;
 		std::cout << "Finishing systematic " << systematic << " "<< *systematic_suffix << std::endl;
 		std::cout << "Total Events: " << totEventsUncut << " in " << inFileName << " for " << systematic << " "<< *systematic_suffix << std::endl;
 		std::cout << "In " << inFileName << " there were " << num_bad_btagSF<< "/" << num_bad_PUSF<< "/"<< num_bad_topPt<< "/"<< num_bad_scale<< "/"<<num_bad_pdf << "/" <<num_bad_prefiring << " bad btag/PU/topPt/scale/pdf/prefiring event weights" << std::endl; 
 		std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+		std::cout << "For  Sample = " << dataBlock  <<  ", year = " << dataYear << ", systematic = " << systematic ", and WP = " << WP  << std::endl;
 		std::cout << "SR Event Breakdown " << " total/HT/nAK8 jet/heavy AK8 +dijet/1+ b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nDoubleTagged << std::endl;
 		std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
-
+		std::cout << std::endl;
+		std::cout << std::endl;
+		std::cout << std::endl;
+		std::cout << std::endl;
 
 		delete h_MSJ_mass_vs_MdSJ_prebTag, h_MSJ_mass_vs_MdSJ_postbTag, h_MSJ_mass_vs_MdSJ_postSJTag;
 	}
@@ -418,17 +426,17 @@ void processSelectionStudy()
 
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
-   std::vector<std::string> systematics = { "nom", "bTagSF_med",  "PUSF", "JEC", }; 
+   std::vector<std::string> systematics = { "nom", "bTagSF_med",   "JEC" }; //"PUSF",
 
    std::vector<std::string> JEC2_ucerts = {"JEC"};
    std::vector<std::string> sig_JEC1_ucerts = {"JEC"}; // the types of uncertainties stored in the "JEC1" file for signal
-   std::vector<std::string> sig_nom_ucerts =  {"nom", "JER"}; // the types of JEC uncertainties stored in the "nom" file for signal
+   std::vector<std::string> sig_nom_ucerts =  {"nom"}; // the types of JEC uncertainties stored in the "nom" file for signal , , "JER"
 
 
    std::vector<std::string> AK8_ET_cuts = {"200","300","400"};
-   std::vector<std::string> jet_HT_cuts = {"1600","1800","2000","2200"};
+   std::vector<std::string> jet_HT_cuts = {"1600","2000","2200"};
    std::vector<std::string> nAK8_cuts   = {"2","3","4"};
-   std::vector<std::string> nHeavyAK8_cuts   = {"1","2","3"};
+   std::vector<std::string> nHeavyAK8_cuts   = {"2","3"};
 
 	//HT AK4 jet ET:  200, 300, 400    # 150, 250, 350, 100,
 	//jet HT: 1600, 1800, 2000, 2200
@@ -456,7 +464,7 @@ void processSelectionStudy()
    if(debug)
    {
    	dataYears = {"2017"};
-   	systematics = { "nom", "JEC","PUSF","bTagSF_med"};  // , "JER", "JEC", "PUSF"
+   	systematics = { "nom", "JEC","bTagSF_med"};  // , "JER", "JEC", "PUSF", 
    	WPs = {"300_1600_2_1"};
    }
 
@@ -465,8 +473,8 @@ void processSelectionStudy()
    // delete root files in the /Users/ethan/Documents/rootFiles/processedRootFiles folder
    std::vector<std::string> signalFilePaths;
    std::vector<std::string> decays = {"WBWB","HTHT","ZTZT","WBHT","WBZT","HTZT"};
-   std::vector<std::string> mass_points = {"Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5", "Suu6_chi2",
-   "Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"};
+   std::vector<std::string> mass_points = {"Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1",  "Suu5_chi2", "Suu6_chi1", "Suu6_chi2",
+    "Suu7_chi1","Suu7_chi2","Suu8_chi1", "Suu8_chi2","Suu8_chi3"};
 
    for(auto decay = decays.begin(); decay!= decays.end();decay++)
    {
@@ -515,23 +523,19 @@ void processSelectionStudy()
 			{
 				if(*dataYear == "2015")
 				{
-					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_",  "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"}; // dataB-ver1 not present
+					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2016")
 				{
-					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
 				}
 				else if(*dataYear == "2017")
 				{
-					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
 				}
 				else if(*dataYear == "2018")
 				{
-					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
 				}   
 				dataBlocks.insert(dataBlocks.end(), signalFilePaths.begin(), signalFilePaths.end());
 			}
@@ -573,17 +577,15 @@ void processSelectionStudy()
 				std::cout << "No/incorrect sample options selected" << std::endl;
 				return;
 			}
-			
-			for(auto systematic = systematics.begin();systematic<systematics.end();systematic++)
+			if(debug)dataBlocks = {"QCDMC2000toInf_"};
+			for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
 			{
+				
 
-				std::cout << "------------ Looking at systematic: " << *systematic << " --------------" << std::endl;
-
-				if(debug)dataBlocks = {"QCDMC2000toInf_"};
-
-
-				for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
+				for(auto systematic = systematics.begin();systematic<systematics.end();systematic++)
 				{
+
+					std::cout << "------------ Looking at systematic: " << *systematic << " --------------" << std::endl;
 
 					if (  (dataBlock->find("data") != std::string::npos)  && (*systematic != "nom") ) continue;
 

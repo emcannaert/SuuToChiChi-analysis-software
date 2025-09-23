@@ -1,8 +1,10 @@
 allAltCrabCfgs/signalCfgs/*.py
+allAltCrabCfgs/*.py
 postprocess/plots/*
 allAltCrabCfgs/signalCfgs/*.pyc
 allAltCrabCfgs/crab_projects*
 postprocess/pdf
+postprocess/plots
 *.pdf
 *.png
 *.root
@@ -20,7 +22,7 @@ btagging/cfgs/*.sh
 btagging/cfgs/crab/*.sh
 allAltCrabCfgs/*.txt
 crab_projects/
-jsonpog-integration/
+utils/jsonpog-integration/
 *.log
 *.pyc
 *.txt
@@ -31,9 +33,9 @@ allAltCrabCfgs/**/*
 *.tar.gz
 *.gz
 *cfg.py
-combinedROOT/*.txt
-calcXS/
-LHEWeightsReader/
+combinedROOT/txt_files/*.txt
+utils/calcXS/
+utils/LHEWeightsReader/
 crab_projects/
 allAltCrabCfgs/*cfg.py
 allAltCrabCfgs/*cfg.pyc
@@ -45,10 +47,9 @@ allCfgs/signalCfgs/*cfg.pyc
 allAltCrabCfgs/*.sh
 allAltCrabCfgs/signalCfgs/*.sh
 btagging/cfgs/crab/*.sh
-utils/
 allAltCrabCfgs/signalCfgs/crab_clusteringAnalyzer*
 utils/calcXS/
 utils/LHEWeightsReader/
 utils/jsonpog-integration/
 utils/JEC_uncertainty_sources/
-combinedROOT/selectionStudy/ET300_*
+combinedROOT/selectionStudy/ET_*
