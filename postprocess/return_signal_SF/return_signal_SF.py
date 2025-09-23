@@ -20,7 +20,7 @@ def return_signal_SF(year,mass_point,decay, y_uu = 2.0, y_x = 2.0):    ## parame
 
 	# the production xs of Suu depends on y_uu^2, all values below are reference values for y_uu = 2
 	
-	### These were estimates
+	### These were estimates previously
 	"""Suu_prod_xs = { "4000": 1000.  * (pow(1.0*y_uu,2) / pow(2.0,2) ),   #fb
 					"5000": 500.   * (pow(1.0*y_uu,2) / pow(2.0,2) ),   #fb
 					"6000": 200.   * (pow(1.0*y_uu,2) / pow(2.0,2) ),   #fb  
@@ -55,7 +55,7 @@ def return_signal_SF(year,mass_point,decay, y_uu = 2.0, y_x = 2.0):    ## parame
 	H_had_BR = 0.58
 	t_had_BR = 0.6741
 
-	frac_of_events_used = 0.3
+	frac_of_events_used = 1.0
 
 	nEvents = 0
 
@@ -68,9 +68,22 @@ def return_signal_SF(year,mass_point,decay, y_uu = 2.0, y_x = 2.0):    ## parame
 			nEvents = 50000
 		else: nEvents = 100000
 
-	if year in ["2015","2016"]:
-		nEvents /= 2   ### 2016preAPV and 2016postAPV have half as many stats
-	lumi_eff = nEvents*frac_of_events_used/ (  Suu_prod_xs[ "%s"%Suu_mass ] * calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x)    )
+
+
+
+ 	### 2016preAPV and 2016postAPV have fewer stats (about half) than 2017/2018
+	### work for how these fractions came about:
+		#### 2016preAPV for pure: 32223  --> 54%
+		#### 2016postAPV for pure: 27600 --> 46
+		#### 2016preAPV  for mixed: 54000
+		#### 2016postapV for mixed: 46000
+
+	if year == "2015":
+		nEvents *= 0.54  
+	elif year == "2016":
+		nEvents *= 0.46   
+
+	lumi_eff = nEvents*frac_of_events_used / (  Suu_prod_xs[ "%s"%Suu_mass ] * calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x)    )
 	lumi_year = collected_data[year]
 
 	#print("decay is %s"%decay)
@@ -158,27 +171,27 @@ def return_Suu_to_chi_chi_xs(mass_point,decay, y_uu = 2.0, y_x = 2.0):
 
 
 	if decay == "WBWB":
-		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s, total xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x),WBWB_had_BR , np.around(Suu_to_chi_chi_to_VLQs_xs*WBWB_had_BR,2)   ) )
+		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s,  hadronic xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x),WBWB_had_BR , np.around(Suu_to_chi_chi_to_VLQs_xs*WBWB_had_BR,2)   ) )
 
 		return Suu_to_chi_chi_to_VLQs_xs*WBWB_had_BR
 	elif decay == "HTHT":
-		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s, total xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x), HTHT_had_BR, np.around(Suu_to_chi_chi_to_VLQs_xs*HTHT_had_BR,2)   ) )
+		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s,  hadronic xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x), HTHT_had_BR, np.around(Suu_to_chi_chi_to_VLQs_xs*HTHT_had_BR,2)   ) )
 
 		return Suu_to_chi_chi_to_VLQs_xs*HTHT_had_BR
 	elif decay == "ZTZT":
-		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s, total xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x), ZTZT_had_BR, np.around(Suu_to_chi_chi_to_VLQs_xs*ZTZT_had_BR,2)   ) )
+		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s,  hadronic xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x), ZTZT_had_BR, np.around(Suu_to_chi_chi_to_VLQs_xs*ZTZT_had_BR,2)   ) )
 
 		return Suu_to_chi_chi_to_VLQs_xs*ZTZT_had_BR
 	elif decay == "WBHT":
-		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s, total xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x), WBHT_had_BR, np.around(Suu_to_chi_chi_to_VLQs_xs*WBHT_had_BR,2)  ) )
+		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s,  hadronic xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x), WBHT_had_BR, np.around(Suu_to_chi_chi_to_VLQs_xs*WBHT_had_BR,2)  ) )
 
 		return Suu_to_chi_chi_to_VLQs_xs*WBHT_had_BR
 	elif decay == "WBZT":
-		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s, total xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x), WBZT_had_BR, np.around(Suu_to_chi_chi_to_VLQs_xs*WBZT_had_BR ,2) ) )
+		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s,  hadronic xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x), WBZT_had_BR, np.around(Suu_to_chi_chi_to_VLQs_xs*WBZT_had_BR ,2) ) )
 
 		return Suu_to_chi_chi_to_VLQs_xs*WBZT_had_BR
 	elif decay == "HTZT":
-		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s, total xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x),HTZT_had_BR,  np.around(Suu_to_chi_chi_to_VLQs_xs*HTZT_had_BR,2)   ) )
+		print( "mass point is %s, decay is %s, Suu production xs is %s, Suu -> chi chi BR is %s, hadronic BR is %s,  hadronic xs is %s"%(mass_point,decay,Suu_prod_xs[ "%s"%Suu_mass ], calculate_Suu_to_chi_chi_BR( Suu_mass, chi_mass, y_uu, y_x),HTZT_had_BR,  np.around(Suu_to_chi_chi_to_VLQs_xs*HTZT_had_BR,2)   ) )
 
 		return Suu_to_chi_chi_to_VLQs_xs*HTZT_had_BR
 	else:
@@ -224,7 +237,8 @@ yuu -> 0.2  (coupling of Suu to u u)
 ychi -> 0.3  (coupling of Suu to chi chi)
 I get the following results:
 
-{M_S [TeV]  ,  m_chi [TeV]  ,  B(S_uu -> chi chi) , sigma(p p -> S_uu -> chi chi)  [fb] } =
+{M_S [TeV]  ,  m_chi [TeV]  ,  
+B(S_uu -> chi chi) , sigma(p p -> S_uu -> chi chi)  [fb] } =
 { 4 , 1 ,     0.630 ,  25.8}
 { 4 , 1.5 ,  0.517 ,  21. 2}
 { 5 ,  1 ,    0.655 ,  5.69}

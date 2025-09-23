@@ -51,3 +51,4 @@ utils/calcXS/
 utils/LHEWeightsReader/
 utils/jsonpog-integration/
 utils/JEC_uncertainty_sources/
+combinedROOT/selectionStudy/ET300_*

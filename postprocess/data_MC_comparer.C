@@ -267,8 +267,9 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     std::string WJetsMC_QQ_HT800toInf_filename       = processedFilePaths +"WJetsMC_QQ-HT800toInf_" + year+ "_processed.root";
 
 
-    std::string TTJetMCHT800to1200_filename = processedFilePaths +"TTJetsMCHT800to1200_" + year+ "_processed.root";
-    std::string TTJetMCHT1200to2500_filename = processedFilePaths +"TTJetsMCHT1200to2500_" + year+ "_processed.root";
+    std::string TTJetsMCHT800to1200_filename = processedFilePaths +"TTJetsMCHT800to1200_" + year+ "_processed.root";
+    std::string TTJetsMCHT1200to2500_filename = processedFilePaths +"TTJetsMCHT1200to2500_" + year+ "_processed.root";
+    std::string TTJetsMCHT2500toInf_filename = processedFilePaths +"TTJetsMCHT2500toInf_" + year+ "_processed.root";
 
     std::string ST_t_channel_top_inclMC_filename        = processedFilePaths + "ST_t-channel-top_inclMC_" + year+ "_processed.root";
     std::string ST_t_channel_antitop_inclMC_filename    = processedFilePaths + "ST_t-channel-antitop_inclMC_" + year+ "_processed.root";
@@ -288,7 +289,7 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     double TTToLeptonic_SF         = return_BR_SF(year, "TTToLeptonic" );
     double TTJetsMCHT800to1200_SF  = return_BR_SF(year, "TTJetsMCHT800to1200" );
     double TTJetsMCHT1200to2500_SF = return_BR_SF(year, "TTJetsMCHT1200to2500" );
-    double TTJetsMCHT250toInf_SF   = return_BR_SF(year, "TTJetsMCHT2500toInf" );
+    double TTJetsMCHT2500toInf_SF   = return_BR_SF(year, "TTJetsMCHT2500toInf" );
 
     double ST_t_channel_top_inclMC_SF       = return_BR_SF(year, "ST_t_channel_top_inclMC" );
     double ST_t_channel_antitop_inclMC_SF   = return_BR_SF(year, "ST_t_channel_antitop_inclMC" );
@@ -337,9 +338,14 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
         bgFiles[0] = TFile::Open(QCD1000to1500_filename.c_str()); 
         bgFiles[1] = TFile::Open(QCD1500to2000_filename.c_str());
         bgFiles[2] = TFile::Open(QCD2000toInf_filename.c_str());
-        bgFiles[3] = TFile::Open(TTToHadronic_filename.c_str());
-        bgFiles[4] = TFile::Open(TTToSemiLeptonic_filename.c_str());
-        bgFiles[5] = TFile::Open(TTToLeptonic_filename.c_str());
+        //bgFiles[3] = TFile::Open(TTToHadronic_filename.c_str());
+        //bgFiles[4] = TFile::Open(TTToSemiLeptonic_filename.c_str());
+        //bgFiles[5] = TFile::Open(TTToLeptonic_filename.c_str());
+
+        bgFiles[3] = TFile::Open(TTJetsMCHT800to1200_filename .c_str());
+        bgFiles[4] = TFile::Open(TTJetsMCHT1200to2500_filename.c_str());
+        bgFiles[5] = TFile::Open(TTJetsMCHT2500toInf_filename.c_str());
+
 
         bgFiles[6] = TFile::Open(WJetsMC_LNu_HT800to1200_filename.c_str());
         bgFiles[7] = TFile::Open(WJetsMC_LNu_HT1200to2500_filename.c_str());
@@ -364,9 +370,9 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
         hBackgrounds[0]->Scale(QCD1000to1500_SF);
         hBackgrounds[1]->Scale(QCD1500to2000_SF);
         hBackgrounds[2]->Scale(QCD2000toInf_SF);
-        hBackgrounds[3]->Scale(TTToHadronic_SF);
-        hBackgrounds[4]->Scale(TTToSemiLeptonic_SF);
-        hBackgrounds[5]->Scale(TTToLeptonic_SF);
+        hBackgrounds[3]->Scale(TTJetsMCHT800to1200_SF);
+        hBackgrounds[4]->Scale(TTJetsMCHT1200to2500_SF);
+        hBackgrounds[5]->Scale(TTJetsMCHT2500toInf_SF);
 
         hBackgrounds[6]->Scale(WJetsMC_LNu_HT800to1200_SF);
         hBackgrounds[7]->Scale(WJetsMC_LNu_HT1200to2500_SF);
@@ -376,9 +382,9 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
         hBackgrounds[0]->SetTitle( (histName + " - QCDMCHT1000to1500 (" + year  + ") ").c_str()    );
         hBackgrounds[1]->SetTitle( (histName + " - QCDMCHT1500to2000 (" + year  + ") ").c_str() );
         hBackgrounds[2]->SetTitle( (histName + " - QCDMCHT2000toInf (" + year  + ") ").c_str() );
-        hBackgrounds[3]->SetTitle( (histName + " - TTToHadronicMC (" + year  + ") ").c_str() );
-        hBackgrounds[4]->SetTitle( (histName + " - TTToSemiLeptonicMC (" + year  + ") ").c_str() );
-        hBackgrounds[5]->SetTitle( (histName + " - TTToLeptonicMC (" + year  + ") ").c_str() );
+        hBackgrounds[3]->SetTitle( (histName + " - TTJetsMCHT800to1200 (" + year  + ") ").c_str() );
+        hBackgrounds[4]->SetTitle( (histName + " - TTJetsMCHT1200to2500 (" + year  + ") ").c_str() );
+        hBackgrounds[5]->SetTitle( (histName + " - TTJetsMCHT2500toInf (" + year  + ") ").c_str() );
 
         hBackgrounds[6]->SetTitle( (histName + " - WJetsMC_LNu_HT800to1200 (" + year  + ") ").c_str() );
         hBackgrounds[7]->SetTitle( (histName + " - WJetsMC_LNu_HT1200to2500 (" + year  + ") ").c_str() );
@@ -402,15 +408,15 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
 
         hBackgrounds[3]->Draw("HIST");
         write_cms_text(CMS_label_pos,SIM_label_pos, c);
-        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTToHadronic_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTJetsMCHT800to1200_" + year +".png").c_str()   );
 
         hBackgrounds[4]->Draw("HIST");
         write_cms_text(CMS_label_pos,SIM_label_pos, c);
-        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTToSemiLeptonic_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTJetsMCHT1200to2500_" + year +".png").c_str()   );
 
         hBackgrounds[5]->Draw("HIST");
         write_cms_text(CMS_label_pos,SIM_label_pos, c);
-        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTToLeptonic_" + year +".png").c_str()   );
+        c->SaveAs( (output_path+ "backgrounds/"+histName + "_TTJetsMCHT2500toInf_" + year +".png").c_str()   );
 
         hBackgrounds[6]->Draw("HIST");
         write_cms_text(CMS_label_pos,SIM_label_pos, c);
@@ -450,8 +456,8 @@ void make_plot(std::string year, std::string histName, bool runControlRegions = 
     {
         bgFiles[0] = TFile::Open(QCD1000to1500_filename.c_str()); 
         bgFiles[1] = TFile::Open(QCD1500to2000_filename.c_str());
-        bgFiles[2] = TFile::Open(TTJetMCHT800to1200_filename.c_str());
-        bgFiles[3] = TFile::Open(TTJetMCHT1200to2500_filename.c_str());
+        bgFiles[2] = TFile::Open(TTJetsMCHT800to1200_filename.c_str());
+        bgFiles[3] = TFile::Open(TTJetsMCHT1200to2500_filename.c_str());
         bgFiles[4] = TFile::Open(ST_t_channel_top_inclMC_filename.c_str());
         bgFiles[5] = TFile::Open(ST_t_channel_antitop_inclMC_filename.c_str());
         bgFiles[6] = TFile::Open(ST_s_channel_hadronsMC_filename.c_str());
@@ -782,7 +788,7 @@ void data_MC_comparer()
                     for(auto hist_name = hist_names.begin();hist_name!=hist_names.end();hist_name++)
                     {
                         std::cout << "Running control region for " << *year << "/" << *region << "/" << *hist_name << std::endl;
-                        make_plot(*year, *hist_name, runControlRegions, runSideband, *region, doMasking);
+                        //make_plot(*year, *hist_name, runControlRegions, runSideband, *region, doMasking);
                     }
                 }
             }

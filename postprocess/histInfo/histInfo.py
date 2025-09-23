@@ -13,7 +13,7 @@ from return_BR_SF.return_BR_SF import return_BR_SF
 ### Written by Ethan Cannaert, September 2023
 
 class histInfo:    # this needs to be initialized for every new region + year, use when looping over the superbin_indices and filling out the uncertainties
-	def __init__(self, year, region, bin_min_x, bin_min_y,n_bins_x,n_bins_y,technique_str,includeTTJetsMCHT800to1200,includeWJets,includeTTo,useQCDHT,debug=False,runEos = False, WP=None):
+	def __init__(self, year, region, bin_min_x, bin_min_y,n_bins_x,n_bins_y,technique_str,includeTTJetsMCHT800to1200,includeWJets,useTTTo,useQCDHT,debug=False,runEos = False, WP=None):
 		ROOT.TH1.AddDirectory(False)
 		self.region = region
 		self.year   = year
@@ -38,7 +38,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 
 		self.includeTTJetsMCHT800to1200 = includeTTJetsMCHT800to1200
 		self.includeWJets = includeWJets
-		self.includeTTo = includeTTo
+		self.useTTTo = useTTTo
 
 		if self.region in ["SB1b", "SB0b"]: self.doSideband = True
 		hist_name = "h_MSJ_mass_vs_MdSJ_%s%s"%(self.technique_str,self.region )
@@ -74,7 +74,7 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 		self.TTbar_hists = {}
 		self.lists_TTbar = {}
 		self.TTbar_samples = ["TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC"]
-		if includeTTo:
+		if self.useTTTo:
 			for TTbar_sample in self.TTbar_samples:
 				self.TTbar_hists[TTbar_sample] = self.load_hist( TTbar_sample)
 		else:

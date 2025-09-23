@@ -6,7 +6,7 @@ def makeBRFracs():
     regions   = ["SR", "CR", "AT1b", "AT0b"]
     QCD_types = ["QCDHT", "QCDPT"]
     years     = ["2015", "2016", "2017", "2018"]
-    BR_types  = ["QCD", "TTTo", "WJets", "ST"]
+    BR_types  = ["QCD", "TTbar", "WJets", "ST"]
 
 
     for qcd in QCD_types:

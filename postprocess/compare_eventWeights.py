@@ -10,8 +10,11 @@ BR_SFs = return_BR_SF()
 
 canvas = ROOT.TCanvas("canvas", "Histograms", 1200, 1000)
 canvas.SetLogy() 
-useEOS  = True
+useEOS  = False
 file_path = "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/" if useEOS else "../combinedROOT/processedFiles/"
+
+year_converter = {"2015":"2016preAPV","2016":"2016postAPV","2017":"2017","2018":"2018" }
+
 
 pdf_folder = "pdf"
 
@@ -41,8 +44,8 @@ def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
     hist_name_str = hist_name[2:]
 
     if "QCD" in sample_list[0]:   BR_type = "QCD" 
-    elif "TTTo" in sample_list[0]: BR_type = "TTbar"
-    elif "TTJets" in sample_list[0]: BR_type = "TTJets"
+    elif "TTTo" in sample_list[0]: BR_type = "TTTo"
+    elif "TTJets" in sample_list[0]: BR_type = "TTbar"
     elif "WJets" in sample_list[0]: BR_type = "WJets"
     elif "ST_" in sample_list[0]: BR_type = "ST"
     else:
@@ -53,7 +56,7 @@ def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
     for var in variations:
 
         canvas.Clear()  # Clear the PNG canvas
-        legend = ROOT.TLegend(0.75, 0.6, 0.92, 0.8)
+        legend = ROOT.TLegend(0.75, 0.6, 0.88, 0.8)
         legend.SetBorderSize(0)
         legend.SetFillStyle(0)
         ROOT.gStyle.SetOptStat(0)  # Disable stats box
@@ -76,19 +79,39 @@ def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
 
             hist.SetDirectory(0)  
             #hist.SetLineWidth(1)  
-            hist.SetTitle("%s (%s) (%s) (%s var) (%s)"%(hist.GetTitle(), BR_type, systematic, var_str, year))
+
+            var_str_title = "(%s var)"%var_str
+            if var_str == "nom": var_str_title = ""
+
+            hist.SetTitle("%s Shape (%s) (%s) %s (%s)"%(hist.GetTitle(), BR_type, systematic, var_str_title, year_converter[year]))
 
             if hist.Integral() > 0:
                 hist.Scale(1.0 / hist.Integral())
             hist.SetLineColor(colors[i])
-            hist.SetMaximum(1.5)
+            hist.SetMaximum(10)
+
+            hist.SetLineWidth(2)
 
             draw_option = "HIST" if i == 0 else "HIST SAME"
             hist.Draw(draw_option)
             saved_hists.append(hist)
-            legend.AddEntry(hist, year, "l")
+            legend.AddEntry(hist, year_converter[year], "l")
 
         legend.Draw()
+
+        # Define the text
+        text = ROOT.TLatex()
+        text.SetTextSize(0.040)
+        text.SetTextFont(62)
+        text.SetTextAlign(22)  # Center alignment (horizontal and vertical)
+        
+        # Draw the text lines
+        text.DrawLatexNDC(0.35, 0.86, BR_type + ", " + year_converter[year])
+        text.DrawLatexNDC(0.35, 0.81, hist_name  )
+
+        variation_str =  ", "+ var.split("_")[1] + " variation" if var in ["_up", "_down"] else ""
+        text.DrawLatexNDC(0.35, 0.76, systematic) 
+        text.DrawLatexNDC(0.35, 0.71, variation_str ) 
 
         # ---- PDF handling ----
         c1.cd(pad_num)
@@ -115,14 +138,17 @@ def plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year
     regions = ["SR","CR","AT1b","AT0b"]
     colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, ROOT.kViolet]
     
+
+
     variations = [""] if systematic == "nom" else ["_up", "_down"] 
     hist_name_str = hist_name[2:]
 
-    if "QCD" in sample_list[0]:  BR_type = "QCD" 
-    elif "TTTo" in sample_list[0]: BR_type = "TTbar"
-    elif "TTJets" in sample_list[0]: BR_type = "TTJets"
-    elif "WJets" in sample_list[0]: BR_type = "WJets"
-    elif "ST_" in sample_list[0]: BR_type = "ST"
+    if "QCDMC_Pt" in sample_list[0]: BR_type = "QCDPT" 
+    elif "QCD"  in sample_list[0]:   BR_type = "QCDHT" 
+    elif "TTTo" in sample_list[0]:   BR_type = "TTTo"
+    elif "TTJets" in sample_list[0]: BR_type = "TTbar"
+    elif "WJets" in sample_list[0]:  BR_type = "WJets"
+    elif "ST_" in sample_list[0]:   BR_type = "ST"
     else:
         print("ERROR: cannot tell BR type.")
         return
@@ -132,7 +158,7 @@ def plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year
         var_str = "nom" if var == "" else var.split("_")[1]
 
         canvas.Clear()  
-        legend = ROOT.TLegend(0.75, 0.6, 0.92, 0.8)
+        legend = ROOT.TLegend(0.75, 0.6, 0.88, 0.8)
         legend.SetBorderSize(0)
         legend.SetFillStyle(0)
         ROOT.gStyle.SetOptStat(0)  
@@ -154,12 +180,16 @@ def plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year
 
             hist.SetDirectory(0)  
             hist.SetLineWidth(2)  
-            hist.SetTitle("%s  (%s) (%s) (%s var) (%s)"%(hist.GetTitle(), BR_type, systematic, var_str, year))
+
+            var_str_title = "(%s var)"%var_str
+            if var_str == "nom": var_str_title = ""
+
+            hist.SetTitle("%s Shape (%s) (%s) %s (%s)"%(hist.GetTitle(), BR_type, systematic, var_str_title, year_converter[year]))
 
             if hist.Integral() > 0:
                 hist.Scale(1.0 / hist.Integral())
             hist.SetLineColor(colors[i])
-            hist.SetMaximum(1.5)
+            hist.SetMaximum(10)
 
             saved_hists.append(hist)
             legend.AddEntry(hist, region, "l")
@@ -167,6 +197,24 @@ def plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year
             hist.Draw(draw_option)
 
         legend.Draw()
+
+
+        # Define the text
+        text = ROOT.TLatex()
+        text.SetTextSize(0.040)
+        text.SetTextFont(62)
+        text.SetTextAlign(22)  # Center alignment (horizontal and vertical)
+        
+        # Draw the text lines
+        text.DrawLatexNDC(0.35, 0.86, BR_type + ", " + year_converter[year])
+        text.DrawLatexNDC(0.35, 0.81, hist_name  )
+
+        variation_str =  ", "+ var.split("_")[1] + " variation" if var in ["_up", "_down"] else ""
+        text.DrawLatexNDC(0.35, 0.76, systematic ) 
+        text.DrawLatexNDC(0.35, 0.71, variation_str ) 
+
+
+
 
         # ---- PDF handling ----
         c1.cd(pad_num)
@@ -188,91 +236,96 @@ def plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year
 
 if __name__=="__main__":
     combined_BRs = True
-    use_QCD_Pt = True
+    use_QCD_opts = [True,False]
 
-    if use_QCD_Pt: 
-        QCD_samples = [
-            "QCDMC_Pt_170to300","QCDMC_Pt_300to470","QCDMC_Pt_470to600",
-            "QCDMC_Pt_600to800","QCDMC_Pt_800to1000","QCDMC_Pt_1000to1400",
-            "QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200",
-            "QCDMC_Pt_3200toInf"
-        ]
-    else: 
-        QCD_samples = ["QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf"]
 
-    if combined_BRs: 
-        samples = [
-            QCD_samples,
-            ["TTJetsMCHT800to1200", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf"],
-            ["TTToHadronicMC","TTToSemiLeptonicMC" , "TTToLeptonicMC"],
-            ["WJetsMC_LNu-HT800to1200","WJetsMC_LNu-HT1200to2500","WJetsMC_LNu-HT2500toInf","WJetsMC_QQ-HT800toInf"],
-            ["ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"]
-        ]  
-    else:
-        QCD_separate = [[QCD_separate] for QCD_separate in QCD_samples]
-        samples = [
-            ["TTJetsMCHT800to1200"], ["TTJetsMCHT1200to2500"], ["TTJetsMCHT2500toInf"],
-            ["TTToHadronicMC"],["TTToSemiLeptonicMC"],["TTToLeptonicMC"],
-            ["WJetsMC_LNu-HT800to1200"],["WJetsMC_LNu-HT1200to2500"],["WJetsMC_LNu-HT2500toInf"],["WJetsMC_QQ-HT800toInf"],
-            ["ST_t-channel-top_inclMC"],["ST_t-channel-antitop_inclMC"],["ST_s-channel-hadronsMC"],["ST_s-channel-leptonsMC"],
-            ["ST_tW-antiTop_inclMC"],["ST_tW-top_inclMC"]
-        ]  
-        samples.extend(QCD_separate)
 
-    systematics = ["nom","scale","pdf","renorm","fact","JER","JER_eta193","JER_193eta25",
-        "JEC","JEC_FlavorQCD","JEC_RelativeBal","JEC_Absolute","JEC_AbsoluteCal","JEC_AbsoluteScale",
-        "JEC_Fragmentation","JEC_AbsoluteMPFBias","JEC_RelativeFSR","JEC_AbsoluteTheory","JEC_AbsolutePU",
-        "JEC_BBEC1_year","JEC_Absolute_year","JEC_RelativeSample_year"]
+    for use_QCD_Pt in use_QCD_opts:
+        if use_QCD_Pt: 
+            QCD_samples = [
+                "QCDMC_Pt_170to300","QCDMC_Pt_300to470","QCDMC_Pt_470to600",
+                "QCDMC_Pt_600to800","QCDMC_Pt_800to1000","QCDMC_Pt_1000to1400",
+                "QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200",
+                "QCDMC_Pt_3200toInf"
+            ]
+        else: 
+            QCD_samples = ["QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf"]
 
-    years = ["2015","2016","2017","2018"]
+        if combined_BRs: 
+            samples = [
+                QCD_samples,
+                ["TTJetsMCHT800to1200", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf"],
+                ["TTToHadronicMC","TTToSemiLeptonicMC" , "TTToLeptonicMC"],
+                ["WJetsMC_LNu-HT800to1200","WJetsMC_LNu-HT1200to2500","WJetsMC_LNu-HT2500toInf","WJetsMC_QQ-HT800toInf"],
+                ["ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC"]
+            ]  
+        else:
+            QCD_separate = [[QCD_separate] for QCD_separate in QCD_samples]
+            samples = [
+                ["TTJetsMCHT800to1200"], ["TTJetsMCHT1200to2500"], ["TTJetsMCHT2500toInf"],
+                ["TTToHadronicMC"],["TTToSemiLeptonicMC"],["TTToLeptonicMC"],
+                ["WJetsMC_LNu-HT800to1200"],["WJetsMC_LNu-HT1200to2500"],["WJetsMC_LNu-HT2500toInf"],["WJetsMC_QQ-HT800toInf"],
+                ["ST_t-channel-top_inclMC"],["ST_t-channel-antitop_inclMC"],["ST_s-channel-hadronsMC"],["ST_s-channel-leptonsMC"],
+                ["ST_tW-antiTop_inclMC"],["ST_tW-top_inclMC"]
+            ]  
+            samples.extend(QCD_separate)
 
-    for systematic in systematics:
-        if "JEC" in systematic:
-            hist_names = ["h_JEC_uncert_AK8", "h_JEC_uncert_AK4"]
-        elif "JER" in systematic:
-            hist_names = ["h_AK8_JER"]
-        elif systematic == "pdf":
-            hist_names = ["h_pdf_EventWeight"]
-        elif systematic == "renorm":
-            hist_names = ["h_renorm_EventWeight"]
-        elif systematic == "factor":
-            hist_names = ["h_factor_EventWeight"]
-        elif systematic == "scale":
-            hist_names = ["h_scale_EventWeight"]
-        elif systematic == "nom":
-            hist_names = ["h_pdf_EventWeight","h_scale_EventWeight","h_PU_eventWeight",
-                "h_bTag_eventWeight_M","h_L1PrefiringWeight","h_AK8_JER"]
-        for year in years:
+        systematics = ["nom","scale","pdf","renorm","fact","JER","JER_eta193","JER_193eta25",
+            "JEC","JEC_FlavorQCD","JEC_RelativeBal","JEC_Absolute","JEC_AbsoluteCal","JEC_AbsoluteScale",
+            "JEC_Fragmentation","JEC_AbsoluteMPFBias","JEC_RelativeFSR","JEC_AbsoluteTheory","JEC_AbsolutePU",
+            "JEC_BBEC1_year","JEC_Absolute_year","JEC_RelativeSample_year"]
+
+        years = ["2015","2016","2017","2018"]
+
+        for systematic in systematics:
+            print("WARNING: running locally (from ../combinedROOT/processedFiles/)")
+            if "JEC" in systematic:
+                hist_names = ["h_JEC_uncert_AK8", "h_JEC_uncert_AK4"]
+            elif "JER" in systematic:
+                hist_names = ["h_AK8_JER"]
+            elif systematic == "pdf":
+                hist_names = ["h_pdf_EventWeight"]
+            elif systematic == "renorm":
+                hist_names = ["h_renorm_EventWeight"]
+            elif systematic == "factor":
+                hist_names = ["h_factor_EventWeight"]
+            elif systematic == "scale":
+                hist_names = ["h_scale_EventWeight"]
+            elif systematic == "nom":
+                hist_names = ["h_PU_eventWeight",      
+                    "h_bTag_eventWeight_M","h_L1PrefiringWeight","h_AK8_JER"]   #"h_pdf_EventWeight","h_scale_EventWeight",
+            for year in years:
+                for sample_list in samples:
+                    for hist_name in hist_names:
+                        #try:
+                        plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year,systematic)
+                        #except:
+                        #   print("ERROR: failed on %s/%s/%s"%(year,hist_name, sample_list))
+
+        for systematic in systematics:
+            print("WARNING: running locally (from ../combinedROOT/processedFiles/)")
+            if "JEC" in systematic:
+                hist_names = ["h_JEC_uncert_AK8", "h_JEC_uncert_AK4"]
+            elif "JER" in systematic:
+                hist_names = ["h_AK8_JER"]
+            elif systematic == "pdf":
+                hist_names = ["h_pdf_EventWeight"]
+            elif systematic == "renorm":
+                hist_names = ["h_renorm_EventWeight"]
+            elif systematic == "factor":
+                hist_names = ["h_factor_EventWeight"]
+            elif systematic == "scale":
+                hist_names = ["h_scale_EventWeight"]
+            elif systematic == "nom":
+                hist_names = ["h_PU_eventWeight",
+                    "h_bTag_eventWeight_M","h_L1PrefiringWeight","h_AK8_JER"]   # "h_pdf_EventWeight","h_scale_EventWeight"
             for sample_list in samples:
                 for hist_name in hist_names:
+                    print("Running for systematic %s, and sample type %s"%(systematic, sample_list ))
                     #try:
-                    plot_var_weight_comparisons_by_sample_and_region(hist_name, sample_list,year,systematic)
+                    plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic)
                     #except:
-                    #    print("ERROR: failed on %s/%s/%s"%(year,hist_name, sample_list))
-
-    for systematic in systematics:
-        if "JEC" in systematic:
-            hist_names = ["h_JEC_uncert_AK8", "h_JEC_uncert_AK4"]
-        elif "JER" in systematic:
-            hist_names = ["h_AK8_JER"]
-        elif systematic == "pdf":
-            hist_names = ["h_pdf_EventWeight"]
-        elif systematic == "renorm":
-            hist_names = ["h_renorm_EventWeight"]
-        elif systematic == "factor":
-            hist_names = ["h_factor_EventWeight"]
-        elif systematic == "scale":
-            hist_names = ["h_scale_EventWeight"]
-        elif systematic == "nom":
-            hist_names = ["h_pdf_EventWeight","h_scale_EventWeight","h_PU_eventWeight",
-                "h_bTag_eventWeight_M","h_L1PrefiringWeight","h_AK8_JER"]
-        for sample_list in samples:
-            for hist_name in hist_names:
-                print("Running for systematic %s, and sample type %s"%(systematic, sample_list ))
-                #try:
-                plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic)
-                #except:
-                print("ERROR: failed on %s/%s"%(hist_name, sample_list))
+                    #print("ERROR: failed on %s/%s"%(hist_name, sample_list))
 
 
 # flush remaining plots if last page not full

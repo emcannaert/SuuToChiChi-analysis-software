@@ -54,6 +54,9 @@ def get_combined_histogram(file_names, hist_name,folder, weights,systematic):
 	folder_name = folder+"/"+hist_name
 	#print("Looking for TFile %s and histogram name %s"%(file_names[0],folder_name))
 	combined_hist = f1.Get(folder_name)
+
+	print("Getting hist %s from file %s."%(folder_name, file_names[0]))
+
 	combined_hist.Scale(weights[0])
 	for iii in range(1,len(file_names)):
 
@@ -247,7 +250,7 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 		return
 
 
-	TTbar_samples = ["TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"]
+	TTbar_samples = ["TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"]
 	ST_samples = ["ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_"]	
 	WJets_samples = ["WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"]	
 
@@ -261,7 +264,7 @@ def create_systematic_comparison_plot(hist_name, hist_type,systematic, year,samp
 	all_weights = return_BR_SF()
 
 	QCD_weights 		= [all_weights[QCD_sample.strip("_")][year] for QCD_sample in QCD_samples]        #[all_weights["QCDMC1000to1500"][year],all_weights["QCDMC1500to2000"][year],all_weights["QCDMC2000toInf"][year] ]
-	TTbar_weights 		= [all_weights["TTJetsMCHT1200to2500"][year],all_weights["TTJetsMCHT2500toInf"][year]]
+	TTbar_weights 		= [all_weights["TTJetsMCHT800to1200"][year],all_weights["TTJetsMCHT1200to2500"][year],all_weights["TTJetsMCHT2500toInf"][year]]
 	ST_weights			= [all_weights["ST_t_channel_top_inclMC"][year],all_weights["ST_t_channel_antitop_inclMC"][year],all_weights["ST_s_channel_hadronsMC"][year],all_weights["ST_s_channel_leptonsMC"][year],all_weights["ST_tW_antiTop_inclMC"][year],all_weights["ST_tW_top_inclMC"][year]]
 	WJets_weights		= [all_weights["WJetsMC_LNu_HT800to1200"][year],all_weights["WJetsMC_LNu_HT1200to2500"][year],all_weights["WJetsMC_LNu_HT2500toInf"][year],all_weights["WJetsMC_QQ_HT800toInf"][year]]
 
@@ -357,7 +360,13 @@ def create_signal_systematic_comparison_plot(hist_name, hist_type, systematic, y
 if __name__== "__main__":
 
 	years 	= ["2015","2016","2017","2018"]
-	systematics = ["bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",	  "JEC_AbsolutePU",	     "JEC_AbsoluteScale",		  "JEC_Fragmentation",	     "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ]  # , "bTagSF_tight", "bTagSF_med" 
+	#systematics = ["bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",	  "JEC_AbsolutePU",	     "JEC_AbsoluteScale",		  "JEC_Fragmentation",	     "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ]  # , "bTagSF_tight", "bTagSF_med" 
+
+	systematics = [ "JER",	 "JEC",  "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr","bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",	  "JEC_AbsolutePU",	     "JEC_AbsoluteScale",		  "JEC_Fragmentation",	     "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR" ]  # , "bTagSF_tight", "bTagSF_med" 
+
+	#systematics = [ "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	        "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+
+
 
 	hist_names = ["h_SJ_mass_SR", "h_disuperjet_mass_SR"]  #histogram name for Getting, "h_SJ_mass_NN_SR", "h_disuperjet_mass_NN_SR"
 	hist_types = ["superjet mass (cut-based)", "diSuperjet mass (cut-based)"]   # description of histogram, , "superjet mass (NN-based)", "diSuperjet mass (NN-based)"
@@ -379,10 +388,11 @@ if __name__== "__main__":
 			for iii,hist_name in enumerate(hist_names):
 				for systematic in systematics:
 					#try:
+					print("Running %s, %s %s %s"%(hist_name,systematic,year,QCD_type))
 
 					create_systematic_comparison_plot(hist_name, hist_types[iii], systematic, year, hist_types[iii],QCD_type, runEOS)
 					#except:
-					#	print("ERROR: Failed for %s, %s %s %s"%(hist_name,systematic,year,QCD_type))
+						#print("ERROR: Failed for %s, %s %s %s"%(hist_name,systematic,year,QCD_type))
 	"""
 	for year in years:
 		for iii,hist_name in enumerate(hist_names):

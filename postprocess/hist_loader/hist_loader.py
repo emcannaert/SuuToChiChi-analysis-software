@@ -17,7 +17,7 @@ class hist_loader:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, technique_str, use_QCD_Pt = False, doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, WP=None):
+	def __init__(self, year, technique_str, use_QCD_Pt = False, doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, runCorrected = False, WP=None):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
@@ -27,6 +27,7 @@ class hist_loader:
 		self.WP = WP 
 		self.WP_str = ""
 		self.use_QCD_Pt = use_QCD_Pt
+		self.runCorrected = runCorrected
 		if self.WP: 
 
 			
@@ -41,6 +42,10 @@ class hist_loader:
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 
+		if self.runCorrected:
+			self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFilesCorrected/"
+			self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFilesCorrected/"
+
 		self.eos_path = "root://cmseos.fnal.gov/"
 
 		self.HT_distr_home = "HT_distributions/" # extra folder where output files are saved for HT distribution plots
@@ -50,11 +55,13 @@ class hist_loader:
 			self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 
 
-
 		if self.run_from_eos:
+
 			self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles/"
 			self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
-
+			if self.runCorrected:
+				self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
+				self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
 			if self.WP:
 				self.MC_root_file_home	    =  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 				self.data_root_file_home	=  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
@@ -92,11 +99,13 @@ class hist_loader:
 		self.data_systematics 	   = ["nom"]
 		self.data_systematic_names = ["nom"]
 
-		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	     "renorm",	  "fact",	  "JEC_AbsoluteCal",	  "JEC_AbsoluteTheory",        "JEC_AbsolutePU",	   "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",       "scale"]   ## systematic namings as used in analyzer	 "bTagSF",   
-		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	           "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+		self.systematics 	  = ["nom",      "JER",	    "JEC",    "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	   "JEC_Absolute_year",	     "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",	        "pdf",	   "renorm",	 "fact",	  "JEC_AbsoluteCal",    "JEC_AbsoluteTheory",       "JEC_AbsolutePU",	    "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",     "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
+		self.systematic_names = ["nom",    "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	        "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
 
 		self.uncorrelated_systematics = ["CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
-
+		if not self.runCorrected:
+			self.systematics.extend([ "bTagSF_med",    "bTagSF_med_corr",   "topPt"])
+			self.systematic_names.extend(["CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" , "CMS_topPt"])
 
 		if self.WP:
 			self.systematics 	  = ["nom"]   ## systematic namings as used in analyzer	 "bTagSF",   

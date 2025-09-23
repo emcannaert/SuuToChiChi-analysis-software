@@ -24,7 +24,7 @@ def makeBtagEffMap(year,sample):
    ################ tight b tagged jets ###################
 
    #systematic = "nom"
-   inFileName  = "../data/btaggingEffMapsRAW/btagging_efficiencyMap_RAW_combined_%s_%s.root"%(sample,year)
+   inFileName  = "../AN_data/btaggingEffMapsRAW/btagging_efficiencyMap_RAW_combined_%s_%s.root"%(sample,year)
    print("Attempting to open file %s"%(inFileName))
 
    outFileName = "../data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root"%(sample,year)

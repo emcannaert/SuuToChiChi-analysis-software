@@ -28,7 +28,7 @@ class linearized_plot:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, mass_point, technique_str, all_BR_hists,output_map_file,  use_QCD_Pt=False, useMask=False, use_1b_bin_maps = False, createDummyChannel=False, run_from_eos = False, debug=False):
+	def __init__(self, year, mass_point, technique_str, all_BR_hists,output_map_file,  use_QCD_Pt=False, useMask=False, use_1b_bin_maps = False, createDummyChannel=False, run_from_eos = False, runCorrected = False, debug=False):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
@@ -41,8 +41,14 @@ class linearized_plot:
 		self.use_1b_bin_maps = use_1b_bin_maps
 		self.use_QCD_Pt = use_QCD_Pt
 
+		self.runCorrected = runCorrected
+		
+
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
+		if self.runCorrected:
+			self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFilesCorrected/"
+			self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFilesCorrected/"
 
 
 		self.use_QCD_Pt_str = "QCDHT"
@@ -59,6 +65,9 @@ class linearized_plot:
 			print("Using files stored on EOS.")
 			self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles/"
 			self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
+			if self.runCorrected:
+				self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
+				self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
 
 		## region options
 		self.doSideband = all_BR_hists.doSideband
@@ -128,8 +137,14 @@ class linearized_plot:
 		#self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",	  "JER",	 "JEC",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",	   "Absolute",	 "JEC_BBEC1_year",		"JEC_Absolute_year",	  "JEC_RelativeSample_year",	"PUSF",	"topPt",	 "L1Prefiring",	       "pdf",	 "renorm",	 "fact",	  "AbsoluteCal",		    "AbsoluteTheory",	     "AbsolutePU"     ]   ## systematic namings as used in analyzer   removed:  "bTagSF",			  "JEC_HF",	 "JEC_BBEC1",	 "JEC_EC2",	 "JEC_EC2_year",		 "JEC_HF_year",	
 		#self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",	   "CMS_bTagSF_light_T",	   "CMS_bTagSF_bc_M",	   "CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		"CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_Absolute_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",  "CMS_jer",	 "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2",   "CMS_jec_EC2_year",   "CMS_jec_HF_year",   
 		
-		self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",     "bTagSF_med_corr",   "bTagSF_tight_corr",   "JER",	 "JEC",    "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	 "JEC_Absolute_year",	  "JEC_RelativeSample_year",	 "PUSF",	 "topPt",	 "L1Prefiring",	     "pdf",	   "renorm",	 "fact",	 "JEC_AbsoluteCal",	     "JEC_AbsoluteTheory",        "JEC_AbsolutePU",	      "JEC_AbsoluteScale",		  "JEC_Fragmentation",	   "JEC_AbsoluteMPFBias",	    "JEC_RelativeFSR" ,     "scale"]   ## systematic namings as used in analyzer	 "bTagSF",   
-		self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",    "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	       "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year",     "CMS_pu",  "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+		self.systematics 	  = ["nom",      "JER",	    "JEC",    "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	   "JEC_Absolute_year",	     "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",	        "pdf",	   "renorm",	 "fact",	  "JEC_AbsoluteCal",    "JEC_AbsoluteTheory",       "JEC_AbsolutePU",	    "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",     "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
+		self.systematic_names = ["nom",    "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	        "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+
+		if not self.runCorrected:
+			self.systematics.extend([ "bTagSF_med",    "bTagSF_med_corr",   "topPt"])
+			self.systematic_names.extend(["CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" , "CMS_topPt"])
+			
+
 
 		self.uncorrelated_systematics = [ "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
 			## removed from uncorrelated uncertainties :  "CMS_pu"
@@ -3777,12 +3792,16 @@ if __name__=="__main__":
 
 	usMask        			 = False  
 	use_1b_bin_maps 	     = True
+
+
+	runCorrected			 = True # use the "corrected" versions of the uncertainties stored in processedFilesCorrected, these have the fixed scale and pdf uncertainties for QCDPT
+
 	##################################################
 	##################################################
 	##################################################
 	# get input year
 	parser = argparse.ArgumentParser(description="Linearize 2D histograms in order to reach a minimum stat uncertainty and scaled/unscaled bin yield. ")
-	parser.add_argument("-y", "--year", type=str, required=True, help="Input year on which to run.")
+	parser.add_argument("-y", "--year", type=str, required=True, help="Input year on which to run. Use 'All' for all Run years.")
 	parser.add_argument( "--doHTdist",   default=False, action='store_true', required=False, help="Option to run on HT distributions instead of 2D plots.")
 	parser.add_argument( "--doSideband",  default=False, action='store_true',  required=False, help="Option to run the sideband region (in addition to normal regions).")
 	parser.add_argument( "--doATxtb",   default=False, action='store_true', required=False, help="Option to run over the AT1tb and AT0tb regions (in addition to normal regions).")
@@ -3832,14 +3851,14 @@ if __name__=="__main__":
 				if doHTdist and "NN" in technique_str: continue 
 
 				# create instance of hist_loader (containing all BR histograms) for the year + technique str combination
-				all_BR_hists  = hist_loader(year, technique_str, use_QCD_Pt, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, None)
+				all_BR_hists  = hist_loader(year, technique_str, use_QCD_Pt, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, runCorrected, None)
 
 				for mass_point in mass_points:
 					#try:
 
 					print("Running for %s/%s/%s/useQCDPT = %s"%(year,mass_point,technique_descr[iii],use_QCD_Pt_strs[jjj] ))
-					if usMask: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file,use_QCD_Pt, True, use_1b_bin_maps, createDummyChannel,run_from_eos, debug)   ### run with masked bins
-					else: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file, use_QCD_Pt, False, use_1b_bin_maps ,createDummyChannel,run_from_eos,debug)	### run without masked bins
+					if usMask: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file,use_QCD_Pt, True, use_1b_bin_maps, createDummyChannel,run_from_eos, runCorrected, debug)   ### run with masked bins
+					else: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file, use_QCD_Pt, False, use_1b_bin_maps ,createDummyChannel,run_from_eos, runCorrected, debug)	### run without masked bins
 
 					# write out the "effective" bin maps = bin maps that are actually being used, to binMaps/ 
 

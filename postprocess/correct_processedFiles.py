@@ -4,6 +4,7 @@ from math import sqrt
 import ast
 import random
 from array import array
+import argparse
 
 from combine_hists import combine_hists
 from return_BR_SF.return_BR_SF import return_BR_SF
@@ -27,10 +28,19 @@ n_colors = 5
 stops  = array('d', [0.0, 0.25, 0.5, 0.75, 1.0])  # positions along palette
 red	= array('d', [0.0, 0.0, 1.0, 1.0, 0.5])
 green  = array('d', [0.0, 0.0, 1.0, 0.0, 0.0])
-blue   = array('d', [1.0, 1.0, 1.0, 0.0, 0.0])
+blue	= array('d', [1.0, 1.0, 1.0, 0.0, 0.0])
 
 ROOT.TColor.CreateGradientColorTable(n_colors, stops, red, green, blue, 255)
 ROOT.gStyle.SetNumberContours(255)
+
+samples_dict =  {"TTbar":["TTJetsMCHT800to1200", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf"],
+				 "ST":["ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC", 
+				 "ST_tW-antiTop_inclMC","ST_tW-top_inclMC"],
+				 "TTTo":["TTToHadronicMC","TTToSemiLeptonicMC","TTToLeptonicMC"],
+				 "WJets":["WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500","WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf"],
+				 "QCDPT": ["QCDMC_Pt_170to300","QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000",
+						"QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200","QCDMC_Pt_3200toInf"],
+				 "QCDHT": ["QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf"] }
 
 
 
@@ -48,7 +58,7 @@ def find_nearest_nonzero_bins(hist_var, hist_nom, i, j, n=4):
 	for radius in range(1, nx + ny):
 		for dx in range(-radius, radius + 1):
 			for dy in range(-radius, radius + 1):
-				if abs(dx) + abs(dy) != radius:   # only the "Manhattan shell"
+				if abs(dx) + abs(dy) != radius:	# only the "Manhattan shell"
 					continue
 				bx = i + dx
 				by = j + dy
@@ -87,7 +97,7 @@ def get_QCDPT_var_hist(  region, year, uncert, var, technique_str, QCDPT_hist_no
 
 	sample_list = ["QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf"]
 
-	file_paths = { sample_type: "{}{}_{}_processed.root".format(infile_path,sample_type, year) for sample_type in sample_list   }
+	file_paths = { sample_type: "{}{}_{}_processed.root".format(infile_path,sample_type, year) for sample_type in sample_list	}
 	hist_weights = { sample_type: BR_SFs[sample_type.replace("-","_")][year] for sample_type in sample_list }
  
 	hist_name_var = "%s_%s/h_MSJ_mass_vs_MdSJ_%s"%( uncert,var, region)
@@ -155,8 +165,8 @@ def extrapolate_var(QCDPT_hist_nom, QCDPT_hist_var,  max_neighbors=5):
 	nbinsX = QCDPT_hist_nom.GetNbinsX()
 	nbinsY = QCDPT_hist_nom.GetNbinsY()
 
-	up_excl   = 0.60
-	down_excl = -0.60
+	up_excl	= 0.60
+	down_excl = -0.40
 
 	#print("inside extrapolate var")
 	for ix in range(1, nbinsX+1):
@@ -201,7 +211,7 @@ def extrapolate_var(QCDPT_hist_nom, QCDPT_hist_var,  max_neighbors=5):
 					QCDPT_hist_var.SetBinContent(ix, iy, new_val)
 
 	return QCDPT_hist_var
-def regularize_hist(var, var_nom, threshold=0.5):
+def regularize_hist(var, h_nom, BR_type, hist_name_var, hist_name_nom, year, threshold=0.3, frac_min=-0.6, frac_max=0.6):
 	"""
 	Regularize a TH2 histogram variation ("up" or "down") against its nominal.
 
@@ -209,19 +219,58 @@ def regularize_hist(var, var_nom, threshold=0.5):
 	----------
 	var : TH2
 		The varied histogram (up or down).
-	var_nom : TH2
+	h_nom : TH2
 		The nominal histogram.
 	threshold : float
 		Maximum allowed difference between bin fractional variation
 		and average neighbor fractional variation.
+	frac_min, frac_max : float
+		Allowed range for fractional variations when averaging neighbors.
 
 	Returns
 	-------
 	new_hist : TH2
-		The regularized histogram.
+		The regularized histogram (no negative bins).
 	"""
+
+
+	### for this specific background type and systematic, get the full, combined variation + nom hist. Then use this for regularization
+
+
+
+
+
+	### idea: if stat uncertainty in bin us under some amount, take average of nearest 6-8 bins
+
+
+
+	max_neighbors = 4   ## values to add up to get estimate of variation
+
 	new_hist = var.Clone(var.GetName())
 	nx, ny = new_hist.GetNbinsX(), new_hist.GetNbinsY()
+
+	samples_to_use = samples_dict[BR_type]
+
+	file_paths	= { sample_type: "{}{}_{}_processed.root".format(infile_path,sample_type, year) for sample_type in samples_to_use	}
+	hist_weights = { sample_type: BR_SFs[sample_type.replace("-","_")][year] for sample_type in samples_to_use }
+
+	h_nom_combined = combine_hists(
+		samples_to_use,
+		file_paths,
+		hist_name_nom,
+		hist_weights=hist_weights,
+		hist_label = hist_name_nom + "_" + year
+	)
+
+	h_var_combined = combine_hists(
+		samples_to_use,
+		file_paths,
+		hist_name_var,
+		hist_weights=hist_weights,
+		hist_label = hist_name_nom + "_" + year
+	)
+
+
 
 	# 8-connected neighbors (includes diagonals)
 	neighbor_offsets = [
@@ -231,45 +280,85 @@ def regularize_hist(var, var_nom, threshold=0.5):
 
 	for i in range(1, nx+1):
 		for j in range(1, ny+1):
-			nom = var_nom.GetBinContent(i, j)
-
-			if var.GetBinContent(i, j) < 1e-10:
-				var.SetBinContent(i, j, 0)
-			if nom < 1e-10:  # skip empty bins completely
+			nom = h_nom.GetBinContent(i, j)
+			if nom < 1e-10:
 				continue
 
 			var_val = var.GetBinContent(i, j)
 			frac_var = (var_val - nom) / nom
 
+			# collect valid neighbors
+
+			"""
 			neighbors = []
 			for dx, dy in neighbor_offsets:
 				ii, jj = i + dx, j + dy
-				if ii < 1 or ii > nx or jj < 1 or jj > ny:
+				if not (1 <= ii <= nx and 1 <= jj <= ny):
 					continue
-				nom_nb = var_nom.GetBinContent(ii, jj)
+				nom_nb = h_nom_combined.GetBinContent(ii, jj)
 				if nom_nb < 1e-10:
 					continue
-				var_nb = var.GetBinContent(ii, jj)
-				neighbors.append((var_nb - nom_nb) / nom_nb)
+				var_nb = h_var_combined.GetBinContent(ii, jj)
+				frac_nb = (var_nb - nom_nb) / nom_nb
+				if frac_min <= frac_nb <= frac_max:
+					neighbors.append(frac_nb)"""
+			
+			neighbors = []
+
+			# search outward until enough filled neighbors
+			radius = 1
+			while len(neighbors) < max_neighbors and radius < max(nx, ny):
+				for dx in range(-radius, radius+1):
+					for dy in range(-radius, radius+1):
+						if dx == 0 and dy == 0:
+							continue
+						ix, iy = i+dx, j+dy
+						if 1 <= ix <= nx and 1 <= iy <= ny:
+							neighbor_nom =  h_nom_combined.GetBinContent(ix, iy)
+							neighbor_updown = h_var_combined.GetBinContent(ix, iy)
+							#print("For bin (%s, %s), the var value is %s, the nom is %s."%(ix, iy, neighbor_updown, neighbor_nom))
+							if neighbor_nom > 0:
+								if abs(neighbor_updown - neighbor_nom) > 1e-9:
+									neigh_var =  neighbor_updown / neighbor_nom if neighbor_nom > 0 else 0
+									if neigh_var != 0 and ( (neigh_var - 1.0) < frac_max and (neigh_var - 1.0) > frac_min):
+										neighbors.append(1.0-neigh_var)
+				radius += 1
 
 			if not neighbors:
+				print("ERROR: FOUND NO NEIGHBORS FOR BIN (%s, %s)"%(i,j))
 				continue
 
-			avg_frac = sum(neighbors) / len(neighbors)
+			avg_frac = sum(neighbors) / len(neighbors[:])
 
-			if abs(frac_var - avg_frac) > threshold and nom > 0:
-
-				#print("Fixing bin %s/%s for %s"%(i,j, var.GetName()))
-
+			if abs(frac_var - avg_frac) > threshold:
+				
+				# clamp to avoid negatives
+				#avg_frac = max(frac_min, avg_frac)
 				new_val = nom * (1 + avg_frac)
+				if new_val < 0:
+					new_val = 0.0
+
+				#print("for bin (%s,%s), changed value var %s to average of nearby bin vars %s:"%(i,j,frac_var, avg_frac))
 				new_hist.SetBinContent(i, j, new_val)
+
+			elif var_val < 1e-10 and nom > 0:   # if the variation is 0 with nonzero nom, use neighbor values regardless
+
+				new_value = max(0,nom* (1+avg_frac))
+				print("Case of zero variation value: %s, nonzero nominal value %s. Changing value to %s."%(var_val,nom, new_value))
+				new_hist.SetBinContent(i, j, new_value)
+
+
+			var_val = new_hist.GetBinContent(i, j)/h_nom.GetBinContent(i,j) 
+			#print("The final value for (%s, %s) is %s."%(i,j,var_val))
+			if ((var_val  > 2.0 ) or (var_val < 0.5) ):
+				print("There is still a large variation in bin (%s,%s) for %s/%s: ------  %s / %s = %s -------,  avg. neighbor yield is %s."%(i,j,hist_name_var, year, new_hist.GetBinContent(i, j), h_nom.GetBinContent(i,j),  var_val, avg_frac))
 
 	new_hist.SetDirectory(0)
 	return new_hist
 
 
 
-def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique_str, use_QCD_Pt=False, debug = False):
+def fix_uncerts(sample,	all_uncerts,	uncerts_to_fix,year, regions, technique_str, use_QCD_Pt=False, debug = False):
 	ROOT.TH1.AddDirectory(False)
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
@@ -313,9 +402,10 @@ def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique
 
 
 
-	if "QCD" in sample:   BR_type = "QCD" 
-	elif "TTTo" in sample: BR_type = "TTbar"
-	elif "TTJets" in sample: BR_type = "TTJets"
+	if "QCD_Pt" in sample:	BR_type = "QCDPT"
+	elif "QCD"  in sample:  BR_type = "QCDHT"
+	elif "TTTo" in sample: BR_type = "TTTo"
+	elif "TTJets" in sample: BR_type = "TTbar"
 	elif "WJets" in sample: BR_type = "WJets"
 	elif "ST_" in sample: BR_type = "ST"
 	elif "data" in sample: BR_type = "data_obs"
@@ -324,7 +414,7 @@ def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique
 		return
 
 
-	################ TO CHANGE
+	################ 
 	infile_name  = infile_path  + "%s_%s_processed.root"%(sample, year,)
 	outfile_name = outfile_path + "%s_%s_processed.root"%(sample, year,)
 	################
@@ -342,14 +432,15 @@ def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique
 		### things to skip
 		if _uncert == "topPt" and BR_type not in [ "TTTo", "TTJets"] : continue
 		if _uncert != "nom" and BR_type == "data_obs": continue
-		if (BR_type == "sig" or BR_type == "WJets" or BR_type == "TTTo"   ) and "stat" in _uncert: continue
+		if (BR_type == "sig" or BR_type == "WJets" or BR_type == "TTTo"	) and "stat" in _uncert: continue
 		
+
 		uncert = _uncert
 
-		out_dir_up_name   = uncert + "_up"
+		out_dir_up_name	= uncert + "_up"
 		out_dir_down_name = uncert + "_down"
 
-		out_dir_up   = outfile.Get(out_dir_up_name)
+		out_dir_up	= outfile.Get(out_dir_up_name)
 		out_dir_down = outfile.Get(out_dir_down_name)
 
 		if not out_dir_up:
@@ -362,13 +453,14 @@ def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique
 			if debug: print("-----running %s/%s/%s/%s"%(sample, region, uncert,year))
 
 			# define histogram to correct
-			hist_name_up   = "%s_up/h_MSJ_mass_vs_MdSJ_%s"%(uncert, region)
+			hist_name_up	= "%s_up/h_MSJ_mass_vs_MdSJ_%s"%(uncert, region)
 			hist_name_nom = "nom/h_MSJ_mass_vs_MdSJ_%s"%( region)
 			hist_name_down = "%s_down/h_MSJ_mass_vs_MdSJ_%s"%(uncert, region)
 			
 			if debug: print("Getting hist %s from file %s."%(hist_name_up,infile_name))
 			if debug: print("Getting hist %s from file %s."%(hist_name_nom,infile_name))
 			if debug: print("Getting hist %s from file %s."%(hist_name_down,infile_name))
+
 
 			old_hist_up = infile.Get(hist_name_up)
 			old_hist_up.SetDirectory(0)
@@ -380,7 +472,7 @@ def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique
 			if debug: print('uncert is %s, is it in  ["scale", "fact","renorm", "pdf"]?: %s.'%(uncert, uncert in ["scale", "fact","renorm", "pdf"]))
 
 			if "QCDMC_Pt" in sample and uncert in ["scale", "fact","renorm", "pdf"]: old_hist_up = get_QCDPT_var_hist( region, year, uncert, "up", technique_str, old_hist_nom)
-			new_hist_up   	= old_hist_up.Clone()
+			new_hist_up		= old_hist_up.Clone()
 
 			if uncert != "topPt":
 				old_hist_down = infile.Get(hist_name_down)
@@ -391,29 +483,29 @@ def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique
 			if uncert in uncerts_to_fix and "topPt" not in uncert:  # topPt should never make it in here
 				if debug: print("FIXING UNCERTAINTIES.")
 
-				new_hist_up = regularize_hist(new_hist_up, old_hist_nom, threshold=0.5)
-				new_hist_down = regularize_hist(new_hist_down, old_hist_nom, threshold=0.5)
+				new_hist_up = regularize_hist(new_hist_up, old_hist_nom, BR_type, hist_name_up,hist_name_nom,year, threshold=0.3)
+				new_hist_down = regularize_hist(new_hist_down, old_hist_nom, BR_type, hist_name_down,hist_name_nom, year, threshold=0.3)
 
 				###############################
 				##### Make Symmetric Vars #####
 				###############################
 				for iii in range(1,new_hist_up.GetNbinsX()+1):
 					for jjj in range(1,new_hist_down.GetNbinsY()+1 ):
-						yield_up   = old_hist_up.GetBinContent(iii,jjj)
+						yield_up	= new_hist_up.GetBinContent(iii,jjj)
 						yield_nom  = old_hist_nom.GetBinContent(iii,jjj)
-						yield_down = old_hist_down.GetBinContent(iii,jjj)
+						yield_down = new_hist_down.GetBinContent(iii,jjj)
 
 						if yield_nom < 1e-10: continue # don't bother if there are no counts
 
 						distance_up = abs(yield_up-yield_nom)
-						sign_up	 = distance_up/(yield_up-yield_nom) if abs(yield_up-yield_up) > 1e-10 else -1
+						sign_up	 = distance_up/(yield_up-yield_nom) if abs(yield_up-yield_nom) > 1e-10 else 1
 
 						distance_down = abs(yield_down-yield_nom)
 						sign_down	 = distance_down/(yield_down-yield_nom) if abs(yield_down-yield_nom) > 1e-10 else -1
 
 						# check if variations are very different
 
-						frac_var_up   = distance_up  /yield_nom
+						frac_var_up	= distance_up  /yield_nom
 						frac_var_down = distance_down/yield_nom
 
 						if frac_var_up < 1e-10 and frac_var_down > 1e-10: frac_var_up = frac_var_down
@@ -432,8 +524,23 @@ def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique
 								frac_var_up = (frac_var_up + frac_var_down)/2.0
 								frac_var_down = frac_var_up
 
-						new_yield_up = yield_nom * (1 + sign_up*frac_var_up)
-						new_yield_down = yield_nom * (1 - sign_up*frac_var_down)
+						if ((1 + sign_up*frac_var_up) > 1.50 ) or ( ((1 + sign_up*frac_var_up)) < 0.5 ) :
+							print( "Problem with (%s, %s) of up uncert = %s for sample %s, region = %s, year %s: %s "%(iii,jjj, uncert, sample, region, year, 1 + sign_up*frac_var_up))
+							print("-------- the original var value / nom value (before regularization) were %s / %s = %s, after regularization were %s / %s = %s."%(old_hist_up.GetBinContent(iii,jjj),
+							old_hist_nom.GetBinContent(iii,jjj), old_hist_up.GetBinContent(iii,jjj)/old_hist_nom.GetBinContent(iii,jjj),
+							yield_up, yield_nom, yield_up/yield_nom
+							 ))
+							print("New frac_var_up = %s, frac_var_down = %s"%(frac_var_up,frac_var_down))
+
+						if ((1 - sign_up*frac_var_up) > 1.50 ) or ( ((1 - sign_up*frac_var_up)) < 0.5 ) :
+							print( "Problem with (%s, %s) of down uncert = %s for sample %s, region = %s, year %s: %s "%(iii,jjj, uncert, sample, region, year, 1 - sign_up*frac_var_down))
+							print("-------- the original var value / nom value (before regularization) were %s / %s = %s, after regularization were %s / %s = %s."%(old_hist_down.GetBinContent(iii,jjj),
+							old_hist_nom.GetBinContent(iii,jjj), old_hist_down.GetBinContent(iii,jjj)/old_hist_nom.GetBinContent(iii,jjj),
+							yield_down, yield_nom, yield_down/yield_nom
+							 ))
+							print("New frac_var_up = %s, frac_var_down = %s"%(frac_var_up,frac_var_down))
+						new_yield_up = max(0,yield_nom * (1 + sign_up*frac_var_up))
+						new_yield_down = max(0,yield_nom * (1 - sign_up*frac_var_down))
 
 						new_hist_up.SetBinContent(iii,jjj, new_yield_up)
 						new_hist_down.SetBinContent(iii,jjj, new_yield_down)
@@ -449,7 +556,7 @@ def fix_uncerts(sample,   all_uncerts,   uncerts_to_fix,year, regions, technique
 
 			if uncert_count == 0: # write the nom hist, only do this once
 				
-				out_dir_nom   = outfile.Get("nom")
+				out_dir_nom	= outfile.Get("nom")
 				if not out_dir_nom:
 					out_dir_nom = outfile.mkdir("nom")
 				out_dir_nom.cd()
@@ -500,11 +607,11 @@ def draw_uncerts(all_uncerts, sample, year, regions, technique_str="", use_QCD_P
 	for region in regions:
 		for uncert in systematics_to_draw:
 			h_nom_name  = "nom/h_MSJ_mass_vs_MdSJ_%s" % region
-			h_up_name   = "%s_up/h_MSJ_mass_vs_MdSJ_%s" % (uncert, region)
+			h_up_name	= "%s_up/h_MSJ_mass_vs_MdSJ_%s" % (uncert, region)
 			h_down_name = "%s_down/h_MSJ_mass_vs_MdSJ_%s" % (uncert, region)
 
 			h_nom  = infile.Get(h_nom_name)
-			h_up   = infile.Get(h_up_name)
+			h_up	= infile.Get(h_up_name)
 			h_down = infile.Get(h_down_name)
 			if not h_nom or not h_up or not h_down:
 				if uncert != "topPt" and "data" not in sample: print("Skipping %s/%s: missing histograms" % (region, uncert))
@@ -578,7 +685,7 @@ def draw_uncerts(all_uncerts, sample, year, regions, technique_str="", use_QCD_P
 		t.SetNDC()
 		t.SetTextSize(0.025)
 		x_offset = 0.2
-		y_start = 0.85
+		y_start = 0.90
 		t.DrawText(x_offset, y_start, "Sample: %s" % sample)
 		t.DrawText(x_offset, y_start-0.03, "Year: %s" % year)
 		t.DrawText(x_offset, y_start-0.06, "Region: %s" % region)
@@ -615,7 +722,7 @@ def draw_uncerts(all_uncerts, sample, year, regions, technique_str="", use_QCD_P
 		t2.SetNDC()
 		t2.SetTextSize(0.025)
 		x_offset = 0.2
-		y_start = 0.85
+		y_start = 0.90
 		t2.DrawText(x_offset, y_start, "Sample: %s" % sample)
 		t2.DrawText(x_offset, y_start-0.03, "Year: %s" % year)
 		t2.DrawText(x_offset, y_start-0.06, "Region: %s" % region)
@@ -638,12 +745,13 @@ def draw_uncerts(all_uncerts, sample, year, regions, technique_str="", use_QCD_P
 def draw_uncerts_combined_BR(all_uncerts, year, regions, technique_str="", use_QCD_Pt=False, debug=False):
 	import math
 
-	samples = ["TTJetsMCHT800to1200", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf",
+	samples = ["QCDMC_Pt_170to300",
+				"QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000",
+				"QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200","QCDMC_Pt_3200toInf",
+				"TTJetsMCHT800to1200", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf",
 				"ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC",
 					 "ST_tW-antiTop_inclMC","ST_tW-top_inclMC", "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  
-					 "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf","QCDMC_Pt_170to300",
-					  "QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000",
-						"QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200","QCDMC_Pt_3200toInf"] # all process types 
+					 "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",] # all process types 
 
 
 
@@ -672,11 +780,11 @@ def draw_uncerts_combined_BR(all_uncerts, year, regions, technique_str="", use_Q
 	for region in regions:
 		for uncert in systematics_to_draw:
 
-			file_paths   = { sample_type: "{}{}_{}_processed.root".format(outfile_path,sample_type, year) for sample_type in samples   }
+			file_paths	= { sample_type: "{}{}_{}_processed.root".format(outfile_path,sample_type, year) for sample_type in samples	}
 			hist_weights = { sample_type: BR_SFs[sample_type.replace("-","_")][year] for sample_type in samples }
 
 			h_nom_name  = "nom/h_MSJ_mass_vs_MdSJ_%s" % region
-			h_up_name   = "%s_up/h_MSJ_mass_vs_MdSJ_%s" % (uncert, region)
+			h_up_name	= "%s_up/h_MSJ_mass_vs_MdSJ_%s" % (uncert, region)
 			h_down_name = "%s_down/h_MSJ_mass_vs_MdSJ_%s" % (uncert, region)
 
 			if uncert == "topPt": continue
@@ -775,7 +883,7 @@ def draw_uncerts_combined_BR(all_uncerts, year, regions, technique_str="", use_Q
 		t.SetNDC()
 		t.SetTextSize(0.025)
 		x_offset = 0.2
-		y_start = 0.85
+		y_start = 0.90
 		t.DrawText(x_offset, y_start-0.03, "Year: %s" % year)
 		t.DrawText(x_offset, y_start-0.06, "Region: %s" % region)
 		t.DrawText(x_offset, y_start-0.09, "Systematic: %s" % uncert)
@@ -813,7 +921,7 @@ def draw_uncerts_combined_BR(all_uncerts, year, regions, technique_str="", use_Q
 		t2.SetNDC()
 		t2.SetTextSize(0.025)
 		x_offset = 0.2
-		y_start = 0.85
+		y_start = 0.90
 		t2.DrawText(x_offset, y_start-0.03, "Year: %s" % year)
 		t2.DrawText(x_offset, y_start-0.06, "Region: %s" % region)
 		t2.DrawText(x_offset, y_start-0.09, "Systematic: %s" % uncert)
@@ -831,15 +939,36 @@ def draw_uncerts_combined_BR(all_uncerts, year, regions, technique_str="", use_Q
 
 if __name__=="__main__":
 	
-	debug = True
+	debug = False
 
-	all_uncerts = [ "scale", "pdf", "fact", "renorm",   "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring"]  ## systematic namings for cards   "btagSF", 
+
+
+
+	parser = argparse.ArgumentParser(
+		description="Corrects 2D QCDPT distributions by smoothing all uncerts and extrapolating the scale, fact, renorm, and pdf uncerts from QCDHT."
+	)
+
+	# By default combineScaleAndXS=True, so we make a flag that disables it
+	parser.add_argument(
+		"--skipPlots",
+		dest="skipPlots",
+		action="store_true",
+		help="Skip making plots and pdfs for faster running.",
+	)
+	# set defaults explicitly
+	parser.set_defaults(
+		skipPlots=False,
+	)
+
+	args = parser.parse_args()
+
+	all_uncerts = [ "scale", "pdf", "fact", "renorm",	"bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring"]  ## systematic namings for cards	"btagSF", 
 	
 	uncerts_to_fix =  ["bTagSF_med", "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr", 
 	 "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", 
 	  "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", 
 	  "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",
-		"JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "L1Prefiring"]  ## systematic namings for cards   "btagSF",  ,   "bTagSF_bc_T",	  "bTagSF_light_T",	   "bTagSF_bc_M",	   "bTagSF_light_M", 
+		"JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "L1Prefiring"]  ## systematic namings for cards	"btagSF",  ,	"bTagSF_bc_T",	  "bTagSF_light_T",		"bTagSF_bc_M",		"bTagSF_light_M", 
 
 
 	# skip "nom" here, but just write it for the first interation of uncertainties 
@@ -867,7 +996,7 @@ if __name__=="__main__":
 	if debug:
 		years = ["2015"]
 
-		all_uncerts = [ "scale", "pdf", "fact", "renorm", "JEC_Absolute"]  ## systematic namings for cards   "btagSF", 
+		all_uncerts = [ "scale", "pdf", "fact", "renorm", "JEC_Absolute"]  ## systematic namings for cards	"btagSF", 
 		samples = [ "QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","QCDMC_Pt_170to300",
 		  "QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000",
 			"QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200","QCDMC_Pt_3200toInf"] 
@@ -879,25 +1008,27 @@ if __name__=="__main__":
 	for jjj,use_QCD_Pt in enumerate(use_QCD_Pt_opts):
 		for technique_str in technique_strs:
 			for year in years:
-				samples = ["QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT800to1200",
+				samples = ["QCDMC_Pt_170to300",
+				"QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000",
+				"QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200","QCDMC_Pt_3200toInf",
+				"QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT800to1200",
 				"TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC",
 					 "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC",
 					 "ST_tW-antiTop_inclMC","ST_tW-top_inclMC", "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  
-					 "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf","ZZ_MC", "WW_MC","QCDMC_Pt_170to300",
-					  "QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000",
-						"QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200","QCDMC_Pt_3200toInf"] # all process types 
+					 "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf","ZZ_MC", "WW_MC"] # all process types 
 
 
-				if year == "2015":   samples.extend( ["dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM","dataF-HIPM"] )
+				if year == "2015":	samples.extend( ["dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM","dataF-HIPM"] )
 				elif year == "2015": samples.extend( ["dataF","dataG","dataH"] )
 				elif year == "2015": samples.extend( ["dataB","dataC","dataD","dataE"] )
 				elif year == "2015": samples.extend( ["dataA","dataB","dataC","dataD"] )
 
-				if debug: samples = [ "QCDMC_Pt_3200toInf"]   # ,"QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","QCDMC_Pt_170to300","QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000","QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200"
+				if debug: samples = [ "QCDMC_Pt_3200toInf"]	# ,"QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","QCDMC_Pt_170to300","QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000","QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200"
 
 				for sample in samples:
-					fix_uncerts( sample, all_uncerts, uncerts_to_fix, year, regions, technique_str, use_QCD_Pt, debug   )
+					fix_uncerts( sample, all_uncerts, uncerts_to_fix, year, regions, technique_str, use_QCD_Pt, debug	)
 				
+				if args.skipPlots: continue
 				draw_uncerts_combined_BR(all_uncerts, year, regions, technique_str,use_QCD_Pt, debug)
 
 				for sample in samples:

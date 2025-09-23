@@ -283,7 +283,7 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 
 
 
-def create_systematic_comparison_plot(year, mass_point,histname,systematic, year_str, technique_str,region,QCD_type ,run_corrected = False ):
+def create_systematic_comparison_plot(year, mass_point, histname, systematic, year_str, technique_str, region, QCD_type, run_corrected = False ):
 
 	if systematic == "CMS_topPt" and histname not in ["allBR", "TTbar"]: return # skip these
 	if systematic == "stat" and histname == "sig": return
@@ -313,7 +313,7 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 			break """
 
 
-	uncorrelated_systematics = [  "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
+	uncorrelated_systematics = [ "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
 
 	year_str = ""			
 	if systematic in uncorrelated_systematics:
@@ -332,12 +332,12 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 
 	print("Systematic is %s, histname is %s, year is %s, technique_str is %s"%(systematic, histname, year_str, technique_str))
 
-	if systematic in ["CMS_pdf", "CMS_renorm","CMS_fact", "CMS_scale" ]:
+	if systematic in ["CMS_pdf", "CMS_renorm","CMS_fact", "CMS_scale", "CMS_pdf_shape", "CMS_scale_shape" ]:
 		sample_str = histname
 		if histname == "sig":
 			sample_str = "sig"
-		elif systematic == "CMS_pdf" and histname in ["QCD","WJets", "TTbar"]: sample_str = "misc"
-		elif systematic == "CMS_pdf" and histname in ["TTTo"]: sample_str = "TTbar"
+		elif systematic in ["CMS_pdf", "CMS_pdf_shape"] and histname in ["QCD","WJets", "TTbar"]: sample_str = "misc"
+		elif systematic in ["CMS_pdf", "CMS_pdf_shape"] and histname in ["TTTo"]: sample_str = "TTbar"
 		systematic += "_%s"%sample_str
 
 
@@ -351,14 +351,16 @@ def create_systematic_comparison_plot(year, mass_point,histname,systematic, year
 	#print("up histogram name is %s"%histname_up)
 	#print("nom histogram name is %s"%histname_nom)
 	#print("down histogram name is %s"%histname_down)
-	#print("Running for year/mass_point/histname/systematic/technique_str/region: %s/%s/%s/%s/%s%s"%(year,mass_point,histname,systematic,technique_str,region))
+	print("Running for year/mass_point/histname/systematic/technique_str/region: %s/%s/%s/%s/%s%s"%(year,mass_point,histname,systematic,technique_str,region))
 
-	#print("Getting up histogram ", histname_up )
+
+	print("From file %s"%inputFile)
+	print("Getting up histogram ", region+"/"+histname_up )
 	up_hist = finput.Get(region+"/"+histname_up)
-	#print("Getting nom histogram ", histname_nom )
+	print("Getting nom histogram ", histname_nom )
 
 	nom_hist = finput.Get(region+"/"+histname)
-	#print("Getting down histogram ", histname_down )
+	print("Getting down histogram ", region+"/"+histname_down )
 
 	down_hist = finput.Get(region+"/"+histname_down)
 	#down_hist.Sumw2()
@@ -575,7 +577,9 @@ if __name__== "__main__":
 	###########
 	#systematics = ["btagSFbc", "jec" ,"jer","pu", "pdf","fact", "renorm" ]
 	#"nom",  
-	systematics = ["CMS_bTagSF_M" , 	"CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", "CMS_bTagSF_T",
+	#systematics = ["CMS_bTagSF_M" , 	"CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", "CMS_bTagSF_T",
+	systematics = [ "CMS_pdf_shape", "CMS_scale_shape", "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	   "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",	 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", "CMS_bTagSF_T",
+	
 	regions = ["SR","CR","AT1b","AT0b"]
 
 	histnames = ["allBR","QCD","TTbar"] ## "ST"
@@ -595,7 +599,7 @@ if __name__== "__main__":
 
 	QCD_types = ["QCDPT"]
 
-
+	correction_only_uncerts = ["CMS_pdf_shape", "CMS_scale_shape"] ## these aren't defined in the uncorrected files
 	for QCD_type in QCD_types:
 
 		#technique_strs = [""]
@@ -672,6 +676,8 @@ if __name__== "__main__":
 										print("========== WARNING: in debug mode ==========")
 										print("============================================")
 										print("============================================")"""
+
+								if systematic in correction_only_uncerts: continue
 								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
 								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region,QCD_type, False )
 								#except:

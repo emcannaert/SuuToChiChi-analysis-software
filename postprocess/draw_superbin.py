@@ -12,7 +12,7 @@ def load_superbin_indices(year,technique_str, region="SR"):    # load in the sup
 
 	index_file_home = "binMaps/"
 
-	open_file = open(index_file_home+"superbin_indices%s_%s.txt"%(technique_str,year),"r")
+	open_file = open(index_file_home+"QCDPT_superbin_indices%s_%s.txt"%(technique_str,year),"r")
 	for line in open_file:
 		columns = line.split('/')
 		if columns[0] == year and columns[1] == region:
@@ -26,7 +26,7 @@ def load_superbin_groups(year,technique_str, region="SR"):    # load in the supe
 
 	index_file_home = "superbinGroups/"
 
-	open_file = open(index_file_home+"superbin_groups%s_%s.txt"%(technique_str,year),"r")
+	open_file = open(index_file_home+"QCDPT_superbin_groups%s_%s.txt"%(technique_str,year),"r")
 	for line in open_file:
 		columns = line.split('/')
 		if columns[0] == year and columns[1] == region:
@@ -123,7 +123,7 @@ if __name__=="__main__":
 	regions = ["SR","AT1b"  ]
 	technique_strs = ["", "NN_"]
 
-
+	technique_strs = [""]
 	canvas = ROOT.TCanvas("canvas", "Canvas", 1200, 1000)
 	ROOT.gStyle.SetOptStat(0)
 	

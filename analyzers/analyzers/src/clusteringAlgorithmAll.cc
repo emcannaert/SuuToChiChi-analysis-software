@@ -428,7 +428,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             LHAPDF_VAR_LOW = 325501;
             LHAPDF_VAR_HIGH = 325600;
          }
-         else   // NOT correct for TTbar
+         else   // NOT correct for TTTo
          {
             LHAPDF_NOM = 325300;
             LHAPDF_VAR_LOW = 325301;

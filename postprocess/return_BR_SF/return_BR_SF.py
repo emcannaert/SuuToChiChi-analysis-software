@@ -1,7 +1,7 @@
 def return_BR_SF(year=None,sample=None):
 
 
-	scale_factor = 1.0
+	scale_factor = None
 	scale_factors = {
 
 	"QCDMC1000to1500":{"2015":1.578683216,"2016":1.482632755,"2017":3.126481451,"2018":4.407417122},
@@ -107,4 +107,8 @@ def return_BR_SF(year=None,sample=None):
 
 		else:
 			print("MC sample type not found: %s"%sample, " - assumed to be data.")
+
+
+		if not scale_factor: raise ValueError("ERROR: background label %s not recognized."%(sample))
+
 		return scale_factor

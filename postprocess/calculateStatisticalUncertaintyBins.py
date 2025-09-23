@@ -48,12 +48,12 @@ class combineHistBins:
 
 		#### characteristic thresholds for merging process ----- CHANGE THESE -----
 		self.max_stat_uncert 	 		= 0.175  ## maximum statistical uncertainty
-		self.distance_threshold  		= 6.0
-		self.superbin_size_threshold	= 20
+		self.distance_threshold  		= 5.0
+		self.superbin_size_threshold	= 25
 
 
 		#### characteristic thresholds for superbin group making ----- CHANGE THESE -----
-		self.superbin_size_threshold     = 25  ## any superbins with more constituent 2D bins than this get their own bin parameters automatically
+		self.superbin_size_threshold	 = 25  ## any superbins with more constituent 2D bins than this get their own bin parameters automatically
 		self.superbin_distance_threshold = 7.0 ## superbins further apart (by centroid) than this are considered incompatible
 		self.max_SBs_per_group 			 = 3   ## maximum number of superbins that can be part of a single superbin group
 
@@ -61,13 +61,13 @@ class combineHistBins:
 		if "NN" in self.technique_str: self.max_stat_uncert = 0.30  ## maximum statistical uncertainty for NN method
 		
 		self.min_unscaled_QCD_bin_counts   = 2.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
-		self.min_scaled_QCD_bin_counts   = 0.0   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
+		self.min_scaled_QCD_bin_counts   = 0.5   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
 
 
 		## options for which MCs to include
 		self.includeTTJetsMCHT800to1200 = True
 		self.includeWJets   			= True
-		self.includeTTo 				= False 
+		self.useTTTo	 				= False	## use TTTo datasets for merging process instead of TTJets
 
 		self.useQCDHT = useQCDHT
 		self.QCD_str = "QCDPT"
@@ -114,7 +114,7 @@ class combineHistBins:
 			self.max_stat_uncert = 0.30  ## maximum statistical uncertainty
 		
 		## get container that holds all histogram values
-		self.all_hist_values =  histInfo.histInfo(year,region, self.bin_min_x, self.bin_min_y, self.n_bins_x, self.n_bins_y, self.technique_str, self.includeTTJetsMCHT800to1200, self.includeWJets, self.includeTTo, self.useQCDHT,  debug, runEos, False)	#histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
+		self.all_hist_values =  histInfo.histInfo(year,region, self.bin_min_x, self.bin_min_y, self.n_bins_x, self.n_bins_y, self.technique_str, self.includeTTJetsMCHT800to1200, self.includeWJets, self.useTTTo	, self.useQCDHT,  debug, runEos, False)	#histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
 		
 		## initialize list of all superbin indices
 		self.superbin_indices = self.init_superbin_indices()	 
@@ -160,7 +160,7 @@ class combineHistBins:
 
 		superbin_groups = [ [superbin_number] for superbin_number in range(0,len(self.superbin_indices) )  ]
 
-		random.seed(12345)
+		random.seed(54321)
 		random.shuffle(superbin_groups)   ## randomize list so there isn't one area that is preferred
 
 		there_are_ungrouped_superbins = True
@@ -194,7 +194,7 @@ class combineHistBins:
 				print("The numbe of SBs in each SBG: %s"%([ len(SBG) for SBG in superbin_groups_temp  ] ))
 				print("ungrouped_superbin_numbers: %s."%(ungrouped_superbin_numbers))
 			
-			random.seed(12345)
+			random.seed(54321)
 			cand_superbin_index = random.choice(ungrouped_superbin_numbers)
 			cand_superbin_index_num = superbin_groups_temp.index( [cand_superbin_index] )	  ## the location of this ungrouped superbin in ungrouped_superbin_numbers 
 			cand_superbin_yield = self.all_hist_values.get_scaled_QCD_superbin_counts(self.superbin_indices[ cand_superbin_index ]) 
@@ -205,10 +205,10 @@ class combineHistBins:
 
 			if self.debug: print("cand_superbin_index %s has superbin neighbors %s."%(cand_superbin_index, neighbor_superbins))
 
-			neighbor_SBGs = []    ### neighbor superbin group numbers for each acceptable number of superbin group partners (1,2,3,...)
+			neighbor_SBGs = []	### neighbor superbin group numbers for each acceptable number of superbin group partners (1,2,3,...)
 
 			# remove superbins that are already in groups 
-			for SB_per_group in range(1,self.max_SBs_per_group):     # EX: [1,2,3] for SB_per_group = 3
+			for SB_per_group in range(1,self.max_SBs_per_group):	 # EX: [1,2,3] for SB_per_group = 3
 				neighbor_SBGs.append(set([]))   ## do not want one superbin group to end up multiple times
 				for neighbor_superbin_num in neighbor_superbins:
 					if self.debug: print("for cand superbin %s, one neighbor_superbin is ", neighbor_superbin_num)
@@ -237,7 +237,7 @@ class combineHistBins:
 
 						good_neighbor_SBG_yield_diff.append( sqrt(sum( [ pow( cand_superbin_yield  - self.all_hist_values.get_scaled_QCD_superbin_counts(
 							self.superbin_indices[ neighbor_SB_num ]),2) 
-							for neighbor_SB_num in superbin_groups_temp[neighbor_SBG_num]  ]    )   ) )  
+							for neighbor_SB_num in superbin_groups_temp[neighbor_SBG_num]  ]	)   ) )  
 
 					paired_lists = zip(neighbor_SBGs[SB_per_group-1], good_neighbor_SBG_yield_diff)
 					sorted_pairs = sorted(paired_lists, key=lambda x: x[1], reverse=False)
@@ -298,7 +298,7 @@ class combineHistBins:
 
 
 			if (highest_SB_group_SB_index_cand + 1) != nSuperbins:
-				raise ValueError("ERROR: highest SB group index higher than the total number of superbin indices :     %s vs %s"%(highest_SB_group_SB_index_cand, nSuperbins))
+				raise ValueError("ERROR: highest SB group index higher than the total number of superbin indices :	 %s vs %s"%(highest_SB_group_SB_index_cand, nSuperbins))
 
 			if self.debug: print("there_are_ungrouped_superbins: %s."%there_are_ungrouped_superbins) 
 
@@ -577,18 +577,31 @@ class combineHistBins:
 
 	def centroid(self,superbin_num):
 
-	    total_x = sum(x for x, y in self.superbin_indices[superbin_num])
-	    total_y = sum(y for x, y in self.superbin_indices[superbin_num])
-	    n = float(len( self.superbin_indices[superbin_num]))
-	    return (total_x / n, total_y / n)
+		total_x = sum(x for x, y in self.superbin_indices[superbin_num])
+		total_y = sum(y for x, y in self.superbin_indices[superbin_num])
+		n = float(len( self.superbin_indices[superbin_num]))
+		return (total_x / n, total_y / n)
 
 
 	def get_dist_between_SBs(self,superbin_A_num, superbin_B_num):
 
-	    cx_A, cy_A = self.centroid(superbin_A_num)
-	    cx_B, cy_B = self.centroid(superbin_B_num)
-	    return sqrt((cx_A - cx_B)**2 + (cy_A - cy_B)**2)
+		cx_A, cy_A = self.centroid(superbin_A_num)
+		cx_B, cy_B = self.centroid(superbin_B_num)
+		return sqrt((cx_A - cx_B)**2 + (cy_A - cy_B)**2)
 
+	def get_merge_score(self, superbin_A_num, superbin_B_num, lam=1.5):
+		# centroid distance
+		cx_A, cy_A = self.centroid(superbin_A_num)
+		cx_B, cy_B = self.centroid(superbin_B_num)
+		centroid_dist = sqrt((cx_A - cx_B)**2 + (cy_A - cy_B)**2)
+
+		# merged compactness: radius of gyration
+		merged_bins = self.superbin_indices[superbin_A_num] + self.superbin_indices[superbin_B_num]
+		mx = sum(i for i,j in merged_bins) / len(merged_bins)
+		my = sum(j for i,j in merged_bins) / len(merged_bins)
+		rg = sqrt(sum((i-mx)**2 + (j-my)**2 for i,j in merged_bins) / len(merged_bins))
+
+		return centroid_dist + lam * rg
 
 	def get_num_holes(self):
 		num_holes = 0
@@ -649,11 +662,11 @@ class combineHistBins:
 			to_move = []
 
 			for nearby_superbin in nearby_superbins:
-			    if (self.get_dist_between_SBs(bad_superbin, nearby_superbin) > self.distance_threshold
-			        or len(self.superbin_indices[nearby_superbin]) > self.superbin_size_threshold):
-			        to_move.append(nearby_superbin)     
-			    else:
-			        nearby_superbins_new.append(nearby_superbin)    
+				if (self.get_dist_between_SBs(bad_superbin, nearby_superbin) > self.distance_threshold
+					or len(self.superbin_indices[nearby_superbin] or self.get_merge_score(bad_superbin, nearby_superbin) > 4 ) > self.superbin_size_threshold):
+					to_move.append(nearby_superbin)	 
+				else:
+					nearby_superbins_new.append(nearby_superbin)	
 
 			nearby_superbins = nearby_superbins_new + to_move 
 
@@ -713,7 +726,7 @@ class combineHistBins:
 
 			#print("%s"%([superbin for superbin in non_empty_superbins]))
 
-			non_empty_superbin_nums  = [ self.get_superbin_number( superbin  )	    for superbin in non_empty_superbins if len(self.get_list_of_empty_neighbors( superbin)) > 0 ]   
+			non_empty_superbin_nums  = [ self.get_superbin_number( superbin  )		for superbin in non_empty_superbins if len(self.get_list_of_empty_neighbors( superbin)) > 0 ]   
 			non_empty_superbin_sizes = [ len(self.superbin_indices[ superbin_num ]) for superbin_num in non_empty_superbin_nums if len(self.get_list_of_empty_neighbors( self.superbin_indices[superbin_num][0] )) > 0]
 
 			paired_lists = zip(non_empty_superbin_nums, non_empty_superbin_sizes)
@@ -733,7 +746,7 @@ class combineHistBins:
 
 			merge_empty_num+=1"""
 		merge_empty_num = 0
-		random.seed(123456)
+		random.seed(654321)
 
 		non_empty_superbins = []
 		for iii, superbin_index in enumerate(self.superbin_indices):
@@ -910,7 +923,7 @@ class combineHistBins:
 
 if __name__=="__main__":
 
-	debug    = False
+	debug	= False
 	dryRun   = False
 	runEos 	 = True
 
@@ -958,8 +971,8 @@ if __name__=="__main__":
 			SB_index_CB_cmd = 'rm %s/%s_superbin_indices_*.txt'%( text_output_path,useQCDHT_strs[jjj])
 			SB_index_NN_cmd = 'rm %s/%s_superbin_indicesNN_*.txt'%(useQCDHT_strs[jjj],text_output_path)
 
-			SB_group_CB_cmd    = 'rm %s/%s_superbin_groups_*.txt'%(group_output_path,useQCDHT_strs[jjj])
-			SB_group_NN_cmd    = 'rm %s/%s_superbin_groupsNN_*.txt'%(group_output_path,useQCDHT_strs[jjj]) 
+			SB_group_CB_cmd	= 'rm %s/%s_superbin_groups_*.txt'%(group_output_path,useQCDHT_strs[jjj])
+			SB_group_NN_cmd	= 'rm %s/%s_superbin_groupsNN_*.txt'%(group_output_path,useQCDHT_strs[jjj]) 
 
 			SB_neighbors_CB_cmd = 'rm %s/%s_superbin_neighbor_*.txt'%(neighbor_output_path,useQCDHT_strs[jjj])
 			SB_neighbors_NN_cmd = 'rm %s/%s_superbin_neighborsNN_*.txt'%(neighbor_output_path,useQCDHT_strs[jjj])
@@ -1140,11 +1153,11 @@ if __name__=="__main__":
 
 					nSuperbins_text = ROOT.TLatex()
 					nSuperbins_text.SetNDC(True)  
-					nSuperbins_text.SetTextSize(0.03)       
-					nSuperbins_text.SetTextAlign(11)        # left-aligned, bottom
-					nSuperbins_text.SetTextFont(62)         
+					nSuperbins_text.SetTextSize(0.03)	   
+					nSuperbins_text.SetTextAlign(11)		# left-aligned, bottom
+					nSuperbins_text.SetTextFont(62)		 
 					nSuperbins_text.DrawLatex(0.15, 0.02, 
-					    "Number of superbins: %s" % (len(merged_bins)))
+						"Number of superbins: %s" % (len(merged_bins)))
 
 					for superbin_index, superbin in enumerate(merged_bins):
 
@@ -1195,11 +1208,11 @@ if __name__=="__main__":
 
 					nSuperbins_text = ROOT.TLatex()
 					nSuperbins_text.SetNDC(True)  
-					nSuperbins_text.SetTextSize(0.03)       
-					nSuperbins_text.SetTextAlign(11)        # left-aligned, bottom
-					nSuperbins_text.SetTextFont(62)         
+					nSuperbins_text.SetTextSize(0.03)	   
+					nSuperbins_text.SetTextAlign(11)		# left-aligned, bottom
+					nSuperbins_text.SetTextFont(62)		 
 					nSuperbins_text.DrawLatex(0.15, 0.02, 
-					    "Number of superbins: %s" % (len(merged_bins)))
+						"Number of superbins: %s" % (len(merged_bins)))
 
 					for superbin_index, superbin in enumerate(merged_bins):
 
@@ -1251,11 +1264,11 @@ if __name__=="__main__":
 
 					nSuperbins_text = ROOT.TLatex()
 					nSuperbins_text.SetNDC(True)  
-					nSuperbins_text.SetTextSize(0.03)       
-					nSuperbins_text.SetTextAlign(11)        # left-aligned, bottom
-					nSuperbins_text.SetTextFont(62)         
+					nSuperbins_text.SetTextSize(0.03)	   
+					nSuperbins_text.SetTextAlign(11)		# left-aligned, bottom
+					nSuperbins_text.SetTextFont(62)		 
 					nSuperbins_text.DrawLatex(0.15, 0.02, 
-					    "Number of superbins: %s" % (len(merged_bins)))
+						"Number of superbins: %s" % (len(merged_bins)))
 
 					for superbin_index, superbin in enumerate(merged_bins):
 
@@ -1304,11 +1317,11 @@ if __name__=="__main__":
 
 					nSuperbins_text = ROOT.TLatex()
 					nSuperbins_text.SetNDC(True)  
-					nSuperbins_text.SetTextSize(0.03)       
-					nSuperbins_text.SetTextAlign(11)        # left-aligned, bottom
-					nSuperbins_text.SetTextFont(62)         
+					nSuperbins_text.SetTextSize(0.03)	   
+					nSuperbins_text.SetTextAlign(11)		# left-aligned, bottom
+					nSuperbins_text.SetTextFont(62)		 
 					nSuperbins_text.DrawLatex(0.15, 0.02, 
-					    "Number of superbins: %s" % (len(merged_bins)))
+						"Number of superbins: %s" % (len(merged_bins)))
 
 					for superbin_index, superbin in enumerate(merged_bins):
 
@@ -1359,11 +1372,11 @@ if __name__=="__main__":
 
 					nSuperbins_text = ROOT.TLatex()
 					nSuperbins_text.SetNDC(True)  
-					nSuperbins_text.SetTextSize(0.03)       
-					nSuperbins_text.SetTextAlign(11)        # left-aligned, bottom
-					nSuperbins_text.SetTextFont(62)         
+					nSuperbins_text.SetTextSize(0.03)	   
+					nSuperbins_text.SetTextAlign(11)		# left-aligned, bottom
+					nSuperbins_text.SetTextFont(62)		 
 					nSuperbins_text.DrawLatex(0.15, 0.02, 
-					    "Number of superbins: %s" % (len(merged_bins)))
+						"Number of superbins: %s" % (len(merged_bins)))
 
 					for superbin_index, superbin in enumerate(merged_bins):
 

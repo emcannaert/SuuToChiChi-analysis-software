@@ -5,6 +5,8 @@ sys.path.append('../postprocess/')
 
 from write_cms_text import write_cms_text
 from return_signal_SF import return_signal_SF
+from return_BR_SF.return_BR_SF import return_BR_SF
+import numpy as np
 import math
 ## (1) make plots of (1D) superjet mass, (1D) disuperjet mass, and (2D) average superjet vs disuperjet mass for some mass points for each year
 
@@ -114,6 +116,7 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 	QCDMC1000to1500_filename = inFile_dir+ "QCDMC1000to1500"+ "_" + year + "_processed.root"
 	QCDMC1500to2000_filename = inFile_dir+"QCDMC1500to2000"+ "_" + year + "_processed.root"
 	QCDMC2000toInf_filename  = inFile_dir+"QCDMC2000toInf"+ "_" + year + "_processed.root"
+	TTJetsMCHT800to1200_filename = inFile_dir+"TTJetsMCHT800to1200"+ "_" + year + "_processed.root"
 	TTJetsMCHT1200to2500_filename = inFile_dir+"TTJetsMCHT1200to2500"+ "_" + year + "_processed.root"
 	TTJetsMCHT2500toInf_filename = inFile_dir+"TTJetsMCHT2500toInf"+ "_" + year + "_processed.root"
 	ST_t_channel_top_5f_filename = inFile_dir+"ST_t-channel-top_inclMC"+ "_" + year + "_processed.root"
@@ -130,6 +133,8 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 	ST_tW_antitop_5f_SF			= {'2015':0.2967888696,  '2016':0.2301666797,  '2017':0.2556495594,  '2018': 0.2700032391  }
 	ST_tW_top_5f_SF				= {'2015':0.2962796522,  '2016':0.2355829386,  '2017':0.2563403788,  '2018': 0.2625270613  }
 
+
+	SF_TTJetsMCHT800to1200 = {year : return_BR_SF(year,"TTJetsMCHT800to1200") for year in ["2015","2016","2017","2018"]}
 	SF_TTJetsMCHT1200to2500 = {"2015":0.002722324842,"2016":0.002255554525,"2017":0.00267594799,"2018":0.003918532089}
 	SF_TTJetsMCHT2500toInf = {"2015":0.000056798633,"2016":0.000050253843,"2017":0.00005947217,"2018":0.000084089656}	
 
@@ -141,6 +146,8 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 	QCDMC1500to2000_file = ROOT.TFile.Open(QCDMC1500to2000_filename, "READ")
 	QCDMC2000toInf_file  = ROOT.TFile.Open(QCDMC2000toInf_filename, "READ")
 
+
+	TTJetsMCHT800to1200_file  = ROOT.TFile.Open(TTJetsMCHT800to1200_filename, "READ")
 	TTJetsMCHT1200to2500_file  = ROOT.TFile.Open(TTJetsMCHT1200to2500_filename, "READ")
 	TTJetsMCHT2500toInf_file   = ROOT.TFile.Open(TTJetsMCHT2500toInf_filename, "READ")
 
@@ -153,7 +160,9 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 
 	QCDMC1000to1500_hist		  = QCDMC1000to1500_file.Get( hist_path  )
 	QCDMC1500to2000_hist		  = QCDMC1500to2000_file.Get( hist_path  )
-	QCDMC2000toInf_hist		   = QCDMC2000toInf_file.Get( hist_path  )
+	QCDMC2000toInf_hist		   	  = QCDMC2000toInf_file.Get( hist_path  )
+
+	TTJetsMCHT800to1200_hist	 = TTJetsMCHT800to1200_file.Get( hist_path  )
 	TTJetsMCHT1200to2500_hist	 = TTJetsMCHT1200to2500_file.Get( hist_path  )
 	TTJetsMCHT2500toInf_hist	  = TTJetsMCHT2500toInf_file.Get( hist_path  )
 	ST_t_channel_top_5f__hist 	  = ST_t_channel_top_5f_file.Get( hist_path  )
@@ -167,6 +176,7 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 	QCDMC1000to1500_hist.Scale(SF_1000to1500[year])
 	QCDMC1500to2000_hist.Scale(SF_1500to2000[year])
 	QCDMC2000toInf_hist.Scale(SF_2000toInf[year])
+	TTJetsMCHT800to1200_hist.Scale(SF_TTJetsMCHT800to1200[year])
 	TTJetsMCHT1200to2500_hist.Scale(SF_TTJetsMCHT1200to2500[year])
 	TTJetsMCHT2500toInf_hist.Scale(SF_TTJetsMCHT2500toInf[year])
 	ST_t_channel_top_5f__hist.Scale(ST_t_channel_top_5f_SF[year])
@@ -190,6 +200,7 @@ def make_BR_sig_superimposed( year, mass_point,tagging_type, tagging_str, hist_n
 	TTbar_combined.SetName("TTbar_combined")
 	TTbar_combined.SetTitle("Combined TTbar MC Background")
 	TTbar_combined.Add(TTJetsMCHT2500toInf_hist)
+	TTbar_combined.Add(TTJetsMCHT800to1200_hist)
 	TTbar_combined.SetFillColor(colors[0])
 
 	ST_combined = ST_t_channel_top_5f__hist.Clone()
@@ -743,32 +754,40 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	h_MSJ_mass_vs_MdSJ_SR.GetYaxis().SetTitleOffset(1.5)
 	h_MSJ_mass_vs_MdSJ_SR.Draw("colz")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.84, lumistuff_ypos=0.91, year = "", uses_data=False)
-	text.DrawLatexNDC(0.235, 0.75, Suu_mass_point_str_to_use)
-	text.DrawLatexNDC(0.235, 0.70, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.77, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.72, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.67, "Integral: %s Events"%( np.around(h_MSJ_mass_vs_MdSJ_SR.Integral(),2)))
+
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_SR%s.png"%(mass_point,year,tagging_type))
 
 	h_MSJ_mass_vs_MdSJ_CR.GetYaxis().SetTitleOffset(1.5)
 	h_MSJ_mass_vs_MdSJ_CR.Draw("colz")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.84, lumistuff_ypos=0.91, year = "", uses_data=False)
-	text.DrawLatexNDC(0.235, 0.75, Suu_mass_point_str_to_use)
-	text.DrawLatexNDC(0.235, 0.70, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.75, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.70, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.65, "Integral: %s Events"%(np.around(h_MSJ_mass_vs_MdSJ_CR.Integral(),2)))
+
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
 
 	h_MSJ_mass_vs_MdSJ_AT1b.GetYaxis().SetTitleOffset(1.5)
 	h_MSJ_mass_vs_MdSJ_AT1b.Draw("colz")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.84, lumistuff_ypos=0.91, year = "", uses_data=False)
-	text.DrawLatexNDC(0.235, 0.75, Suu_mass_point_str_to_use)
-	text.DrawLatexNDC(0.235, 0.70, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.75, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.70, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.65, "Integral: %s Events"%(np.around(h_MSJ_mass_vs_MdSJ_AT1b.Integral(),2)))
+
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_AT1b%s.png"%(mass_point,year,tagging_type))
 
 	h_MSJ_mass_vs_MdSJ_AT0b.GetYaxis().SetTitleOffset(1.5)
 	h_MSJ_mass_vs_MdSJ_AT0b.Draw("colz")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.84, lumistuff_ypos=0.91, year = "", uses_data=False)
-	text.DrawLatexNDC(0.235, 0.75, Suu_mass_point_str_to_use)
-	text.DrawLatexNDC(0.235, 0.70, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.75, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.70, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.33, 0.65, "Integral: %s Events"%(np.around(h_MSJ_mass_vs_MdSJ_AT0b.Integral(),2)))
+
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_AT0b%s.png"%(mass_point,year,tagging_type))
 
@@ -915,6 +934,9 @@ if __name__=="__main__":
 						#cutbased  NN 
 	tagging_types = [ "", "_NN"]  # "_NN"]
 	tagging_str  = ["cut-based", "NN-based"] #, "NN tagger"]
+
+
+	tagging_types = [ ""]  # "_NN"]
 
 	hist_names = ["h_SJ_mass", "h_disuperjet_mass", "h_MSJ_mass_vs_MdSJ"]
 	regions    = ["SR","CR","AT1b","AT0b"]

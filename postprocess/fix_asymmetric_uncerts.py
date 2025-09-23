@@ -9,9 +9,9 @@ import ast
 ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
 
-def load_superbin_neighbors(year, region,technique_str=""):
+def load_superbin_neighbors(year, region,technique_str="",debug=False):
 
-	print("--- LOADING SUPERBIN NEIGHBORS FOR %s/%s/%s"%(year,region,technique_str))
+	if debug: print("--- LOADING SUPERBIN NEIGHBORS FOR %s/%s/%s"%(year,region,technique_str))
 	region_to_use = "SR"
 	if region in ["AT1b", "AT0b"]: region_to_use = "AT1b"
 
@@ -95,7 +95,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 	for region in regions:
 
-		superbin_neighbors = load_superbin_neighbors(year, region, technique_str)
+		superbin_neighbors = load_superbin_neighbors(year, region, technique_str,debug)
 
 		## create a folder in the root file and CD into it
 
@@ -117,6 +117,14 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 			for uncert_to_fix_ in all_uncerts: 
 
 
+				uncert_to_fix_use = uncert_to_fix_
+				if "shape" in uncert_to_fix_:
+					uncert_to_fix_use = uncert_to_fix_[:] # will have the shape suffix
+					uncert_to_fix_ = uncert_to_fix_[:-6]
+					if debug: 
+						print("uncert_to_fix_use is %s."%(uncert_to_fix_use))
+						print("uncert_to_fix_ is %s."%uncert_to_fix_)
+
 				if debug: print("Running uncertainty %s for %s/%s."%(uncert_to_fix_,sample,region))
 				### things to skip
 				#if uncert_to_fix_ == "CMS_jec": continue # this is not set up
@@ -125,22 +133,46 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 				if (sample == "sig" or sample == "WJets" or sample == "TTTo"   )and "stat" in uncert_to_fix_: continue
 				uncert_to_fix = uncert_to_fix_
 				if uncert_to_fix in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
-					if   sample == "sig":   uncert_to_fix+= "_sig"
-					elif "TTbar" in sample and uncert_to_fix == "CMS_pdf": uncert_to_fix += "_misc"
-					elif "TTTo" in sample:  uncert_to_fix+= "_TTbar"
-					elif sample == "allBR": uncert_to_fix+= "_allBR"
-					elif uncert_to_fix == "CMS_pdf" and sample in ["QCD","WJets"]: uncert_to_fix += "_misc"     ### IF THE systematic is pdf and sample is NOT TTTo or sig, create a combined uncertainty  
-					elif sample == "QCD": uncert_to_fix+= "_QCD"
-					elif sample == "TTbar": uncert_to_fix+= "_TTbar"
-					elif sample == "WJets": uncert_to_fix+= "_WJets"
+					if   sample == "sig":   
+						uncert_to_fix+= "_sig"
+						uncert_to_fix_use+= "_sig"
+					elif "TTbar" in sample and uncert_to_fix == "CMS_pdf": 
+						uncert_to_fix += "_misc"
+						uncert_to_fix_use += "_misc"
+					elif "TTbar" in sample: 
+						uncert_to_fix+= "_TTbar" 
+						uncert_to_fix_use+="_TTbar"
+					elif "TTTo" in sample:  
+						uncert_to_fix+= "_TTbar"
+						uncert_to_fix_use +="_TTbar"
+					elif sample == "allBR": 
+						uncert_to_fix+= "_allBR"
+						uncert_to_fix_use+= "_allBR"
+					elif uncert_to_fix == "CMS_pdf" and sample in ["QCD","WJets", "TTbar"]: 
+						uncert_to_fix += "_misc"     ### IF THE systematic is pdf and sample is NOT TTTo or sig, create a combined uncertainty  
+						uncert_to_fix_use += "_misc"
+					elif sample == "QCD": 
+						uncert_to_fix+= "_QCD"
+						uncert_to_fix_use += "_QCD"
+					elif sample == "TTTo": 
+						uncert_to_fix+= "_TTbar"
+						uncert_to_fix_use += "_TTbar"
+					elif sample == "WJets": 
+						uncert_to_fix+= "_WJets"
+						uncert_to_fix_use += "_WJets"
 					elif sample == "ST": continue
+
 
 				#try: 
 				## get the histogram for this uncert/year/sample/region
 
 				if debug: print("-----running %s/%s/%s/%s"%(sample, region, uncert_to_fix,year))
 				uncert_to_fix_str = uncert_to_fix
-				if uncert_to_fix in uncorrelated_systematics: uncert_to_fix_str += year_str
+				
+				if uncert_to_fix in uncorrelated_systematics: 
+					uncert_to_fix_str += year_str
+					uncert_to_fix_use += year_str
+				if debug: print("The uncert_to_fix is %s, is this uncorrelated? %s"%(uncert_to_fix,uncert_to_fix in uncorrelated_systematics))
 				hist_name = "%s_%s"%(sample, uncert_to_fix_str)
 
 				if uncert_to_fix == "nom":
@@ -152,9 +184,16 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 					## get up hist
 					if debug: print("Looking for up histogram %s in file %s."%(folder_name+hist_name+"Up", infile_name ) )
 					hist_up = infile.Get(folder_name+hist_name+"Up")
+					
+					hist_up.SetName(sample + "_" + uncert_to_fix_use+"Up")  #### setting the name with "shape" if this is one of the normalized, shape versions
+					if debug: print("Set the name of the output up hist to %s"%(hist_up.GetName()) )
+
+					
 					## get down hist
 					if debug: print("Looking for down histogram %s in file %s."%(folder_name+hist_name+"Down",infile_name  ) )
 					hist_down = infile.Get(folder_name+hist_name+"Down")
+					hist_down.SetName(sample + "_" +uncert_to_fix_use+"Down")  #### setting the name with "shape" if this is one of the normalized, shape versions
+					if debug: print("Set the name of the output up hist to %s"%(hist_down.GetName()) )
 
 
 
@@ -173,6 +212,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 				#print("Fixing uncertainties")
 				if uncert_to_fix_ in uncerts_to_fix:
 					## loop over all bins
+
 					for iii in range(1, hist_up.GetNbinsX()+1):
 						## (1) find direction (relative to the nom) the furthest uncertainty is 
 						## (2) set the other uncertainty to be in the opposite direction
@@ -304,8 +344,6 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 	
 
 
-							"""
-							"""
 							if num_nonzero_neighbors >0:
 								avg_neighbor_superbin_up /= num_nonzero_neighbors
 								avg_neighbor_superbin_down /= num_nonzero_neighbors
@@ -686,6 +724,10 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 				if debug: print("corrected up/down hist names are %s/%s."%(hist_up_corr.GetName(), hist_down_corr.GetName() ))
 
 
+				if "shape" in uncert_to_fix_use:
+					hist_up_corr.Scale(1.0/hist_up_corr.Integral())
+					hist_down_corr.Scale(1.0/hist_down_corr.Integral())
+
 				hist_up_corr.Write();
 				hist_down_corr.Write();
 
@@ -703,7 +745,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 if __name__=="__main__":
 	
-	debug = False
+	debug 			 = False
 	include_ATxtb    = False
 	include_sideband = False
 
@@ -715,9 +757,11 @@ if __name__=="__main__":
 		toMask   		 = [True,False]
 	else:
 		toMask   		 = [False]
-	all_uncerts = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec", "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",  "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale", "stat"]  ## systematic namings for cards   "CMS_btagSF", 
-	#uncerts_to_fix = [ "CMS_jer",  "cms_jec",  "CMS_jer_eta193", "CMS_jer_193eta25","CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU", "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",  "CMS_bTagSF_M",  "CMS_bTagSF_T" ]   # name of uncertainty to fix (proper name as written in the linearized root files)
+	#all_uncerts = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec", "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",  "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale", "stat"]  ## systematic namings for cards   "CMS_btagSF", 
 	
+	all_uncerts = [ "CMS_scale_shape", "CMS_pdf_shape",   "nom",    "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	        "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+
+
 	uncerts_to_fix =  [ "CMS_jer", "CMS_jec", "CMS_bTagSF_M" ,  "CMS_bTagSF_T",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",   "CMS_bTagSF_bc_T_corr", "CMS_bTagSF_light_T_corr",  "CMS_bTagSF_bc_M_corr", "CMS_bTagSF_light_M_corr", "CMS_bTagSF_bc_T_year",  "CMS_bTagSF_light_T_year",  
 	     "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",  "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",
 	      "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year",
