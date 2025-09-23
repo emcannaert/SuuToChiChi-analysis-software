@@ -13,7 +13,7 @@ CMSSW_BASE/src/
 |-- AN_data/              # Supplementary correction, model, etc. data
 |-- postprocess/          # Post TTree-to-Histogram plotting and processing utilities for the stat analysis
 |-- package/              # Headers and src EDAnalyzer files (NTuplizer code)
-|-- data/                 # Main correction, model, etc. data
+|-- data/                 # Main JEC, b-tag, PU, etc. correction files, NN model data, etc.
 |-- templates/            # Python cmsRun and crab cfg templates
 |-- allAltCrabCfgs/       # Storage for crab cfg templates (signal cfgs in signal/ folder)
 |-- allCfgs/              # Storage for cmsRun cfg templates (signal cfgs in signal/ folder)
