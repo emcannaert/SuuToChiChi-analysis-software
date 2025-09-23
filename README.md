@@ -28,7 +28,7 @@ The analysis proceeds through the following key scripts/utilities (in execution 
 
 1. **NTuple Production**
    - `package/src/clusteringAlgorithmAll.cc`  
-     Main NTuplizer EDAnalyzer producing ROOT NTuples.
+     Main EDAnalyzer producing ROOT NTuples/TTrees.
    - `templates/createCfgTemplate.py`  
      Generates cmsRun cfg templates for the NTuplizer.
    - `templates/createAltCrabTemplate_Cfg.py`  
@@ -92,8 +92,7 @@ The analysis proceeds through the following key scripts/utilities (in execution 
 
 ## Combine Analysis
 
-The final corrected ROOT files produced by `fix_asymmetric_uncerts.py` are the inputs to the Combine framework.  
-The corresponding Combine repository is hosted here: [suutochichi_combine](https://gitlab.cern.ch/ecannaer/suutochichi_combine)
+The final corrected ROOT files produced by `fix_asymmetric_uncerts.py` are the inputs to the Combine framework. The corresponding Combine repository is hosted here: [suutochichi_combine](https://gitlab.cern.ch/ecannaer/suutochichi_combine)
 
 ---
 
