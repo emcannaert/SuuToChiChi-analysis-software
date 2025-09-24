@@ -26,27 +26,12 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    if "Suu" in sample:
       if  systematic__ == "JEC2": return 
       elif systematic__ == "JER": return 
-      #elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"]
-      #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute" ]        #all_systematics
-
-
-      ### COMMENT OUT THESE EVENTUALLY
-      #elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"]
-      #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute" ]        #all_systematics
-
-      ### AND REPLACE WITH THESE
       elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_BBEC1_year",  "JEC_Absolute_year", "JEC_RelativeSample_year", "JEC", "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteTheory"]
       elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_BBEC1" ]        #all_systematics
 
       else:        #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER" ]        #all_systematics
          print("ERROR: Suu systematic is neither JEC nor nom.")
          return
-
-   ## comment these out eventually 
-   #elif systematic__ == "JEC1": systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"]
-   #elif systematic__ == "JEC2":   systematic_ = ["JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC_AbsoluteCal","JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_Absolute", "JEC"]
-
-   # and replace with these 
    elif systematic__ == "JEC1": systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal","JEC_BBEC1_year",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR","JEC_AbsoluteTheory" ]
    elif systematic__ == "JEC2": systematic_ =   [ "JEC_Absolute_year",  "JEC_RelativeSample_year", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_BBEC1", "JEC"]
    elif systematic__ == "JER":  systematic_ =   [  "JER_eta193", "JER_193eta25", "JER"] ## we aren't using JERs for eta > 2.5, so no need for the other 4 uncertainties
@@ -109,6 +94,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    newCfg.write('from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection\n')
    """
+   Global tags:
     Data: 106X_dataRun2_v37
     MC 2016APV: 106X_mcRun2_asymptotic_v17
     MC 2016: 106X_mcRun2_asymptotic_v17
@@ -133,12 +119,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       print("Something wrong with sample and the global tag designation.")
 
    newCfg.write("process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True) )\n")
-
    newCfg.write("from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD\n")
-
-
-
-
    
    newCfg.write("################# JEC ################\n")
    ######### AK8 jets #########
@@ -165,9 +146,6 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    newCfg.write(" postfix = 'UpdatedJEC',\n")
    newCfg.write(" printWarning = False\n")
    newCfg.write(")  \n")
-
-
-
 
 
    if apply_pu_ID:
@@ -361,20 +339,10 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          else:
             newCfg.write(' doPUID = cms.bool(False),\n')
          newCfg.write('  doPDF = cms.bool(%s)\n'%doPDF)
-
          newCfg.write(")\n")
-
-         # this didn't work, so unneeded
-         #if doTopPtReweight:
-         #  newCfg.write('# top pt reweighting stuff\n')
-         #  newCfg.write('process.decaySubset.fillMode = cms.string("kME")\n')
-         #  newCfg.write('process.clusteringAnalyzerAll_%s%s.ttGenEvent = cms.InputTag("genEvt")\n'%(systematic, suffix))
-
 
 
    newCfg.write('process.source = cms.Source("PoolSource",\n')
-
-   ## this is going to be something that needs to be changed, but it would be a good amount of work
    newCfg.write('fileNames = cms.untracked.vstring("%s"\n'%datafile)
    newCfg.write(")\n")
    newCfg.write(")\n")
@@ -411,7 +379,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    #  newCfg.write("process.makeGenEvt* ")
       
    newCfg.write("process.leptonVeto * process.prefiringweight  ")
-            ########if you need to check the collections, add this to the path:  process.content
+   ########if you need to check the collections, add this to the path:  process.content
       
    for systematic in systematic_:
 
@@ -437,35 +405,8 @@ def main():
 
    years = ["2015","2016","2017","2018"]
 
-   ### uncertaintites for JEC
-   ### FlavorQCD, RelativeBal, HF, BBEC1, EC2, Absolute, BBEC1_2018, EC2_2018, Absolute_2018, HF_2018, RelativeSample_2018
-
-   #systematics = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JER_eta193", "JER_193eta25",  "JEC","JER","nom" ]
    systematics = [  "JEC1","JEC2","JER","nom" ]
 
-   # "bTagWeight",    //event weights
-   # "PUweight",
-
-
-
-
-
-     # last one here is for the fully nominal cfg file
-   """datafile = [ 
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi3TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi2TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu8TeV_chi1TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi3TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi2TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu7TeV_chi1TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi2TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1p5TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu6TeV_chi1TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi2TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1p5TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu5TeV_chi1TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1p5TeV_UL-ALLDECAY.root",
-      "file:/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/signalData/UL_files_ALLDECAYS/Suu4TeV_chi1TeV_UL-ALLDECAY.root"]"""
 
    datafiles = { '2015': { 'QCDMC1000to1500': '/store/mc/RunIISummer20UL16MiniAODAPVv2/QCD_HT1000to1500_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/3EE54B65-C726-1B48-BF34-8F36D2D2DE71.root',
                           'QCDMC1500to2000': '/store/mc/RunIISummer20UL16MiniAODAPVv2/QCD_HT1500to2000_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/0F22A9F0-4875-F645-9A1B-3D801E983B18.root',
@@ -817,10 +758,8 @@ def main():
                data_sample_key = sample[:-5]
             elif "MC" in sample:
                JEC_sample = "BR"
-
             try:
                makeACfg(sample, year, systematic, datafiles[year][data_sample_key], jec_file_AK4[year][JEC_sample],jec_file_AK8[year][JEC_sample], systematics)  # change input to write systematic type
-            # will fail for some signal mass points that aren't in the dict, run them generically
             except:
                if "Suu" in sample:
                   makeACfg(sample, year, systematic, datafiles[year]["signal"], jec_file_AK4[year]["signal"],jec_file_AK8[year]["signal"], systematics)  # change input to write systematic type

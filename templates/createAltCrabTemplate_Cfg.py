@@ -76,8 +76,6 @@ jec_file_AK8 = { '2015': { 'BR': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_
 
 
 
-
-
 def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 	if do_sideband: print("WARNING: RUNNING SIDEBAND REGION.")
@@ -127,11 +125,6 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 		else:
 			newCfg.write("config.Data.unitsPerJob = 1\n")
 
-	#if systematic == "JEC" and "Suu" not in sample:
-	#	newCfg.write("config.JobType.maxMemoryMB = 4000 \n")
-
-	#else:
-
 	if "Suu" in sample:
 		if "JEC" in systematic : newCfg.write("config.JobType.maxMemoryMB = 5000 \n")
 		else:	newCfg.write("config.JobType.maxMemoryMB = 4000 \n")
@@ -162,10 +155,6 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
 
-	#if "data" not in sample:
-	#	newCfg.write("config.JobType.maxJobRuntimeMin = 420 \n")
-
-			#elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
 	#### lumimask info: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2#2018
 	if "data" in sample:
 		if year=="2015":
@@ -180,10 +169,6 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	newCfg.write("config.Data.outputDatasetTag = 'clustAlg_%s_%s_%s'\n"%(sample,year,systematic))
 	newCfg.write("config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_%s%s'\n"%(dateTimeString,sideband_str))
 	newCfg.write("config.Site.storageSite = 'T3_US_FNALLPC'\n")
-
-	#newCfg.write("config.Site.blacklist = ['T2_US_MIT']\n")
-
-
 
 	## include all aux files
 	inputFiles = []
@@ -258,7 +243,6 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 
 
 def main():
-
 
 
 	lastCrabSubmission = open("lastCrabSubmission.txt", "a")
@@ -575,7 +559,6 @@ def main():
 					except:
 						print("Failed for sample/year/systematic: %s/%s/%s."%(sample,year,systematic))
 				elif "data" in sample and (systematic == "JER" or "JEC" in systematic): continue  # do NOT need to do these. Tons of extra calculations
-				#elif "TTTo" in  sample and (systematic == "JER" or "JEC" in systematic): continue  # don't run these right now
 				else:
 					makeAltCrabCfg(sample, year, systematic, datasets[year][sample],dateTimeString)   
 	print("Created %i cfg files."%num_files_created)
