@@ -4,7 +4,7 @@ Class to create an instance of a tensorflow session that loads the trained BEST 
 Code mostly lifted from Devin Taylor's DeepDiTau project: https://github.com/dntaylor/DevTools-Ntuplizer/blob/106X/src/DeepCache.cc
 */
 
-#include "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/CacheHandler.h"
+#include "CacheHandler.h"
 
 //Handle all the loading in the constructor
 CacheHandler::CacheHandler(const edm::FileInPath GraphPath){ //, const std::string GraphPath){

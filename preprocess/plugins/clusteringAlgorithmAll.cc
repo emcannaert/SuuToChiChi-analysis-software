@@ -249,7 +249,7 @@ private:
    int nAK8diJets = 2;
 
    double PU_eventWeight_up, PU_eventWeight_nom, PU_eventWeight_down;
-   double deepJet_wp_loose, deepJet_wp_med, deepjet_wp_tight;
+   double deepJet_wp_med, deepjet_wp_tight; // deepJet_wp_loose
 
    double AK8_JER[25], AK8_JEC[25];
    double weightFacUp,weightFacDn,weightRenUp,weightRenUpxweightFacUp,weightRenUpxweightFacDn;
@@ -329,8 +329,8 @@ private:
    Correction::Ref cset_corrector_light; 
 
    // Jet correction uncertainty classes
-   JetCorrectionUncertainty *jecUnc_AK4;
-   JetCorrectionUncertainty *jecUnc_AK8;
+   //JetCorrectionUncertainty *jecUnc_AK4;
+   //JetCorrectionUncertainty *jecUnc_AK8;
    std::unique_ptr<CorrectionSet> PUjson;
    Correction::Ref PUjson_year;
 
@@ -1199,9 +1199,9 @@ std::string clusteringAnalyzerAll::returnJECFile(std::string year, std::string s
 
    }  
    // Summer19UL16APV_V9_MC/RegroupedV2_Summer19UL16APV_V9_MC_UncertaintySources_AK4PFchs.txt
-   if (data_type.find("data") != std::string::npos ) return  ("data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str();
+   if (data_type.find("data") != std::string::npos ) return  ("SuuToChiChi_analysis_software/data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str();
 
-   else { return  ("data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str(); }
+   else { return  ("SuuToChiChi_analysis_software/data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str  + ".txt" ).c_str(); }
 
 }
 

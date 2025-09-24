@@ -65,13 +65,13 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       newCfg = open("../%s/clusteringAnalyzer_%s_%s_%s_cfg.py"%(output_dir,sample,year,systematic__),"w")
    if year == "2015" or year == "2016":
       jet_veto_map_name = "h2hot_ul16_plus_hbm2_hbp12_qie11"
-      jet_veto_map_file = "data/jetVetoMaps/hotjets-UL16.root"
+      jet_veto_map_file = "SuuToChiChi_analysis_software/data/jetVetoMaps/hotjets-UL16.root"
    elif year == "2017":
       jet_veto_map_name = "h2hot_ul17_plus_hep17_plus_hbpw89"
-      jet_veto_map_file = "data/jetVetoMaps/hotjets-UL17_v2.root"
+      jet_veto_map_file = "SuuToChiChi_analysis_software/data/jetVetoMaps/hotjets-UL17_v2.root"
    elif year == "2018":
       jet_veto_map_name = "h2hot_ul18_plus_hem1516_and_hbp2m1"
-      jet_veto_map_file = "data/jetVetoMaps/hotjets-UL18.root"
+      jet_veto_map_file = "SuuToChiChi_analysis_software/data/jetVetoMaps/hotjets-UL18.root"
 
    newCfg.write("from PhysicsTools.PatAlgos.tools.helpers  import getPatAlgosToolsTask\n")
    newCfg.write("import FWCore.ParameterSet.Config as cms\n")
@@ -259,17 +259,17 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
             newCfg.write('  packedGenParticles = cms.InputTag("packedGenParticles"),\n')
 
 
-         newCfg.write(" BESTname = cms.string('BESTGraph'),  BESTpath = cms.FileInPath('data/BEST_models/constantgraph_combine.pb'),\n")   #OLD constantgraph_%s.pb
+         newCfg.write(" BESTname = cms.string('BESTGraph'),  BESTpath = cms.FileInPath('SuuToChiChi_analysis_software/data/BEST_models/constantgraph_combine.pb'),\n")   #OLD constantgraph_%s.pb
 
-         newCfg.write(" BESTscale = cms.FileInPath('data/BESTScalerParameters_all_mass_combine.txt'),\n") # OLD: BESTScalerParameters_all_mass_%s.txt
+         newCfg.write(" BESTscale = cms.FileInPath('SuuToChiChi_analysis_software/data/BESTScalerParameters_all_mass_combine.txt'),\n") # OLD: BESTScalerParameters_all_mass_%s.txt
          if year == "2015":
-            newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2016preVFP_UL/puWeights.json'),\n")
+            newCfg.write(" PUfile_path = cms.FileInPath('SuuToChiChi_analysis_software/data/POG/LUM/2016preVFP_UL/puWeights.json'),\n")
          elif year == "2016":
-            newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2016postVFP_UL/puWeights.json'),\n")
+            newCfg.write(" PUfile_path = cms.FileInPath('SuuToChiChi_analysis_software/data/POG/LUM/2016postVFP_UL/puWeights.json'),\n")
          elif year == "2017":
-            newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2017_UL/puWeights.json'),\n")
+            newCfg.write(" PUfile_path = cms.FileInPath('SuuToChiChi_analysis_software/data/POG/LUM/2017_UL/puWeights.json'),\n")
          elif year == "2018":
-            newCfg.write(" PUfile_path = cms.FileInPath('data/POG/LUM/2018_UL/puWeights.json'),\n")
+            newCfg.write(" PUfile_path = cms.FileInPath('SuuToChiChi_analysis_software/data/POG/LUM/2018_UL/puWeights.json'),\n")
 
          
          #should this be for data and MC?
@@ -299,15 +299,15 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
                return
 
 
-            newCfg.write(" bTagEff_path = cms.FileInPath('data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root'),\n"%(bTagSF_sample,year))
+            newCfg.write(" bTagEff_path = cms.FileInPath('SuuToChiChi_analysis_software/data/btaggingEffMaps/btag_efficiency_map_%s_combined_%s.root'),\n"%(bTagSF_sample,year))
             if year == "2015":
-               newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
+               newCfg.write(" bTagSF_path = cms.FileInPath('SuuToChiChi_analysis_software/data/bTaggingSFs/2016preVFP_UL/btagging.json'),\n")
             elif year == "2016":
-               newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2016postVFP_UL/btagging.json'),\n")
+               newCfg.write(" bTagSF_path = cms.FileInPath('SuuToChiChi_analysis_software/data/bTaggingSFs/2016postVFP_UL/btagging.json'),\n")
             elif year == "2017":
-               newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2017_UL/btagging.json'),\n")
+               newCfg.write(" bTagSF_path = cms.FileInPath('SuuToChiChi_analysis_software/data/bTaggingSFs/2017_UL/btagging.json'),\n")
             elif year == "2018":
-               newCfg.write(" bTagSF_path = cms.FileInPath('data/bTaggingSFs/2018_UL/btagging.json'),\n")
+               newCfg.write(" bTagSF_path = cms.FileInPath('SuuToChiChi_analysis_software/data/bTaggingSFs/2018_UL/btagging.json'),\n")
 
          newCfg.write(' JECUncert_AK8_path = cms.FileInPath("%s"),\n'%jec_file_AK8)
          newCfg.write(' JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
@@ -631,67 +631,67 @@ def main():
 
    }
 }
-   jec_file_AK4 = { '2015': { 'BR': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
-                  "signal": 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
-               'dataB-ver1': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
-               'dataB-ver2': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
-               'dataC-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
-               'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
-               'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt',
-               'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt'
+   jec_file_AK4 = { '2015': { 'BR': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+                  "signal": 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt',
+               'dataB-ver1': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+               'dataB-ver2': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+               'dataC-HIPM': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+               'dataD-HIPM': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK4PFchs.txt',
+               'dataE-HIPM': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt',
+               'dataF-HIPM': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK4PFchs.txt'
                },
-      '2016': { 'BR': 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
-               'dataF': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
-               'dataG': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
-               'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
-               "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt'},
+      '2016': { 'BR': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt',
+               'dataF': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+               'dataG': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+               'dataH': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK4PFchs.txt',
+               "signal": 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt'},
 
-      '2017': {  'BR':  'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
-               "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
-               'dataB': 'data/JEC/2017_UL/data/Summer19UL17_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
-               'dataC': 'data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
-               'dataD': 'data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
-               'dataE': 'data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK4PFchs.txt',
-               'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK4PFchs.txt',
+      '2017': {  'BR':  'SuuToChiChi_analysis_software/data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+               "signal": 'SuuToChiChi_analysis_software/data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt',
+               'dataB': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
+               'dataC': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
+               'dataD': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
+               'dataE': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK4PFchs.txt',
+               'dataF': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK4PFchs.txt',
             
              },
-      '2018': { 'BR': 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
-               'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK4PFPuppi.txt',
-               'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
-               'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
-               'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
-               "signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+      '2018': { 'BR': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
+               'dataA': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK4PFPuppi.txt',
+               'dataB': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK4PFchs.txt',
+               'dataC': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK4PFchs.txt',
+               'dataD': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK4PFchs.txt',
+               "signal": 'SuuToChiChi_analysis_software/data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt',
                }}
 
-   jec_file_AK8 = { '2015': { 'BR': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
-               "signal":   'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
-               'dataB-ver1': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-               'dataB-ver2': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-               'dataC-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-               'dataD-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-               'dataE-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-               'dataF-HIPM': 'data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',},
+   jec_file_AK8 = { '2015': { 'BR': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+               "signal":   'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_MC_Uncertainty_AK8PFPuppi.txt',
+               'dataB-ver1': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+               'dataB-ver2': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+               'dataC-HIPM': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+               'dataD-HIPM': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunBCD_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+               'dataE-HIPM': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+               'dataF-HIPM': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_preAPV/data/Summer19UL16APV_RunEF_V7_DATA_Uncertainty_AK8PFPuppi.txt',},
 
 
-            '2016': { 'BR':   'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
-               "signal": 'data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
-               'dataF': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-               'dataG': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
-               'dataH': 'data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',},
+            '2016': { 'BR':   'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+               "signal": 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/MC/Summer19UL16_V7_MC_Uncertainty_AK8PFPuppi.txt',
+               'dataF': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+               'dataG': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',
+               'dataH': 'SuuToChiChi_analysis_software/data/JEC/2016_UL_postAPV/data/Summer19UL16_RunFGH_V7_DATA_Uncertainty_AK8PFPuppi.txt',},
 
-            '2017': { 'BR':   'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
-                  "signal": 'data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
-                  'dataB': 'data/JEC/2017_UL/data/Summer19UL17_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                  'dataC': 'data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                  'dataD': 'data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                  'dataE': 'data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                  'dataF': 'data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK8PFPuppi.txt',},
-            '2018': { 'BR':   'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
-                  "signal": 'data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
-                  'dataA': 'data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                  'dataB': 'data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                  'dataC': 'data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
-                  'dataD': 'data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+            '2017': { 'BR':   'SuuToChiChi_analysis_software/data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                  "signal": 'SuuToChiChi_analysis_software/data/JEC/2017_UL/MC/Summer19UL17_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                  'dataB': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                  'dataC': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                  'dataD': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                  'dataE': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunE_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                  'dataF': 'SuuToChiChi_analysis_software/data/JEC/2017_UL/data/Summer19UL17_RunF_V5_DATA_Uncertainty_AK8PFPuppi.txt',},
+            '2018': { 'BR':   'SuuToChiChi_analysis_software/data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                  "signal": 'SuuToChiChi_analysis_software/data/JEC/2018_UL/MC/Summer19UL18_V5_MC_Uncertainty_AK8PFPuppi.txt',
+                  'dataA': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/data/Summer19UL18_RunA_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                  'dataB': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/data/Summer19UL18_RunB_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                  'dataC': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/data/Summer19UL18_RunC_V5_DATA_Uncertainty_AK8PFPuppi.txt',
+                  'dataD': 'SuuToChiChi_analysis_software/data/JEC/2018_UL/data/Summer19UL18_RunD_V5_DATA_Uncertainty_AK8PFPuppi.txt',
              }}
 
    # signal_files.pkl

@@ -381,7 +381,7 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
 		std::cout << "Total Events: " << totEventsUncut << " in " << inFileName << " for " << systematic << " "<< *systematic_suffix << std::endl;
 		std::cout << "In " << inFileName << " there were " << num_bad_btagSF<< "/" << num_bad_PUSF<< "/"<< num_bad_topPt<< "/"<< num_bad_scale<< "/"<<num_bad_pdf << "/" <<num_bad_prefiring << " bad btag/PU/topPt/scale/pdf/prefiring event weights" << std::endl; 
 		std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
-		std::cout << "For  Sample = " << dataBlock  <<  ", year = " << dataYear << ", systematic = " << systematic ", and WP = " << WP  << std::endl;
+		std::cout << "For  Sample = " << dataBlock  <<  ", year = " << dataYear << ", systematic = " << systematic << ", and WP = " << WP  << std::endl;
 		std::cout << "SR Event Breakdown " << " total/HT/nAK8 jet/heavy AK8 +dijet/1+ b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nDoubleTagged << std::endl;
 		std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 		std::cout << std::endl;
@@ -426,6 +426,9 @@ void processSelectionStudy()
 
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
+
+   dataYears = {"2017"};
+
    std::vector<std::string> systematics = { "nom", "bTagSF_med",   "JEC" }; //"PUSF",
 
    std::vector<std::string> JEC2_ucerts = {"JEC"};

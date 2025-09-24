@@ -12,7 +12,7 @@ CMSSW_BASE/src/
 |-- selectionStudier/     # Utilities for initial selection cut optimization studies
 |-- AN_data/              # Supplementary correction, model, etc. data
 |-- postprocess/          # Post TTree-to-Histogram plotting and processing utilities for the stat analysis
-|-- package/              # Headers and src EDAnalyzer files (NTuplizer code)
+|-- preprocess/           # Headers and src EDAnalyzer files (NTuplizer code)
 |-- data/                 # Main JEC, b-tag, PU, etc. correction files, NN model data, etc.
 |-- templates/            # Python cmsRun and crab cfg templates
 |-- allAltCrabCfgs/       # Storage for crab cfg templates (signal cfgs in signal/ folder)
@@ -27,7 +27,7 @@ CMSSW_BASE/src/
 The analysis proceeds through the following key scripts/utilities (in execution order):
 
 1. **NTuple Production**
-   - `package/src/clusteringAlgorithmAll.cc`  
+   - `preprocess/plugins/clusteringAlgorithmAll.cc`  
      Main EDAnalyzer producing ROOT NTuples/TTrees.
    - `templates/createCfgTemplate.py`  
      Generates cmsRun cfg templates for the NTuplizer.
@@ -107,6 +107,8 @@ cmsenv
 2. Clone this repository into `src/` and build:
 ```
 git clone https://github.com/emcannaert/SuuToChiChi-analysis-software.git
+mv SuuToChiChi-analysis-software SuuToChiChi_analysis_software
+cd SuuToChiChi_analysis_software
 scram b
 ```
 3. Follow the workflow above to produce NTuples, histograms, and final combine files.

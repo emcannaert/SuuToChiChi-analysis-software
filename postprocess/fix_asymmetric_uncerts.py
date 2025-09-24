@@ -16,7 +16,7 @@ def load_superbin_neighbors(year, region,technique_str="",debug=False):
 	if region in ["AT1b", "AT0b"]: region_to_use = "AT1b"
 
 	_superbin_indices = []
-	open_file = open("/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/postprocess/superbinNeighbors/superbin_neighbors%s_%s.txt"%(technique_str,year),"r")
+	open_file = open("superbinNeighbors/superbin_neighbors%s_%s.txt"%(technique_str,year),"r")
 	for line in open_file:
 		columns = line.split('/')
 		if columns[0] == year and columns[1] == region_to_use:

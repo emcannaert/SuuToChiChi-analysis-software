@@ -1046,14 +1046,13 @@ void rootSkimmer()
                std::cout << "Moving file " << outFileName << " to " << skimmedFiles_eos_path << std::endl;
                int delete_result = 1;
 
-               delete_result = system( ("source  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/utils/scp_file.sh " + outFileName + " " + skimmedFiles_eos_path).c_str() ) ;
+               delete_result = system( ("source  utils/scp_file.sh " + outFileName + " " + skimmedFiles_eos_path).c_str() ) ;
                if (delete_result > 0) std::cout << "ERROR: failed to run scp_file.sh to copy file to eos --- " << outFileName + " /  " + skimmedFiles_eos_path << std::endl;
-               //delete_result *= system( ("rm  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str() ) ;
-               delete_result = system( ("source /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/utils/remove_file.sh  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str()  );
+               delete_result = system( ("source utils/remove_file.sh "  + outFileName ).c_str()  );
                if (delete_result > 0)
                {
 
-                  std::cout << "ERROR: failed to remove skimmed file from local directory --- command was: " << ("source /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/remove_file.sh  /uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/" + outFileName ).c_str() << std::endl;
+                  std::cout << "ERROR: failed to remove skimmed file from local directory --- command was: " << ("source utils/remove_file.sh "  + outFileName ).c_str() << std::endl;
                   int exit_status = WEXITSTATUS(delete_result);
                   int signal_number = WTERMSIG(delete_result);
                   std::cerr << "Command exit status: " << exit_status << std::endl;
