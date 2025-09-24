@@ -9,16 +9,16 @@ It is organized as a CMSSW package under `${CMSSW_BASE}/src`.
 ## Directory Layout
 ```
 CMSSW_BASE/src/
+|-- preprocess/           # Headers and src EDAnalyzer files (NTuplizer code)
+|-- postprocess/          # Post TTree-to-Histogram plotting and processing utilities for the stat analysis
+|-- combinedROOT/         # Scripts/utilities for processing NTuples into histograms for the stat analysis
+|-- templates/            # Python cmsRun and crab cfg templates
+|-- allCfgs/              # Storage for cmsRun cfg templates (signal cfgs in signal/ folder)
+|-- data/                 # Main JEC, b-tag, PU, etc. correction files, NN model data, etc.
+|-- allAltCrabCfgs/       # Storage for crab cfg templates (signal cfgs in signal/ folder)
 |-- selectionStudier/     # Utilities for initial selection cut optimization studies
 |-- AN_data/              # Supplementary correction, model, etc. data
-|-- postprocess/          # Post TTree-to-Histogram plotting and processing utilities for the stat analysis
-|-- preprocess/           # Headers and src EDAnalyzer files (NTuplizer code)
-|-- data/                 # Main JEC, b-tag, PU, etc. correction files, NN model data, etc.
-|-- templates/            # Python cmsRun and crab cfg templates
-|-- allAltCrabCfgs/       # Storage for crab cfg templates (signal cfgs in signal/ folder)
-|-- allCfgs/              # Storage for cmsRun cfg templates (signal cfgs in signal/ folder)
-|-- btagging/             # B-tagging study utilities
-`-- combinedROOT/         # Scripts/utilities for processing NTuples into histograms for the stat analysis
+`-- btagging/             # B-tagging study utilities
 ```
 ---
 
