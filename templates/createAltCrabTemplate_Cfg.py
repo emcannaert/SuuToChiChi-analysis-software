@@ -155,23 +155,31 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
 
+	## include all aux files
+	inputFiles = []
+
 	#### lumimask info: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2#2018
 	if "data" in sample:
 		if year=="2015":
-			newCfg.write("config.Data.lumiMask = 'data/lumimasks/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'\n")
+			newCfg.write("config.Data.lumiMask = '../data/lumimasks/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'\n")
+			#inputFiles.append('data/lumimasks/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt')
 		elif year=="2016":
-			newCfg.write("config.Data.lumiMask = 'data/lumimasks/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'\n")
+			newCfg.write("config.Data.lumiMask = '../data/lumimasks/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'\n")
+			#inputFiles.append('data/lumimasks/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt')
 		elif year=="2017":
-			newCfg.write("config.Data.lumiMask = 'data/lumimasks/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt'\n")
+			newCfg.write("config.Data.lumiMask = '../data/lumimasks/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt'\n")
+			#inputFiles.append('data/lumimasks/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt')
 		elif year=="2018":
-			newCfg.write("config.Data.lumiMask = 'data/lumimasks/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'\n")
+			newCfg.write("config.Data.lumiMask = '../data/lumimasks/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'\n")
+			#inputFiles.append('data/lumimasks/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt')
 
 	newCfg.write("config.Data.outputDatasetTag = 'clustAlg_%s_%s_%s'\n"%(sample,year,systematic))
 	newCfg.write("config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_%s%s'\n"%(dateTimeString,sideband_str))
-	newCfg.write("config.Site.storageSite = 'T3_US_FNALLPC'\n")
+	#newCfg.write("config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2025106_16330'\n")
 
-	## include all aux files
-	inputFiles = []
+
+
+	newCfg.write("config.Site.storageSite = 'T3_US_FNALLPC'\n")
 
 	# jet veto map
 	if "Suu" in sample:
@@ -230,6 +238,7 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 	elif "data" in sample: sample_type = sample
 	inputFiles.append(jec_file_AK8[year][sample_type])
 	inputFiles.append(jec_file_AK4[year][sample_type])
+
 
 
 	## include files that are needed 

@@ -45,6 +45,11 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
    bool passesPFHT = false, passesPFJet = false;
 
+
+   //////////////////////////
+   /////// Get infile ///////
+   //////////////////////////
+
    const char *_inFilename = inFileName.c_str();
    const char *_outFilename = outFileName.c_str();
 
@@ -57,7 +62,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		return false;
    }
 
-
+   //////////////////////////////
+   /////// Create outfile ///////
+   //////////////////////////////
 
    TFile * outFile = TFile::Open(_outFilename,"UPDATE");
    if (!outFile || outFile->IsZombie())
@@ -70,11 +77,16 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
    for(auto systematic_suffix = systematic_suffices.begin(); systematic_suffix < systematic_suffices.end();systematic_suffix++)
    {
 
+
+     	////////////////////////////////////////
+	   /////// Create Outfile Directory ///////
+	   ////////////////////////////////////////
+
 		outFile->cd();   // return to outer directory
 		if(systematic == "nom" )
 		{
 
-         TDirectory* dir = outFile->GetDirectory(systematic.c_str());
+         TDirectory* dir = outFile->GetDirectory("nom");
          if (!dir)   dir = outFile->mkdir( "nom" );
          dir->cd();
 		}
@@ -91,7 +103,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 		if((systematic == "nom" ) || (systematic == "bTagSF_tight" ) || (systematic == "bTagSF_tight_corr") || (systematic == "bTagSF_med_corr") || (systematic == "bTagSF_med") ||  (systematic =="bTag_eventWeight_bc_T") ||  (systematic =="bTag_eventWeight_light_T") ||  (systematic =="bTag_eventWeight_bc_M") || (systematic =="bTag_eventWeight_light_M") ||	 (systematic =="bTag_eventWeight_bc_T_corr") ||  (systematic =="bTag_eventWeight_light_T_corr") ||  (systematic =="bTag_eventWeight_bc_M_corr") || (systematic =="bTag_eventWeight_light_M_corr") || (systematic =="bTag_eventWeight_bc_T_year") ||  (systematic =="bTag_eventWeight_light_T_year") ||  (systematic =="bTag_eventWeight_bc_M_year") || (systematic =="bTag_eventWeight_light_M_year")   || (systematic == "bTagSF") || (systematic == "PUSF" ) || (systematic == "L1Prefiring") || (systematic == "pdf") || (systematic == "topPt")|| (systematic == "scale") || (systematic == "renorm") || (systematic == "fact"))
 		{
-			// these systematics are characterized by event weights that are stored in the "nom" tree
+			// these systematics are characterized by Event Weights that are stored in the "nom" tree
 			tree_name = "nom";
 			systematic_use = "";
 		}
@@ -99,6 +111,11 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 		TTree *t1;
 		Int_t nentries;
+
+
+	   ////////////////////////////////
+	   /////// Get infile TTree ///////
+	   ////////////////////////////////
 
 		try
 		{  
@@ -117,7 +134,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			delete f;
 			return false;
 		}
-		std::cout << "Successfully got tree " << tree_name  + "/skimmedTree_"+ tree_name << std::endl;
+		std::cout << "For year/sample/systematic/variation " << dataYear << "/" << dataBlock << "/" <<  systematic <<"/" << * systematic_suffix << ", successfully got tree " << tree_name  + "/skimmedTree_"+ tree_name <<  " from file " << inFileName <<std::endl;
 		
 
 		//////////////////////////////////////////////////
@@ -125,7 +142,10 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		//////////////////////////////////////////////////
 
 		TH1F* h_totHT  = new TH1F("h_totHT","Total Event H_{T} (w/ L1Prefire, top p_{T} and PU weights); H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
-		TH1F* h_totHT_unscaled  = new TH1F("h_totHT_unscaled","Total Event HT (uncorrected by event weights); H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
+		TH1F* h_totHT_unscaled  = new TH1F("h_totHT_unscaled","Total Event HT (uncorrected by Event Weights); H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
+		TH1F* h_totHT_unscaled_selected  = new TH1F("h_totHT_unscaled_selected","Total Event HT (uncorrected by Event Weights) (Full Selection); H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
+		TH1F* h_totHT_unscaled_SR  = new TH1F("h_totHT_unscaled_SR","Total Event HT (uncorrected by Event Weights) (SR); H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
+		TH1F* h_totHT_scaled_selected  = new TH1F("h_totHT_scaled_selected","Total Event HT (Corrected) (Full Selection); H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
 
 		TH1F* h_nfatjets_pre  = new TH1F("h_nfatjets_pre","Number of AK8 Jets (p_{T} > 500 GeV, M_{PUPPI} > 45 GeV) per Event ;nAK8 Jets; Events",10,-0.5,9.5);
 		TH2F *h_MSJ_mass_vs_MdSJ_dijet = new TH2F("h_MSJ_mass_vs_MdSJ_dijet","Superjet mass vs diSuperjet mass (dijet technique); 4-jet mass [GeV];avg dijet mass", 22,1250., 9500, 20, 500, 3500);  /// 375 * 125
@@ -152,6 +172,16 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1F* h_nCA4_300_1b  = new TH1F("h_nCA4_300_1b","Number of Reclustered SJ CA4 jets (E > 300 GeV) in the 1b region;nJets; Events",10,-0.5,9.5);
 		TH1F* h_nCA4_300_0b  = new TH1F("h_nCA4_300_0b","Number of Reclustered SJ CA4 jets (E > 300 GeV) in the 0b region;nJets; Events",10,-0.5,9.5);
 
+		TH1F* h_nCA4_100_1b  = new TH1F("h_nCA4_100_1b","Number of Reclustered SJ CA4 jets (E > 100 GeV) in the 1b region;nJets; Events",10,-0.5,9.5);
+		TH1F* h_nCA4_100_0b  = new TH1F("h_nCA4_100_0b","Number of Reclustered SJ CA4 jets (E > 100 GeV) in the 0b region;nJets; Events",10,-0.5,9.5);
+
+		TH1F* h_nCA4_50_1b  = new TH1F("h_nCA4_50_1b","Number of Reclustered SJ CA4 jets (E > 50 GeV) in the 1b region;nJets; Events",15,-0.5,14.5);
+		TH1F* h_nCA4_50_0b  = new TH1F("h_nCA4_50_0b","Number of Reclustered SJ CA4 jets (E > 50 GeV) in the 0b region;nJets; Events",15,-0.5,14.5);
+
+		TH1F* h_nAK4_1b = new TH1F("h_nAK4_1b","Number of AK4 jets (1b region);# AK4 jets; Events",20,-0.5,19.5);
+		TH1F* h_nAK4_0b = new TH1F("h_nAK4_0b","Number of AK4 jets (0b region);# AK4 jets; Events",20,-0.5,19.5);
+
+
 
 		// failed events indices
 		// bin 0 triggers
@@ -167,7 +197,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1I* h_failed_events  = new TH1I("h_failed_events", failedEventTitle.c_str(),8,-0.5,7.5);
 
 
-		// bad event weight indices
+		// bad Event Weight indices
 		// bin 0 PU
 		// bin 1  fact
 		// bin 2 renorm
@@ -176,9 +206,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		// bin 5 btagging med 
 		// bin 6 prefiring 
 		// bin 7 full event SF
+		// bin 8 GOOD events (didn't fail anything)
+		std::string badeventWeightTitle = "Bad Event Weights (index gives weight type)  (" + dataBlock  +") "  +   + "("+  systematic+"_"+ *systematic_suffix + ")" +   + "("+ dataYear + ") ; index of failure; Events";
+		TH1I* h_bad_event_weights  = new TH1I("h_bad_event_weights", badeventWeightTitle.c_str(),9,-0.5,8.5);
+		TH1I* h_bad_event_weights_SR  = new TH1I("h_bad_event_weights_SR", (badeventWeightTitle + " (SR)").c_str(),9,-0.5,8.5);
+		TH1I* h_bad_event_weights_CR  = new TH1I("h_bad_event_weights_CR", (badeventWeightTitle + " (CR)").c_str(),9,-0.5,8.5);
+		TH1I* h_bad_event_weights_AT1b  = new TH1I("h_bad_event_weights_AT1b", (badeventWeightTitle + " (AT1b)").c_str(),9,-0.5,8.5);
+		TH1I* h_bad_event_weights_AT0b  = new TH1I("h_bad_event_weights_AT0b", (badeventWeightTitle + " (AT0b)").c_str(),9,-0.5,8.5);
 
-		std::string badeventWeightTitle = "Bad event weights (index gives weight type)  (" + dataBlock  +") "  +   + "("+  systematic+"_"+ *systematic_suffix + ")" +   + "("+ dataYear + ") ; index of failure; Events";
-		TH1I* h_bad_event_weights  = new TH1I("h_bad_event_weights", badeventWeightTitle.c_str(),8,-0.5,7.5);
 
 		///////////////////////////////////////////////////////////////////////
 		////////////////////////General Interest Vars /////////////////////////
@@ -188,8 +223,13 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1F* h_SJ_mass  = new TH1F("h_SJ_mass","SuperJet Mass (preselected) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
 		TH1F* h_disuperjet_mass  = new TH1F("h_disuperjet_mass","diSuperJet Mass (preselected) (cut-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
 
-		TH1F* h_SJ_mass_uncorrected  = new TH1F("h_SJ_mass_uncorrected","SuperJet Mass (preselected) (no event weights) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
-		TH1F* h_disuperjet_mass_uncorrected  = new TH1F("h_disuperjet_mass_uncorrected","diSuperJet Mass (preselected) (no event weights) (cut-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+		TH1F* h_SJ_mass_uncorrected  = new TH1F("h_SJ_mass_uncorrected","SuperJet Mass (preselected) (no Event Weights) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+		TH1F* h_SJ_mass_uncorrected_SR  = new TH1F("h_SJ_mass_uncorrected_SR","SuperJet Mass (SR) (no Event Weights) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+		TH1F* h_SJ_mass_noBtagWeight_SR  = new TH1F("h_SJ_mass_noBtagWeight_SR","SuperJet Mass (SR) (no b-tag Event Weights) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
+
+		TH1F* h_disuperjet_mass_uncorrected  = new TH1F("h_disuperjet_mass_uncorrected","diSuperJet Mass (preselected) (no Event Weights) (cut-based);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+
+		TH1F* h_SJ_mass_scaled_selected  = new TH1F("h_SJ_mass_scaled_selected","SuperJet Mass (Full Selection) (cut-based);Mass [GeV]; Events / 100 GeV",40,0.,5000);
 
 		TH1F* h_AK8_jet_mass_SR  = new TH1F("h_AK8_jet_mass_SR","AK8 Jet Mass (SR region);Mass [GeV]; Events / 30 5GeV",50,0.,1500);
 		TH1F* h_AK8_jet_mass_CR  = new TH1F("h_AK8_jet_mass_CR","AK8 Jet Mass (CR);Mass [GeV]; Events / 30 GeV",50,0.,1500);
@@ -203,6 +243,19 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1F* h_totHT_AT0b  = new TH1F("h_totHT_AT0b","Event H_{T} (AT0b);H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
 
 		TH1F* h_totHT_1b  = new TH1F("h_totHT_1b","Event H_{T} (1b region);H_{T} [GeV]; Events / 200 GeV",50,0.,10000);
+
+
+
+
+		TH1F* h_fourAK8JetMass  = new TH1F("h_fourAK8JetMass","Inv. Mass of Leading Four AK8 Jet Masses (Post b-jet cut);Mass [GeV]; Events / 200 GeV",50,0.,10000);
+		TH1F* h_diAK8Jet_mass  = new TH1F("h_diAK8Jet_mass","Inv. Mass of diAK8 Jet Pairs (Post b-jet cut);Mass [GeV]; Events / 100 GeV",45,0.,4500);
+		TH1F* h_diAK8Jet_mass_lead  = new TH1F("h_diAK8Jet_mass_lead","Inv. Mass of diAK8 Jet Pair One (Post b-jet cut);Mass [GeV]; Events / 100 GeV",45,0.,4500);
+		TH1F* h_diAK8Jet_mass_subl  = new TH1F("h_diAK8Jet_mass_subl","Inv. Mass of diAK8 Jet Pair Two (Post b-jet cut);Mass [GeV]; Events / 100 GeV",45,0.,4500);
+
+
+
+
+
 
 		// number of tagged superjets per SJ mass bin ----- cut-based
 		TH1F* h_SJ_mass_tagged_SJs_1b  = new TH1F("h_SJ_mass_tagged_SJs_1b","Number of Tagged SJs by Superjet mass (1b region);SJ mass [GeV]; Events / 100 GeV",50,0.,5000);
@@ -307,43 +360,188 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 		TH1I * h_numTrueInteractions= new TH1I("h_numTrueInteractions", "Number of true pileup interactions per event; PU interactions; Events",100,-0.5,99.5);
 		
-		// overall event weights
-		TH1F * h_pdf_EventWeight= new TH1F("h_pdf_EventWeight", "PDF event weight; event weight; Events",40,0.0,4.0);
-		TH1F * h_renorm_EventWeight= new TH1F("h_renorm_EventWeight", "Renorm. event weight; event weight; Events",40,0.0,2.5);
-		TH1F * h_factor_EventWeight= new TH1F("h_factor_EventWeight", "Fact. event weight; event weight; Events",40,0.0,2.5);
-		TH1F * h_scale_EventWeight= new TH1F("h_scale_EventWeight", "Scale event weight (using envelope); event weight; Events",40,0.0,2.5);
+		// overall Event Weights
+		TH1F * h_pdf_EventWeight= new TH1F("h_pdf_EventWeight", "PDF Event Weight; Event Weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight= new TH1F("h_renorm_EventWeight", "Renorm. Event Weight; Event Weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight= new TH1F("h_factor_EventWeight", "Fact. Event Weight; Event Weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight= new TH1F("h_scale_EventWeight", "Scale Event Weight (using envelope); Event Weight; Events",40,0.0,2.5);
 
 		TH1F* h_PU_eventWeight  = new TH1F("h_PU_eventWeight","Pileup Event Weights;Event Weight; Events",40,0.0,3.0);
 		TH1F* h_bTag_eventWeight_T  = new TH1F("h_bTag_eventWeight_T","b tagging Event Weights (tight WP);Event Weight; Events",100,0.0,4.0);
 		TH1F* h_bTag_eventWeight_M  = new TH1F("h_bTag_eventWeight_M","b tagging Event Weights (medium WP);Event Weight; Events",100,0.0,4.0);
 		TH1F* h_L1PrefiringWeight  = new TH1F("h_L1PrefiringWeight","L1 Prefiring Event Weights ;Event Weight; Events",40,0.0,1.5);
 	
+		TH1F* h_Full_Event_Weight_preselect  = new TH1F("h_Full_Event_Weight_preselect","Full Event Weight (= product of all used event weights) (Preselected) ;Event Weight  (SR); Events",40,0.0,2.0);
+		TH1F* h_Full_Event_Weight_fullselect  = new TH1F("h_Full_Event_Weight_fullselect","Full Event Weight (= product of all used event weights) (Full Selection) ;Event Weight  (SR); Events",40,0.0,2.0);
+
+
 		TH1F* h_JEC_uncert_AK8  = new TH1F("h_JEC_uncert_AK8","AK8 JEC Uncertainty ;JEC Uncertainty; Jets",100,0.94,1.06);
-		TH1F* h_JEC_uncert_AK4  = new TH1F("h_JEC_uncert_AK4","AK8 JEC Uncertainty ;JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4  = new TH1F("h_JEC_uncert_AK4","AK4 JEC Uncertainty ;JEC Uncertainty; Jets",100,0.94,1.06);
 		TH1F* h_AK8_JER  = new TH1F("h_AK8_JER","AK8 JER Correction Factor ;Correction Factor; Jets",100,0.94,1.06);
 
-		// event weights by region
+		// TGraphs and TProfiles of Event Weights vs HT, pt, and SJ mass
+
+
+
+
+		// TGraphs and TProfiles of Event Weights vs HT, pt, and SJ mass
+		TH2F *h_pdf_eventWeight_vs_HT = new TH2F("h_pdf_eventWeight_vs_HT","PDF Event Weights (preselected) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0, 2.5);  
+		TH2F *h_pdf_eventWeight_vs_SJ_mass = new TH2F("h_pdf_eventWeight_vs_SJ_mass","PDF Event Weights (preselected) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0, 2.5);  
+		TProfile *prof_pdf_eventWeight_vs_HT 	  = new TProfile("prof_pdf_eventWeight_vs_HT",      "Average PDF Weight (preselected) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_pdf_eventWeight_vs_SJ_mass  = new TProfile("prof_pdf_eventWeight_vs_SJ_mass", "Average PDF Weight (preselected) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+		
+		TH2F *h_scale_eventWeight_vs_HT = new TH2F("h_scale_eventWeight_vs_HT","Scale Event Weights (preselected) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0.5, 2.0); 
+		TH2F *h_scale_eventWeight_vs_SJ_mass = new TH2F("h_scale_eventWeight_vs_SJ_mass","Scale Event Weights (preselected) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0.5, 2.0);  
+		TProfile *prof_scale_eventWeight_vs_HT 	  = new TProfile("prof_scale_eventWeight_vs_HT",      "Average Scale Weight (preselected) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_scale_eventWeight_vs_SJ_mass  = new TProfile("prof_scale_eventWeight_vs_SJ_mass", "Average Scale Weight (preselected) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+
+		TH2F *h_PU_eventWeight_vs_HT = new TH2F("h_PU_eventWeight_vs_HT","Pileup Event Weights (preselected) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0.0, 2.5); 
+		TH2F *h_PU_eventWeight_vs_SJ_mass = new TH2F("h_PU_eventWeight_vs_SJ_mass","Pileup Event Weights (preselected) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0.0, 2.5);  
+		TProfile *prof_PU_eventWeight_vs_HT 	  = new TProfile("prof_PU_eventWeight_vs_HT",      "Average Pileup Weight (preselected) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_PU_eventWeight_vs_SJ_mass  = new TProfile("prof_PU_eventWeight_vs_SJ_mass", "Average Pileup Weight (preselected) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+
+		TH2F *h_bTag_eventWeight_T_vs_HT = new TH2F("h_bTag_eventWeight_T_vs_HT","b-tagging Event Weights (preselected) (Tight WP) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0.0, 4.0); 
+		TH2F *h_bTag_eventWeight_T_vs_SJ_mass = new TH2F("h_bTag_eventWeight_T_vs_SJ_mass","b-tagging Event Weights (preselected) (Tight WP) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0.0, 4.0);  
+		TProfile *prof_bTag_eventWeight_T_vs_HT 	  = new TProfile("prof_bTag_eventWeight_T_vs_HT",      "Average b-tag Weight (Tight WP) (preselected) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_bTag_eventWeight_T_vs_SJ_mass  = new TProfile("prof_bTag_eventWeight_T_vs_SJ_mass", "Average b-tag Weight (Tight WP) (preselected) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+
+		TH2F *h_bTag_eventWeight_M_vs_HT = new TH2F("h_bTag_eventWeight_M_vs_HT","b-tagging Event Weights (preselected) (Med. WP) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0.0, 4.0); 
+		TH2F *h_bTag_eventWeight_M_vs_SJ_mass = new TH2F("h_bTag_eventWeight_M_vs_SJ_mass","b-tagging Event Weights (preselected) (Med. WP) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0.0, 4.0);  
+		TProfile *prof_bTag_eventWeight_M_vs_HT 	  = new TProfile("prof_bTag_eventWeight_M_vs_HT",      "Average b-tag Weight (Med. WP) (preselected) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_bTag_eventWeight_M_vs_SJ_mass  = new TProfile("prof_bTag_eventWeight_M_vs_SJ_mass", "Average b-tag Weight (Med. WP) (preselected) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+
+		TH2F *h_JEC_AK8_vs_pt = new TH2F("h_JEC_AK8_vs_pt","AK8 Jet Energy Corrections (JEC) (preselected events) as a function of AK8 Jet p_{T}; AK8 Jet p_{T} [GeV]; JEC Factor", 30,0., 5000, 50, 0.93, 1.07); 
+		TProfile *prof_JEC_AK8_vs_pt 	  = new TProfile("prof_JEC_AK8_vs_pt",      "Average AK8 JEC Weight (preselected events) vs AK8 Jet p_{T}; AK Jet p_{T} [GeV]; JEC Factor", 50, 0, 5000);
+
+		TH2F *h_JEC_AK4_vs_pt = new TH2F("h_JEC_AK4_vs_pt","AK4 Jet Energy Corrections (JEC) (preselected events) as a function of AK4 Jet p_{T}; AK4 Jet p_{T} [GeV]; JEC Factor", 30,0., 5000, 50, 0.93, 1.07); 
+		TProfile *prof_JEC_AK4_vs_pt 	  = new TProfile("prof_JEC_AK4_vs_pt",      "Average AK4 JEC Weight (preselected events) vs AK4 Jet p_{T}; AK Jet p_{T} [GeV]; JEC Factor", 50, 0, 5000);
+		
+		TH2F *h_JER_AK8_vs_pt = new TH2F("h_JER_AK8_vs_pt","AK8 Jet Energy Resolution Corrections (JER) (preselected events) as a function of AK8 Jet p_{T}; AK8 Jet p_{T} [GeV]; JER Factor", 30,0., 5000, 50, 0.7, 1.3); 
+		TProfile *prof_JER_AK8_vs_pt 	  = new TProfile("prof_JER_AK8_vs_pt",      "Average AK8 JER Weight (preselected events) vs AK8 Jet p_{T}; AK Jet p_{T} [GeV]; JER Factor", 50, 0, 5000);
+
+
+		// Event Weights by region
 		// SR
-		TH1F * h_pdf_EventWeight_SR= new TH1F("h_pdf_EventWeight_SR", "PDF event weight (SR) ; event weight; Events",40,0.0,4.0);
-		TH1F * h_renorm_EventWeight_SR= new TH1F("h_renorm_EventWeight_SR", "Renorm. event weight  (SR); event weight; Events",40,0.0,2.5);
-		TH1F * h_factor_EventWeight_SR= new TH1F("h_factor_EventWeight_SR", "Fact. event weight  (SR); event weight; Events",40,0.0,2.5);
-		TH1F * h_scale_EventWeight_SR= new TH1F("h_scale_EventWeight_SR", "Scale event weight (using envelope) (SR); event weight; Events",40,0.0,2.5);
+		TH1F * h_pdf_EventWeight_SR= new TH1F("h_pdf_EventWeight_SR", "PDF Event Weights (SR) ; Event Weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight_SR= new TH1F("h_renorm_EventWeight_SR", "Renorm. Event Weight  (SR); Event Weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight_SR= new TH1F("h_factor_EventWeight_SR", "Fact. Event Weight  (SR); Event Weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight_SR= new TH1F("h_scale_EventWeight_SR", "Scale Event Weight (using envelope) (SR); Event Weight; Events",40,0.0,2.5);
 
 		TH1F* h_PU_eventWeight_SR  = new TH1F("h_PU_eventWeight_SR","Pileup Event Weights  (SR);Event Weight; Events",40,0.0,3.0);
 		TH1F* h_bTag_eventWeight_T_SR  = new TH1F("h_bTag_eventWeight_T_SR","b tagging Event Weights (tight WP)  (SR);Event Weight; Events",100,0.0,4.0);
 		TH1F* h_bTag_eventWeight_M_SR  = new TH1F("h_bTag_eventWeight_M_SR","b tagging Event Weights (medium WP)  (SR);Event Weight; Events",100,0.0,4.0);
-		TH1F* h_L1PrefiringWeight_SR  = new TH1F("h_L1PrefiringWeight_SR","L1 Prefiring Event Weights ;Event Weight  (SR); Events",40,0.0,1.5);
-		TH1F* h_topPtWeight_SR  = new TH1F("h_topPtWeight_SR","Top p_{T} Event Weights ;Event Weight  (SR); Events",40,0.0,2.0);
+		TH1F* h_L1PrefiringWeight_SR  = new TH1F("h_L1PrefiringWeight_SR","L1 Prefiring Event Weights (SR);Event Weight  (SR); Events",40,0.0,1.5);
+		TH1F* h_topPtWeight_SR  = new TH1F("h_topPtWeight_SR","Top p_{T} Event Weights (SR);Event Weight  (SR); Events",40,0.0,2.0);
+
+		TH1F* h_Full_Event_Weight_SR  = new TH1F("h_Full_Event_Weight_SR","Full Event Weight (= product of all used event weights) (SR) ;Event Weight  (SR); Events",40,0.0,2.0);
+
 
 		TH1F* h_JEC_uncert_AK8_SR  = new TH1F("h_JEC_uncert_AK8_SR","AK8 JEC Uncertainty (SR);JEC Uncertainty; Jets",100,0.94,1.06);
-		TH1F* h_JEC_uncert_AK4_SR  = new TH1F("h_JEC_uncert_AK4_SR","AK8 JEC Uncertainty (SR);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4_SR  = new TH1F("h_JEC_uncert_AK4_SR","AK4 JEC Uncertainty (SR);JEC Uncertainty; Jets",100,0.94,1.06);
 		TH1F* h_AK8_JER_SR  = new TH1F("h_AK8_JER_SR","AK8 JER Correction Factor (SR);Correction Factor; Jets",100,0.94,1.06);
 
+		// SR TGraphs and TProfiles
+		TGraph* g_pdf_eventWeight_vs_HT_SR  = new TGraph();
+		g_pdf_eventWeight_vs_HT_SR->SetTitle("PDF Event Weights (SR) as a function of event H_{T}; H_{T} [GeV]; Event Weight");
+		g_pdf_eventWeight_vs_HT_SR->SetName("g_pdf_eventWeight_vs_HT_SR");
+
+		TGraph* g_pdf_eventWeight_vs_SJ_mass_SR  = new TGraph();
+		g_pdf_eventWeight_vs_SJ_mass_SR->SetTitle("PDF Event Weights (SR) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight");
+		g_pdf_eventWeight_vs_SJ_mass_SR->SetName("g_pdf_eventWeight_vs_SJ_mass_SR");
+
+		TProfile *prof_pdf_eventWeight_vs_HT_SR 	  = new TProfile("prof_pdf_eventWeight_vs_HT_SR",      "Average PDF Weight (SR) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_pdf_eventWeight_vs_SJ_mass_SR  = new TProfile("prof_pdf_eventWeight_vs_SJ_mass_SR", "Average PDF Weight (SR) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+		
+		TGraph* g_scale_eventWeight_vs_HT_SR  = new TGraph();
+		g_scale_eventWeight_vs_HT_SR->SetTitle("Scale Event Weights (SR) as a function of event H_{T}; H_{T} [GeV]; Event Weight");
+		g_scale_eventWeight_vs_HT_SR->SetName("g_scale_eventWeight_vs_HT_SR");
+
+		TGraph* g_scale_eventWeight_vs_SJ_mass_SR  = new TGraph();
+		g_scale_eventWeight_vs_SJ_mass_SR->SetTitle("Scale Event Weights (SR) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight");
+		g_scale_eventWeight_vs_SJ_mass_SR->SetName("g_scale_eventWeight_vs_SJ_mass_SR");
+
+		TProfile *prof_scale_eventWeight_vs_HT_SR 	  = new TProfile("prof_scale_eventWeight_vs_HT_SR",      "Average Scale Weight (SR) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_scale_eventWeight_vs_SJ_mass_SR  = new TProfile("prof_scale_eventWeight_vs_SJ_mass_SR", "Average Scale Weight (SR) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+
+		TGraph* g_PU_eventWeight_vs_HT_SR  = new TGraph();
+		g_PU_eventWeight_vs_HT_SR->SetTitle("Pileup Event Weights (SR) as a function of event H_{T}; H_{T} [GeV]; Event Weight");
+		g_PU_eventWeight_vs_HT_SR->SetName("g_PU_eventWeight_vs_HT_SR");
+
+		TGraph* g_PU_eventWeight_vs_SJ_mass_SR  = new TGraph();
+		g_PU_eventWeight_vs_SJ_mass_SR->SetTitle("Pileup Event Weights (SR) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight");
+		g_PU_eventWeight_vs_SJ_mass_SR->SetName("g_PU_eventWeight_vs_SJ_mass_SR");
+
+		TProfile *prof_PU_eventWeight_vs_HT_SR 	  = new TProfile("prof_PU_eventWeight_vs_HT_SR",      "Average Pileup Weight (SR) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_PU_eventWeight_vs_SJ_mass_SR  = new TProfile("prof_PU_eventWeight_vs_SJ_mass_SR", "Average Pileup Weight (SR) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+
+		TGraph* g_bTag_eventWeight_T_vs_HT_SR  = new TGraph();
+		g_bTag_eventWeight_T_vs_HT_SR->SetTitle("b-tag Event weight (Tight WP) (SR) as a function of event H_{T}; H_{T} [GeV]; b-tag Event Weight");
+		g_bTag_eventWeight_T_vs_HT_SR->SetName("g_bTag_eventWeight_T_vs_HT_SR");
+
+		TGraph* g_bTag_eventWeight_T_vs_SJ_mass_SR  = new TGraph();
+		g_bTag_eventWeight_T_vs_SJ_mass_SR->SetTitle("b-tagging Event weight (Tight WP) (SR) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight");
+		g_bTag_eventWeight_T_vs_SJ_mass_SR->SetName("g_bTag_eventWeight_T_vs_SJ_mass_SR");
+
+		TProfile *prof_bTag_eventWeight_T_vs_HT_SR 	  = new TProfile("prof_bTag_eventWeight_T_vs_HT_SR",      "Average b-tag Weight (Tight WP) (SR) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_bTag_eventWeight_T_vs_SJ_mass_SR  = new TProfile("prof_bTag_eventWeight_T_vs_SJ_mass_SR", "Average b-tag Weight (Tight WP) (SR) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+
+		TGraph* g_bTag_eventWeight_M_vs_HT_SR  = new TGraph();
+		g_bTag_eventWeight_M_vs_HT_SR->SetTitle("b-tag Event weight (Med. WP) (SR) as a function of event H_{T}; H_{T} [GeV]; b-tag Event Weight");
+		g_bTag_eventWeight_M_vs_HT_SR->SetName("g_bTag_eventWeight_M_vs_HT_SR");
+
+		TGraph* g_bTag_eventWeight_M_vs_SJ_mass_SR  = new TGraph();
+		g_bTag_eventWeight_M_vs_SJ_mass_SR->SetTitle("b-tagging Event weight (Med. WP) (SR) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight");
+		g_bTag_eventWeight_M_vs_SJ_mass_SR->SetName("g_bTag_eventWeight_M_vs_SJ_mass_SR");
+
+		TProfile *prof_bTag_eventWeight_M_vs_HT_SR 	  = new TProfile("prof_bTag_eventWeight_M_vs_HT_SR",      "Average b-tag Weight (Med. WP) (SR) vs Event H_{T};Event H_{T} [GeV]; Event Weight", 30, 1000, 10000);
+		TProfile *prof_bTag_eventWeight_M_vs_SJ_mass_SR  = new TProfile("prof_bTag_eventWeight_M_vs_SJ_mass_SR", "Average b-tag Weight (Med. WP) (SR) vs Event SJ Mass; SJ Mass [GeV]; Event Weight", 25, 0, 5000);
+
+		TGraph* g_JEC_AK8_vs_pt_SR = new TGraph();
+		g_JEC_AK8_vs_pt_SR->SetTitle("AK8 Jet Energy Corrections (JEC) (SR) as a function of AK8 Jet p_{T}; AK8 Jet p_{T} [GeV]; JEC Factor");
+		g_JEC_AK8_vs_pt_SR->SetName("g_JEC_AK8_vs_pt_SR");
+
+		TProfile *prof_JEC_AK8_vs_pt_SR 	  = new TProfile("prof_JEC_AK8_vs_pt_SR",      "Average AK8 JEC Factor (SR) vs AK8 Jet p_{T}; AK Jet p_{T} [GeV]; JEC Factor", 50, 0, 5000);
+
+		TGraph* g_JEC_AK4_vs_pt_SR = new TGraph();
+		g_JEC_AK4_vs_pt_SR->SetTitle("AK4 Jet Energy Corrections (JEC) (SR) as a function of AK4 Jet p_{T}; AK4 Jet p_{T} [GeV]; JEC Factor");
+		g_JEC_AK4_vs_pt_SR->SetName("g_JEC_AK4_vs_pt_SR");
+
+		TProfile *prof_JEC_AK4_vs_pt_SR 	  = new TProfile("prof_JEC_AK4_vs_pt_SR",      "Average AK4 JEC Factor (SR) vs AK4 Jet p_{T}; AK Jet p_{T} [GeV]; JEC Factor", 50, 0, 5000);
+
+		TGraph* g_JER_AK8_vs_pt_SR = new TGraph();
+		g_JER_AK8_vs_pt_SR->SetTitle("AK8 Jet Energy Resolution Corrections (JER) (SR) as a function of AK8 Jet p_{T}; AK8 Jet p_{T} [GeV]; JER Factor");
+		g_JER_AK8_vs_pt_SR->SetName("g_JER_AK8_vs_pt_SR");
+
+		TProfile *prof_JER_AK8_vs_pt_SR 	  = new TProfile("prof_JER_AK8_vs_pt_SR",      "Average AK8 JER Factor (SR) vs AK8 Jet p_{T}; AK Jet p_{T} [GeV]; JER Factor", 50, 0, 5000);
+
+
+		// TGraphs and TProfiles of Event Weights vs HT, pt, and SJ mass
+		TH2F *h_pdf_eventWeight_vs_HT_SR = new TH2F("h_pdf_eventWeight_vs_HT_SR","PDF Event Weights (SR) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0, 2.5);  
+		TH2F *h_pdf_eventWeight_vs_SJ_mass_SR = new TH2F("h_pdf_eventWeight_vs_SJ_mass_SR","PDF Event Weights (SR) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0, 2.5);  
+
+		TH2F *h_scale_eventWeight_vs_HT_SR = new TH2F("h_scale_eventWeight_vs_HT_SR","Scale Event Weights (SR) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0.5, 2.0); 
+		TH2F *h_scale_eventWeight_vs_SJ_mass_SR = new TH2F("h_scale_eventWeight_vs_SJ_mass_SR","Scale Event Weights (SR) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0.5, 2.0);  
+
+		TH2F *h_PU_eventWeight_vs_HT_SR = new TH2F("h_PU_eventWeight_vs_HT_SR","Pileup Event Weights (SR) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0.0, 2.5); 
+		TH2F *h_PU_eventWeight_vs_SJ_mass_SR = new TH2F("h_PU_eventWeight_vs_SJ_mass_SR","Pileup Event Weights (SR) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0.0, 2.5);  
+
+		TH2F *h_bTag_eventWeight_T_vs_HT_SR = new TH2F("h_bTag_eventWeight_T_vs_HT_SR","b-tagging Event Weights (SR) (Tight WP) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0.0, 4.0); 
+		TH2F *h_bTag_eventWeight_T_vs_SJ_mass_SR = new TH2F("h_bTag_eventWeight_T_vs_SJ_mass_SR","b-tagging Event Weights (SR) (Tight WP) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0.0, 4.0);  
+		
+		TH2F *h_bTag_eventWeight_M_vs_HT_SR = new TH2F("h_bTag_eventWeight_M_vs_HT_SR","b-tagging Event Weights (SR) (Med. WP) as a function of event H_{T}; H_{T} [GeV]; Event Weight", 30,1000., 10000, 50, 0.0, 4.0); 
+		TH2F *h_bTag_eventWeight_M_vs_SJ_mass_SR = new TH2F("h_bTag_eventWeight_M_vs_SJ_mass_SR","b-tagging Event Weights (SR) (Med. WP) as a function of event SJ Mass; SJ Mass [GeV]; Event Weight", 25,0, 4000, 50, 0.0, 4.0);  
+
+		TH2F *h_JEC_AK8_vs_pt_SR = new TH2F("h_JEC_AK8_vs_pt_SR","AK8 Jet Energy Corrections (SR) as a function of AK8 Jet p_{T}; AK8 Jet p_{T} [GeV]; JEC Factor", 30,0., 5000, 50, 0.93, 1.07); 
+		TH2F *h_JEC_AK4_vs_pt_SR = new TH2F("h_JEC_AK4_vs_pt_SR","AK4 Jet Energy Corrections (SR) as a function of AK4 Jet p_{T}; AK4 Jet p_{T} [GeV]; JEC Factor", 30,0., 5000, 50, 0.93, 1.07); 
+		TH2F *h_JER_AK8_vs_pt_SR = new TH2F("h_JER_AK8_vs_pt_SR","AK8 Jet Energy Corrections (SR) as a function of AK8 Jet p_{T}; AK8 Jet p_{T} [GeV]; JER Factor", 30,0., 5000, 50, 0.7, 1.3); 
+
+
+
 		// CR
-		TH1F * h_pdf_EventWeight_CR= new TH1F("h_pdf_EventWeight_CR", "PDF event weight (CR) ; event weight; Events",40,0.0,4.0);
-		TH1F * h_renorm_EventWeight_CR= new TH1F("h_renorm_EventWeight_CR", "Renorm. event weight  (CR); event weight; Events",40,0.0,2.5);
-		TH1F * h_factor_EventWeight_CR= new TH1F("h_factor_EventWeight_CR", "Fact. event weight  (CR); event weight; Events",40,0.0,2.5);
-		TH1F * h_scale_EventWeight_CR= new TH1F("h_scale_EventWeight_CR", "Scale event weight (using envelope) (CR); event weight; Events",40,0.0,2.5);
+		TH1F * h_pdf_EventWeight_CR= new TH1F("h_pdf_EventWeight_CR", "PDF Event Weight (CR) ; Event Weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight_CR= new TH1F("h_renorm_EventWeight_CR", "Renorm. Event Weight  (CR); Event Weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight_CR= new TH1F("h_factor_EventWeight_CR", "Fact. Event Weight  (CR); Event Weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight_CR= new TH1F("h_scale_EventWeight_CR", "Scale Event Weight (using envelope) (CR); Event Weight; Events",40,0.0,2.5);
 
 		TH1F* h_PU_eventWeight_CR  = new TH1F("h_PU_eventWeight_CR","Pileup Event Weights  (CR);Event Weight; Events",40,0.0,3.0);
 		TH1F* h_bTag_eventWeight_T_CR  = new TH1F("h_bTag_eventWeight_T_CR","b tagging Event Weights (tight WP)  (CR);Event Weight; Events",100,0.0,4.0);
@@ -352,14 +550,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1F* h_topPtWeight_CR  = new TH1F("h_topPtWeight_CR","Top p_{T} Event Weights ;Event Weight  (CR); Events",40,0.0,2.0);
 
 		TH1F* h_JEC_uncert_AK8_CR  = new TH1F("h_JEC_uncert_AK8_CR","AK8 JEC Uncertainty (CR);JEC Uncertainty; Jets",100,0.94,1.06);
-		TH1F* h_JEC_uncert_AK4_CR  = new TH1F("h_JEC_uncert_AK4_CR","AK8 JEC Uncertainty (CR);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4_CR  = new TH1F("h_JEC_uncert_AK4_CR","AK4 JEC Uncertainty (CR);JEC Uncertainty; Jets",100,0.94,1.06);
 		TH1F* h_AK8_JER_CR  = new TH1F("h_AK8_JER_CR","AK8 JER Correction Factor (CR);Correction Factor; Jets",100,0.94,1.06);
 
 		// AT1b
-		TH1F * h_pdf_EventWeight_AT1b= new TH1F("h_pdf_EventWeight_AT1b", "PDF event weight (AT1b) ; event weight; Events",40,0.0,4.0);
-		TH1F * h_renorm_EventWeight_AT1b= new TH1F("h_renorm_EventWeight_AT1b", "Renorm. event weight  (AT1b); event weight; Events",40,0.0,2.5);
-		TH1F * h_factor_EventWeight_AT1b= new TH1F("h_factor_EventWeight_AT1b", "Fact. event weight  (AT1b); event weight; Events",40,0.0,2.5);
-		TH1F * h_scale_EventWeight_AT1b= new TH1F("h_scale_EventWeight_AT1b", "Scale event weight (using envelope) (AT1b); event weight; Events",40,0.0,2.5);
+		TH1F * h_pdf_EventWeight_AT1b= new TH1F("h_pdf_EventWeight_AT1b", "PDF Event Weight (AT1b) ; Event Weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight_AT1b= new TH1F("h_renorm_EventWeight_AT1b", "Renorm. Event Weight  (AT1b); Event Weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight_AT1b= new TH1F("h_factor_EventWeight_AT1b", "Fact. Event Weight  (AT1b); Event Weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight_AT1b= new TH1F("h_scale_EventWeight_AT1b", "Scale Event Weight (using envelope) (AT1b); Event Weight; Events",40,0.0,2.5);
 
 		TH1F* h_PU_eventWeight_AT1b  = new TH1F("h_PU_eventWeight_AT1b","Pileup Event Weights  (AT1b);Event Weight; Events",40,0.0,3.0);
 		TH1F* h_bTag_eventWeight_T_AT1b  = new TH1F("h_bTag_eventWeight_T_AT1b","b tagging Event Weights (tight WP)  (AT1b);Event Weight; Events",100,0.0,4.0);
@@ -368,14 +566,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1F* h_topPtWeight_AT1b  = new TH1F("h_topPtWeight_AT1b","Top p_{T} Event Weights ;Event Weight  (AT1b); Events",40,0.0,2.0);
 
 		TH1F* h_JEC_uncert_AK8_AT1b  = new TH1F("h_JEC_uncert_AK8_AT1b","AK8 JEC Uncertainty (AT1b);JEC Uncertainty; Jets",100,0.94,1.06);
-		TH1F* h_JEC_uncert_AK4_AT1b  = new TH1F("h_JEC_uncert_AK4_AT1b","AK8 JEC Uncertainty (AT1b);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4_AT1b  = new TH1F("h_JEC_uncert_AK4_AT1b","AK4 JEC Uncertainty (AT1b);JEC Uncertainty; Jets",100,0.94,1.06);
 		TH1F* h_AK8_JER_AT1b  = new TH1F("h_AK8_JER_AT1b","AK8 JER Correction Factor (AT1b);Correction Factor; Jets",100,0.94,1.06);
 
 		// AT0b
-		TH1F * h_pdf_EventWeight_AT0b= new TH1F("h_pdf_EventWeight_AT0b", "PDF event weight (AT0b) ; event weight; Events",40,0.0,4.0);
-		TH1F * h_renorm_EventWeight_AT0b= new TH1F("h_renorm_EventWeight_AT0b", "Renorm. event weight  (AT0b); event weight; Events",40,0.0,2.5);
-		TH1F * h_factor_EventWeight_AT0b= new TH1F("h_factor_EventWeight_AT0b", "Fact. event weight  (AT0b); event weight; Events",40,0.0,2.5);
-		TH1F * h_scale_EventWeight_AT0b= new TH1F("h_scale_EventWeight_AT0b", "Scale event weight (using envelope) (AT0b); event weight; Events",40,0.0,2.5);
+		TH1F * h_pdf_EventWeight_AT0b= new TH1F("h_pdf_EventWeight_AT0b", "PDF Event Weight (AT0b) ; Event Weight; Events",40,0.0,4.0);
+		TH1F * h_renorm_EventWeight_AT0b= new TH1F("h_renorm_EventWeight_AT0b", "Renorm. Event Weight  (AT0b); Event Weight; Events",40,0.0,2.5);
+		TH1F * h_factor_EventWeight_AT0b= new TH1F("h_factor_EventWeight_AT0b", "Fact. Event Weight  (AT0b); Event Weight; Events",40,0.0,2.5);
+		TH1F * h_scale_EventWeight_AT0b= new TH1F("h_scale_EventWeight_AT0b", "Scale Event Weight (using envelope) (AT0b); Event Weight; Events",40,0.0,2.5);
 
 		TH1F* h_PU_eventWeight_AT0b  = new TH1F("h_PU_eventWeight_AT0b","Pileup Event Weights  (AT0b);Event Weight; Events",40,0.0,3.0);
 		TH1F* h_bTag_eventWeight_T_AT0b  = new TH1F("h_bTag_eventWeight_T_AT0b","b tagging Event Weights (tight WP)  (AT0b);Event Weight; Events",100,0.0,4.0);
@@ -384,7 +582,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1F* h_topPtWeight_AT0b  = new TH1F("h_topPtWeight_AT0b","Top p_{T} Event Weights ;Event Weight  (AT0b); Events",40,0.0,2.0);
 
 		TH1F* h_JEC_uncert_AK8_AT0b  = new TH1F("h_JEC_uncert_AK8_AT0b","AK8 JEC Uncertainty (AT0b);JEC Uncertainty; Jets",100,0.94,1.06);
-		TH1F* h_JEC_uncert_AK4_AT0b  = new TH1F("h_JEC_uncert_AK4_AT0b","AK8 JEC Uncertainty (AT0b);JEC Uncertainty; Jets",100,0.94,1.06);
+		TH1F* h_JEC_uncert_AK4_AT0b  = new TH1F("h_JEC_uncert_AK4_AT0b","AK4 JEC Uncertainty (AT0b);JEC Uncertainty; Jets",100,0.94,1.06);
 		TH1F* h_AK8_JER_AT0b  = new TH1F("h_AK8_JER_AT0b","AK8 JER Correction Factor (AT0b);Correction Factor; Jets",100,0.94,1.06);
 
 
@@ -420,27 +618,75 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		TH1F* h_true_b_jets_DT  = new TH1F("h_true_b_jets_DT","True (gen-tagged) b AK4 jets per event in the double tagged regions; nJets; Events",10,-0.5,9.5);
 		TH1F* h_true_b_jets_AT  = new TH1F("h_true_b_jets_AT","True (gen-tagged) b AK4 jets per event in the anti-tagged regions; nJets; Events",10,-0.5,9.5);
 
-		TGraph* g_bTagSF_T_vs_HT  = new TGraph();
-		g_bTagSF_T_vs_HT->SetTitle("b-tag Event weight (tight WP) as a function of event H_{T}; H_{T} [GeV]; b-tag Event Weight");
-		g_bTagSF_T_vs_HT->SetName("g_bTagSF_T_vs_HT");
+		TH1F* h_trueb_jets_tight_b_tagged_by_pt = new TH1F("h_trueb_jets_tight_b_tagged_by_pt","The number of true b jets that are tight b-tagged AK4 jets per p_{T} bin; jet p_{T} [GeV]; Number of Tagged Jets",50,0.,3000);
+		TH1F* h_trueb_jets_med_b_tagged_by_pt   = new TH1F("h_trueb_jets_med_b_tagged_by_pt","The number of true b jets that are med b-tagged AK4 jets per p_{T} bin; jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
 
-		TGraph* g_bTagSF_M_vs_HT  = new TGraph();
-		g_bTagSF_M_vs_HT->SetTitle("b-tag Event weight (medium WP) as a function of event H_{T}; H_{T} [GeV]; b-tag Event Weight");
-		g_bTagSF_M_vs_HT->SetName("g_bTagSF_M_vs_HT");
+		TH1F* h_truec_jets_tight_b_tagged_by_pt = new TH1F("h_truec_jets_tight_b_tagged_by_pt","The number of true c jets that are tight b-tagged AK4 jets per p_{T} bin; jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+		TH1F* h_truec_jets_med_b_tagged_by_pt   = new TH1F("h_truec_jets_med_b_tagged_by_pt","The number of true c jets that are med b-tagged AK4 jets per p_{T} bin; jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
 
-		TH1F* h_trueb_jets_tight_b_tagged_by_pt = new TH1F("h_trueb_jets_tight_b_tagged_by_pt","The number of true b jets that are tight b-tagged AK4 jets per p_{T} bin; Number of Tagged Jets; Events",50,0.,3000);
-		TH1F* h_trueb_jets_med_b_tagged_by_pt   = new TH1F("h_trueb_jets_med_b_tagged_by_pt","The number of true b jets that are med b-tagged AK4 jets per p_{T} bin; Number of Tagged Jets; Events",50,0.,3000);
-
-		TH1F* h_truec_jets_tight_b_tagged_by_pt = new TH1F("h_truec_jets_tight_b_tagged_by_pt","The number of true c jets that are tight b-tagged AK4 jets per p_{T} bin; Number of Tagged Jets; Events",50,0.,3000);
-		TH1F* h_truec_jets_med_b_tagged_by_pt   = new TH1F("h_truec_jets_med_b_tagged_by_pt","The number of true c jets that are med b-tagged AK4 jets per p_{T} bin; Number of Tagged Jets; Events",50,0.,3000);
-
-		TH1F* h_trueLight_jets_tight_b_tagged_by_pt = new TH1F("h_trueLight_jets_tight_b_tagged_by_pt","The number of true light jets that are tight b-tagged AK4 jets per p_{T} bin; Number of Tagged Jets; Events",50,0.,3000);
-		TH1F* h_trueLight_jets_med_b_tagged_by_pt   = new TH1F("h_trueLight_jets_med_b_tagged_by_pt","The number of true light jets that are med b-tagged AK4 jets per p_{T} bin; Number of Tagged Jets; Events",50,0.,3000);
+		TH1F* h_trueLight_jets_tight_b_tagged_by_pt = new TH1F("h_trueLight_jets_tight_b_tagged_by_pt","The number of true light jets that are tight b-tagged AK4 jets per p_{T} bin; jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+		TH1F* h_trueLight_jets_med_b_tagged_by_pt   = new TH1F("h_trueLight_jets_med_b_tagged_by_pt","The number of true light jets that are med b-tagged AK4 jets per p_{T} bin; jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
 
 
-		TH1F* h_trueb_jets_by_pt = new TH1F("h_trueb_jets_by_pt","The number of AK4 jets per p_{T} bin with |parton flavour| == 5; Number of Tagged Jets; Events",50,0.,3000);
-		TH1F* h_truec_jets_by_pt = new TH1F("h_truec_jets_by_pt","The number of AK4 jets per p_{T} bin with |parton flavour| == 4; Number of Tagged Jets; Events",50,0.,3000);
-		TH1F* h_trueLight_jets_by_pt = new TH1F("h_trueLight_jets_by_pt","The number of AK4 jets per p_{T} bin with |parton flavour| < 4; Number of Tagged Jets; Events",50,0.,3000);
+		TH1F* h_trueb_jets_by_pt = new TH1F("h_trueb_jets_by_pt","The number of AK4 jets per p_{T} bin with |parton flavour| == 5; jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+		TH1F* h_truec_jets_by_pt = new TH1F("h_truec_jets_by_pt","The number of AK4 jets per p_{T} bin with |parton flavour| == 4; jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+		TH1F* h_trueLight_jets_by_pt = new TH1F("h_trueLight_jets_by_pt","The number of AK4 jets per p_{T} bin with |parton flavour| < 4; jet p_{T} [GeV]; Number of Tagged Jets",50,0.,3000);
+
+
+		TH1F* h_trueb_jets_med_b_tagged_by_pt_SR   = new TH1F("h_trueb_jets_med_b_tagged_by_pt_SR","The number of true b jets that are med b-tagged AK4 jets per p_{T} bin (SR); jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+		TH1F* h_truec_jets_med_b_tagged_by_pt_SR   = new TH1F("h_truec_jets_med_b_tagged_by_pt_SR","The number of true c jets that are med b-tagged AK4 jets per p_{T} bin (SR); jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+		TH1F* h_trueLight_jets_med_b_tagged_by_pt_SR   = new TH1F("h_trueLight_jets_med_b_tagged_by_pt_SR","The number of true light jets that are med b-tagged AK4 jets per p_{T} bin (SR); jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+
+		TH1F* h_trueb_jets_by_pt_SR = new TH1F("h_trueb_jets_by_pt_SR","The number of AK4 jets per p_{T} bin with |parton flavour| == 5 (SR); jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+		TH1F* h_truec_jets_by_pt_SR = new TH1F("h_truec_jets_by_pt_SR","The number of AK4 jets per p_{T} bin with |parton flavour| == 4 (SR); jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+		TH1F* h_trueLight_jets_by_pt_SR = new TH1F("h_trueLight_jets_by_pt_SR","The number of AK4 jets per p_{T} bin with |parton flavour| < 4 (SR); jet p_{T} [GeV];Number of Tagged Jets",50,0.,3000);
+
+
+
+
+
+		// histogram container for easy control
+		std::vector<TH1F*> hists = {  h_totHT,h_totHT_unscaled,h_nfatjets_pre,h_nfatjets,h_nAK4,h_nAK4_pt50,h_nAK4_pt75,h_nAK4_pt100,h_nAK4_pt150,h_dijet_mass,
+		h_AK8_jet_mass,h_AK8_jet_pt,h_AK8_eta,h_AK8_phi,h_AK4_eta,h_AK4_phi,h_nAK4_all,h_nfatjets_all,h_nCA4_300_1b,h_nCA4_300_0b,h_SJ_mass,h_disuperjet_mass,
+		h_SJ_mass_uncorrected,h_AK8_jet_mass_SR,h_AK8_jet_mass_CR,h_AK4_jet_mass_SR,h_AK4_jet_mass_CR,h_totHT_SR,h_totHT_CR,h_totHT_AT1b,
+		h_totHT_AT0b,h_totHT_1b,h_SJ_mass_tagged_SJs_1b,h_SJ_mass_tagged_SJs_0b,h_SJ_mass_tagged_SJs,h_SJ2_mass_tagged_SJs_ATSJ1_1b,h_SJ2_mass_tagged_SJs_ATSJ1_0b,
+		h_SJ2_mass_tagged_SJs_ATSJ1,h_SJ_mass_total_SJs_1b,h_SJ_mass_total_SJs_0b,h_SJ_mass_total_SJs,h_SJ2_mass_total_SJs_ATSJ1_1b,h_SJ2_mass_total_SJs_ATSJ1_0b,
+		h_SJ2_mass_total_SJs_ATSJ1,h_SJ1_mass_total_SJs_ATSJ2_1b,h_SJ1_mass_total_SJs_ATSJ2_0b,h_SJ1_mass_total_SJs_ATSJ2,h_SJ1_mass_tagged_SJs_ATSJ2_1b,h_SJ1_mass_tagged_SJs_ATSJ2_0b,
+		h_SJ1_mass_tagged_SJs_ATSJ2,h_nfatjets_SR,h_nfatjets_CR,h_nAK4_SR,h_nAK4_CR,h_SJ_nAK4_100_SR,h_SJ_nAK4_200_SR,h_SJ_mass_SR,h_disuperjet_mass_SR,h_SJ_nAK4_100_CR,
+		h_SJ_nAK4_200_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_SJ_mass_AT0b,h_disuperjet_mass_AT0b,h_nAK4_AT0b,h_SJ_mass_AT1b,h_disuperjet_mass_AT1b,h_nAK4_AT1b,
+		h_nTightbTags_AT1b,h_SJ_mass_ADT0b,h_disuperjet_mass_ADT0b,h_nAK4_ADT0b,h_SJ_mass_ADT1b,h_disuperjet_mass_ADT1b,h_nAK4_ADT1b,h_nTightbTags_ADT1b,h_pdf_EventWeight,
+		h_renorm_EventWeight,h_factor_EventWeight,h_scale_EventWeight,h_PU_eventWeight,h_bTag_eventWeight_T,h_bTag_eventWeight_M,h_L1PrefiringWeight,h_JEC_uncert_AK8,
+		h_JEC_uncert_AK4,h_AK8_JER,h_pdf_EventWeight_SR,h_renorm_EventWeight_SR,h_factor_EventWeight_SR,h_scale_EventWeight_SR,h_PU_eventWeight_SR,h_bTag_eventWeight_T_SR,
+		h_bTag_eventWeight_M_SR,h_L1PrefiringWeight_SR,h_topPtWeight_SR,h_JEC_uncert_AK8_SR,h_JEC_uncert_AK4_SR,h_AK8_JER_SR,h_pdf_EventWeight_CR,h_renorm_EventWeight_CR,h_factor_EventWeight_CR,
+		h_scale_EventWeight_CR,h_PU_eventWeight_CR,h_bTag_eventWeight_T_CR,h_bTag_eventWeight_M_CR,h_L1PrefiringWeight_CR,h_topPtWeight_CR,h_JEC_uncert_AK8_CR,h_JEC_uncert_AK4_CR,
+		h_AK8_JER_CR,h_pdf_EventWeight_AT1b,h_renorm_EventWeight_AT1b,h_factor_EventWeight_AT1b,h_scale_EventWeight_AT1b,h_PU_eventWeight_AT1b,h_bTag_eventWeight_T_AT1b,
+		h_bTag_eventWeight_M_AT1b,h_L1PrefiringWeight_AT1b,h_topPtWeight_AT1b,h_JEC_uncert_AK8_AT1b,h_JEC_uncert_AK4_AT1b,h_AK8_JER_AT1b,h_pdf_EventWeight_AT0b,
+		h_renorm_EventWeight_AT0b,h_factor_EventWeight_AT0b,h_scale_EventWeight_AT0b,h_PU_eventWeight_AT0b,h_bTag_eventWeight_T_AT0b,h_bTag_eventWeight_M_AT0b,
+		h_L1PrefiringWeight_AT0b,h_topPtWeight_AT0b,h_JEC_uncert_AK8_AT0b,h_JEC_uncert_AK4_AT0b,h_AK8_JER_AT0b,h_nLooseBTags,h_nMedBTags,h_nTightBTags,h_nMedBTags_pt50,
+		h_nTightBTags_pt50,h_nMedBTags_pt75,h_nTightBTags_pt75,h_nMedBTags_pt100,h_nTightBTags_pt100,h_nMedBTags_pt150,h_nTightBTags_pt150,h_AK4_partonFlavour,
+		h_AK4_DeepJet_disc,h_AK4_DeepJet_disc_all,h_true_b_jets_SR,h_true_b_jets_CR,h_true_b_jets_AT1b,h_true_b_jets_AT0b,h_true_b_jets_DT,h_true_b_jets_AT,
+		h_trueb_jets_tight_b_tagged_by_pt,h_trueb_jets_med_b_tagged_by_pt,h_truec_jets_tight_b_tagged_by_pt,h_truec_jets_med_b_tagged_by_pt,h_trueLight_jets_tight_b_tagged_by_pt,
+		h_trueLight_jets_med_b_tagged_by_pt,h_trueb_jets_by_pt,h_truec_jets_by_pt,h_trueLight_jets_by_pt,
+		h_totHT_unscaled_selected,h_totHT_unscaled_SR,h_totHT_scaled_selected,
+		h_SJ_mass_uncorrected_SR,h_SJ_mass_noBtagWeight_SR,h_disuperjet_mass_uncorrected,h_SJ_mass_scaled_selected};
+
+		std::vector<TH1I*> TH1I_container     = {h_failed_events, h_bad_event_weights, h_numTrueInteractions};
+		std::vector<TH2F*> TH2F_container     = {h_MSJ_mass_vs_MdSJ_dijet,h_MSJ_mass_vs_MdSJ_SR,h_MSJ1_vs_MSJ2_SR,
+			h_MSJ_mass_vs_MdSJ_CR,h_MSJ1_vs_MSJ2_CR,h_MSJ_mass_vs_MdSJ_AT0b,h_MSJ_mass_vs_MdSJ_AT1b,h_MSJ_mass_vs_MdSJ_ADT0b,
+			h_MSJ_mass_vs_MdSJ_ADT1b,h_MSJ_mass_vs_MdSJ_SR_bpt75,h_MSJ_mass_vs_MdSJ_SR_bpt100,h_MSJ_mass_vs_MdSJ_SR_bpt150,h_MSJ_mass_vs_MdSJ_CR_bpt75,
+			h_MSJ_mass_vs_MdSJ_CR_bpt100,h_MSJ_mass_vs_MdSJ_CR_bpt150,h_MSJ_mass_vs_MdSJ_AT1b_bpt75,h_MSJ_mass_vs_MdSJ_AT1b_bpt100,h_MSJ_mass_vs_MdSJ_AT1b_bpt150,
+			h_MSJ_mass_vs_MdSJ_AT0b_bpt75,h_MSJ_mass_vs_MdSJ_AT0b_bpt100,h_MSJ_mass_vs_MdSJ_AT0b_bpt150 ,
+			h_pdf_eventWeight_vs_HT,h_pdf_eventWeight_vs_SJ_mass,h_scale_eventWeight_vs_HT,h_scale_eventWeight_vs_SJ_mass,h_PU_eventWeight_vs_HT,h_PU_eventWeight_vs_SJ_mass,
+			h_bTag_eventWeight_T_vs_HT,h_bTag_eventWeight_T_vs_SJ_mass,h_bTag_eventWeight_M_vs_HT,h_bTag_eventWeight_M_vs_SJ_mass,h_JEC_AK8_vs_pt,h_JEC_AK4_vs_pt,h_JER_AK8_vs_pt };
+		std::vector<TGraph*> TGraph_container = {g_pdf_eventWeight_vs_HT_SR,g_pdf_eventWeight_vs_SJ_mass_SR,g_scale_eventWeight_vs_HT_SR,g_scale_eventWeight_vs_SJ_mass_SR,
+			g_PU_eventWeight_vs_HT_SR,g_PU_eventWeight_vs_SJ_mass_SR,g_bTag_eventWeight_T_vs_HT_SR,g_bTag_eventWeight_T_vs_SJ_mass_SR,g_bTag_eventWeight_M_vs_HT_SR,g_bTag_eventWeight_M_vs_SJ_mass_SR,
+			g_JEC_AK8_vs_pt_SR,g_JEC_AK4_vs_pt_SR,g_JER_AK8_vs_pt_SR};
+		std::vector<TProfile*> TProfile_container = {prof_pdf_eventWeight_vs_HT,prof_pdf_eventWeight_vs_SJ_mass,prof_scale_eventWeight_vs_HT,prof_scale_eventWeight_vs_SJ_mass,
+				prof_PU_eventWeight_vs_HT,prof_PU_eventWeight_vs_SJ_mass,prof_bTag_eventWeight_T_vs_HT,prof_bTag_eventWeight_T_vs_SJ_mass,prof_bTag_eventWeight_M_vs_HT,prof_bTag_eventWeight_M_vs_SJ_mass,
+				prof_JEC_AK8_vs_pt,prof_JEC_AK4_vs_pt,prof_JER_AK8_vs_pt,prof_pdf_eventWeight_vs_HT_SR,prof_pdf_eventWeight_vs_SJ_mass_SR,prof_scale_eventWeight_vs_HT_SR,prof_scale_eventWeight_vs_SJ_mass_SR,
+				prof_PU_eventWeight_vs_HT_SR,prof_PU_eventWeight_vs_SJ_mass_SR,prof_bTag_eventWeight_T_vs_HT_SR,prof_bTag_eventWeight_T_vs_SJ_mass_SR,prof_bTag_eventWeight_M_vs_HT_SR,
+				prof_bTag_eventWeight_M_vs_SJ_mass_SR,prof_JEC_AK8_vs_pt_SR,prof_JEC_AK4_vs_pt_SR,prof_JER_AK8_vs_pt_SR  };
+
 
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -486,7 +732,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo); 
 		t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
 		t1->SetBranchAddress("fourAK8JetMass", &fourAK8JetMass); 
-		t1->SetBranchAddress("diAK8Jet_mass", &diAK8Jet_mass); 
+		t1->SetBranchAddress("diAK8Jet_mass", diAK8Jet_mass); 
 
 		t1->SetBranchAddress("AK4_fails_veto_map", AK4_fails_veto_map); 
 		t1->SetBranchAddress("AK8_fails_veto_map", AK8_fails_veto_map); 
@@ -523,7 +769,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		factWeight   = 1.0;
 		topPtWeight = 1.0;
 
-
+		
 		if ( (inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos)) 
 		{
 			if (systematic.find("bTag") != std::string::npos)
@@ -597,7 +843,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			else if ( (inFileName.find("TTJets") != std::string::npos) || (inFileName.find("TTTo") != std::string::npos) ) if((systematic == "topPt") && (*systematic_suffix == "up")) t1->SetBranchAddress("top_pt_weight", &topPtWeight);
 		}
 
-		int nbTagSF_vs_HT_points = 0;
+		int nTGraphPoints_SR = 0,  nTGraphPoints_AK8_SR = 0, nTGraphPoints_AK4_SR = 0;
 		double looseDeepCSV_DeepJet;
 		double medDeepCSV_DeepJet;
 		double tightDeepCSV_DeepJet;
@@ -626,7 +872,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			medDeepCSV_DeepJet   = 0.2783;
 			tightDeepCSV_DeepJet = 0.7100;
 		}
-
+		
 		double sum_eventSF_1b_antiTag = 0.0, sum_eventSF_0b_antiTag = 0, sum_eventSF_SR = 0, sum_eventSF_CR = 0;
 		double sum_eventSF_AT1b = 0, sum_eventSF_AT0b = 0;
 		double sum_btagSF_1b_antiTag = 0.0, sum_btagSF_0b_antiTag = 0, sum_btagSF_SR = 0.0, sum_btagSF_CR = 0.0;
@@ -636,11 +882,16 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		int num_bad_btagSF = 0, num_bad_PUSF = 0, num_bad_topPt = 0, num_bad_scale = 0, num_bad_pdf = 0, num_bad_prefiring = 0;
 		int badEventSF = 0;
 
+		int bad_event_weights_SR[9]   = {0,0,0,0,0,0,0,0,0};
+		int bad_event_weights_CR[9]   = {0,0,0,0,0,0,0,0,0};
+		int bad_event_weights_AT1b[9] = {0,0,0,0,0,0,0,0,0};
+		int bad_event_weights_AT0b[9] = {0,0,0,0,0,0,0,0,0};
+
 		totEventsUncut = nentries;
 
 	    std::cout << "=========================================" << std::endl;
 	    std::cout << "=========================================" << std::endl;
-	    std::cout << " WARNING: SR DEFINED BY nMedBTags > 0" << std::endl;
+	    std::cout << "    INFO: SR DEFINED BY nMedBTags > 0" << std::endl;
 	    std::cout << "=========================================" << std::endl;
 	    std::cout << "=========================================" << std::endl;
 
@@ -650,6 +901,12 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			nomBtaggingWeight=1.0;
 
 			t1->GetEntry(i);
+
+			// cut down on run time
+
+			if ( (totHT < 1600.) || (nfatjets < 3) || ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)))     ) continue; // 
+			//if ( (systematic != "nom" )  &&  ( (totHT < 1600.) || (nfatjets < 3) || ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)))     )) continue;  // 
+
 
 			/////////////////////////////////
 			//         Apply Trigger       //
@@ -695,6 +952,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			}
 			///////////////////////////////////////
 			///////////////////////////////////////
+			
 
 
 			h_totHT_unscaled->Fill(totHT);
@@ -704,13 +962,15 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 
 
+			
 			/////////////////////////////////
 			//   Get Event Scale Factors   //
 			/////////////////////////////////
 
 			double eventScaleFactor = 1.0;
 			double bTag_eventWeight_M = 1, bTag_eventWeight_T = 1;
-
+			bool someBadEventWeight = false;
+			int bad_event_weights[9] = {0,0,0,0,0,0,0,0,0};
 			if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos)  )
 			{
 				if (!(systematic.find("scale") != std::string::npos)) scale_weight = renormWeight*factWeight;  
@@ -721,39 +981,49 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				if ((bTag_eventWeight_T != bTag_eventWeight_T) || (std::isinf(bTag_eventWeight_T)) || (std::isnan(bTag_eventWeight_T)) || (abs(bTag_eventWeight_T) > 100) || (bTag_eventWeight_T < 0.)  )
 				{
 					bTag_eventWeight_T = 1.0;
-					num_bad_btagSF++;
+					//num_bad_btagSF++;
 				}
 				if ((PU_eventWeight != PU_eventWeight) || (std::isinf(PU_eventWeight))|| (std::isnan(PU_eventWeight)) || (abs(PU_eventWeight) > 100) || (PU_eventWeight < 0.)   )
 				{
 					PU_eventWeight = 1.0;
 					num_bad_PUSF++;
 					h_bad_event_weights->Fill(0);
+					someBadEventWeight = true;
+					bad_event_weights[0] = 1.0;
 				}
 				if ((factWeight != factWeight) || (std::isinf(factWeight))  || (std::isnan(factWeight)) || (abs(factWeight) > 100) || (factWeight < 0. ))
 				{
 					factWeight = 1.0;
 					h_bad_event_weights->Fill(1);
+					someBadEventWeight = true;
+					bad_event_weights[1] = 1.0;
 				}
 
 				if ((renormWeight != renormWeight) || (std::isinf(renormWeight))  || (std::isnan(renormWeight)) || (abs(renormWeight) > 100) || (renormWeight < 0.))
 				{
 					renormWeight = 1.0;
 					h_bad_event_weights->Fill(2);
+					someBadEventWeight = true;
+					bad_event_weights[2] = 1.0;
 				}
 				if ((topPtWeight != topPtWeight) || (std::isinf(topPtWeight)) || (std::isnan(topPtWeight)) || (abs(topPtWeight) > 100) || (topPtWeight < 0.))
 				{
 					topPtWeight = 1.0;
 					num_bad_topPt++;
 					h_bad_event_weights->Fill(3);
+					someBadEventWeight = true;
+					bad_event_weights[3] = 1.0;
 				}
 				if ((pdf_weight != pdf_weight) || (std::isinf(pdf_weight)) || (std::isnan(pdf_weight)) || (abs(pdf_weight) > 100) || (pdf_weight < 0.)  )
 				{
 					pdf_weight = 1.0;
 					num_bad_pdf++;
 					h_bad_event_weights->Fill(4);
+					someBadEventWeight = true;
+					bad_event_weights[4] = 1.0;
 				}
 	 
-				eventScaleFactor = PU_eventWeight*topPtWeight;   /// these are all MC-only systematics, the b-tagging, fact, and renorm event weights will be applied after selection
+				eventScaleFactor = PU_eventWeight*topPtWeight;   /// these are all MC-only systematics, the b-tagging, fact, and renorm Event Weights will be applied after selection
 
 				/////////////////////////////////
 				//    Get b-tag Event Weight   //
@@ -806,10 +1076,6 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					else if     ((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "up"))    bTag_eventWeight_M = bTag_eventWeight_light_M_up;
 					else if((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "down"))   bTag_eventWeight_M = bTag_eventWeight_light_M_down;
 
-					g_bTagSF_T_vs_HT->SetPoint(nbTagSF_vs_HT_points, totHT, bTag_eventWeight_T);
-					g_bTagSF_M_vs_HT->SetPoint(nbTagSF_vs_HT_points, totHT, bTag_eventWeight_M);
-
-					nbTagSF_vs_HT_points++;
 				}
 				////// check MC systematics
 				if ((bTag_eventWeight_M != bTag_eventWeight_M) || (std::isinf(bTag_eventWeight_M)) || (std::isnan(bTag_eventWeight_M)) || (abs(bTag_eventWeight_M) > 100) || (bTag_eventWeight_M < 0.)  )
@@ -817,6 +1083,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					bTag_eventWeight_M = 1.0;
 					num_bad_btagSF++;
 					h_bad_event_weights->Fill(5);
+					someBadEventWeight = true;
+					bad_event_weights[5] = 1.0;
 				}	
 			} 
 
@@ -825,6 +1093,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				prefiringWeight = 1.0;
 				num_bad_prefiring++;
 				h_bad_event_weights->Fill(6);
+				someBadEventWeight = true;
+				bad_event_weights[6] = 1.0;
 			}
 
 			eventScaleFactor *= prefiringWeight;   // these are the non-MC-only systematics
@@ -839,10 +1109,18 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				badEventSF++;
 				h_bad_event_weights->Fill(7);
 				h_failed_events->Fill(4);
+				someBadEventWeight = true;
+				bad_event_weights[7] = 1.0;
 				continue;
 			}
 
+			if(!someBadEventWeight) 
+			{
+				bad_event_weights[8] = 1;
+				h_bad_event_weights->Fill(8); // fill that the event is good
+			}
 
+			h_Full_Event_Weight_preselect->Fill(eventScaleFactor);
 
 			/////////////////////////////////
 			//   Fill preselection hists   //
@@ -867,6 +1145,37 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			h_bTag_eventWeight_M->Fill(bTag_eventWeight_M);
 			h_L1PrefiringWeight->Fill(prefiringWeight);
 
+			h_pdf_eventWeight_vs_HT->Fill(totHT,pdf_weight);
+			h_pdf_eventWeight_vs_SJ_mass->Fill((superJet_mass[0]+superJet_mass[1])/2.0,pdf_weight);
+
+			prof_pdf_eventWeight_vs_HT->Fill(totHT,pdf_weight );
+			prof_pdf_eventWeight_vs_SJ_mass->Fill( (superJet_mass[0]+superJet_mass[1])/2.0,pdf_weight);
+
+			h_scale_eventWeight_vs_HT->Fill(totHT,scale_weight);
+			h_scale_eventWeight_vs_SJ_mass->Fill((superJet_mass[0]+superJet_mass[1])/2.0,scale_weight);
+
+			prof_scale_eventWeight_vs_HT->Fill(totHT,scale_weight);
+			prof_scale_eventWeight_vs_SJ_mass->Fill((superJet_mass[0]+superJet_mass[1])/2.0, scale_weight);
+
+			h_PU_eventWeight_vs_HT->Fill(totHT, PU_eventWeight );
+			h_PU_eventWeight_vs_SJ_mass->Fill((superJet_mass[0]+superJet_mass[1])/2.0,PU_eventWeight);
+
+			prof_PU_eventWeight_vs_HT->Fill(totHT,PU_eventWeight);
+			prof_PU_eventWeight_vs_SJ_mass->Fill((superJet_mass[0]+superJet_mass[1])/2.0,PU_eventWeight);
+
+			h_bTag_eventWeight_T_vs_HT->Fill(totHT, bTag_eventWeight_T);
+			h_bTag_eventWeight_T_vs_SJ_mass->Fill( (superJet_mass[0]+superJet_mass[1])/2.0,bTag_eventWeight_T);
+
+			prof_bTag_eventWeight_T_vs_HT->Fill(totHT,bTag_eventWeight_T);
+			prof_bTag_eventWeight_T_vs_SJ_mass->Fill((superJet_mass[0]+superJet_mass[1])/2.0,bTag_eventWeight_T);
+
+			h_bTag_eventWeight_M_vs_HT->Fill(totHT,bTag_eventWeight_M);
+			h_bTag_eventWeight_M_vs_SJ_mass->Fill((superJet_mass[0]+superJet_mass[1])/2.0,bTag_eventWeight_M);
+
+			prof_bTag_eventWeight_M_vs_HT->Fill(totHT,bTag_eventWeight_M);
+			prof_bTag_eventWeight_M_vs_SJ_mass->Fill( (superJet_mass[0]+superJet_mass[1])/2.0,bTag_eventWeight_M);
+
+
 
 			/////////////////////////////////
 			//     Preselection AK4 Loop   //
@@ -885,6 +1194,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				h_JEC_uncert_AK4->Fill(JEC_uncert_AK4[iii]);
 				h_AK4_eta->Fill(AK4_eta[iii], eventScaleFactor);
 				h_AK4_phi->Fill(AK4_phi[iii], eventScaleFactor);
+
+				h_JEC_AK4_vs_pt->Fill(AK4_pt[iii],JEC_uncert_AK4[iii]);
+				prof_JEC_AK4_vs_pt->Fill(AK4_pt[iii],JEC_uncert_AK4[iii]);
 
 				largest_JEC_corr_AK4 = max(abs(1.0-JEC_uncert_AK4[iii]),largest_JEC_corr_AK4);
 				avg_JEC_corr_AK4 += abs(1.0-JEC_uncert_AK4[iii]);
@@ -940,6 +1252,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			  	} 
 				else if(abs(AK4_HadronFlavour[iii]) == 4) h_truec_jets_by_pt->Fill(AK4_pt[iii]);
 				else if(abs(AK4_HadronFlavour[iii]) == 0) h_trueLight_jets_by_pt->Fill(AK4_pt[iii]);
+
 			}
 
 
@@ -953,6 +1266,12 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				h_AK8_jet_pt->Fill(jet_pt[iii],eventScaleFactor);
 				h_JEC_uncert_AK8->Fill(JEC_uncert_AK8[iii]);
 				h_AK8_JER->Fill(AK8_JER[iii]);
+
+				h_JEC_AK8_vs_pt->Fill(jet_pt[iii],JEC_uncert_AK8[iii]);
+				prof_JEC_AK8_vs_pt->Fill(jet_pt[iii],JEC_uncert_AK8[iii]);
+
+				h_JER_AK8_vs_pt->Fill( jet_pt[iii],AK8_JER[iii]);
+				prof_JER_AK8_vs_pt->Fill(jet_pt[iii],AK8_JER[iii]);
 
 				largest_JEC_corr = max(abs(1.0-JEC_uncert_AK8[iii]),largest_JEC_corr);
 				avg_JEC_corr += abs(1.0-JEC_uncert_AK8[iii]);
@@ -970,9 +1289,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			nEvents+=eventScaleFactor;
 
 
-			/////////////////////////////////
-			//   Apply Initial Selection   //
-			/////////////////////////////////
+
+			/////////////////////////////////////
+			/////////////////////////////////////
+			////   Apply Initial Selection   ////
+			/////////////////////////////////////
+			/////////////////////////////////////
+
+
 
 			if(runType == "main-band")
 			{
@@ -997,13 +1321,24 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			h_dijet_mass->Fill(dijetMassTwo, eventScaleFactor);
 			nAK8JetCut+=eventScaleFactor;
 
-			if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))
+
+			//&& ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  )
+
+			if ((nfatjet_pre < 2) )
 			{
 				h_failed_events->Fill(7);
 				continue;
 			} 
 
-			h_nAK4->Fill(nAK4);
+			h_nAK4->Fill(nAK4,eventScaleFactor);
+			h_totHT_unscaled_selected->Fill(totHT);
+
+			h_totHT_scaled_selected->Fill(totHT,eventScaleFactor);
+			h_SJ_mass_scaled_selected->Fill(superJet_mass[0], eventScaleFactor);
+			h_SJ_mass_scaled_selected->Fill(superJet_mass[1], eventScaleFactor);
+
+			h_Full_Event_Weight_fullselect->Fill(eventScaleFactor);
+
 			nHeavyAK8Cut+=eventScaleFactor;
 
 			double eventWeightToUse = eventScaleFactor; 
@@ -1015,7 +1350,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				std::cout << "-------------------------------------------------------------------------------------------------------------" << std::endl;
 				std::cout << "Event number " << eventnum << ", systematic is " << systematic << "_" << *systematic_suffix << std::endl;
 
-				std::cout << "bTag_eventWeight_M_up: " << bTag_eventWeight_M_up<< std::endl;
+				std::cout << "bTag_eventWeight_M_up: " << bTag_eventWeight_M_up << std::endl;
 				std::cout << "bTag_eventWeight_M_down: " << bTag_eventWeight_M_down<< std::endl;
 				std::cout << "bTag_eventWeight_M_corr_up: " << bTag_eventWeight_M_corr_up<< std::endl;
 				std::cout << "bTag_eventWeight_M_corr_down: " << bTag_eventWeight_M_corr_down<< std::endl;
@@ -1072,12 +1407,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			if( nMedBTags < 1 ) 
 			{
 
-				h_nCA4_300_0b->Fill(SJ_nAK4_300[0],eventWeightToUse);
-				h_nCA4_300_0b->Fill(SJ_nAK4_300[1],eventWeightToUse);
-
 				if ((inFileName.find("MC") != std::string::npos) || (inFileName.find("Suu") != std::string::npos))
 			  {
-			  		// check b-tag event weight problem
+			  		// check b-tag Event Weight problem
 			  		if(bTag_eventWeight_M < 0)
 			  		{
 				  		 std::cout << "ERROR: bad bTag_eventWeight_M for " <<dataBlock << "/" << systematic << "/" << dataYear << ", value = " << bTag_eventWeight_M <<std::endl;
@@ -1086,6 +1418,16 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			  		eventWeightToUse*=bTag_eventWeight_M;
 					
 			  } 
+				h_nCA4_300_0b->Fill(SJ_nAK4_300[0],eventWeightToUse);
+				h_nCA4_300_0b->Fill(SJ_nAK4_300[1],eventWeightToUse);
+
+
+				h_nAK4_0b->Fill(nAK4,eventWeightToUse);
+				h_nCA4_100_0b->Fill(SJ_nAK4_100[0],eventWeightToUse);
+				h_nCA4_100_0b->Fill(SJ_nAK4_100[1],eventWeightToUse);
+
+				h_nCA4_50_0b->Fill(SJ_nAK4_50[0],eventWeightToUse);
+				h_nCA4_50_0b->Fill(SJ_nAK4_50[1],eventWeightToUse);
 
 			  ///////////////////////////////////
 			  /////// tagging study stuff ///////
@@ -1102,13 +1444,13 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				h_SJ_mass_total_SJs->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
 
 				// SJ1 tag
-				if(   (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.)   )
+				if(   (SJ_nAK4_300[0]>=2)  ) // && (SJ_mass_100[0]>400.)  
 				{
 					h_SJ_mass_tagged_SJs_0b->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
 					h_SJ_mass_tagged_SJs->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
 				}
 				// SJ2 tag
-				if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
+				if((SJ_nAK4_300[1]>=2)   )//&& (SJ_mass_100[1]>=400.) 
 				{
 					h_SJ_mass_tagged_SJs_0b->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
 					h_SJ_mass_tagged_SJs->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
@@ -1163,12 +1505,12 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 
 				///////////////////
-				/////// CR ////////
+				/////// __CR ////////
 				///////////////////
 
-				if(   (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.)   )
+				if(   (SJ_nAK4_300[0]>=2)  ) // && (SJ_mass_100[0]>400.)  
 				{
-					if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
+					if((SJ_nAK4_300[1]>=2)   ) // && (SJ_mass_100[1]>=400.) 
 					{
 						eventWeightToUse *= pdf_weight*scale_weight;   
 
@@ -1201,12 +1543,21 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						{
 							h_JEC_uncert_AK4_CR->Fill(JEC_uncert_AK4[iii]);
 						}
+
+						for( int iii=0; iii< 9; iii++) 
+						{
+							if(bad_event_weights[iii]>0) 
+							{
+								h_bad_event_weights_CR->Fill(iii);
+								bad_event_weights_CR[iii]++;
+							}
+						}
 					}
 
 				}
 
 				///////////////////
-				////// AT0b ///////
+				////// __AT0b ///////
 				///////////////////
 
 				//// SJ1 antitag
@@ -1249,6 +1600,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						for(int iii=0; iii<nAK4; iii++)
 						{
 							h_JEC_uncert_AK4_AT0b->Fill(JEC_uncert_AK4[iii]);
+						}
+						for( int iii=0; iii< 9; iii++) 
+						{
+							if(bad_event_weights[iii]>0) 
+							{
+								h_bad_event_weights_AT0b->Fill(iii);
+								bad_event_weights_AT0b[iii]++;
+							}
 						}
 					}  
 
@@ -1295,6 +1654,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						{
 							h_JEC_uncert_AK4_AT0b->Fill(JEC_uncert_AK4[iii]);
 						}
+						for( int iii=0; iii< 9; iii++) 
+						{
+							if(bad_event_weights[iii]>0) 
+							{
+								h_bad_event_weights_AT0b->Fill(iii);
+								bad_event_weights_AT0b[iii]++;
+							}
+						}
 					}  
 
 				}
@@ -1320,22 +1687,36 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			}
 			
 			/////////////////////////////
-			///////// 1b region /////////
+			///////// __1b region /////////
 			/////////////////////////////
 
 			else if ( (nMedBTags > 0)  )
 			{
+				if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse*=bTag_eventWeight_M;
+
 
 				h_nCA4_300_1b->Fill(SJ_nAK4_300[0], eventWeightToUse);
 				h_nCA4_300_1b->Fill(SJ_nAK4_300[1], eventWeightToUse);
 
-				if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos))eventWeightToUse*=bTag_eventWeight_M;
+				h_nAK4_1b->Fill(nAK4,eventWeightToUse);
+				h_nCA4_100_1b->Fill(SJ_nAK4_100[0],eventWeightToUse);
+				h_nCA4_100_1b->Fill(SJ_nAK4_100[1],eventWeightToUse);
+
+				h_nCA4_50_1b->Fill(SJ_nAK4_50[0],eventWeightToUse);
+				h_nCA4_50_1b->Fill(SJ_nAK4_50[1],eventWeightToUse);
 
 
 				h_totHT_1b->Fill(totHT, eventWeightToUse);
 
 
 				h_MSJ_mass_vs_MdSJ_dijet->Fill(fourAK8JetMass, (diAK8Jet_mass[0]+diAK8Jet_mass[1])/2.,eventWeightToUse);
+
+
+				h_fourAK8JetMass->Fill(fourAK8JetMass,eventWeightToUse);
+				h_diAK8Jet_mass->Fill(diAK8Jet_mass[0],eventWeightToUse);
+				h_diAK8Jet_mass->Fill(diAK8Jet_mass[1],eventWeightToUse);
+				h_diAK8Jet_mass_lead->Fill(diAK8Jet_mass[0],eventWeightToUse);
+				h_diAK8Jet_mass_subl->Fill(diAK8Jet_mass[1],eventWeightToUse);
 
 				nBtagCut+=eventWeightToUse;
 				h_SJ_nAK4_100_SR->Fill(SJ_nAK4_100[0],eventWeightToUse);
@@ -1373,13 +1754,13 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				////////////// cut-based tagging
 
 				// SJ1 tag
-				if(   (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.)   )
+				if(   (SJ_nAK4_300[0]>=2)   ) // && (SJ_mass_100[0]>400.) 
 				{
 					h_SJ_mass_tagged_SJs_1b->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
 					h_SJ_mass_tagged_SJs->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
 				}
 				// SJ2 tag
-				if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
+				if((SJ_nAK4_300[1]>=2)    ) // && (SJ_mass_100[1]>=400.)
 				{
 					h_SJ_mass_tagged_SJs_1b->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
 					h_SJ_mass_tagged_SJs->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
@@ -1391,7 +1772,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					h_SJ2_mass_total_SJs_ATSJ1->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
 
 					//SJ2 cut-based tag
-					if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
+					if((SJ_nAK4_300[1]>=2)  ) // && (SJ_mass_100[1]>=400.)  
 					{
 						h_SJ2_mass_tagged_SJs_ATSJ1_1b->Fill(superJet_mass[1],eventWeightToUse_taggingStudy);
 						h_SJ2_mass_tagged_SJs_ATSJ1->Fill(superJet_mass[1],eventWeightToUse_taggingStudy_noBTag);
@@ -1404,7 +1785,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					h_SJ1_mass_total_SJs_ATSJ2->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
 
 					// SJ1 cut-based tag
-					if((SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>=400.)   )
+					if((SJ_nAK4_300[0]>=2) ) //  && (SJ_mass_100[0]>=400.)  
 					{
 						h_SJ1_mass_tagged_SJs_ATSJ2_1b->Fill(superJet_mass[0],eventWeightToUse_taggingStudy);
 						h_SJ1_mass_tagged_SJs_ATSJ2->Fill(superJet_mass[0],eventWeightToUse_taggingStudy_noBTag);
@@ -1412,12 +1793,12 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				}
 
 				///////////////////
-				/////// SR ////////
+				/////// __SR ////////
 				///////////////////
 
-				if( (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.)   )
+				if( (SJ_nAK4_300[0]>=2)  )  //  && (SJ_mass_100[0]>400.) 
 				{
-					if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
+					if((SJ_nAK4_300[1]>=2) )  //  && (SJ_mass_100[1]>=400.)  
 					{
 
 						h_pdf_EventWeight_SR->Fill(pdf_weight);
@@ -1429,6 +1810,53 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						h_bTag_eventWeight_M_SR->Fill(bTag_eventWeight_M);
 						h_L1PrefiringWeight_SR->Fill(prefiringWeight);
 						h_topPtWeight_SR->Fill(topPtWeight);
+
+						g_pdf_eventWeight_vs_HT_SR->SetPoint(nTGraphPoints_SR, totHT,  pdf_weight);
+						g_pdf_eventWeight_vs_SJ_mass_SR->SetPoint(nTGraphPoints_SR, (superJet_mass[0]+superJet_mass[1])/2.0,pdf_weight);
+
+						h_pdf_eventWeight_vs_HT_SR->Fill(totHT,  pdf_weight);
+						h_pdf_eventWeight_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0,pdf_weight);
+
+						prof_pdf_eventWeight_vs_HT_SR->Fill(totHT, pdf_weight);
+						prof_pdf_eventWeight_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0, pdf_weight);
+
+						g_scale_eventWeight_vs_HT_SR->SetPoint(nTGraphPoints_SR, totHT, scale_weight);
+						g_scale_eventWeight_vs_SJ_mass_SR->SetPoint(nTGraphPoints_SR, (superJet_mass[0]+superJet_mass[1])/2.0, scale_weight);
+
+						h_scale_eventWeight_vs_HT_SR->Fill(totHT, scale_weight);
+						h_scale_eventWeight_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0, scale_weight);
+
+						prof_scale_eventWeight_vs_HT_SR->Fill(totHT, scale_weight);
+						prof_scale_eventWeight_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0, scale_weight);
+
+						g_PU_eventWeight_vs_HT_SR->SetPoint(nTGraphPoints_SR, totHT, PU_eventWeight);
+						g_PU_eventWeight_vs_SJ_mass_SR->SetPoint(nTGraphPoints_SR, (superJet_mass[0]+superJet_mass[1])/2.0, PU_eventWeight);
+
+						h_PU_eventWeight_vs_HT_SR->Fill(totHT, PU_eventWeight);
+						h_PU_eventWeight_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0, PU_eventWeight);
+
+						prof_PU_eventWeight_vs_HT_SR->Fill(totHT, PU_eventWeight);
+						prof_PU_eventWeight_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0, PU_eventWeight);
+
+						g_bTag_eventWeight_T_vs_HT_SR->SetPoint(nTGraphPoints_SR,totHT,  bTag_eventWeight_T);
+						g_bTag_eventWeight_T_vs_SJ_mass_SR->SetPoint(nTGraphPoints_SR, (superJet_mass[0]+superJet_mass[1])/2.0,bTag_eventWeight_T);
+
+						h_bTag_eventWeight_T_vs_HT_SR->Fill(totHT,  bTag_eventWeight_T);
+						h_bTag_eventWeight_T_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0,bTag_eventWeight_T);
+
+						prof_bTag_eventWeight_T_vs_HT_SR->Fill(totHT,bTag_eventWeight_T);
+						prof_bTag_eventWeight_T_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0,bTag_eventWeight_T);
+
+						g_bTag_eventWeight_M_vs_HT_SR->SetPoint(nTGraphPoints_SR, totHT,bTag_eventWeight_M);
+						g_bTag_eventWeight_M_vs_SJ_mass_SR->SetPoint(nTGraphPoints_SR, (superJet_mass[0]+superJet_mass[1])/2.0, bTag_eventWeight_M);
+
+						h_bTag_eventWeight_M_vs_HT_SR->Fill(totHT,bTag_eventWeight_M);
+						h_bTag_eventWeight_M_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0, bTag_eventWeight_M);
+
+						prof_bTag_eventWeight_M_vs_HT_SR->Fill(totHT, bTag_eventWeight_M);
+						prof_bTag_eventWeight_M_vs_SJ_mass_SR->Fill((superJet_mass[0]+superJet_mass[1])/2.0,  bTag_eventWeight_M);
+
+						nTGraphPoints_SR++;
 
 						eventWeightToUse *= pdf_weight*scale_weight;  // factWeight*renormWeight
 
@@ -1445,28 +1873,72 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						sum_eventSF_SR+=eventWeightToUse;
 						nEvents_unscaled_SR+=1;
 
+						h_Full_Event_Weight_SR->Fill(eventWeightToUse);
+
+
+						h_SJ_mass_noBtagWeight_SR->Fill(superJet_mass[0],eventScaleFactor*pdf_weight*scale_weight);
+						h_SJ_mass_noBtagWeight_SR->Fill(superJet_mass[1],eventScaleFactor*pdf_weight*scale_weight);
+
+						h_SJ_mass_uncorrected_SR->Fill(superJet_mass[0]);
+						h_SJ_mass_uncorrected_SR->Fill(superJet_mass[1]);
+
+						h_totHT_unscaled_SR->Fill(totHT);
+
 						for(int iii=0; iii<nfatjets; iii++)
 						{
 							h_JEC_uncert_AK8_SR->Fill(JEC_uncert_AK8[iii]);
 							h_AK8_JER_SR->Fill(AK8_JER[iii]);
 
+							g_JEC_AK8_vs_pt_SR->SetPoint(nTGraphPoints_AK8_SR, jet_pt[iii],JEC_uncert_AK8[iii]);
+							h_JEC_AK8_vs_pt_SR->Fill(jet_pt[iii],JEC_uncert_AK8[iii]);
+							prof_JEC_AK8_vs_pt_SR->Fill(jet_pt[iii], JEC_uncert_AK8[iii] );
+
+							g_JER_AK8_vs_pt_SR->SetPoint(nTGraphPoints_AK8_SR, jet_pt[iii], AK8_JER[iii]);
+							h_JER_AK8_vs_pt_SR->Fill(jet_pt[iii], AK8_JER[iii]);
+							prof_JER_AK8_vs_pt_SR->Fill( jet_pt[iii], AK8_JER[iii]);
+
+							nTGraphPoints_AK8_SR++;
+
 						}
 						for(int iii=0; iii<nAK4; iii++)
 						{
 							h_JEC_uncert_AK4_SR->Fill(JEC_uncert_AK4[iii]);
-						}
 
+							g_JEC_AK4_vs_pt_SR->SetPoint(nTGraphPoints_AK4_SR, AK4_pt[iii], JEC_uncert_AK4[iii]);
+							h_JEC_AK4_vs_pt_SR->Fill(AK4_pt[iii], JEC_uncert_AK4[iii]);
+							prof_JEC_AK4_vs_pt_SR->Fill(AK4_pt[iii], JEC_uncert_AK4[iii]);
+							nTGraphPoints_AK4_SR++;
+
+							if ( (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )  && (AK4_pt[iii] > 70.)) 
+							{
+								if     (abs(AK4_HadronFlavour[iii]) == 5) h_trueb_jets_med_b_tagged_by_pt_SR->Fill(AK4_pt[iii]);
+								else if(abs(AK4_HadronFlavour[iii]) == 4) h_truec_jets_med_b_tagged_by_pt_SR->Fill(AK4_pt[iii]);
+								else if(abs(AK4_HadronFlavour[iii]) == 0) h_trueLight_jets_med_b_tagged_by_pt_SR->Fill(AK4_pt[iii]);
+							}
+							if     (abs(AK4_HadronFlavour[iii]) == 5) h_trueb_jets_by_pt_SR->Fill(AK4_pt[iii]);
+							else if(abs(AK4_HadronFlavour[iii]) == 4) h_truec_jets_by_pt_SR->Fill(AK4_pt[iii]);
+							else if(abs(AK4_HadronFlavour[iii]) == 0) h_trueLight_jets_by_pt_SR->Fill(AK4_pt[iii]);
+
+						}
+						for( int iii=0; iii< 9; iii++) 
+						{
+							if(bad_event_weights[iii]>0) 
+							{
+								h_bad_event_weights_SR->Fill(iii);
+								bad_event_weights_SR[iii]++;
+							}
+						}
 					}
 				}
 
 				///////////////////
-				////// AT1b ///////
+				////// __AT1b ///////
 				///////////////////
 
 				/// SJ1 antitag
 				else if(   (SJ_nAK4_50[0]<1) && (SJ_mass_100[0]<150.)   )
 				{
-					if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
+					if((SJ_nAK4_300[1]>=2) )   //  && (SJ_mass_100[1]>=400.)  
 					{
 
 						eventWeightToUse *= pdf_weight*scale_weight;    // factWeight*renormWeight
@@ -1506,12 +1978,20 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						{
 							h_JEC_uncert_AK4_AT1b->Fill(JEC_uncert_AK4[iii]);
 						}
+						for( int iii=0; iii<9; iii++) 
+						{
+							if(bad_event_weights[iii]>0) 
+							{
+								h_bad_event_weights_AT1b->Fill(iii);
+								bad_event_weights_AT1b[iii]++;
+							}
+						}
 					}
 				}
 				// SJ2 antitag
 				else if(   (SJ_nAK4_50[1]<1) && (SJ_mass_100[1]<150.)   )
 				{
-					if((SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>=400.)   )
+					if((SJ_nAK4_300[0]>=2)   ) // && (SJ_mass_100[0]>=400.) 
 					{
 
 						eventWeightToUse *= pdf_weight*scale_weight;    // factWeight*renormWeight
@@ -1549,6 +2029,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 						for(int iii=0; iii<nAK4; iii++)
 						{
 							h_JEC_uncert_AK4_AT1b->Fill(JEC_uncert_AK4[iii]);
+						}
+						for( int iii=0; iii< 9; iii++) 
+						{
+							if(bad_event_weights[iii]>0) 
+							{
+								h_bad_event_weights_AT1b->Fill(iii);
+								bad_event_weights_AT1b[iii]++;
+							}
 						}
 					}
 				}
@@ -1589,13 +2077,13 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			bool isDoubleTagged = false;
 			bool isAntiTagged = false;
 
-			if( (SJ_nAK4_300[0]>=2) && (SJ_mass_100[0]>400.) )
+			if( (SJ_nAK4_300[0]>=2)  ) // && (SJ_mass_100[0]>400.)
 			{
-				if( (SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.) ) isDoubleTagged = true;
+				if( (SJ_nAK4_300[1]>=2) ) isDoubleTagged = true; // && (SJ_mass_100[1]>=400.) 
 			}
 			else if( (SJ_nAK4_50[0]<1) && (SJ_mass_100[0]<150.) )
 			{
-				if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.) ) isAntiTagged = true;
+				if((SJ_nAK4_300[1]>=2)  ) isAntiTagged = true;   // && (SJ_mass_100[1]>=400.)
 			}
 			if(nMedBTags_pt75 > 0)
 			{
@@ -1638,18 +2126,31 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				if(isDoubleTagged) 		h_MSJ_mass_vs_MdSJ_CR_bpt150->Fill(diSuperJet_mass,(    superJet_mass[1]+superJet_mass[0])/2 ,eventScaleFactor_M_pt150   );
 				else if(isAntiTagged)   h_MSJ_mass_vs_MdSJ_AT0b_bpt150->Fill(diSuperJet_mass,superJet_mass[1] , eventScaleFactor_M_pt150   );
 			}
+			
 
 		}
 
 
 
 		outFile->Write();
+
+		std::cout << std::endl;
+		std::cout << "Successfully wrote to " << outFileName << std::endl;
+		std::cout << std::endl;
+
 		//std::cout << "The average event scale factors were " << sum_eventSF_SR/nEvents_unscaled_SR  << "/" <<sum_eventSF_CR/nEvents_unscaled_CR << "/" <<sum_eventSF_0b_antiTag/nEvents_unscaled_0b_antiTag << "/" << sum_eventSF_1b_antiTag/nEvents_unscaled_1b_antiTag<<  "in the signal/control/0b-antiTag/1b-antiTag regions" << std::endl;
 		//std::cout << "This can be further broken down - average b-tag SF is " << sum_eventSF_SR/nEvents_unscaled_SR  << "/" <<sum_eventSF_CR/nEvents_unscaled_CR << "/" <<sum_eventSF_0b_antiTag/nEvents_unscaled_0b_antiTag << "/" << sum_eventSF_1b_antiTag/nEvents_unscaled_1b_antiTag<<  "in the signal/control/0b-antiTag/1b-antiTag regions" << std::endl;
 		//std::cout << "The number of bad btag and PU SFs was " << num_bad_btagSF << " and " << num_bad_PUSF << std::endl;
 		std::cout << "Finishing systematic " << systematic << " "<< *systematic_suffix << std::endl;
 		std::cout << "Total Events: " << totEventsUncut << " in " << inFileName << " for " << systematic << " "<< *systematic_suffix << std::endl;
-		std::cout << "In " << inFileName << " there were " << num_bad_btagSF<< "/" << num_bad_PUSF<< "/"<< num_bad_topPt<< "/"<< num_bad_scale<< "/"<<num_bad_pdf << "/" <<num_bad_prefiring << " bad btag/PU/topPt/scale/pdf/prefiring event weights" << std::endl; 
+		std::cout << "In " << inFileName << " there were " << num_bad_btagSF<< "/" << num_bad_PUSF<< "/"<< num_bad_topPt<< "/"<< num_bad_scale<< "/"<<num_bad_pdf << "/" <<num_bad_prefiring << " bad btag/PU/topPt/scale/pdf/prefiring Event Weights" << std::endl; 
+		std::cout << "--------- by region ------- " << std::endl;
+		std::cout << "In the ==== SR ====   there were " << bad_event_weights_SR[0]  << "/" << bad_event_weights_SR[1]  << "/"<< bad_event_weights_SR[2]<< "/"<< bad_event_weights_SR[3] << "/" <<bad_event_weights_SR[4] << "/" <<bad_event_weights_SR[5]  << "/" <<bad_event_weights_SR[6]  << "/" <<bad_event_weights_SR[7]  << "/" <<bad_event_weights_SR[8] << ": PU / fact / renorm / top pt / pdf / btagging med / prefiring / full event SF / GOOD events (didn't fail anything)" << std::endl; 
+		std::cout << "In the ==== CR ====   there were " << bad_event_weights_CR[0]  << "/" << bad_event_weights_CR[1]  << "/"<< bad_event_weights_CR[2]<< "/"<< bad_event_weights_CR[3] << "/" <<bad_event_weights_CR[4] << "/" <<bad_event_weights_CR[5]  << "/" <<bad_event_weights_CR[6]  << "/" <<bad_event_weights_CR[7]  << "/" <<bad_event_weights_CR[8]  << ": PU / fact / renorm / top pt / pdf / btagging med / prefiring / full event SF / GOOD events (didn't fail anything)" << std::endl; 
+		std::cout << "In the ==== AT1b ==== there were " << bad_event_weights_AT1b[0]<< "/" << bad_event_weights_AT1b[1]<< "/"<< bad_event_weights_AT1b[2]<< "/"<< bad_event_weights_AT1b[3] << "/" <<bad_event_weights_AT1b[4] << "/" <<bad_event_weights_AT1b[5] << "/" <<bad_event_weights_AT1b[6] << "/" <<bad_event_weights_AT1b[7] << "/" <<bad_event_weights_AT1b[8] << ": PU / fact / renorm / top pt / pdf / btagging med / prefiring / full event SF / GOOD events (didn't fail anything)" << std::endl; 
+		std::cout << "In the ==== AT0b ==== there were " << bad_event_weights_AT0b[0]<< "/" << bad_event_weights_AT0b[1]<< "/"<< bad_event_weights_AT0b[2]<< "/"<< bad_event_weights_AT0b[3] << "/" <<bad_event_weights_AT0b[4] << "/" <<bad_event_weights_AT0b[5] << "/" <<bad_event_weights_AT0b[6] << "/" <<bad_event_weights_AT0b[7] << "/" <<bad_event_weights_AT0b[8] << ": PU / fact / renorm / top pt / pdf / btagging med / prefiring / full event SF / GOOD events (didn't fail anything)" << std::endl; 
+
+		
 		std::cout << "There were " << badEventSF << " bad events." << std::endl;
 		std::cout << "Signal  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear  << " : total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<   sum_eventSF_SR   << std::endl;
 		std::cout << "Control  Region for " << systematic+ "_" + *systematic_suffix << " " << dataBlock << ", "<<  dataYear  << " : total/HTcut/AK8jetCut/heavyAK8JetCut/nBtagCut/nSJEnergyCut: - " <<   sum_eventSF_CR   << std::endl;
@@ -1662,23 +2163,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		std::cout << "-------- The largest AK4 JEC Uncertainty corr for " << dataBlock << "/" << dataYear << "/" << systematic+ "_" + *systematic_suffix  << " was " <<largest_JEC_corr_AK4 << " with average corr " << avg_JEC_corr_AK4 / (1.0*total_jets_AK4) << std::endl;
 
 
-		g_bTagSF_T_vs_HT->Write();
-		g_bTagSF_M_vs_HT->Write();
+		// cleanup
 
-	   delete g_bTagSF_T_vs_HT,  h_totHT, h_totHT_unscaled, h_nfatjets_pre,  h_SJ_nAK4_100_CR,  h_SJ_nAK4_200_CR,  h_SJ_mass_CR,  h_disuperjet_mass_CR,  h_MSJ_mass_vs_MdSJ_CR,  h_SJ_nAK4_100_SR,
-	    h_SJ_nAK4_200_SR,  h_SJ_mass_SR,  h_disuperjet_mass_SR,  h_MSJ_mass_vs_MdSJ_SR,  h_MSJ_mass_vs_MdSJ_dijet,  h_nLooseBTags,  h_nMedBTags,  h_nTightBTags,
-	    h_nfatjets,  h_MSJ_mass_vs_MdSJ_AT1b,  h_SJ_mass_AT1b,  h_disuperjet_mass_AT1b,  h_nAK4_AT1b,  h_nTightbTags_AT1b,
-	    h_AK8_jet_mass_SR,  h_AK8_jet_mass_CR,  h_AK4_jet_mass_SR,  h_AK4_jet_mass_CR,  h_totHT_SR,  h_totHT_CR, h_totHT_AT0b, h_totHT_AT1b,
-	    h_nfatjets_SR,  h_nfatjets_CR,  h_nAK4_SR,  h_nAK4_CR,  h_AK4_partonFlavour,  h_AK4_DeepJet_disc,  h_AK4_DeepJet_disc_all,  h_nAK4,  h_MSJ1_vs_MSJ2_SR,
-	    h_MSJ1_vs_MSJ2_CR,  h_nAK4_all,  h_MSJ_mass_vs_MdSJ_AT0b, h_SJ_mass_AT0b,  h_disuperjet_mass_AT0b,
-	    h_scale_EventWeight, h_scale_EventWeight_SR, h_scale_EventWeight_CR, h_scale_EventWeight_AT1b, h_scale_EventWeight_AT0b,
-	    h_SJ_mass_tagged_SJs_1b, h_SJ_mass_tagged_SJs_0b, h_SJ_mass_tagged_SJs, h_SJ2_mass_tagged_SJs_ATSJ1_1b,
-		h_SJ2_mass_tagged_SJs_ATSJ1_0b, h_SJ2_mass_tagged_SJs_ATSJ1, h_SJ_mass_total_SJs_1b, h_SJ_mass_total_SJs_0b,
-		h_SJ_mass_total_SJs, h_SJ2_mass_total_SJs_ATSJ1_1b, h_SJ2_mass_total_SJs_ATSJ1_0b, h_SJ2_mass_total_SJs_ATSJ1; 
-		delete h_AK8_eta, h_AK8_phi,h_AK4_eta,h_AK4_phi,h_JEC_uncert_AK8,h_JEC_uncert_AK4,h_AK8_JER, h_JEC_uncert_AK8_SR,h_JEC_uncert_AK4_SR,h_AK8_JER_SR;
-		delete h_JEC_uncert_AK8_CR,h_JEC_uncert_AK4_CR,h_AK8_JER_CR, h_JEC_uncert_AK8_AT1b,h_JEC_uncert_AK4_AT1b,h_AK8_JER_AT1b, h_JEC_uncert_AK8_AT0b,h_JEC_uncert_AK4_AT0b,h_AK8_JER_AT0b;
-		delete h_numTrueInteractions, h_failed_events;
-		delete h_SJ_mass, h_disuperjet_mass, h_SJ_mass_uncorrected, h_disuperjet_mass_uncorrected;
+		for(auto hist:hists){ delete hist; }
+		for(auto hist:TH1I_container){ delete hist;}
+		for(auto hist:TH2F_container){ delete hist;}
+		for(auto hist:TProfile_container){ delete hist;}
+		for(auto hist:TGraph_container){ hist->Write(); delete hist;}
+		
 	}
 
    outFile->Close();
@@ -1695,10 +2187,10 @@ void rootProcessor()
    bool _verbose     	= false;
    bool saveEOS  			= true;
    bool runData			= false;
-   bool runSignal    	= true;
+   bool runSignal    	= false;
    bool runBR	  			= false;
    bool runAll	 			= false;
-   bool runDataBR    	= false;
+   bool runDataBR    	= true;
    bool runSelection 	= false;
    bool runSingleFile 	= false;
    int nFailedFiles = 0;
@@ -1710,12 +2202,10 @@ void rootProcessor()
    if(saveEOS) outputFolder =  "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles_temp/";
  										  
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
-
-   dataYears = {"2017","2018"};
-
    
-   if(runSelection) dataYears = {"2015","2018"};
+   dataYears = {"2017"};
 
+   if(runSelection) dataYears = {"2015","2018"};
 
    // REMOVED: "bTagSF_tight",  "bTagSF_tight_corr", 
    std::vector<std::string> systematics = { "nom", "scale", "bTagSF_med",   "bTagSF_med_corr",  "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring", "pdf","renorm", "fact"};  // "scale"    "JEC_HF", "JEC_BBEC1", "JEC_EC2","JEC_HF_year", "JEC_EC2_year",   "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M",  "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year",
@@ -1739,6 +2229,15 @@ void rootProcessor()
 		{
 			signalFilePaths.push_back((*mass_point+ "_"+ *decay + "_").c_str());
 		}
+   }
+
+   if(debug)
+   {
+   	dataYears = {"2015"};
+   	systematics = {"nom", "JEC_Absolute", "bTag_eventWeight_bc_M_year","JEC_Absolute_year"};
+   	//systematics = { "nom", "scale", "bTagSF_med",   "bTagSF_med_corr",  "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring", "pdf","renorm", "fact"}; 
+   	 
+   	_verbose = false;
    }
  
    for(auto dataYear = dataYears.begin(); dataYear < dataYears.end();dataYear++ )
@@ -2001,19 +2500,27 @@ void rootProcessor()
 			return;
 		}
 		
-		for(auto systematic = systematics.begin();systematic<systematics.end();systematic++)
+
+		for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
 		{
 
-			std::cout << "------------ Looking at systematic: " << *systematic << " --------------" << std::endl;
+			 if(debug)dataBlocks = {"QCDMC_Pt_600to800_", "QCDMC2000toInf_"};
 
-			for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
+			for(auto systematic = systematics.begin();systematic<systematics.end();systematic++)
 			{
+
+
+
+
+			
 				if ((*dataBlock).find("data")!= std::string::npos)
 				{  
 					// these are MC-only systematics 
 					if(*systematic != "nom") continue; // don't do any variations for data_obs
 				}
 				
+				std::cout << "------------ Looking at systematic: " << *systematic << " --------------" << std::endl;
+
 				double nEvents = 0, nHTcut  = 0, nAK8JetCut = 0, nHeavyAK8Cut = 0, nBtagCut = 0, nDoubleTagged = 0, nNoBjets = 0;
 				double nDoubleTaggedCR = 0, nZeroBtagAntiTag = 0, nOneBtagAntiTag = 0;
 
@@ -2059,19 +2566,17 @@ void rootProcessor()
 				}
 				std::cout << " @@@@@@@@ There have been " << nFailedFiles << " failed jobs files @@@@@@@@" << std::endl;
 				std::cout << "Failed files: " << failedFiles << std::endl;
-				if(_verbose)
-				{
-					std::cout << "----------------------------------- Starting " << *dataBlock << "-----------------------------------"<< std::endl;
-					std::cout << "Total 1b double tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/1+ b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nDoubleTagged << std::endl;
-					std::cout << "Total 0b double tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nNoBjets << "/" << nDoubleTaggedCR << std::endl;
-					std::cout << "Total 1b anti tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nOneBtagAntiTag << std::endl;
-					std::cout << "Total 0b anti tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nNoBjets << "/" << nZeroBtagAntiTag << std::endl;
-					std::cout << "Finished with "<< inFileName << "." << std::endl;
-					std::cout << std::endl;
-					std::cout << std::endl;
-					std::cout << std::endl;
-					std::cout << std::endl;
-				}
+
+				std::cout << "----------------------------------- Starting " << *dataBlock << "-----------------------------------"<< std::endl;
+				std::cout << "Total 1b double tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/1+ b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nDoubleTagged << std::endl;
+				std::cout << "Total 0b double tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nNoBjets << "/" << nDoubleTaggedCR << std::endl;
+				std::cout << "Total 1b anti tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nOneBtagAntiTag << std::endl;
+				std::cout << "Total 0b anti tag breadown: " << " events total/HT/nAK8 jet/heavy AK8 +dijet/0 b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nNoBjets << "/" << nZeroBtagAntiTag << std::endl;
+				std::cout << "Finished with "<< inFileName << "." << std::endl;
+				std::cout << std::endl;
+				std::cout << std::endl;
+				std::cout << std::endl;
+				std::cout << std::endl;
 			} // end dataBlock loop
 		} // end systematic loop
 		

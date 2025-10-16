@@ -17,7 +17,7 @@ class hist_loader:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, technique_str, use_QCD_Pt = False, doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, runCorrected = False, WP=None):
+	def __init__(self, year, technique_str, use_QCD_Pt = False, doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, runCorrected = False, WP=None, debug=False):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
@@ -28,6 +28,7 @@ class hist_loader:
 		self.WP_str = ""
 		self.use_QCD_Pt = use_QCD_Pt
 		self.runCorrected = runCorrected
+		self.debug = debug
 		if self.WP: 
 
 			if "ET" in self.WP:
@@ -55,22 +56,22 @@ class hist_loader:
 		if self.WP:
 
 			if "ET" in self.WP:
-				self.MC_root_file_home	    = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/%s/"%self.WP_folder
+				self.MC_root_file_home		= "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/%s/"%self.WP_folder
 				self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/%s/"%self.WP_folder
 			else:
-				self.MC_root_file_home	    = "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
+				self.MC_root_file_home		= "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 				self.data_root_file_home	=  "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 
 
 		if self.run_from_eos:
 
-			self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles/"
+			self.MC_root_file_home		=  self.eos_path + "/store/user/ecannaer/processedFiles/"
 			self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles/"
 			if self.runCorrected:
-				self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
+				self.MC_root_file_home		=  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
 				self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
 			if self.WP:
-				self.MC_root_file_home	    =  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
+				self.MC_root_file_home		=  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 				self.data_root_file_home	=  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 
 
@@ -78,7 +79,7 @@ class hist_loader:
 		## region options
 		self.doSideband = doSideband
 		self.doATxtb = doATxtb
-		self.doHTdist = doHTdist    # use an HT distribution as the "final" distribution. Don't want to do the linearization process in this case
+		self.doHTdist = doHTdist	# use an HT distribution as the "final" distribution. Don't want to do the linearization process in this case
 		if self.doSideband: self.doHTdist = False
 
 		self.final_hist_name = "h_MSJ_mass_vs_MdSJ"
@@ -103,9 +104,9 @@ class hist_loader:
 				self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/selectionStudy/%s/finalCombineFilesNewStats"%self.WP
 				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/selectionStudy/%s/finalCombinePlots"%self.WP
 				if not os.path.exists(self.output_file_home):
-    				os.mkdir(self.output_file_home) 
-    			if not os.path.exists(self.final_plot_home):
-    				os.mkdir(self.final_plot_home) 
+					os.mkdir(self.output_file_home) 
+				if not os.path.exists(self.final_plot_home):
+					os.mkdir(self.final_plot_home) 
 			else:
 				self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/WPStudy/%s/"%WP
 				self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/WPStudy/%s/"%WP
@@ -115,20 +116,20 @@ class hist_loader:
 		self.data_systematics 	   = ["nom"]
 		self.data_systematic_names = ["nom"]
 
-		self.systematics 	  = ["nom",      "JER",	    "JEC",    "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	   "JEC_Absolute_year",	     "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",	        "pdf",	   "renorm",	 "fact",	  "JEC_AbsoluteCal",    "JEC_AbsoluteTheory",       "JEC_AbsolutePU",	    "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",     "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
-		self.systematic_names = ["nom",    "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	        "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+		self.systematics 	  = ["nom",	  "JER",     "JEC",	  "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	  "JEC_RelativeBal",		"JEC_Absolute",	   "JEC_BBEC1_year",	   "JEC_Absolute_year",		 "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",			"pdf",	   "renorm",	 "fact",	  "JEC_AbsoluteCal",	"JEC_AbsoluteTheory",	   "JEC_AbsolutePU",		"JEC_AbsoluteScale",		  "JEC_Fragmentation",		"JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",	   "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
+		self.systematic_names = ["nom",	"CMS_jer", "CMS_jec",	"CMS_bTagSF_bc_M_corr",			"CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year",  "CMS_pu",	"CMS_L1Prefiring",   "CMS_pdf",   "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",	"CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
 
 		self.uncorrelated_systematics = ["CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
 		if not self.runCorrected:
-			self.systematics.extend([ "bTagSF_med",    "bTagSF_med_corr",   "topPt"])
+			self.systematics.extend([ "bTagSF_med",	"bTagSF_med_corr",   "topPt"])
 			self.systematic_names.extend(["CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" , "CMS_topPt"])
 
 		if self.WP:
 
 
 			if "ET" not in self.WP:
-				self.systematics 	  = ["nom",  "JEC",           "PUSF",    "bTagSF_med" ]
-				self.systematic_names = ["nom",   "CMS_jec",    "CMS_pu",  "CMS_bTagSF_M" ]  
+				self.systematics 	  = ["nom",  "JEC",		   "PUSF",	"bTagSF_med" ]
+				self.systematic_names = ["nom",   "CMS_jec",	"CMS_pu",  "CMS_bTagSF_M" ]  
 			else:
 				self.systematics 	  = ["nom"]   ## systematic namings as used in analyzer	 "bTagSF",   
 				self.systematic_names = ["nom"] 
@@ -137,7 +138,7 @@ class hist_loader:
 
 
 		### HT bin stuff
-		self.HT_dist_superbins =   {"SR": [], "AT1b": [], "SB1b": [] }    ### these will store the HT superbins (bins that are merged to guarantee some minimum stat uncertainty)
+		self.HT_dist_superbins =   {"SR": [], "AT1b": [], "SB1b": [] }	### these will store the HT superbins (bins that are merged to guarantee some minimum stat uncertainty)
 		self.HT_dist_min_stat_uncert = 0.30  ## = 20% bin stat uncertainty
 
 
@@ -826,7 +827,8 @@ class hist_loader:
 
 			if "QCD" in hist_type:
 				hist_path = use_filepath + "%s_%s_%sprocessed.root"%(hist_type, self.year, self.WP_str)
-				#print("hist_name / file name = %s / %s"%(     hist_name,hist_path))
+				if self.debug: print("For QCD hists, looking for hist %s in file %s."%(hist_name, hist_path))
+				#print("hist_name / file name = %s / %s"%(	 hist_name,hist_path))
 				TH2_file = ROOT.TFile.Open(hist_path,"READ")
 				TH2_hist = self.clean_histogram(TH2_file.Get(hist_name), systematic, hist_type ) 
 				TH2_hist.SetDirectory(0)
@@ -934,12 +936,12 @@ class hist_loader:
 					TH2_file_WJetsMC_LNu_HT800to1200  = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT800to1200,"READ")
 					TH2_file_WJetsMC_LNu_HT1200to2500 = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT1200to2500,"READ")
 					TH2_file_WJetsMC_LNu_HT2500toInf  = ROOT.TFile.Open(hist_path_WJetsMC_LNu_HT2500toInf,"READ")
-					TH2_file_WJetsMC_QQ_HT800toInf    = ROOT.TFile.Open(hist_path_WJetsMC_QQ_HT800toInf,"READ")
+					TH2_file_WJetsMC_QQ_HT800toInf	= ROOT.TFile.Open(hist_path_WJetsMC_QQ_HT800toInf,"READ")
 
-					TH2_hist_WJetsMC_LNu_HT800to1200     = self.clean_histogram(TH2_file_WJetsMC_LNu_HT800to1200.Get(hist_name_WJets) , systematic, "WJetsMC_LNu-HT800to1200" )
+					TH2_hist_WJetsMC_LNu_HT800to1200	 = self.clean_histogram(TH2_file_WJetsMC_LNu_HT800to1200.Get(hist_name_WJets) , systematic, "WJetsMC_LNu-HT800to1200" )
 					TH2_hist_WJetsMC_LNu_HT1200to2500 = self.clean_histogram(TH2_file_WJetsMC_LNu_HT1200to2500.Get(hist_name_WJets) , systematic, "WJetsMC_LNu-HT1200to2500" )
-					TH2_hist_WJetsMC_LNu_HT2500toInf     = self.clean_histogram(TH2_file_WJetsMC_LNu_HT2500toInf.Get(hist_name_WJets) , systematic, "WJetsMC_LNu-HT2500toInf" )
-					TH2_hist_WJetsMC_QQ_HT800toInf     = self.clean_histogram(TH2_file_WJetsMC_QQ_HT800toInf.Get(hist_name_WJets) , systematic, "WJetsMC_QQ-HT800toInf" )
+					TH2_hist_WJetsMC_LNu_HT2500toInf	 = self.clean_histogram(TH2_file_WJetsMC_LNu_HT2500toInf.Get(hist_name_WJets) , systematic, "WJetsMC_LNu-HT2500toInf" )
+					TH2_hist_WJetsMC_QQ_HT800toInf	 = self.clean_histogram(TH2_file_WJetsMC_QQ_HT800toInf.Get(hist_name_WJets) , systematic, "WJetsMC_QQ-HT800toInf" )
 
 
 					TH2_file_WJetsMC_LNu_HT800to1200.Scale(self.BR_SF_scale*SF_WJetsMC_LNu_HT800to1200)
@@ -1023,13 +1025,13 @@ class hist_loader:
 
 			elif hist_type == "":
 
-				TH2_file_TTToHadronic     = ROOT.TFile.Open(hist_path_TTToHadronic,"READ")
+				TH2_file_TTToHadronic	 = ROOT.TFile.Open(hist_path_TTToHadronic,"READ")
 				TH2_file_TTToSemiLeptonic = ROOT.TFile.Open(hist_path_TTToSemiLeptonic,"READ")
 				TH2_file_TTToLeptonic 	  = ROOT.TFile.Open(hist_path_TTToLeptonic,"READ")
 
-				TH2_hist_TTToHadronic     = self.clean_histogram(TH2_file_TTToHadronic.Get(hist_name_TTbar) , systematic, "TTToHadronicMC" )
+				TH2_hist_TTToHadronic	 = self.clean_histogram(TH2_file_TTToHadronic.Get(hist_name_TTbar) , systematic, "TTToHadronicMC" )
 				TH2_hist_TTToSemiLeptonic = self.clean_histogram(TH2_file_TTToSemiLeptonic.Get(hist_name_TTbar) , systematic, "TTToSemiLeptonicMC" )
-				TH2_hist_TTToLeptonic     = self.clean_histogram(TH2_file_TTToLeptonic.Get(hist_name_TTbar) , systematic, "TTToLeptonicMC" )
+				TH2_hist_TTToLeptonic	 = self.clean_histogram(TH2_file_TTToLeptonic.Get(hist_name_TTbar) , systematic, "TTToLeptonicMC" )
 
 
 				TH2_hist_TTToHadronic.Scale(self.BR_SF_scale*SF_TTToHadronic[self.year])
@@ -1388,8 +1390,8 @@ class hist_loader:
 			  self.WJetsMC_LNu_HT800to1200_AT1b, self.WJetsMC_LNu_HT1200to2500_AT1b, self.WJetsMC_LNu_HT2500toInf_AT1b, self.WJetsMC_QQ_HT800toInf_AT1b,
 			   self.WJetsMC_LNu_HT800to1200_AT0b, self.WJetsMC_LNu_HT1200to2500_AT0b, self.WJetsMC_LNu_HT2500toInf_AT0b, self.WJetsMC_QQ_HT800toInf_AT0b]
 
-			if self.doSideband: WJets_hists.extend( [ self.WJetsMC_LNu_HT800to1200_SB1b, self.WJetsMC_LNu_HT1200to2500_SB1b, self.WJetsMC_LNu_HT2500toInf_SB1b, self.WJetsMC_QQ_HT800toInf_SB1b, self.WJetsMC_LNu_HT800to1200_SB0b, self.WJetsMC_LNu_HT1200to2500_SB0b, self.WJetsMC_LNu_HT2500toInf_SB0b, self.WJetsMC_QQ_HT800toInf_SB0b    ])
-			if self.doATxtb:    WJets_hists.extend( [  self.WJetsMC_LNu_HT800to1200_AT1tb, self.WJetsMC_LNu_HT1200to2500_AT1tb, self.WJetsMC_LNu_HT2500toInf_AT1tb, self.WJetsMC_QQ_HT800toInf_AT1tb, self.WJetsMC_LNu_HT800to1200_AT0tb, self.WJetsMC_LNu_HT1200to2500_AT0tb, self.WJetsMC_LNu_HT2500toInf_AT0tb, self.WJetsMC_QQ_HT800toInf_AT0tb    ])
+			if self.doSideband: WJets_hists.extend( [ self.WJetsMC_LNu_HT800to1200_SB1b, self.WJetsMC_LNu_HT1200to2500_SB1b, self.WJetsMC_LNu_HT2500toInf_SB1b, self.WJetsMC_QQ_HT800toInf_SB1b, self.WJetsMC_LNu_HT800to1200_SB0b, self.WJetsMC_LNu_HT1200to2500_SB0b, self.WJetsMC_LNu_HT2500toInf_SB0b, self.WJetsMC_QQ_HT800toInf_SB0b	])
+			if self.doATxtb:	WJets_hists.extend( [  self.WJetsMC_LNu_HT800to1200_AT1tb, self.WJetsMC_LNu_HT1200to2500_AT1tb, self.WJetsMC_LNu_HT2500toInf_AT1tb, self.WJetsMC_QQ_HT800toInf_AT1tb, self.WJetsMC_LNu_HT800to1200_AT0tb, self.WJetsMC_LNu_HT1200to2500_AT0tb, self.WJetsMC_LNu_HT2500toInf_AT0tb, self.WJetsMC_QQ_HT800toInf_AT0tb	])
 
 			for hist_list in WJets_hists:
 				for hist in hist_list:
@@ -1398,19 +1400,19 @@ class hist_loader:
 		if self.includeTTJets800to1200:
 			TTJets800to1200_hists = [ self.TTJetsMCHT800to1200_SR,   self.TTJetsMCHT800to1200_CR,  self.TTJetsMCHT800to1200_AT1b,  self.TTJetsMCHT800to1200_AT0b ] 
 			if self.doSideband: WJets_hists.extend( [self.TTJetsMCHT800to1200_SB1b, self.TTJetsMCHT800to1200_SB0b] )
-			if self.doATxtb:    WJets_hists.extend( [self.TTJetsMCHT800to1200_AT1tb, self.TTJetsMCHT800to1200_AT0tb] )
+			if self.doATxtb:	WJets_hists.extend( [self.TTJetsMCHT800to1200_AT1tb, self.TTJetsMCHT800to1200_AT0tb] )
 			for hist_list in TTJets800to1200_hists:
 				for hist in hist_list:
 					del hist
 
 		if self.includeTTTo:
 			TTTo_hists = [ self.TTToHadronicMC_SR, self.TTToSemiLeptonicMC_SR, self.TTToLeptonicMC_SR,  
-						    self.TTToHadronicMC_CR, self.TTToSemiLeptonicMC_CR, self.TTToLeptonicMC_CR,
-						     self.TTToHadronicMC_AT1b, self.TTToSemiLeptonicMC_AT1b, self.TTToLeptonicMC_AT1b,
-						      self.TTToHadronicMC_AT0b, self.TTToSemiLeptonicMC_AT0b, self.TTToLeptonicMC_AT0b  ]
+							self.TTToHadronicMC_CR, self.TTToSemiLeptonicMC_CR, self.TTToLeptonicMC_CR,
+							 self.TTToHadronicMC_AT1b, self.TTToSemiLeptonicMC_AT1b, self.TTToLeptonicMC_AT1b,
+							  self.TTToHadronicMC_AT0b, self.TTToSemiLeptonicMC_AT0b, self.TTToLeptonicMC_AT0b  ]
 
 			if self.doSideband: TTTo_hists.extend(   [  self.TTToHadronicMC_SB1b, self.TTToSemiLeptonicMC_SB1b, self.TTToLeptonicMC_SB1b, self.TTToHadronicMC_SB0b, self.TTToSemiLeptonicMC_SB0b, self.TTToLeptonicMC_SB0b]   )
-			if self.doATxtb:	TTTo_hists.extend(   [   self.TTToHadronicMC_AT1tb, self.TTToSemiLeptonicMC_AT1tb, self.TTToLeptonicMC_AT1tb, self.TTToHadronicMC_AT0tb, self.TTToSemiLeptonicMC_AT0tb, self.TTToLeptonicMC_AT0tb]   )      
+			if self.doATxtb:	TTTo_hists.extend(   [   self.TTToHadronicMC_AT1tb, self.TTToSemiLeptonicMC_AT1tb, self.TTToLeptonicMC_AT1tb, self.TTToHadronicMC_AT0tb, self.TTToSemiLeptonicMC_AT0tb, self.TTToLeptonicMC_AT0tb]   )	  
 			for hist_list in TTTo_hists:
 				for hist in hist_list:
 					del hist
@@ -1424,7 +1426,7 @@ class hist_loader:
 		self.HT_dist_superbins["AT1b"] = self.QCD1000to1500_hist_SR[0][0].GetNbinsX()*[0]
 		if self.doSideband: self.HT_dist_superbins["SB1b"] = self.QCD1000to1500_hist_SR[0][0].GetNbinsX()*[0]
 
-		for iii in range(0,self.QCD1000to1500_hist_SR[0][0].GetNbinsX()):    ## SETS THE BIN INDICES TO BE TRUE TO HISTOGRAM BINNING (1 to nBins+1) _____
+		for iii in range(0,self.QCD1000to1500_hist_SR[0][0].GetNbinsX()):	## SETS THE BIN INDICES TO BE TRUE TO HISTOGRAM BINNING (1 to nBins+1) _____
 			self.HT_dist_superbins["SR"][iii] = [iii+1]
 			self.HT_dist_superbins["AT1b"][iii] = [iii+1]
 			if self.doSideband: self.HT_dist_superbins["SB1b"][iii] == [iii+1]
@@ -1452,7 +1454,7 @@ class hist_loader:
 		scaled_counts  = 0
 
 		#print("self.HT_dist_superbins is %s"%self.HT_dist_superbins)
-		#print("self.HT_dist_superbins[%s] is %s"%(region, self.HT_dist_superbins)    )
+		#print("self.HT_dist_superbins[%s] is %s"%(region, self.HT_dist_superbins)	)
 		#print("self.HT_dist_superbins[%s][%s] is %s"%(region, superbin_num, self.HT_dist_superbins)  )
 
 		for bin_number in self.HT_dist_superbins[region][superbin_num]:   # this is the looping over the bins in a superbin, this assumes the indices go from 1 - nSuperbins + 1
@@ -1491,7 +1493,7 @@ class hist_loader:
 		scaled_counts  = 0
 
 		#print("self.HT_dist_superbins is %s"%self.HT_dist_superbins)
-		#print("self.HT_dist_superbins[%s] is %s"%(region, self.HT_dist_superbins)    )
+		#print("self.HT_dist_superbins[%s] is %s"%(region, self.HT_dist_superbins)	)
 		#print("self.HT_dist_superbins[%s][%s] is %s"%(region, superbin_num, self.HT_dist_superbins)  )
 
 
@@ -1612,9 +1614,9 @@ class hist_loader:
 			## merge with neighbor superbin with the highest stat uncertainty
 			#print("Finding neighbor to merge with.")
 			neighbor_index_to_merge = self.highest_stat_uncertainty_neighbor(random_superbin, "SR")
-			#print("-----      Superbins for %s:    %s"%("SR", bin_indices))
-			#print("#####      Will merge with neighbor bin #%s: %s"%( neighbor_index_to_merge, bin_indices[neighbor_index_to_merge]))
-			#print("@@@@@      Then will remove %s."%bin_indices[neighbor_index_to_merge])
+			#print("-----	  Superbins for %s:	%s"%("SR", bin_indices))
+			#print("#####	  Will merge with neighbor bin #%s: %s"%( neighbor_index_to_merge, bin_indices[neighbor_index_to_merge]))
+			#print("@@@@@	  Then will remove %s."%bin_indices[neighbor_index_to_merge])
 
 			"""
 			for superbin_num in range(0,len(bin_indices)):

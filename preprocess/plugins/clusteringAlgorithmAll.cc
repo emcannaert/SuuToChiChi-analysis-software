@@ -164,10 +164,13 @@ private:
    std::string year;
    std::string lumiTag;
 
+   bool runBEST = false;
+
    std::string jetVetoMapName;
    edm::FileInPath jetVetoMapFile;
 
    std::vector<std::string> triggers;
+
 
    bool doPUID = false;
    bool doPDF = false;
@@ -252,8 +255,6 @@ private:
    double deepJet_wp_med, deepjet_wp_tight; // deepJet_wp_loose
 
    double AK8_JER[25], AK8_JEC[25];
-   double weightFacUp,weightFacDn,weightRenUp,weightRenUpxweightFacUp,weightRenUpxweightFacDn;
-   double weightRenDn,weightRenDnxweightFacUp,weightRenDnxweightFacDn;
 
    double jet_bTagSF_b_T[100], jet_bTagSF_c_T[100], jet_bTagSF_light_T[100];
    double jet_bTagSF_b_M[100], jet_bTagSF_c_M[100], jet_bTagSF_light_M[100];
@@ -285,14 +286,14 @@ private:
    // PDF weight stuff
    int nPDFWeights, nScaleWeights;
    float pdfWeights[200], scaleWeights[200];
-   double PDFWeights_alphas, PDFWeights_varWeightsRMS,PDFWeights_varWeightsErr;
-   double PDFWeights_renormWeights[2],PDFWeights_factWeightsRMSs[2];
+   double PDFWeights_alphas, PDFWeight_RMS_up, PDFWeight_RMS_down,PDFWeights_varWeightsErr;
+   double PDFWeight_68perc_up, PDFWeight_68perc_down;
+   double factWeights_up, factWeights_down;
    int PDFWeights_nVars;
    double alphas;
    int nVars; 
 
    double factWeightsRMSs[2]; // Up, down
-   double varWeightsRMS;
    double varWeightsErr;
    double renormWeights[2]; //Up, down
    double scale_envelope[10];
@@ -304,14 +305,15 @@ private:
    int nQCD_vertices = 0;  // this will depend on the process
    PDF* nomPDF;
    PDF* varPDFs[102];
-   double PDFWeights_factWeightsRMS_up, PDFWeights_factWeightsRMS_down;
+   double scale_uncert_envelope_nQCD2_up, scale_uncert_envelope_nQCD2_down;
+   double scale_uncert_envelope_nQCD3_up, scale_uncert_envelope_nQCD3_down;
 
-   double PDFWeights_renormWeight_nQCD1_up, PDFWeights_renormWeight_nQCD1_down;
-   double PDFWeights_renormWeight_nQCD2_up, PDFWeights_renormWeight_nQCD2_down;
-   double PDFWeights_renormWeight_nQCD3_up, PDFWeights_renormWeight_nQCD3_down;
-   double PDFWeights_renormWeight_nQCD4_up, PDFWeights_renormWeight_nQCD4_down;
-   double PDFWeights_renormWeight_nQCD5_up, PDFWeights_renormWeight_nQCD5_down;
 
+   double renormWeight_nQCD1_up, renormWeight_nQCD1_down;
+   double renormWeight_nQCD2_up, renormWeight_nQCD2_down;
+   double renormWeight_nQCD3_up, renormWeight_nQCD3_down;
+   double renormWeight_nQCD4_up, renormWeight_nQCD4_down;
+   double renormWeight_nQCD5_up, renormWeight_nQCD5_down;
 
    double PDFWeights_envelope_scale_uncertainty_up,PDFWeights_envelope_scale_uncertainty_down;
    double PDFWeightUp, PDFWeightDown;  // BEST-style PDF weights
@@ -329,8 +331,6 @@ private:
    Correction::Ref cset_corrector_light; 
 
    // Jet correction uncertainty classes
-   //JetCorrectionUncertainty *jecUnc_AK4;
-   //JetCorrectionUncertainty *jecUnc_AK8;
    std::unique_ptr<CorrectionSet> PUjson;
    Correction::Ref PUjson_year;
 
@@ -349,7 +349,6 @@ private:
    int nTau_looseVsJet_looseVsMuon_VVLooseVse = 0, nTau_VLooseVsJet_looseVsMuon_VVLooseVse = 0, nTau_VVLlooseVsJet_looseVsMuon_VVLooseVse= 0 , nTau_looseVsJet_VLooseVsMuon_VVLooseVse = 0;
    int nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse = 0,nTau_VVLlooseVsJet_VLooseVsMuon_VVLooseVse = 0;
 
-
 };
 
 //_constructor_
@@ -361,12 +360,15 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
    runType        = iConfig.getParameter<std::string>("runType");
    systematicType = iConfig.getParameter<std::string>("systematicType");
    year           = iConfig.getParameter<std::string>("year");
-
+   runBEST        = iConfig.getParameter<bool>("runBEST");
    // necessary for importing NN file
    
-   cache_ = new CacheHandler(path_);
-   BEST_  = new BESTEvaluation(cache_);
-   BEST_->configure(iConfig);
+   if(runBEST)
+   {
+      cache_ = new CacheHandler(path_);
+      BEST_  = new BESTEvaluation(cache_);
+      BEST_->configure(iConfig);
+   }
 
    includeAllBranches = iConfig.getParameter<bool>("includeAllBranches");
    slimmedSelection   = iConfig.getParameter<bool>("slimmedSelection");
@@ -397,10 +399,12 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       bTagSF_path    = iConfig.getParameter<edm::FileInPath>("bTagSF_path");
       bTagEff_path   = iConfig.getParameter<edm::FileInPath>("bTagEff_path");
 
-      if(doPDFWeights)
-      {
+      // CHANGE THIS
+      GeneratorToken_       = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
 
-         GeneratorToken_       = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
+
+      if( (doPDFWeights) || (runType.find("QCD") != std::string::npos  && systematicType == "nom") )
+      {
          lheEventProductToken_ = consumes<LHEEventProduct> (edm::InputTag("externalLHEProducer", "", "GEN"));
          //std::cout << "Getting the PDF weight tokens." << std::endl;
          //pdfWeightToken_ = consumes<std::vector<float>>(edm::InputTag("PDFweights")); // calculated with PDFRecalculator
@@ -1017,6 +1021,70 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       {
          if(_verbose)std::cout << "Setting up nom uncertainty-specific variables (event weights)" << std::endl;
 
+
+
+         // for calculation of QCD_Pt pdf uncertainty
+
+         if(_verbose) std::cout << "Getting nominal PDF for PDF number " << LHAPDF_NOM << std::endl;
+
+         nomPDF = LHAPDF::mkPDF(LHAPDF_NOM); //Nominal PDF
+
+         //LHAPDF::PDFSet pdfSet("NNPDF31_nnlo_as_0118");
+         //int nMembers = pdfSet.size();
+         //std::cout << "Number of members: " << nMembers << std::endl;
+
+         // get PDF weights
+         if(_verbose) std::cout << "Loading variation PDFs " << std::endl;
+
+         for (int i = 0; i< nVars; i++)
+         {
+            varPDFs[i] = LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
+         } 
+
+          tree->Branch("id1", &id1, "id1/I");
+          tree->Branch("id2", &id2, "id2/I");
+          tree->Branch("x1", &x1, "x1/D");
+          tree->Branch("x2", &x2, "x2/D");
+          tree->Branch("q2", &q2, "q2/D");   
+
+
+         tree->Branch("factWeights_up",   &factWeights_up, "factWeights_up/D");
+         tree->Branch("factWeights_down",   &factWeights_down, "factWeights_down/D");
+
+         tree->Branch("renormWeight_nQCD1_up",     &renormWeight_nQCD1_up, "renormWeight_nQCD1_up/D");
+         tree->Branch("renormWeight_nQCD1_down",   &renormWeight_nQCD1_down, "renormWeight_nQCD1_down/D");
+
+         tree->Branch("renormWeight_nQCD2_up",     &renormWeight_nQCD2_up, "renormWeight_nQCD2_up/D");
+         tree->Branch("renormWeight_nQCD2_down",   &renormWeight_nQCD2_down, "renormWeight_nQCD2_down/D");
+
+         tree->Branch("renormWeight_nQCD3_up",     &renormWeight_nQCD3_up, "renormWeight_nQCD3_up/D");
+         tree->Branch("renormWeight_nQCD3_down",   &renormWeight_nQCD3_down, "renormWeight_nQCD3_down/D");
+
+         tree->Branch("renormWeight_nQCD4_up",     &renormWeight_nQCD4_up, "renormWeight_nQCD4_up/D");
+         tree->Branch("renormWeight_nQCD4_down",   &renormWeight_nQCD4_down, "renormWeight_nQCD4_down/D");
+
+         tree->Branch("renormWeight_nQCD5_up",     &renormWeight_nQCD5_up, "renormWeight_nQCD5_up/D");
+         tree->Branch("renormWeight_nQCD5_down",   &renormWeight_nQCD5_down, "renormWeight_nQCD5_down/D");
+
+         tree->Branch("PDFWeights_alphas", &PDFWeights_alphas, "PDFWeights_alphas/D");
+
+         tree->Branch("scale_uncert_envelope_nQCD2_up", &scale_uncert_envelope_nQCD2_up, "scale_uncert_envelope_nQCD2_up/D");
+         tree->Branch("scale_uncert_envelope_nQCD2_down", &scale_uncert_envelope_nQCD2_down, "scale_uncert_envelope_nQCD2_down/D");
+
+         tree->Branch("scale_uncert_envelope_nQCD3_up", &scale_uncert_envelope_nQCD3_up, "scale_uncert_envelope_nQCD3_up/D");
+         tree->Branch("scale_uncert_envelope_nQCD3_down", &scale_uncert_envelope_nQCD3_down, "scale_uncert_envelope_nQCD3_down/D");
+
+         tree->Branch("PDFWeight_68perc_up", &PDFWeight_68perc_up, "PDFWeight_68perc_up/D");
+         tree->Branch("PDFWeight_68perc_down", &PDFWeight_68perc_down, "PDFWeight_68perc_down/D");
+
+         tree->Branch("PDFWeight_RMS_up", &PDFWeight_RMS_up, "PDFWeight_RMS_up/D");
+         tree->Branch("PDFWeight_RMS_down", &PDFWeight_RMS_down, "PDFWeight_RMS_down/D");
+
+
+
+         //tree->Branch("PDFWeights_varWeightsErr", &varWeightsErr, "PDFWeights_varWeightsErr/D");
+
+
          if(doPUSF)
          {
             tree->Branch("PU_eventWeight_up", &PU_eventWeight_up, "PU_eventWeight_up/D");
@@ -1063,24 +1131,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
          }
          if(doPDFWeights)
          {
-            tree->Branch("PDFWeights_renormWeight_nQCD1_up",     &PDFWeights_renormWeight_nQCD1_up, "PDFWeights_renormWeight_nQCD1_up/D");
-            tree->Branch("PDFWeights_renormWeight_nQCD1_down",   &PDFWeights_renormWeight_nQCD1_down, "PDFWeights_renormWeight_nQCD1_down/D");
 
-            tree->Branch("PDFWeights_renormWeight_nQCD2_up",     &PDFWeights_renormWeight_nQCD2_up, "PDFWeights_renormWeight_nQCD2_up/D");
-            tree->Branch("PDFWeights_renormWeight_nQCD2_down",   &PDFWeights_renormWeight_nQCD2_down, "PDFWeights_renormWeight_nQCD2_down/D");
-
-            tree->Branch("PDFWeights_renormWeight_nQCD3_up",     &PDFWeights_renormWeight_nQCD3_up, "PDFWeights_renormWeight_nQCD3_up/D");
-            tree->Branch("PDFWeights_renormWeight_nQCD3_down",   &PDFWeights_renormWeight_nQCD3_down, "PDFWeights_renormWeight_nQCD3_down/D");
-
-            tree->Branch("PDFWeights_renormWeight_nQCD4_up",     &PDFWeights_renormWeight_nQCD4_up, "PDFWeights_renormWeight_nQCD4_up/D");
-            tree->Branch("PDFWeights_renormWeight_nQCD4_down",   &PDFWeights_renormWeight_nQCD4_down, "PDFWeights_renormWeight_nQCD4_down/D");
-
-            tree->Branch("PDFWeights_renormWeight_nQCD5_up",     &PDFWeights_renormWeight_nQCD5_up, "PDFWeights_renormWeight_nQCD5_up/D");
-            tree->Branch("PDFWeights_renormWeight_nQCD5_down",   &PDFWeights_renormWeight_nQCD5_down, "PDFWeights_renormWeight_nQCD5_down/D");
-
-            tree->Branch("PDFWeights_factWeightsRMS_up",   &PDFWeights_factWeightsRMS_up, "PDFWeights_factWeightsRMS_up/D");
-            tree->Branch("PDFWeights_factWeightsRMS_down", &PDFWeights_factWeightsRMS_down, "PDFWeights_factWeightsRMS_down/D");
-            
             tree->Branch("PDFWeightUp_BEST", &PDFWeightUp, "PDFWeightUp_BEST/D");
             tree->Branch("PDFWeightDown_BEST", &PDFWeightDown, "PDFWeightDown_BEST/D");
 
@@ -1100,8 +1151,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             tree->Branch("PDFWeights_envelope_scale_uncertainty_down", &PDFWeights_envelope_scale_uncertainty_down, "PDFWeights_envelope_scale_uncertainty_down/D");
 
 
-
-
             // above: scale_envelope = all the envelope variations from the pdf as written in https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Factorization_and_renormalizatio
             // index 0: muF = 2.0, muR = 1.0
             // index 1: muF = 0.5, muR = 1.0
@@ -1113,7 +1162,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             // index 7: muF = 0.5, muR = 2.0 // this shouldn't be needed
             // index 8: muF = 1.0, muR = 1.0 // this might be needed for normalization
             // index 9: nominal pdf weight
-
          }
 
          if(doPrefiringWeight)
@@ -1135,27 +1183,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       if(doPUSF)tree->Branch("ntrueInt", &ntrueInt  , "ntrueInt/I");
 
       // generator/pdf variables
-      if(doPDFWeights)
-      {
-         if(_verbose)std::cout << "Importing PDF weights and setting up PDF weight variables" << std::endl;
 
-         nomPDF = LHAPDF::mkPDF(LHAPDF_NOM); //Nominal PDF
-         // get PDF weights
-         for (int i = 0; i< nVars; i++)
-         {
-            varPDFs[i] = LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
-         } 
-
-          tree->Branch("id1", &id1, "id1/I");
-          tree->Branch("id2", &id2, "id2/I");
-          tree->Branch("x1", &x1, "x1/D");
-          tree->Branch("x2", &x2, "x2/D");
-          tree->Branch("q2", &q2, "q2/D");   
-          tree->Branch("PDFWeights_alphas", &alphas, "PDFWeights_alphas/D");
-          tree->Branch("PDFWeights_nVars", &nVars, "PDFWeights_nVars/i");
-          tree->Branch("PDFWeights_varWeightsRMS", &varWeightsRMS, "PDFWeights_varWeightsRMS/D");
-          tree->Branch("PDFWeights_varWeightsErr", &varWeightsErr, "PDFWeights_varWeightsErr/D");
-      }
       if(_verbose)std::cout << "Finished setting up MC-specific stuff (genParts tokens, MC-specific TTree vars)" << std::endl;
 
 
@@ -1168,7 +1196,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
 }
 
-
 //recursively returns status-change copies of generated particles until you get to new decays
 const reco::Candidate* clusteringAnalyzerAll::parse_chain(const reco::Candidate* cand)
 {  
@@ -1178,7 +1205,6 @@ const reco::Candidate* clusteringAnalyzerAll::parse_chain(const reco::Candidate*
    }
    return cand;
 }
-
 
 //// return back the JEC file for a given systematic, year, and jet type
 std::string clusteringAnalyzerAll::returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType)
@@ -1319,7 +1345,6 @@ double clusteringAnalyzerAll::calcMPP(TLorentzVector superJetTLV )
       return min_boost;
 }
 
-
 // returns the top pt scale factor as detailed here - https://twiki.cern.ch/twiki/bin/view/CMS/TopPtReweighting#Run_1_strategy_Obsolete
 double clusteringAnalyzerAll::top_pt_SF(double top_pt)
 {
@@ -1355,7 +1380,8 @@ double clusteringAnalyzerAll::calcFactorizWeight(LHAPDF::PDF* pdf, double id1, d
         k2 = 4; // 2*q ==> 4*q2
     else if ( up_or_dn == -1 )
         k2 = 0.25; // 0.5*q ==> 0.25*q2
-    else {
+    else 
+    {
         throw std::invalid_argument("up_or_dn must be -1 or 1");
     }
 
@@ -2190,7 +2216,6 @@ bool clusteringAnalyzerAll::fillSJVars(std::map<std::string, float> &treeVars, s
    return true;
 
 }
-
 
 // main analyzer function: pre-select events, collect particles from selected AK8 jets, recluster superjets, calculate all variables from superjets 
 void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -3177,7 +3202,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
       AK4_bdisc[nAK4] = corrJet.bDiscriminator("pfDeepCSVJetTags:probb") + corrJet.bDiscriminator("pfDeepCSVJetTags:probbb");
       AK4_DeepJet_disc[nAK4] = deepJetScore;
-      selectedAK4_TLV.push_back(TLorentzVector(corrJet.px(),corrJet.py(),corrJet.pz(),corrJet.energy()));
       AK4_is_near_highE_CA4[nAK4] = false; // initialize this to false
       lab_AK4_AK8_parent[nAK4] = -1;  // init this to identify AK4 jets that aren't inside any AK8 jets
       AK4_SJ_assignment[nAK4] = -999; // this will correspond to AK4 jets that are not assigned to a superjet (because they're not in an AK8 jet)
@@ -3293,7 +3317,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       }
       else // normal selection 
       {
-         if( totHT < 1400 ) return; // RETURN cut
+         if( totHT < 1500 ) return; // RETURN cut
       }
    }
 
@@ -3642,15 +3666,15 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    if(_verbose)  std::cout << "Applying nAK8/nHeavyAK8/dijet mass selections." << std::endl;
 
 
-   if( !(runType.find("Suu") != std::string::npos) || ( (systematicType.find("JEC") != std::string::npos ) ) )  // FOR NOM SIGNAL, SAVE MORE EVENTS FOR STUDYING
+   if(slimmedSelection)
    {
-      if(slimmedSelection)
-      {
-         if (  (nfatjets < 3) ||   ((nfatjet_pre < 2) && ((dijetMassOne < 1000.) || (dijetMassTwo < 1000.)  )  )  )  return;  // RETURN cut
-      }
-      else if ((nfatjets < 2) || (nfatjet_pre < 1) )return; // RETURN cut
+      if (  (nfatjets < 3) || ((nfatjet_pre < 2) && ( (dijetMassOne < 1000.) || (dijetMassTwo < 1000.))) )  return;  // RETURN cut
    }
-   
+   else
+   {
+      if ((nfatjets < 2) || ((nfatjet_pre < 1) &&  (dijetMassOne < 1000. || dijetMassTwo < 1000. ) ) ) return; // RETURN cut
+   }
+    
    /////////////////////////////////////////////////
    /////// Get L1 prefiring weight for event////////
    /////////////////////////////////////////////////
@@ -3731,13 +3755,200 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    /////////////////////////////////////////////////////////////
    /////////////// calculate _pdf weights //////////////////////
    /////////////////////////////////////////////////////////////
+ 
+   // try to calculate pdf weights by hand
+
+   edm::Handle<GenEventInfoProduct> evt_info;
+   if( (runType.find("MC") != std::string::npos)|| (runType.find("Suu") != std::string::npos) )
+   {
+
+      iEvent.getByToken(GeneratorToken_, evt_info);
+
+      double weightsForVar[nVars]; 
+
+      double scalePDF = evt_info->pdf()->scalePDF; //scalePDF seems to return scale q -> this was previously called q2
+      id1 = evt_info->pdf()->id.first; //particle 1 id 
+      id2 = evt_info->pdf()->id.second; //particle 2 id
+      x1 = evt_info->pdf()->x.first;
+      x2 = evt_info->pdf()->x.second;
+      q2 = pow(scalePDF,2);
+
+
+
+      //const int VAR_UP = 1;
+      //const int VAR_DOWN = -1;
+
+      // --- Nominal PDF and weight ---
+      double w_nom = nomPDF->xfxQ2(id1, x1, scalePDF*scalePDF) * nomPDF->xfxQ2(id2, x2, scalePDF*scalePDF);
+
+      // --- Initialize accumulators ---
+      double varWeightsRMS = 0.;
+
+      int nPDFVars = nVars; // number of replicas / PDF variations
+
+      if (nPDFVars > 0)
+      {
+          // --- PDF weights ---
+          for (int varN = 0; varN < nPDFVars; ++varN) 
+          {
+              // LHAPDF replica weight for PDF RMS
+              double w_var = varPDFs[varN]->xfxQ2(id1, x1, scalePDF*scalePDF) * varPDFs[varN]->xfxQ2(id2, x2, scalePDF*scalePDF);
+              if (w_nom > 0) weightsForVar[varN] = w_var / w_nom;
+              else {weightsForVar[varN] = 1.0; }
+          }
+
+          // --- Compute RMS for PDF replicas ---
+          double meanPDF = 0.;
+          for (int varN = 0; varN < nPDFVars; ++varN) meanPDF += weightsForVar[varN];
+          meanPDF /= nPDFVars;
+
+          varWeightsRMS = 0.;
+          for (int varN = 0; varN < nPDFVars; ++varN) varWeightsRMS += pow(weightsForVar[varN] - meanPDF, 2);
+
+         ////////// PDF WEIGHTS RMS ////////////
+         PDFWeight_RMS_up   = 1.0 + sqrt(varWeightsRMS / nPDFVars);
+         PDFWeight_RMS_down = 1.0 - sqrt(varWeightsRMS / nPDFVars);
+         ///////////////////////////////////////
+
+          // alternative: calculate the PDF uncert by treating it as a gaussian 
+          //Need the values in sorted order
+          int arrSize = sizeof(weightsForVar) / sizeof(weightsForVar[0]);
+          sort(weightsForVar, weightsForVar + arrSize);
+          double weight16 = weightsForVar[15]; // what's the deal with these indices?
+          double weight84 = weightsForVar[83];
+          varWeightsErr = (weight84 - weight16) / 2.0;
+          if (varWeightsErr < 0) varWeightsErr = 0;
+
+         ////////// PDF WEIGHTS GAUSS ////////////
+          PDFWeight_68perc_up = 1.0 + varWeightsErr;
+          PDFWeight_68perc_down = 1.0 - varWeightsErr;
+         /////////////////////////////////////////
+
+
+          // calculate factorization uncertainty (alone)
+          // Evaluate PDFs at \muF = 2.0 * Q=scalePDF and \muF = 0.5 * Q, keep αs and \muR fixed at nominal
+          double muF_up  = 2.0;
+          double muF_down = 0.5;
+
+          double QF_up2  = (muF_up  * scalePDF) * (muF_up  * scalePDF);   // QF^2 for xfxQ2
+          double QF_down2 = (muF_down * scalePDF) * (muF_down * scalePDF);
+
+
+         ////////// FACT UNCERT ////////////
+         factWeights_up   = nomPDF->xfxQ2(id1, x1, QF_up2)  * nomPDF->xfxQ2(id2, x2, QF_up2) / w_nom ;
+         factWeights_down = nomPDF->xfxQ2(id1, x1, QF_down2) * nomPDF->xfxQ2(id2, x2, QF_down2)/ w_nom;
+         ///////////////////////////////////
+
+          // calculate renormalization uncertianty (alone)
+          double alpha_nom = nomPDF->alphasQ(scalePDF);             // αs(Q) nominal
+          double alpha_up  = nomPDF->alphasQ(2.0 * scalePDF);       // αs(2Q)
+          double alpha_down= nomPDF->alphasQ(0.5 * scalePDF);       // αs(Q/2)
+
+          PDFWeights_alphas = alpha_nom;
+
+         ////////// RENORM UNCERT ////////////
+          // renorm weight (multiplicative) for nQCD powers
+          renormWeight_nQCD1_up   = std::pow(alpha_up   / alpha_nom, 1);
+          renormWeight_nQCD1_down = std::pow(alpha_down / alpha_nom, 1);
+          renormWeight_nQCD2_up   = std::pow(alpha_up / alpha_nom, 2);
+          renormWeight_nQCD2_down = std::pow(alpha_down / alpha_nom, 2);
+          renormWeight_nQCD3_up   = std::pow(alpha_up / alpha_nom, 3);
+          renormWeight_nQCD3_down = std::pow(alpha_down / alpha_nom, 3);
+          renormWeight_nQCD4_up   = std::pow(alpha_up / alpha_nom, 4);
+          renormWeight_nQCD4_down = std::pow(alpha_down / alpha_nom, 4);
+          renormWeight_nQCD5_up   = std::pow(alpha_up / alpha_nom, 5);
+          renormWeight_nQCD5_down = std::pow(alpha_down / alpha_nom, 5);
+          /////////////////////////////////////
+
+          // calculate scale uncertainty with envelope method
+          // --- 7-point scale variations ---
+          double muR_factors[3] = {0.5, 1.0, 2.0};
+          double muF_factors[3] = {0.5, 1.0, 2.0};
+
+          scale_uncert_envelope_nQCD2_up = -1e9;   // initialize with extreme values
+          scale_uncert_envelope_nQCD2_down =  1e9;
+
+          scale_uncert_envelope_nQCD3_up = -1e9;   // initialize with extreme values
+          scale_uncert_envelope_nQCD3_down =  1e9;
+
+         ////////// SCALE ENVELOPE UNCERT ////////////
+
+          for (int iR = 0; iR < 3; ++iR) 
+          {
+              for (int iF = 0; iF < 3; ++iF) 
+              {
+
+                  double muR = muR_factors[iR];
+                  double muF = muF_factors[iF];
+
+                  // Skip the nominal point (1,1)
+                  if (muR == 1.0 && muF == 1.0) continue;
+                  if ((muR == 0.5 && muF == 2.0) || (muR == 2.0 && muF == 0.5)) continue;
+
+                  // Factorization variation (PDF evaluated at varied muF)
+                  double factW = nomPDF->xfxQ2(id1, x1, pow(muF * scalePDF,2) ) *
+                                 nomPDF->xfxQ2(id2, x2, pow(muF * scalePDF,2) );
+
+
+                  // Renormalization variation (alpha_s evolution)
+                  //double renormW_nQCD2 = pow(  calcAlphas( pow(muR * scalePDF,2)  ) / calcAlphas( pow(scalePDF,2)), 2);
+                  //double renormW_nQCD3 = pow(calcAlphas( pow(muR * scalePDF,2)) / calcAlphas( pow(scalePDF,2)), 3);
+                  
+
+                  double renormW_nQCD2 = pow(nomPDF->alphasQ( muR * scalePDF) / nomPDF->alphasQ(scalePDF), 2);
+                  double renormW_nQCD3 = pow(nomPDF->alphasQ( muR * scalePDF) / nomPDF->alphasQ(scalePDF), 3);
+                  // Total fractional weight relative to nominal
+                  double w_var_nQCD2 = (factW / w_nom) * renormW_nQCD2;
+                  double w_var_nQCD3 = (factW / w_nom) * renormW_nQCD3;
+
+                  // Fractional deviation relative to nominal
+                  double delta_nQCD2 = w_var_nQCD2 - 1.0;
+                  double delta_nQCD3 = w_var_nQCD3 - 1.0;
+
+                  // Update envelope
+                  if (delta_nQCD2 > scale_uncert_envelope_nQCD2_up)   scale_uncert_envelope_nQCD2_up = delta_nQCD2;
+                  if (delta_nQCD2 < scale_uncert_envelope_nQCD2_down) scale_uncert_envelope_nQCD2_down = delta_nQCD2;
+
+                  if (delta_nQCD3 > scale_uncert_envelope_nQCD3_up)   scale_uncert_envelope_nQCD3_up = delta_nQCD3;
+                  if (delta_nQCD3 < scale_uncert_envelope_nQCD3_down) scale_uncert_envelope_nQCD3_down = delta_nQCD3;
+              }
+          }
+
+          // --- Print results ---
+          if(_verbose) {
+              std::cout << "factWeights_up/down = " << factWeights_up << "/" << factWeights_down << std::endl;
+              std::cout << "PDF RMS (replicas) = " << varWeightsRMS << std::endl;
+          }
+      }
+      else 
+      {
+          PDFWeight_RMS_up = 1.0;
+          PDFWeight_RMS_down = 1.0;
+          factWeights_up = 1.0;
+          factWeights_down = 1.0;
+          renormWeight_nQCD1_up = 1.0;
+          renormWeight_nQCD1_down = 1.0;
+          renormWeight_nQCD2_up = 1.0;
+          renormWeight_nQCD2_down = 1.0;
+          renormWeight_nQCD3_up = 1.0;
+          renormWeight_nQCD3_down = 1.0;
+          renormWeight_nQCD4_up = 1.0;
+          renormWeight_nQCD4_down = 1.0;
+          renormWeight_nQCD5_up = 1.0;
+          renormWeight_nQCD5_down = 1.0;
+          scale_uncert_envelope_nQCD2_up = 1.0;
+          scale_uncert_envelope_nQCD2_down = 1.0;
+          scale_uncert_envelope_nQCD3_up = 1.0;
+          scale_uncert_envelope_nQCD3_down   = 1.0;
+      }
+
+
+   }
 
    if(doPDFWeights)
    {
       if(_verbose)std::cout << "Setting PDF variables";
       
-      edm::Handle<GenEventInfoProduct> evt_info;
-      iEvent.getByToken(GeneratorToken_, evt_info);
 
       nPDFWeights   = 0;
       nScaleWeights = 0;
@@ -3745,9 +3956,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
       if( (runType.find("MC") != std::string::npos)|| (runType.find("Suu") != std::string::npos) )
       {
 
-         double factorizWeights_up[nVars];
-         double factorizWeights_down[nVars];
-         double weightsForVar[nVars]; 
+
 
 
          //// calculate the up and down pdf wights the "BEST" bay
@@ -3884,92 +4093,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
          }
 
          // Now assign the results to the uncertainties
-         PDFWeights_envelope_scale_uncertainty_up = 1+ max_deviation_up;
+         PDFWeights_envelope_scale_uncertainty_up   = 1.0 + max_deviation_up;
          PDFWeights_envelope_scale_uncertainty_down = 1.0 - max_deviation_down;
-
-         const int VAR_UP = 1;
-         const int VAR_DOWN = -1;
-
-         // init stuff
-
-         PDFWeights_factWeightsRMS_up = 0.;
-         PDFWeights_factWeightsRMS_down = 0.;
-         varWeightsRMS = 0;
-
-         edm::Handle<GenEventInfoProduct> evt_info;
-         iEvent.getByToken(GeneratorToken_, evt_info);
-
-         double scalePDF = evt_info->pdf()->scalePDF; //scalePDF seems to return scale q -> this was previously called q2
-         id1 = evt_info->pdf()->id.first; //particle 1 id 
-         id2 = evt_info->pdf()->id.second; //particle 2 id
-         x1 = evt_info->pdf()->x.first;
-         x2 = evt_info->pdf()->x.second;
-         q2 = pow(scalePDF,2);
-         if(_verbose)std::cout << "id1/id2/x1/x2/scalePDF are" << id1<< "/" <<id2 << "/" << x1<< "/" << x2<< "/" << scalePDF<< std::endl;
-
-         alphas           = calcAlphas(scalePDF);
-
-         // I don't know how to find out how many QCD vertices processes have (I have estimates in the dataset spreadsheet), so I will calculate for multiple values
-         PDFWeights_renormWeight_nQCD1_up = calcRenormWeight(q2, VAR_UP, 1); 
-         PDFWeights_renormWeight_nQCD1_down = calcRenormWeight(q2, VAR_DOWN, 1); 
-
-         PDFWeights_renormWeight_nQCD2_up = calcRenormWeight(q2, VAR_UP, 2); 
-         PDFWeights_renormWeight_nQCD2_down = calcRenormWeight(q2, VAR_DOWN, 2); 
-
-         PDFWeights_renormWeight_nQCD3_up = calcRenormWeight(q2, VAR_UP, 3); 
-         PDFWeights_renormWeight_nQCD3_down = calcRenormWeight(q2, VAR_DOWN, 3); 
-
-         PDFWeights_renormWeight_nQCD4_up = calcRenormWeight(q2, VAR_UP, 4); 
-         PDFWeights_renormWeight_nQCD4_down = calcRenormWeight(q2, VAR_DOWN, 4); 
-
-         PDFWeights_renormWeight_nQCD5_up = calcRenormWeight(q2, VAR_UP, 5); 
-         PDFWeights_renormWeight_nQCD5_down = calcRenormWeight(q2, VAR_DOWN, 5); 
-         // what are my PDF weights related to what he has here? 
-
-         for (int varN = 0; varN < nVars; varN++) 
-         {
-            factorizWeights_up[varN]   = calcFactorizWeight(varPDFs[varN], id1, id2, x1, x2, scalePDF, VAR_UP);   
-            factorizWeights_down[varN] = calcFactorizWeight(varPDFs[varN], id1, id2, x1, x2, scalePDF, VAR_DOWN); 
-
-            if(_verbose)std::cout << "varN is " << varN << ", the up/down factorizWeights is " << factorizWeights_up[varN]<< "/" <<factorizWeights_down[varN] << std::endl;
-
-            PDFWeights_factWeightsRMS_up += (factorizWeights_up[varN] * factorizWeights_up[varN]);
-            PDFWeights_factWeightsRMS_down += (factorizWeights_down[varN] * factorizWeights_down[varN]);
-            // weight using https://lhapdf.hepforge.org/group__reweight__double.html, one per replica.
-            weightsForVar[varN] = LHAPDF::weightxxQ(id1, id2, x1, x2, scalePDF, nomPDF, varPDFs[varN]); 
-            if(_verbose)std::cout << "weightsForVar[varN] is " << weightsForVar[varN] << std::endl;
-            varWeightsRMS += (weightsForVar[varN] * weightsForVar[varN]);
-            if(_verbose)std::cout << "varWeightsRMS increased by " << varWeightsRMS << std::endl;
-         }
-
-         //Calculate the RMS's
-         PDFWeights_factWeightsRMS_up /= (1.0*nVars);
-         PDFWeights_factWeightsRMS_down /= (1.0*nVars); 
-
-         PDFWeights_factWeightsRMS_up = sqrt(PDFWeights_factWeightsRMS_up);
-
-         PDFWeights_factWeightsRMS_down = sqrt(PDFWeights_factWeightsRMS_down);
-
-         if(_verbose)std::cout << "PDFWeights_factWeightsRMS_up/PDFWeights_factWeightsRMS_down" << PDFWeights_factWeightsRMS_up<< "/" <<PDFWeights_factWeightsRMS_down << std::endl;
-
-         varWeightsRMS /= nVars;
-         varWeightsRMS = sqrt(varWeightsRMS);
-
-
-         //Calculated the error on the varWeightsRMS according to eqn 6.4 from https://arxiv.org/pdf/2203.05506.pdf
-         //Need the values in sorted order
-         int arrSize = sizeof(weightsForVar) / sizeof(weightsForVar[0]);
-         sort(weightsForVar, weightsForVar + arrSize);
-         double weight16 = weightsForVar[15]; // what's the deal with these indices?
-         double weight84 = weightsForVar[83];
-         varWeightsErr = (weight84 - weight16) / 2.0;
-         if (varWeightsErr < 0) varWeightsErr = 0;
- 
-         if(_verbose)std::cout << " The PDFWeights_alphas is " << alphas << "." << std::endl;
-         if(_verbose)std::cout << " The renormWeights up/down is " <<renormWeights[0] << "/" << renormWeights[1] << "." << std::endl;
-         if(_verbose)std::cout << " The nVars is " <<nVars << "." << std::endl;
-         if(_verbose)std::cout << " The varWeightsRMS is " <<varWeightsRMS << "." << std::endl;
-         if(_verbose)std::cout << " The varWeightsErr is " <<varWeightsErr << "." << std::endl;
       }
       
    }
@@ -4196,66 +4321,50 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
    {
      if(_verbose)std::cout << "starting superjet " << nSuperJets <<std::endl;
 
-      ///////////////// /inside superjet loop //////////////////////
-      ///////         fill BESTmap for superjet ////////////////////
-      //////////////////////////////////////////////////////////////
 
 
-      //////get BEST scores for superjet /////////
-      BESTmap.clear();
-      BESTmap["tot_pt"] = allAK8.Pt();
-      BESTmap["tot_HT"] = totHT;
-
-      BESTmap["eventNumber"] = eventNumber;
-
-      if(_verbose)std::cout << "Filling BEST map in SJ " << nSuperJets <<std::endl;
-      std::vector<float> BESTScores;
-      if (!fillSJVars(BESTmap, *iSJ,nSuperJets))    //if this fails somehow, event is skipped
+      if( runBEST )
       {
-         return;   // RETURN cut - tree was filled incorrectly
+
+         ///////////////// /inside superjet loop //////////////////////
+         ///////         fill BESTmap for superjet ////////////////////
+         //////////////////////////////////////////////////////////////
+
+         //////get BEST scores for superjet /////////
+         BESTmap.clear();
+         BESTmap["tot_pt"] = allAK8.Pt();
+         BESTmap["tot_HT"] = totHT;
+
+         BESTmap["eventNumber"] = eventNumber;
+
+         if(_verbose)std::cout << "Filling BEST map in SJ " << nSuperJets <<std::endl;
+         std::vector<float> BESTScores;
+         if (!fillSJVars(BESTmap, *iSJ,nSuperJets))    //if this fails somehow, event is skipped
+         {
+            return;   // RETURN cut - tree was filled incorrectly
+         }
+         if(_verbose)std::cout << "Filled BEST map. Now getting prediction in SJ " << nSuperJets <<std::endl;
+
+
+         BESTScores = BEST_->getPrediction(BESTmap);
+      
+
+         ///store BEST scores in tree
+         int decision = (BESTScores[0] > 0.5) ? 0 : 1;
+
+         if(_verbose)std::cout << "Got BEST prediction and decision in SJ " << nSuperJets <<std::endl;
+         if (nSuperJets == 0)
+         {
+            SJ1_BEST_scores = static_cast<double> (BESTScores[0]);
+            SJ1_decision = decision;
+         }
+         else if (nSuperJets == 1)
+         {
+            SJ2_BEST_scores = static_cast<double> (BESTScores[0]);
+            SJ2_decision = decision;
+         } 
+
       }
-      if(_verbose)std::cout << "Filled BEST map. Now getting prediction in SJ " << nSuperJets <<std::endl;
-
-
-      BESTScores = BEST_->getPrediction(BESTmap);
-   
-
-      ///store BEST scores in tree
-      int decision = (BESTScores[0] > 0.5) ? 0 : 1;
-
-      if(_verbose)std::cout << "Got BEST prediction and decision in SJ " << nSuperJets <<std::endl;
-      if (nSuperJets == 0)
-      {
-         SJ1_BEST_scores = static_cast<double> (BESTScores[0]);
-         SJ1_decision = decision;
-      }
-      else if (nSuperJets == 1)
-      {
-         SJ2_BEST_scores = static_cast<double> (BESTScores[0]);
-         SJ2_decision = decision;
-      } 
-
-
-
-
-      ///store BEST scores in tree
-      /*int decision = std::distance(BESTScores.begin(), std::max_element(BESTScores.begin(), BESTScores.end() ) );
-
-      if(_verbose)std::cout << "Got BEST prediction and decision in SJ " << nSuperJets <<std::endl;
-      if (nSuperJets == 0)
-      {
-         SJ1_BEST_scores[0] = (double) BESTScores[0];
-         SJ1_BEST_scores[1] = (double) BESTScores[1];
-         SJ1_BEST_scores[2] = (double) BESTScores[2];
-         SJ1_decision = decision;
-      }
-      else if (nSuperJets == 1)
-      {
-         SJ2_BEST_scores[0] = (double) BESTScores[0];
-         SJ2_BEST_scores[1] = (double) BESTScores[1];
-         SJ2_BEST_scores[2] = (double) BESTScores[2];
-         SJ2_decision = decision;
-      }  */
 
 
       if(_verbose)std::cout << "Looping over SJ particles to count up momenta in SJ " << nSuperJets <<std::endl;

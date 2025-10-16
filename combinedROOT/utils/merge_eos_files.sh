@@ -85,15 +85,15 @@ else
 	fi
 
 
-	echo "Copying signal files"
-	python create_eos_copy_commands.py ../txt_files/signal_eos_paths.txt
+	#echo "Copying signal files"
+	#python create_eos_copy_commands.py ../txt_files/signal_eos_paths.txt
 
-	if source eos_copy_commands.sh; then
-		echo "Signal files successfully merged. Now removing any residual files in combinedROOT_temp."
-	    eosrm $EOSBASE/combinedROOT_temp/*Suu*_combined_*.root
-	else
-	    echo "---------------> ERROR: signal file merging failed."
-	fi
+	#if source eos_copy_commands.sh; then
+	#	echo "Signal files successfully merged. Now removing any residual files in combinedROOT_temp."
+	#    eosrm $EOSBASE/combinedROOT_temp/*Suu*_combined_*.root
+	#else
+	#    echo "---------------> ERROR: signal file merging failed."
+	#fi
 
 	## to merge
 		# get the file paths
@@ -113,7 +113,7 @@ else
 	rm ../txt_files/QCD_eos_paths.txt
 	rm ../txt_files/ST_eos_paths.txt
 	rm ../txt_files/data_eos_paths.txt
-	rm ../txt_files/signal_eos_paths.txt
+	#rm ../txt_files/signal_eos_paths.txt
 	rm ../txt_files/WW_eos_paths.txt
 	rm ../txt_files/ZZ_eos_paths.txt
 	echo "The eos folder $1 was merged on $(date)" >> ../txt_files/last_merge.txt

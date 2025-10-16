@@ -1,24 +1,24 @@
 ## compare QCDPT up/nom/down FOR INDIVIDUAL SAMPLE
 
-TFile * QCDMC_Pt_300to470_2015_processed   = TFile::Open("QCDMC_Pt_300to470_2015_processed.root"); 
-TFile * QCDMC_Pt_470to600_2015_processed   = TFile::Open("QCDMC_Pt_470to600_2015_processed.root"); 
-TFile * QCDMC_Pt_600to800_2015_processed   = TFile::Open("QCDMC_Pt_600to800_2015_processed.root"); 
-TFile * QCDMC_Pt_800to1000_2015_processed  = TFile::Open("QCDMC_Pt_800to1000_2015_processed.root"); 
-TFile * QCDMC_Pt_1000to1400_2015_processed = TFile::Open("QCDMC_Pt_1000to1400_2015_processed.root"); 
-TFile * QCDMC_Pt_1400to1800_2015_processed = TFile::Open("QCDMC_Pt_1400to1800_2015_processed.root"); 
-TFile * QCDMC_Pt_1800to2400_2015_processed = TFile::Open("QCDMC_Pt_1800to2400_2015_processed.root"); 
-TFile * QCDMC_Pt_2400to3200_2015_processed = TFile::Open("QCDMC_Pt_2400to3200_2015_processed.root"); 
-TFile * QCDMC_Pt_3200toInf_2015_processed  = TFile::Open("QCDMC_Pt_3200toInf_2015_processed.root"); 
+TFile * QCDMC_Pt_300to470_2017_processed   = TFile::Open("QCDMC_Pt_300to470_2017_processed.root"); 
+TFile * QCDMC_Pt_470to600_2017_processed   = TFile::Open("QCDMC_Pt_470to600_2017_processed.root"); 
+TFile * QCDMC_Pt_600to800_2017_processed   = TFile::Open("QCDMC_Pt_600to800_2017_processed.root"); 
+TFile * QCDMC_Pt_800to1000_2017_processed  = TFile::Open("QCDMC_Pt_800to1000_2017_processed.root"); 
+TFile * QCDMC_Pt_1000to1400_2017_processed = TFile::Open("QCDMC_Pt_1000to1400_2017_processed.root"); 
+TFile * QCDMC_Pt_1400to1800_2017_processed = TFile::Open("QCDMC_Pt_1400to1800_2017_processed.root"); 
+TFile * QCDMC_Pt_1800to2400_2017_processed = TFile::Open("QCDMC_Pt_1800to2400_2017_processed.root"); 
+TFile * QCDMC_Pt_2400to3200_2017_processed = TFile::Open("QCDMC_Pt_2400to3200_2017_processed.root"); 
+TFile * QCDMC_Pt_3200toInf_2017_processed  = TFile::Open("QCDMC_Pt_3200toInf_2017_processed.root"); 
 
-TH1F * h_QCDMC_Pt_300to470_nom = (TH1F*)QCDMC_Pt_300to470_2015_processed->Get("nom/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_470to600_nom = (TH1F*)QCDMC_Pt_470to600_2015_processed->Get("nom/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_600to800_nom = (TH1F*)QCDMC_Pt_600to800_2015_processed->Get("nom/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_800to1000_nom = (TH1F*)QCDMC_Pt_800to1000_2015_processed->Get("nom/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1000to1400_nom = (TH1F*)QCDMC_Pt_1000to1400_2015_processed->Get("nom/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1400to1800_nom = (TH1F*)QCDMC_Pt_1400to1800_2015_processed->Get("nom/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1800to2400_nom = (TH1F*)QCDMC_Pt_1800to2400_2015_processed->Get("nom/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_2400to3200_nom = (TH1F*)QCDMC_Pt_2400to3200_2015_processed->Get("nom/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_3200toInf_nom = (TH1F*)QCDMC_Pt_3200toInf_2015_processed->Get("nom/h_SJ_mass_uncorrected");
+TH1F * h_QCDMC_Pt_300to470_nom = (TH1F*)QCDMC_Pt_300to470_2017_processed->Get("nom/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_470to600_nom = (TH1F*)QCDMC_Pt_470to600_2017_processed->Get("nom/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_600to800_nom = (TH1F*)QCDMC_Pt_600to800_2017_processed->Get("nom/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_800to1000_nom = (TH1F*)QCDMC_Pt_800to1000_2017_processed->Get("nom/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1000to1400_nom = (TH1F*)QCDMC_Pt_1000to1400_2017_processed->Get("nom/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1400to1800_nom = (TH1F*)QCDMC_Pt_1400to1800_2017_processed->Get("nom/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1800to2400_nom = (TH1F*)QCDMC_Pt_1800to2400_2017_processed->Get("nom/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_2400to3200_nom = (TH1F*)QCDMC_Pt_2400to3200_2017_processed->Get("nom/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_3200toInf_nom = (TH1F*)QCDMC_Pt_3200toInf_2017_processed->Get("nom/h_SJ_mass_SR");
 
 h_QCDMC_Pt_300to470_nom->Scale(2.464537119);
 h_QCDMC_Pt_470to600_nom->Scale(0.2122207081);
@@ -32,15 +32,15 @@ h_QCDMC_Pt_3200toInf_nom->Scale(0.000002648864);
 
 
 
-TH1F * h_QCDMC_Pt_300to470_up = (TH1F*)QCDMC_Pt_300to470_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_470to600_up = (TH1F*)QCDMC_Pt_470to600_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_600to800_up = (TH1F*)QCDMC_Pt_600to800_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_800to1000_up = (TH1F*)QCDMC_Pt_800to1000_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1000to1400_up = (TH1F*)QCDMC_Pt_1000to1400_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1400to1800_up = (TH1F*)QCDMC_Pt_1400to1800_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1800to2400_up = (TH1F*)QCDMC_Pt_1800to2400_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_2400to3200_up = (TH1F*)QCDMC_Pt_2400to3200_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_3200toInf_up = (TH1F*)QCDMC_Pt_3200toInf_2015_processed->Get("JEC_up/h_SJ_mass_uncorrected");
+TH1F * h_QCDMC_Pt_300to470_up = (TH1F*)QCDMC_Pt_300to470_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_470to600_up = (TH1F*)QCDMC_Pt_470to600_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_600to800_up = (TH1F*)QCDMC_Pt_600to800_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_800to1000_up = (TH1F*)QCDMC_Pt_800to1000_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1000to1400_up = (TH1F*)QCDMC_Pt_1000to1400_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1400to1800_up = (TH1F*)QCDMC_Pt_1400to1800_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1800to2400_up = (TH1F*)QCDMC_Pt_1800to2400_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_2400to3200_up = (TH1F*)QCDMC_Pt_2400to3200_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_3200toInf_up = (TH1F*)QCDMC_Pt_3200toInf_2017_processed->Get("JEC_Absolute_up/h_SJ_mass_SR");
 
 h_QCDMC_Pt_300to470_up->Scale(2.464537119);
 h_QCDMC_Pt_470to600_up->Scale(0.2122207081);
@@ -54,15 +54,15 @@ h_QCDMC_Pt_3200toInf_up->Scale(0.000002648864);
 
 
 
-TH1F * h_QCDMC_Pt_300to470_down = (TH1F*)QCDMC_Pt_300to470_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_470to600_down = (TH1F*)QCDMC_Pt_470to600_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_600to800_down = (TH1F*)QCDMC_Pt_600to800_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_800to1000_down = (TH1F*)QCDMC_Pt_800to1000_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1000to1400_down = (TH1F*)QCDMC_Pt_1000to1400_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1400to1800_down = (TH1F*)QCDMC_Pt_1400to1800_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_1800to2400_down = (TH1F*)QCDMC_Pt_1800to2400_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_2400to3200_down = (TH1F*)QCDMC_Pt_2400to3200_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
-TH1F * h_QCDMC_Pt_3200toInf_down = (TH1F*)QCDMC_Pt_3200toInf_2015_processed->Get("JEC_down/h_SJ_mass_uncorrected");
+TH1F * h_QCDMC_Pt_300to470_down = (TH1F*)QCDMC_Pt_300to470_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_470to600_down = (TH1F*)QCDMC_Pt_470to600_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_600to800_down = (TH1F*)QCDMC_Pt_600to800_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_800to1000_down = (TH1F*)QCDMC_Pt_800to1000_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1000to1400_down = (TH1F*)QCDMC_Pt_1000to1400_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1400to1800_down = (TH1F*)QCDMC_Pt_1400to1800_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_1800to2400_down = (TH1F*)QCDMC_Pt_1800to2400_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_2400to3200_down = (TH1F*)QCDMC_Pt_2400to3200_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
+TH1F * h_QCDMC_Pt_3200toInf_down = (TH1F*)QCDMC_Pt_3200toInf_2017_processed->Get("JEC_Absolute_down/h_SJ_mass_SR");
 
 h_QCDMC_Pt_300to470_down->Scale(2.464537119);
 h_QCDMC_Pt_470to600_down->Scale(0.2122207081);
@@ -126,7 +126,7 @@ h_QCDMC_Pt_300to470_up->Draw("HIST")
 h_QCDMC_Pt_300to470_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_300to470_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_300to470_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_300to470_JEC_Absolute_upnomdown_2017.png")
 
 
 
@@ -135,7 +135,7 @@ h_QCDMC_Pt_470to600_up->Draw("HIST")
 h_QCDMC_Pt_470to600_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_470to600_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_470to600_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_470to600_JEC_Absolute_upnomdown_2017.png")
 
 
 
@@ -143,7 +143,7 @@ h_QCDMC_Pt_600to800_up->Draw("HIST")
 h_QCDMC_Pt_600to800_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_600to800_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_600to800_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_600to800_JEC_Absolute_upnomdown_2017.png")
 
 
 
@@ -153,7 +153,7 @@ h_QCDMC_Pt_800to1000_up->Draw("HIST")
 h_QCDMC_Pt_800to1000_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_800to1000_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_800to1000_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_800to1000_JEC_Absolute_upnomdown_2017.png")
 
 
 
@@ -164,7 +164,7 @@ h_QCDMC_Pt_1000to1400_up->Draw("HIST")
 h_QCDMC_Pt_1000to1400_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_1000to1400_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_1000to1400_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_1000to1400_JEC_Absolute_upnomdown_2017.png")
 
 
 
@@ -175,7 +175,7 @@ h_QCDMC_Pt_1400to1800_up->Draw("HIST")
 h_QCDMC_Pt_1400to1800_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_1400to1800_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_1400to1800_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_1400to1800_JEC_Absolute_upnomdown_2017.png")
 
 
 
@@ -185,7 +185,7 @@ h_QCDMC_Pt_1800to2400_up->Draw("HIST")
 h_QCDMC_Pt_1800to2400_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_1800to2400_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_1800to2400_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_1800to2400_JEC_Absolute_upnomdown_2017.png")
 
 
 
@@ -193,7 +193,7 @@ h_QCDMC_Pt_2400to3200_up->Draw("HIST")
 h_QCDMC_Pt_2400to3200_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_2400to3200_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_2400to3200_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_2400to3200_JEC_Absolute_upnomdown_2017.png")
 
 
 
@@ -201,7 +201,7 @@ h_QCDMC_Pt_3200toInf_up->Draw("HIST")
 h_QCDMC_Pt_3200toInf_nom->Draw("HIST,SAME")
 h_QCDMC_Pt_3200toInf_down->Draw("HIST,SAME")
 
-c1->SaveAs("h_QCDMC_Pt_3200toInf_JEC_upnomdown_2015.png")
+c1->SaveAs("h_QCDMC_Pt_3200toInf_JEC_Absolute_upnomdown_2017.png")
 
 
 

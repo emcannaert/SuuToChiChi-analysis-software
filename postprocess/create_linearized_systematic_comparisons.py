@@ -597,8 +597,6 @@ if __name__== "__main__":
 
 	QCD_types = ["QCDPT","QCDHT"]
 
-	QCD_types = ["QCDPT"]
-
 	correction_only_uncerts = ["CMS_pdf_shape", "CMS_scale_shape"] ## these aren't defined in the uncorrected files
 	for QCD_type in QCD_types:
 

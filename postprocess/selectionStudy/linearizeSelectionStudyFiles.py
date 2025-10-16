@@ -3858,7 +3858,7 @@ if __name__=="__main__":
 	ET_cuts = ["200","300","400"]
 	jet_HT_cuts = ["1600","1800","2000","2200"]
 	nAK8_cuts   = ["2","3","4"]
-	nHeavyAK8_cuts   = ["1","2","3"]
+	nHeavyAK8_cuts   = ["2","3"]
 
 	for ET_cut in ET_cuts:
 		for jet_HT_cut in jet_HT_cuts:

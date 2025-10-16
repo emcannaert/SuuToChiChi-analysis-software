@@ -415,8 +415,8 @@ void processSelectionStudy()
    bool debug 				= false;
    bool _verbose     	= false;
    bool runSignal    	= false;
-   bool runBR	  			= false;
-   bool runAll	 			= true;
+   bool runBR	  			= true;
+   bool runAll	 			= false;
    bool runSelection 	= false;
    bool runData  			= false;
    int nFailedFiles = 0;
@@ -427,7 +427,7 @@ void processSelectionStudy()
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
 
-   dataYears = {"2017"};
+   dataYears = {"2018"};
 
    std::vector<std::string> systematics = { "nom", "bTagSF_med",   "JEC" }; //"PUSF",
 
@@ -437,7 +437,7 @@ void processSelectionStudy()
 
 
    std::vector<std::string> AK8_ET_cuts = {"200","300","400"};
-   std::vector<std::string> jet_HT_cuts = {"1600","2000","2200"};
+   std::vector<std::string> jet_HT_cuts = {"1600","1800","2000","2200"};
    std::vector<std::string> nAK8_cuts   = {"2","3","4"};
    std::vector<std::string> nHeavyAK8_cuts   = {"2","3"};
 
@@ -526,19 +526,23 @@ void processSelectionStudy()
 			{
 				if(*dataYear == "2015")
 				{
-					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; // dataB-ver1 not present
+					//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; // dataB-ver1 not present
+					dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2016")
 				{
-					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
+					//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
+					dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2017")
 				{
-					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
+					//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
+					dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2018")
 				{
-					dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
+					//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
+					dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
 				}   
 				dataBlocks.insert(dataBlocks.end(), signalFilePaths.begin(), signalFilePaths.end());
 			}
@@ -568,8 +572,10 @@ void processSelectionStudy()
 			}
 			else if(runBR)
 			{  
-			  dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
-				"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+			 // dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
+				//"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
+				dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
+
 			}
 			else if(runSelection)
 			{

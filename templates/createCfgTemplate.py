@@ -8,10 +8,12 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
 
    includeAllBranches = False
-   slimmedSelection  = True
-   verbose        = False
-   runSideband    = False
-   doPDF = True
+   slimmedSelection   = True
+   verbose            = False
+   runSideband        = False
+   doPDF              = True
+   limit_events       = False
+   runBEST            = False
 
    if "QCDMC_Pt" in sample: doPDF = False
 
@@ -223,8 +225,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    for systematic in systematic_:
 
-      #### VERY IMPORTANT: 
-      slimmedSelection = False if (systematic == "nom" and "Suu" not in sample) else True
+      #### VERY IMPORTANT:  
+      slimmedSelection = False if (systematic == "nom" or "Suu" in sample) else True  # save all nominal events, save all signal events 
      
 
 
@@ -334,12 +336,14 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          newCfg.write(' lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
          newCfg.write(' bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
          newCfg.write(' triggers = cms.string("%s"),\n'%trigger)
+         newCfg.write(' runBEST = cms.bool(%s),\n'%runBEST)
          if apply_pu_ID:
             newCfg.write(' doPUID = cms.bool(True),\n')
          else:
             newCfg.write(' doPUID = cms.bool(False),\n')
          newCfg.write('  doPDF = cms.bool(%s)\n'%doPDF)
          newCfg.write(")\n")
+
 
 
    newCfg.write('process.source = cms.Source("PoolSource",\n')
@@ -362,6 +366,12 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
       newCfg.write('process.TFileService = cms.Service("TFileService",fileName = cms.string("clusteringAnalyzer_%s_%s_%s_output.root")\n'%(sample,year,use_syst))
 
    newCfg.write(")\n")
+
+   if limit_events:
+      # number of events to run over
+      newCfg.write('process.maxEvents = cms.untracked.PSet(\n')
+      newCfg.write('input = cms.untracked.int32(5000)\n')
+      newCfg.write(')\n')
 
    newCfg.write("process.options = cms.untracked.PSet(\n")
    newCfg.write(" wantSummary = cms.untracked.bool(True),\n")

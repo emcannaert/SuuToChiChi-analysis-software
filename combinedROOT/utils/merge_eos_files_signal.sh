@@ -14,7 +14,7 @@ else
 	source find_eos_files.sh $1 $2
 	
 	echo "Copying signal files"
-	python create_eos_copy_commands.py signal_eos_paths.txt
+	python create_eos_copy_commands.py ../txt_files/signal_eos_paths.txt
 	source eos_copy_commands.sh
 	
 	rm *Suu*_combined_*.root
@@ -33,7 +33,7 @@ else
 	echo "Deleting eos files here to save space."
 	rm *$2*combined.root
 	rm *_eos_paths.txt
-	rm signal_eos_paths.txt
+	rm ../txt_files/signal_eos_paths.txt
 	echo "The eos folder $1 was merged on $(date)" >> last_merge.txt
 
 	echo "Finished."

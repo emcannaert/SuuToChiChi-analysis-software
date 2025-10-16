@@ -44,11 +44,11 @@ class linearized_plot:
 		self.runCorrected = runCorrected
 		
 
-		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
-		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
+		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src//SuuToChiChi_analysis_software/src/combinedROOT/processedFiles/"
+		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/src/combinedROOT/processedFiles/"
 		if self.runCorrected:
-			self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFilesCorrected/"
-			self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFilesCorrected/"
+			self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/src/combinedROOT/processedFilesCorrected/"
+			self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/src/combinedROOT/processedFilesCorrected/"
 
 
 		self.use_QCD_Pt_str = "QCDHT"
@@ -89,14 +89,14 @@ class linearized_plot:
 
 		if "NN" in self.technique_str: self.doSideband = False
 
-		self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/"
-		self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/%s/"%self.use_QCD_Pt_str
-		self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/%s/"%(self.use_QCD_Pt_str)
+		self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/binMaps/"
+		self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/finalCombineFilesNewStats/%s/"%self.use_QCD_Pt_str
+		self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/plots/finalCombinePlots/%s/"%(self.use_QCD_Pt_str)
 
 		if self.useMask: 
 			if self.use_QCD_Pt: 
-				self.output_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/%s/maskedFinalCombineFiles/"%(self.use_QCD_Pt_str)
-				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/%s/maskedFinalCombineFiles/"%(self.use_QCD_Pt_str)
+				self.output_file_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/finalCombineFilesNewStats/%s/maskedFinalCombineFiles/"%(self.use_QCD_Pt_str)
+				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/plots/finalCombinePlots/%s/maskedFinalCombineFiles/"%(self.use_QCD_Pt_str)
 
 		if self.useMask and self.doHTdist: return
 
@@ -124,7 +124,7 @@ class linearized_plot:
 
 
 		if self.debug:
-			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/test/"
+			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/finalCombineFilesNewStats/test/"
 
 
 
@@ -137,12 +137,12 @@ class linearized_plot:
 		#self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",	  "JER",	 "JEC",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",	   "Absolute",	 "JEC_BBEC1_year",		"JEC_Absolute_year",	  "JEC_RelativeSample_year",	"PUSF",	"topPt",	 "L1Prefiring",	       "pdf",	 "renorm",	 "fact",	  "AbsoluteCal",		    "AbsoluteTheory",	     "AbsolutePU"     ]   ## systematic namings as used in analyzer   removed:  "bTagSF",			  "JEC_HF",	 "JEC_BBEC1",	 "JEC_EC2",	 "JEC_EC2_year",		 "JEC_HF_year",	
 		#self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",	   "CMS_bTagSF_light_T",	   "CMS_bTagSF_bc_M",	   "CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		"CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_Absolute_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",  "CMS_jer",	 "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2",   "CMS_jec_EC2_year",   "CMS_jec_HF_year",   
 		
-		self.systematics 	  = ["nom",      "JER",	    "JEC",    "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",		    "JEC_Absolute",	   "JEC_BBEC1_year",	   "JEC_Absolute_year",	     "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",	        "pdf",	   "renorm",	 "fact",	  "JEC_AbsoluteCal",    "JEC_AbsoluteTheory",       "JEC_AbsolutePU",	    "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",     "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
-		self.systematic_names = ["nom",    "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	        "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+		self.systematics 	  = ["nom",      "JER",	    "JEC",    "bTagSF_med",      "bTagSF_med_corr",    "topPt",    "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	   "JER_193eta25",  "JEC_FlavorQCD",  	"JEC_RelativeBal",		    "JEC_Absolute",	     "JEC_BBEC1_year",	     "JEC_Absolute_year",	     "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",	     "pdf",	    "renorm",	 "fact",	  "JEC_AbsoluteCal",    "JEC_AbsoluteTheory",       "JEC_AbsolutePU",	    "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",     "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
+		self.systematic_names = ["nom",    "CMS_jer", "CMS_jec",  "CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" , "CMS_topPt",    "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",     "CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",      "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
 
-		if not self.runCorrected:
-			self.systematics.extend([ "bTagSF_med",    "bTagSF_med_corr",   "topPt"])
-			self.systematic_names.extend(["CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" , "CMS_topPt"])
+		#if not self.runCorrected:
+			#self.systematics.extend([ ])
+			#self.systematic_names.extend([])
 			
 
 
@@ -2299,7 +2299,7 @@ class linearized_plot:
 		ROOT.TH1.SetDefaultSumw2()
 
 		use_filepath = self.MC_root_file_home 
-		if region in ["SB1b", "SB0b"]: use_filepath	  = os.getenv('CMSSW_BASE') + "/src/combinedROOT/sideband_processedFiles/"
+		if region in ["SB1b", "SB0b"]: use_filepath	  = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/combinedROOT/sideband_processedFiles/"
 
 		decays = ["WBWB","HTHT","ZTZT","WBHT","WBZT","HTZT"]
 		file_paths  = [ use_filepath+ "%s_%s_%s_processed.root"%(self.mass_point, decay, self.year) for decay in decays   ]
@@ -3851,7 +3851,7 @@ if __name__=="__main__":
 				if doHTdist and "NN" in technique_str: continue 
 
 				# create instance of hist_loader (containing all BR histograms) for the year + technique str combination
-				all_BR_hists  = hist_loader(year, technique_str, use_QCD_Pt, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, runCorrected, None)
+				all_BR_hists  = hist_loader(year, technique_str, use_QCD_Pt, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, runCorrected, None, debug)
 
 				for mass_point in mass_points:
 					#try:

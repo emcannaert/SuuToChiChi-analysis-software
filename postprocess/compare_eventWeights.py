@@ -10,7 +10,7 @@ BR_SFs = return_BR_SF()
 
 canvas = ROOT.TCanvas("canvas", "Histograms", 1200, 1000)
 canvas.SetLogy() 
-useEOS  = False
+useEOS  = True
 file_path = "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/" if useEOS else "../combinedROOT/processedFiles/"
 
 year_converter = {"2015":"2016preAPV","2016":"2016postAPV","2017":"2017","2018":"2018" }
@@ -109,7 +109,7 @@ def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
         text.DrawLatexNDC(0.35, 0.86, BR_type + ", " + year_converter[year])
         text.DrawLatexNDC(0.35, 0.81, hist_name  )
 
-        variation_str =  ", "+ var.split("_")[1] + " variation" if var in ["_up", "_down"] else ""
+        variation_str =  var.split("_")[1] + " variation" if var in ["_up", "_down"] else ""
         text.DrawLatexNDC(0.35, 0.76, systematic) 
         text.DrawLatexNDC(0.35, 0.71, variation_str ) 
 
@@ -303,7 +303,6 @@ if __name__=="__main__":
                         #   print("ERROR: failed on %s/%s/%s"%(year,hist_name, sample_list))
 
         for systematic in systematics:
-            print("WARNING: running locally (from ../combinedROOT/processedFiles/)")
             if "JEC" in systematic:
                 hist_names = ["h_JEC_uncert_AK8", "h_JEC_uncert_AK4"]
             elif "JER" in systematic:

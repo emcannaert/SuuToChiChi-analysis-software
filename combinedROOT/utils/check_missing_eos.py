@@ -96,7 +96,7 @@ if __name__ == "__main__":
 	    ]
 
 
-	signal_samples_pkl = open('../data/pkl/signal_samples.pkl', 'r')
+	signal_samples_pkl = open('../../data/pkl/signal_samples.pkl', 'r')
 	signal_samples	 = pickle.load(signal_samples_pkl)
 	signal_samples = np.array(signal_samples)
 	samples.extend(signal_samples)

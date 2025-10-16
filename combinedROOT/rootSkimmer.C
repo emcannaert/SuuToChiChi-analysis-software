@@ -659,9 +659,9 @@ void rootSkimmer()
    // you must change these ........
    bool runAll        = false;
    bool runData       = false;
-   bool runSignal     = false;
+   bool runSignal     = true;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
-   bool runDataBR     = true;
+   bool runDataBR     = false;
    bool runTTbar      = false;
    bool runSelection  = false;
    bool runSingleFile = false;
@@ -677,9 +677,8 @@ void rootSkimmer()
    std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
 
 
-   years = {"2017","2018"};  
-
-
+   //years = {"2018"};  
+   //systematics = {"nom"};
 
    int yearNum = 0;
    int nFailedFiles = 0;

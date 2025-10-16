@@ -211,6 +211,7 @@ def extrapolate_var(QCDPT_hist_nom, QCDPT_hist_var,  max_neighbors=5):
 					QCDPT_hist_var.SetBinContent(ix, iy, new_val)
 
 	return QCDPT_hist_var
+
 def regularize_hist(var, h_nom, BR_type, hist_name_var, hist_name_nom, year, threshold=0.3, frac_min=-0.6, frac_max=0.6):
 	"""
 	Regularize a TH2 histogram variation ("up" or "down") against its nominal.
@@ -271,13 +272,6 @@ def regularize_hist(var, h_nom, BR_type, hist_name_var, hist_name_nom, year, thr
 	)
 
 
-
-	# 8-connected neighbors (includes diagonals)
-	neighbor_offsets = [
-		(-1, -1), (-1, 0), (-1, 1),
-		( 0, -1),		  ( 0, 1),
-		( 1, -1), ( 1, 0), ( 1, 1) ]
-
 	for i in range(1, nx+1):
 		for j in range(1, ny+1):
 			nom = h_nom.GetBinContent(i, j)
@@ -288,20 +282,6 @@ def regularize_hist(var, h_nom, BR_type, hist_name_var, hist_name_nom, year, thr
 			frac_var = (var_val - nom) / nom
 
 			# collect valid neighbors
-
-			"""
-			neighbors = []
-			for dx, dy in neighbor_offsets:
-				ii, jj = i + dx, j + dy
-				if not (1 <= ii <= nx and 1 <= jj <= ny):
-					continue
-				nom_nb = h_nom_combined.GetBinContent(ii, jj)
-				if nom_nb < 1e-10:
-					continue
-				var_nb = h_var_combined.GetBinContent(ii, jj)
-				frac_nb = (var_nb - nom_nb) / nom_nb
-				if frac_min <= frac_nb <= frac_max:
-					neighbors.append(frac_nb)"""
 			
 			neighbors = []
 
@@ -357,8 +337,109 @@ def regularize_hist(var, h_nom, BR_type, hist_name_var, hist_name_nom, year, thr
 	return new_hist
 
 
+def regularize_hist_alt(var_, h_nom, BR_type, hist_name_var, hist_name_nom, year, threshold=0.5, frac_min=-0.30, frac_max=0.30):
 
-def fix_uncerts(sample,	all_uncerts,	uncerts_to_fix,year, regions, technique_str, use_QCD_Pt=False, debug = False):
+	max_neighbors = 5   ## values to add up to get estimate of variation
+
+	var = var_.Clone(var_.GetName())
+
+	nx, ny = var.GetNbinsX(), var.GetNbinsY()
+
+	samples_to_use = samples_dict[BR_type]
+
+	file_paths	= { sample_type: "{}{}_{}_processed.root".format(infile_path,sample_type, year) for sample_type in samples_to_use	}
+	hist_weights = { sample_type: BR_SFs[sample_type.replace("-","_")][year] for sample_type in samples_to_use }
+
+	h_nom_combined = combine_hists(
+		samples_to_use,
+		file_paths,
+		hist_name_nom,
+		hist_weights=hist_weights,
+		hist_label = hist_name_nom + "_" + year
+	)
+
+	h_var_combined = combine_hists(
+		samples_to_use,
+		file_paths,
+		hist_name_var,
+		hist_weights=hist_weights,
+		hist_label = hist_name_nom + "_" + year
+	)
+
+	"""
+	get orig_var, orig_nom
+	get combined_var, combined_nom
+
+	loop over all x bins
+		loop over all y bins
+
+			is nom value > 0?
+
+			check orig_var / orig_nom
+			var/nom of nearest neighbors (count up neighbor yields!)
+
+			is (orig_var / orig_nom) bad to begin with? (> 1.25, < 0.8)?
+			is (neigh_var / neigh_nom) < 1.25 and (neigh_var / neigh_nom) > 0.8?
+			is (orig_var/orig_nom) / (neigh_var / neigh_nom) > 1.3 or (orig_var/orig_nom) / (neigh_var / neigh_nom) < 0.75?
+				use nearest neighbor variation
+	"""
+	for i in range(1, nx+1):
+		for j in range(1, ny+1):
+			nom = h_nom.GetBinContent(i, j)
+			if nom < 1e-10:
+				continue
+
+			var_val = var.GetBinContent(i, j)
+			frac_var = (var_val - nom) / nom
+
+			neighbor_nom_yields = []
+			neighbor_var_yields = []
+
+			# search outward until enough filled neighbors
+			radius = 1
+			while len(neighbor_nom_yields) < max_neighbors and radius < max(nx, ny):
+				for dx in range(-radius, radius+1):
+					for dy in range(-radius, radius+1):
+
+						ix, iy = i+dx, j+dy
+						if 1 <= ix <= nx and 1 <= iy <= ny:
+							neighbor_nom =  h_nom_combined.GetBinContent(ix, iy)
+							neighbor_updown = h_var_combined.GetBinContent(ix, iy)
+
+							if neighbor_nom > 0 and ((neighbor_updown/neighbor_nom < 1.4) and ((neighbor_updown/neighbor_nom > 0.7))) :
+								neighbor_nom_yields.append(neighbor_nom)
+								neighbor_var_yields.append(neighbor_updown)
+				radius += 1
+
+			if not neighbor_nom_yields:
+				print("ERROR: FOUND NO NEIGHBORS FOR BIN (%s, %s)"%(i,j))
+				continue
+
+
+			if "scale" in hist_name_var: continue 
+
+			## sum up all nearby neighbors
+			avg_neigh_frac = sum(neighbor_var_yields[:]) / sum(neighbor_nom_yields[:])
+
+			if ( frac_var < frac_max ) and ( frac_var > frac_min) : continue  ## does this bin need to be fixed in the first place?
+			if ( abs(avg_neigh_frac - 1.0) < 1e-9): continue   ## does neighbor average actually give something meaningful?
+			if ( (avg_neigh_frac - 1.0) > frac_max ) or ( (avg_neigh_frac - 1.0) < frac_min  ): continue # does neighbor average give something reasonable? don't want something worse than origin estimate
+
+			if ((abs(frac_var - 1.0) / abs(frac_var))  < (1.0 + threshold)) and (((abs(frac_var - 1.0) / abs(frac_var))  > (1.0 - threshold))): continue
+
+			if avg_neigh_frac > 1.4 or avg_neigh_frac < 0.7: continue
+			print("For bin (%s, %s) of %s, %s, %s, changed value from %s (with variation %s) to %s (with variation %s)."%(i,j, BR_type, hist_name_var, year, var_val, frac_var + 1.0, avg_neigh_frac * nom , avg_neigh_frac))
+			var.SetBinContent(i,j, avg_neigh_frac * nom )
+	print(" -------- Done regularizing hist for %s, %s, %s."%(BR_type,hist_name_var,year))
+	print("")
+	print("")
+	var.SetDirectory(0)
+	return var
+
+
+
+
+def fix_uncerts(sample,	all_uncerts,	uncerts_to_fix,year, regions, technique_str, use_QCD_Pt=True, runRegularization=False, debug = False):
 	ROOT.TH1.AddDirectory(False)
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
@@ -369,10 +450,8 @@ def fix_uncerts(sample,	all_uncerts,	uncerts_to_fix,year, regions, technique_str
 	## meta variables to change
 	###########################
 
-	asymmetry_threshold			  = 0.4	 ## value below which symmetry will be forced for a NP. Set to some large value to force all NPs to be symmetrix 
-	fix_small_sandwiched_uncerts	 = True
-	fix_opposite_sided_uncertainties = False
-	bin_variation_ratio_threshold	 = 0.30 # the ratio of bin_i variation / bin_i+-1 variation that determines if a bin needs to be changed manually
+	asymmetry_threshold			  	 = 0.4	 ## value below which symmetry will be forced for a NP. Set to some large value to force all NPs to be symmetrix 
+
 
 
 	# symmetry strategies
@@ -483,8 +562,16 @@ def fix_uncerts(sample,	all_uncerts,	uncerts_to_fix,year, regions, technique_str
 			if uncert in uncerts_to_fix and "topPt" not in uncert:  # topPt should never make it in here
 				if debug: print("FIXING UNCERTAINTIES.")
 
-				new_hist_up = regularize_hist(new_hist_up, old_hist_nom, BR_type, hist_name_up,hist_name_nom,year, threshold=0.3)
-				new_hist_down = regularize_hist(new_hist_down, old_hist_nom, BR_type, hist_name_down,hist_name_nom, year, threshold=0.3)
+				print("")
+				print("")
+				print("")
+				print("------------------------------------- Fixing new hist: %s, %s, %s, %s"%(sample, year, region, uncert))
+				print("")
+				print("")
+				print("")
+				if runRegularization: 
+					new_hist_up = regularize_hist_alt(new_hist_up, old_hist_nom, BR_type, hist_name_up,hist_name_nom,year, threshold=0.5)
+					new_hist_down = regularize_hist_alt(new_hist_down, old_hist_nom, BR_type, hist_name_down,hist_name_nom, year, threshold=0.5)
 
 				###############################
 				##### Make Symmetric Vars #####
@@ -508,9 +595,9 @@ def fix_uncerts(sample,	all_uncerts,	uncerts_to_fix,year, regions, technique_str
 						frac_var_up	= distance_up  /yield_nom
 						frac_var_down = distance_down/yield_nom
 
-						if frac_var_up < 1e-10 and frac_var_down > 1e-10: frac_var_up = frac_var_down
-						elif frac_var_down < 1e-10 and frac_var_up > 1e-10: frac_var_down = frac_var_up
-						elif frac_var_down < 1e-10 and frac_var_up < 1e-10: continue
+						if abs(frac_var_up) < 1e-10 and abs(frac_var_down) > 1e-10: frac_var_up = frac_var_down
+						elif abs(frac_var_down) < 1e-10 and abs(frac_var_up) > 1e-10: frac_var_down = frac_var_up
+						elif abs(frac_var_down) < 1e-10 and abs(frac_var_up) < 1e-10: continue
 						if (frac_var_up/frac_var_down < asymmetry_threshold):
 							if sym_strat == "equal":
 								frac_var_up = frac_var_down 
@@ -524,26 +611,31 @@ def fix_uncerts(sample,	all_uncerts,	uncerts_to_fix,year, regions, technique_str
 								frac_var_up = (frac_var_up + frac_var_down)/2.0
 								frac_var_down = frac_var_up
 
-						if ((1 + sign_up*frac_var_up) > 1.50 ) or ( ((1 + sign_up*frac_var_up)) < 0.5 ) :
+						if ((1 + sign_up*frac_var_up) > 1.80 ) or ( ((1 + sign_up*frac_var_up)) < 0.5 ) :
 							print( "Problem with (%s, %s) of up uncert = %s for sample %s, region = %s, year %s: %s "%(iii,jjj, uncert, sample, region, year, 1 + sign_up*frac_var_up))
 							print("-------- the original var value / nom value (before regularization) were %s / %s = %s, after regularization were %s / %s = %s."%(old_hist_up.GetBinContent(iii,jjj),
 							old_hist_nom.GetBinContent(iii,jjj), old_hist_up.GetBinContent(iii,jjj)/old_hist_nom.GetBinContent(iii,jjj),
 							yield_up, yield_nom, yield_up/yield_nom
 							 ))
 							print("New frac_var_up = %s, frac_var_down = %s"%(frac_var_up,frac_var_down))
+							print("")
 
-						if ((1 - sign_up*frac_var_up) > 1.50 ) or ( ((1 - sign_up*frac_var_up)) < 0.5 ) :
+						if ((1 - sign_up*frac_var_up) > 1.80 ) or ( ((1 - sign_up*frac_var_up)) < 0.5 ) :
 							print( "Problem with (%s, %s) of down uncert = %s for sample %s, region = %s, year %s: %s "%(iii,jjj, uncert, sample, region, year, 1 - sign_up*frac_var_down))
 							print("-------- the original var value / nom value (before regularization) were %s / %s = %s, after regularization were %s / %s = %s."%(old_hist_down.GetBinContent(iii,jjj),
 							old_hist_nom.GetBinContent(iii,jjj), old_hist_down.GetBinContent(iii,jjj)/old_hist_nom.GetBinContent(iii,jjj),
 							yield_down, yield_nom, yield_down/yield_nom
 							 ))
 							print("New frac_var_up = %s, frac_var_down = %s"%(frac_var_up,frac_var_down))
+							print("")
 						new_yield_up = max(0,yield_nom * (1 + sign_up*frac_var_up))
 						new_yield_down = max(0,yield_nom * (1 - sign_up*frac_var_down))
 
 						new_hist_up.SetBinContent(iii,jjj, new_yield_up)
 						new_hist_down.SetBinContent(iii,jjj, new_yield_down)
+				print("------------------------------------- Done with hist: %s, %s, %s, %s"%(sample, year, region, uncert))
+				print("")
+				print("")
 
 			# make sure one is in the correct output root folder
 			# write new histogram there
@@ -940,7 +1032,7 @@ def draw_uncerts_combined_BR(all_uncerts, year, regions, technique_str="", use_Q
 if __name__=="__main__":
 	
 	debug = False
-
+	runRegularization = True
 
 
 
@@ -1026,7 +1118,7 @@ if __name__=="__main__":
 				if debug: samples = [ "QCDMC_Pt_3200toInf"]	# ,"QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","QCDMC_Pt_170to300","QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000","QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200"
 
 				for sample in samples:
-					fix_uncerts( sample, all_uncerts, uncerts_to_fix, year, regions, technique_str, use_QCD_Pt, debug	)
+					fix_uncerts( sample, all_uncerts, uncerts_to_fix, year, regions, technique_str, use_QCD_Pt, runRegularization, debug	)
 				
 				if args.skipPlots: continue
 				draw_uncerts_combined_BR(all_uncerts, year, regions, technique_str,use_QCD_Pt, debug)
