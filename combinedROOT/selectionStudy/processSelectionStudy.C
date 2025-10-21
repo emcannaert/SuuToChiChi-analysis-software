@@ -26,7 +26,7 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
    int SJ_nAK4_300[100];
    double AK4_DeepJet_disc[100], AK4_pt[100], AK4_mass[100], superJet_mass[100], jet_pt[100], jet_eta[100], jet_mass[100],AK4_eta[100];
    double diSuperJet_mass, dijetMassOne, dijetMassTwo, bTag_eventWeight_M_nom = 1, bTag_eventWeight_M_up = 1, bTag_eventWeight_M_down = 1, pdf_weight = 1.0,  scale_weight = 1.0, SJ1_BEST_scores, SJ2_BEST_scores, prefiringWeight;
-   double  bTag_eventWeight_M = 1.0, PU_eventWeight = 1.0, totHT = 0;   
+   double  PU_eventWeight = 1.0, totHT = 0;   
    int nfatjet_pre, nAK4, nSuperJets, nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse, nMuons_looseID_medIso, nElectrons_looseID_looseISO;
    bool AK4_fails_veto_map[100], AK8_fails_veto_map[100],fatjet_isHEM[100],jet_isHEM[100] ;
 
@@ -189,6 +189,8 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
 			{ 
 				if     ((systematic == "bTagSF_med") && (*systematic_suffix == "up"))   t1->SetBranchAddress("bTag_eventWeight_M_up", &bTag_eventWeight_M_up);
 				else if((systematic == "bTagSF_med") && (*systematic_suffix == "down")) t1->SetBranchAddress("bTag_eventWeight_M_down", &bTag_eventWeight_M_down);
+				//t1->SetBranchAddress("bTag_eventWeight_M_up", &bTag_eventWeight_M_up);
+				//t1->SetBranchAddress("bTag_eventWeight_M_down", &bTag_eventWeight_M_down);
 			}
 			//////// pileup systematic 
 			else if((systematic == "PUSF") && (*systematic_suffix == "up"))   t1->SetBranchAddress("PU_eventWeight_up", &PU_eventWeight);
@@ -265,7 +267,7 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
 			if((fails_veto_map) || (fails_HEM)) continue;
 
 			double eventScaleFactor = 1.0;
-			double bTag_eventWeight_M = 1, bTag_eventWeight_T = 1;
+			double bTag_eventWeight_M = 1.0;
 
 			if ((inFileName.find("MC") != std::string::npos) ||(inFileName.find("Suu") != std::string::npos)  )
 			{		
@@ -353,6 +355,11 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
 
 			h_MSJ_mass_vs_MdSJ_prebTag->Fill(diSuperJet_mass, (superJet_mass[0]+superJet_mass[1])/2.0   ,eventWeightToUse);
 
+
+			std::cout << "Systematic is " << systematic<<  " + " << *systematic_suffix << ", the used  b-tagging event weight is " << bTag_eventWeight_M << std::endl;
+			std::cout << "Where up / nom / down b-tagging weights are: " << bTag_eventWeight_M_up << " / " << bTag_eventWeight_M_nom  << " / " << bTag_eventWeight_M_down << std::endl;
+
+
 			///////////////////////////////
 			////////// 1b region //////////
 			///////////////////////////////
@@ -361,6 +368,9 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
 			{
 				eventWeightToUse*= bTag_eventWeight_M;
 				nBtagCut +=eventWeightToUse;
+
+				std::cout << "In b-tag clause ----- Systematic is " << systematic<<  " + " << *systematic_suffix << ", full event weight is " << eventWeightToUse << std::endl;
+
 
 				h_MSJ_mass_vs_MdSJ_postbTag->Fill(diSuperJet_mass, (superJet_mass[0]+superJet_mass[1])/2.0   ,eventWeightToUse);
 
@@ -372,22 +382,28 @@ bool doThings(std::string inFileName, std::string outFileName, std::string dataY
 			}
 		}
 
+		std::cout << "For systematic " << systematic<<  " + " << *systematic_suffix << ", the integrated total number of events in h_MSJ_mass_vs_MdSJ_postbTag is  " << h_MSJ_mass_vs_MdSJ_postbTag->Integral() << std::endl;
+
+
 		outFile->Write();
-		std::cout << std::endl;
-		std::cout << std::endl;
-		std::cout << std::endl;
-		std::cout << std::endl;
-		std::cout << "Finishing systematic " << systematic << " "<< *systematic_suffix << std::endl;
-		std::cout << "Total Events: " << totEventsUncut << " in " << inFileName << " for " << systematic << " "<< *systematic_suffix << std::endl;
-		std::cout << "In " << inFileName << " there were " << num_bad_btagSF<< "/" << num_bad_PUSF<< "/"<< num_bad_topPt<< "/"<< num_bad_scale<< "/"<<num_bad_pdf << "/" <<num_bad_prefiring << " bad btag/PU/topPt/scale/pdf/prefiring event weights" << std::endl; 
-		std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
-		std::cout << "For  Sample = " << dataBlock  <<  ", year = " << dataYear << ", systematic = " << systematic << ", and WP = " << WP  << std::endl;
-		std::cout << "SR Event Breakdown " << " total/HT/nAK8 jet/heavy AK8 +dijet/1+ b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nDoubleTagged << std::endl;
-		std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
-		std::cout << std::endl;
-		std::cout << std::endl;
-		std::cout << std::endl;
-		std::cout << std::endl;
+		if(verbose)
+		{
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << "Finishing systematic " << systematic << " "<< *systematic_suffix << std::endl;
+			std::cout << "Total Events: " << totEventsUncut << " in " << inFileName << " for " << systematic << " "<< *systematic_suffix << std::endl;
+			std::cout << "In " << inFileName << " there were " << num_bad_btagSF<< "/" << num_bad_PUSF<< "/"<< num_bad_topPt<< "/"<< num_bad_scale<< "/"<<num_bad_pdf << "/" <<num_bad_prefiring << " bad btag/PU/topPt/scale/pdf/prefiring event weights" << std::endl; 
+			std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+			std::cout << "For  Sample = " << dataBlock  <<  ", year = " << dataYear << ", systematic = " << systematic << ", and WP = " << WP  << std::endl;
+			std::cout << "SR Event Breakdown " << " total/HT/nAK8 jet/heavy AK8 +dijet/1+ b jet/double tagged " << nEvents << "/"<<nHTcut << "/" <<nAK8JetCut << "/" <<nHeavyAK8Cut << "/" << nBtagCut << "/" << nDoubleTagged << std::endl;
+			std::cout << "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+		}
 
 		delete h_MSJ_mass_vs_MdSJ_prebTag, h_MSJ_mass_vs_MdSJ_postbTag, h_MSJ_mass_vs_MdSJ_postSJTag;
 	}
@@ -412,12 +428,12 @@ std::string convertDouble(double value)
 void processSelectionStudy()
 {  
 
-   bool debug 				= false;
+   bool debug 				= true;
    bool _verbose     	= false;
    bool runSignal    	= false;
-   bool runBR	  			= true;
+   bool runBR	  			= false;
    bool runAll	 			= false;
-   bool runSelection 	= false;
+   bool runSelection 	= true;
    bool runData  			= false;
    int nFailedFiles = 0;
    std::string failedFiles = "";
@@ -427,7 +443,7 @@ void processSelectionStudy()
 
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
 
-   dataYears = {"2018"};
+   dataYears = {"2015","2016","2017","2018"};
 
    std::vector<std::string> systematics = { "nom", "bTagSF_med",   "JEC" }; //"PUSF",
 
@@ -439,7 +455,7 @@ void processSelectionStudy()
    std::vector<std::string> AK8_ET_cuts = {"200","300","400"};
    std::vector<std::string> jet_HT_cuts = {"1600","1800","2000","2200"};
    std::vector<std::string> nAK8_cuts   = {"2","3","4"};
-   std::vector<std::string> nHeavyAK8_cuts   = {"2","3"};
+   std::vector<std::string> nHeavyAK8_cuts   = {"1","2","3"};
 
 	//HT AK4 jet ET:  200, 300, 400    # 150, 250, 350, 100,
 	//jet HT: 1600, 1800, 2000, 2200
@@ -466,9 +482,10 @@ void processSelectionStudy()
 
    if(debug)
    {
-   	dataYears = {"2017"};
-   	systematics = { "nom", "JEC","bTagSF_med"};  // , "JER", "JEC", "PUSF", 
-   	WPs = {"300_1600_2_1"};
+   	dataYears = {"2015","2017"};
+   	systematics = { "bTagSF_med"};  // , "JER", "JEC", "PUSF", 
+   	WPs = {"200_1600_2_1","300_1800_3_2","400_2200_4_2"};
+
    }
 
 
@@ -476,8 +493,8 @@ void processSelectionStudy()
    // delete root files in the /Users/ethan/Documents/rootFiles/processedRootFiles folder
    std::vector<std::string> signalFilePaths;
    std::vector<std::string> decays = {"WBWB","HTHT","ZTZT","WBHT","WBZT","HTZT"};
-   std::vector<std::string> mass_points = {"Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1",  "Suu5_chi2", "Suu6_chi1", "Suu6_chi2",
-    "Suu7_chi1","Suu7_chi2","Suu8_chi1", "Suu8_chi2","Suu8_chi3"};
+   std::vector<std::string> mass_points = {"Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1", "Suu6_chi2", "Suu6_chi2p5",
+    "Suu7_chi1","Suu7_chi2","Suu7_chi3","Suu8_chi1", "Suu8_chi2","Suu8_chi3"};
 
    for(auto decay = decays.begin(); decay!= decays.end();decay++)
    {
@@ -509,6 +526,9 @@ void processSelectionStudy()
 
    	// create output folder 
    	std::string output_dir = "ET" + ET_cut + "_HT" + HT_cut + "_nAK8" + nAK8_cut + "_nHAK8"+ nHeavyAK8_cut + "/";
+
+   	if(debug) output_dir = "test/";
+
 		if (mkdir(output_dir.c_str(), 0755) == 0 || errno == EEXIST) 
 		{
 			std::cout << "Directory exists or created.\n";
@@ -527,22 +547,22 @@ void processSelectionStudy()
 				if(*dataYear == "2015")
 				{
 					//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; // dataB-ver1 not present
-					dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
+					dataBlocks = {"QCD_Pt_300to470_","QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_","QCD_Pt_2400to3200_","QCD_Pt_3200toInf_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2016")
 				{
 					//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
-					dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
+					dataBlocks = {"QCD_Pt_300to470_","QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_","QCD_Pt_2400to3200_","QCD_Pt_3200toInf_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2017")
 				{
 					//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
-					dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
+					dataBlocks = {"QCD_Pt_300to470_","QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_","QCD_Pt_2400to3200_","QCD_Pt_3200toInf_"}; // dataB-ver1 not present
 				}
 				else if(*dataYear == "2018")
 				{
 					//dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_"}; 
-					dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
+					dataBlocks = {"QCD_Pt_300to470_","QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_","QCD_Pt_2400to3200_","QCD_Pt_3200toInf_"}; // dataB-ver1 not present
 				}   
 				dataBlocks.insert(dataBlocks.end(), signalFilePaths.begin(), signalFilePaths.end());
 			}
@@ -574,19 +594,62 @@ void processSelectionStudy()
 			{  
 			 // dataBlocks = {"QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_", "TTJetsMCHT800to1200_", "TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_" , "TTToLeptonicMC_",
 				//"ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"};
-				dataBlocks = {"QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_"}; // dataB-ver1 not present
+				dataBlocks = {"QCD_Pt_300to470_","QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_","QCD_Pt_2400to3200_","QCD_Pt_3200toInf_"}; // dataB-ver1 not present
 
 			}
 			else if(runSelection)
 			{
-				dataBlocks = {"Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"} ; 
+				dataBlocks = {  
+									"Suu6_chi1p5_WBWB_", 
+									"Suu6_chi1p5_HTHT_", 
+									"Suu6_chi1p5_ZTZT_", 
+									"Suu6_chi1p5_WBZT_", 
+									"Suu6_chi1p5_WBHT_", 
+									"Suu6_chi1p5_HTZT_",
+
+									"Suu7_chi1p5_WBWB_", 
+									"Suu7_chi1p5_HTHT_", 
+									"Suu7_chi1p5_ZTZT_", 
+									"Suu7_chi1p5_WBZT_", 
+									"Suu7_chi1p5_WBHT_", 
+									"Suu7_chi1p5_HTZT_",
+
+									"Suu8_chi1p5_WBWB_", 
+									"Suu8_chi1p5_HTHT_", 
+									"Suu8_chi1p5_ZTZT_", 
+									"Suu8_chi1p5_WBZT_", 
+									"Suu8_chi1p5_WBHT_", 
+									"Suu8_chi1p5_HTZT_",
+
+									"Suu7_chi2p5_WBWB_", 
+									"Suu7_chi2p5_HTHT_", 
+									"Suu7_chi2p5_ZTZT_", 
+									"Suu7_chi2p5_WBZT_", 
+									"Suu7_chi2p5_WBHT_", 
+									"Suu7_chi2p5_HTZT_",
+
+									"Suu8_chi2p5_WBWB_", 
+									"Suu8_chi2p5_HTHT_", 
+									"Suu8_chi2p5_ZTZT_", 
+									"Suu8_chi2p5_WBZT_", 
+									"Suu8_chi2p5_WBHT_", 
+									"Suu8_chi2p5_HTZT_",
+								} ; 
+
+				//dataBlocks = {"Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"} ; 
 			}
 			else
 			{
 				std::cout << "No/incorrect sample options selected" << std::endl;
 				return;
 			}
-			if(debug)dataBlocks = {"QCDMC2000toInf_"};
+			
+
+
+
+
+
+			if(debug) dataBlocks = {"QCD_Pt_300to470_","QCD_Pt_470to600_","QCD_Pt_600to800_","QCD_Pt_800to1000_", "QCD_Pt_1000to1400_","QCD_Pt_1400to1800_","QCD_Pt_1800to2400_","QCD_Pt_2400to3200_","QCD_Pt_3200toInf_"};
 			for(auto dataBlock = dataBlocks.begin();dataBlock < dataBlocks.end();dataBlock++)
 			{
 				

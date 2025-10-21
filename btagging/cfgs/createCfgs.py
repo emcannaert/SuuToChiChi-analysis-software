@@ -128,8 +128,8 @@ def makeACfg(sample, year, jec_file_AK8, jec_file_AK4):
 	newCfg.write('	runType = cms.string("%s"),	#types: QCDMC1000to1500, QCDMC1500to2000, QCDMC2000toInf, TTJetsMCHT1200to2500, TTJetsMCHT2500toInf, DataA, etc. , Suu8_chi3, etc.\n'%sample)
 	newCfg.write('	fatJetCollection = cms.InputTag("selectedUpdatedPatJetsAK8UpdatedJEC"),\n')
 
-	newCfg.write(' JECUncert_AK8_path = cms.FileInPath("%s"),\n'%jec_file_AK8)
-	newCfg.write(' JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
+	#newCfg.write(' JECUncert_AK8_path = cms.FileInPath("%s"),\n'%jec_file_AK8)
+	#newCfg.write(' JECUncert_AK4_path = cms.FileInPath("%s"),\n'%jec_file_AK4)
 
 	if apply_pu_ID:
 		newCfg.write('	jetCollection = cms.InputTag("selectedUpdatedPatJetsPileupJetID"),\n')

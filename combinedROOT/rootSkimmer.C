@@ -659,11 +659,11 @@ void rootSkimmer()
    // you must change these ........
    bool runAll        = false;
    bool runData       = false;
-   bool runSignal     = true;
+   bool runSignal     = false;
    bool runSimple     = false;   // data & BR MC (QCD + TTTo ...) for just nom systematic, for fast runs
    bool runDataBR     = false;
    bool runTTbar      = false;
-   bool runSelection  = false;
+   bool runSelection  = true;
    bool runSingleFile = false;
    bool runExtras     = false;
    bool runSideband   = false;
@@ -677,7 +677,7 @@ void rootSkimmer()
    std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
 
 
-   //years = {"2018"};  
+   years = {"2018"};  
    //systematics = {"nom"};
 
    int yearNum = 0;
@@ -835,8 +835,16 @@ void rootSkimmer()
          std::cout << "Running a selection of samples" << std::endl;
          dataBlocks = 
          {
-            "QCDMC_Pt_600to800_"
-         };  
+            "QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"         };  
       }
       else if(runExtras)
       {

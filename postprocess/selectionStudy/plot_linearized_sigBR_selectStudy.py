@@ -1,3 +1,5 @@
+import sys,os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import ROOT
 from write_cms_text import write_cms_text
 import numpy as np
@@ -21,17 +23,14 @@ def create_sqrt_histogram(original_hist):
 
 
 # plots linearized signal and BR (stacked) with signal sensitity as a function of linerized bin number
-def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_type,QCD_type):
+def plot_linearized_signal_vs_BR_histogram(year,region,mass_point,QCD_type,WP):
 
     CMS_label_pos = 0.132
     SIM_label_pos = 0.270
 
     technique_str = "cut-based"
-    if "NN" in technique_type:
-        #print("Technique type is %s."%technique_type)
-        technique_str = "NN-based"
 
-    file_name = "finalCombineFilesNewStats/%s/combine_%s%s_%s.root"%(QCD_type,technique_type, year, mass_point)
+    file_name = "finalCombineFilesNewStats/%s/%s/combine_%s_%s.root"%(QCD_type,WP, year, mass_point)
     
     root_file = ROOT.TFile.Open(file_name)
     if not root_file:
@@ -42,8 +41,6 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
 
     QCD_hist_name = "%s/QCD"%region
     TTbar_hist_name = "%s/TTbar"%region
-    WJets_hist_name = "%s/WJets"%region
-    ST_hist_name = "%s/ST"%region
 
 
     # Get the histograms
@@ -52,36 +49,30 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     sig_hist.SetLineWidth(5)
     sig_hist.SetLineColor(ROOT.kBlack)
 
-    allBR_hist = root_file.Get(allBR_hist_name)
 
     QCD_hist = root_file.Get(QCD_hist_name)
-    WJets_hist = root_file.Get(WJets_hist_name)
     TTbar_hist = root_file.Get(TTbar_hist_name)
-    ST_hist = root_file.Get(ST_hist_name)
-
+    
+    allBR_hist = QCD_hist.Clone("allBR")
+    allBR_hist.Add(TTbar_hist)
 
     QCD_hist.SetLineColor(ROOT.kRed)
     TTbar_hist.SetLineColor(ROOT.kYellow)
-    WJets_hist.SetLineColor(ROOT.kViolet)
-    ST_hist.SetLineColor(ROOT.kGreen)
+
 
     # Set colors for each sub-histogram in the stack
     QCD_hist.SetFillColor(ROOT.kRed)
     TTbar_hist.SetFillColor(ROOT.kYellow)
-    WJets_hist.SetFillColor(ROOT.kViolet)
-    ST_hist.SetFillColor(ROOT.kGreen)
+
 
     QCD_hist.SetMinimum(1e-3) 
     TTbar_hist.SetMinimum(1e-3)
-    WJets_hist.SetMinimum(1e-3)
-    ST_hist.SetMinimum(1e-3)
+
 
 
     # Create a THStack and add the sub-histograms
     hs = ROOT.THStack("h_stack", "Linearized Background vs Signal (%s) (%s) (%s) (%s)"%(mass_point, region,year, technique_str))
     hs.Add(TTbar_hist)
-    hs.Add(ST_hist)
-    hs.Add(WJets_hist)
     hs.Add(QCD_hist)
 
     hs.SetMinimum(1e-3)
@@ -91,8 +82,6 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
 
     QCD_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year,technique_str))
     TTbar_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year,technique_str))
-    ST_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year,technique_str))
-    WJets_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year,technique_str))
 
     """# Check if histograms exist
     if not sig_hist or not allBR_hist or not QCD_hist or not TTbar_hist or not ST_hist:
@@ -178,16 +167,20 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
     legend.AddEntry(QCD_hist, "QCD", "f")
     legend.AddEntry(TTbar_hist, "TTbar", "f")
-    legend.AddEntry(ST_hist, "ST", "f")
-    legend.AddEntry(WJets_hist, "WJets", "f")
     legend.AddEntry(sig_hist, "signal", "l")
     legend.Draw()
 
     write_cms_text.write_cms_text(CMS_label_pos, SIM_label_pos)
 
+    if not os.path.exists("plots/"):
+        os.mkdir("plots/linearized_sigBR/") 
+    if not os.path.exists("plots/linearized_sigBR"):
+        os.mkdir("plots/linearized_sigBR/") 
+    if not os.path.exists("plots/linearized_sigBR/%s"%(QCD_type)):
+        os.mkdir("plots/linearized_sigBR/%s"%(QCD_type)) 
 
     # Save the canvas as an image
-    output_file = "plots/linearized_sigBR/%s/sig_vs_BR_%s_%s%s_%s.png"%(QCD_type,mass_point,technique_type,region,year)
+    output_file = "plots/linearized_sigBR/%s/sig_vs_BR_%s_%s_%s_%s.png"%(QCD_type,WP,mass_point,region,year)
     c.SaveAs(output_file)
 
     sig_hist.Draw("HIST")
@@ -210,7 +203,14 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     text.DrawLatexNDC(0.75, 0.70, "Integral: %s Events"%( np.around(sig_hist.Integral(),2) )  )
 
 
-    output_file = "plots/linearized_sig/%s/linearized_sig_%s_%s%s_%s.png"%(QCD_type,mass_point,technique_type,region,year)
+
+    if not os.path.exists("plots/linearized_sig"):
+        os.mkdir("plots/linearized_sig/") 
+    if not os.path.exists("plots/linearized_sig/%s"%(QCD_type)):
+        os.mkdir("plots/linearized_sig/%s"%(QCD_type)) 
+
+
+    output_file = "plots/linearized_sig/%s/linearized_sig_%s_%s_%s_%s.png"%(QCD_type,WP,mass_point,region,year)
     c.SaveAs(output_file)
 
     # Close the ROOT file
@@ -221,10 +221,9 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     del c
     del QCD_hist
     del TTbar_hist
-    del ST_hist
 
 # plots linearized signal (a few mass points) and BR (stacked) with signal sensitity as a function of linerized bin number
-def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type):
+def plot_linearized_signal_vs_BR_multi_mass(year,region,QCD_type,WP):
 
 
     year_str = "2016preAPV"
@@ -233,12 +232,9 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
     elif year == "2018": year_str = "2018"
 
     technique_str = "cut-based"
-    if "NN" in technique_type:
-        print("Technique type is %s."%technique_type)
-        technique_str = "NN-based"
 
     mass_points = ["Suu4_chi1", "Suu6_chi2","Suu8_chi3"]
-    file_names = [ "finalCombineFilesNewStats/%s/combine_%s%s_%s.root"%(QCD_type,technique_type, year, mass_point) for mass_point in mass_points ] 
+    file_names = [ "finalCombineFilesNewStats/%s/%s/combine_%s_%s.root"%(QCD_type,WP, year, mass_point) for mass_point in mass_points ] 
     
     root_files = [ ROOT.TFile.Open(file_name) for file_name in file_names    ]
     for iii,root_file in enumerate(root_files):
@@ -248,12 +244,9 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
 
 
     sig_hist_name   = "%s/sig"%region
-    allBR_hist_name = "%s/allBR"%region
 
     QCD_hist_name = "%s/QCD"%region
     TTbar_hist_name = "%s/TTbar"%region
-    WJets_hist_name = "%s/WJets"%region
-    ST_hist_name = "%s/ST"%region
 
     line_colors = [ROOT.kBlack, ROOT.kCyan,ROOT.kGreen]
 
@@ -266,39 +259,30 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
         sig_hist.SetLineColor(line_colors[iii])
 
 
-    
-    allBR_hist = root_files[0].Get(allBR_hist_name)  ## will be the same for all mass points
 
     colors = [ ROOT.TColor.GetColor(87, 144, 252), ROOT.TColor.GetColor(248, 156, 32), ROOT.TColor.GetColor(228, 37, 54), ROOT.TColor.GetColor(150, 74, 139), ROOT.TColor.GetColor(156, 156, 161), ROOT.TColor.GetColor(122, 33, 221)] 
 
     QCD_hist = root_files[0].Get(QCD_hist_name)
-    WJets_hist = root_files[0].Get(WJets_hist_name)
     TTbar_hist = root_files[0].Get(TTbar_hist_name)
-    ST_hist = root_files[0].Get(ST_hist_name)
 
+
+    allBR_hist = QCD_hist.Clone("allBR_hist")
+    allBR_hist.Add(TTbar_hist)
 
     QCD_hist.SetLineColor(colors[2])
     TTbar_hist.SetLineColor(colors[3])
-    WJets_hist.SetLineColor(colors[0])
-    ST_hist.SetLineColor(colors[1])
 
     # Set colors for each sub-histogram in the stack
     QCD_hist.SetFillColor(colors[2])
     TTbar_hist.SetFillColor(colors[3])
-    WJets_hist.SetFillColor(colors[0])
-    ST_hist.SetFillColor(colors[1])
 
     QCD_hist.SetMinimum(1e-4) 
     TTbar_hist.SetMinimum(1e-4)
-    WJets_hist.SetMinimum(1e-4)
-    ST_hist.SetMinimum(1e-4)
 
 
     # Create a THStack and add the sub-histograms
     hs = ROOT.THStack("h_stack", "Linearized Background vs Signal (%s) (%s) (%s); Linearized Bin Number; Events"%(region,year_str, technique_str))
     hs.Add(TTbar_hist)
-    hs.Add(ST_hist)
-    hs.Add(WJets_hist)
     hs.Add(QCD_hist)
 
     hs.SetMinimum(1e-4)
@@ -308,8 +292,6 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
 
     QCD_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year_str,technique_str))
     TTbar_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year_str,technique_str))
-    ST_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year_str,technique_str))
-    WJets_hist.SetTitle("Linearized Background vs Signal (%s) (%s) (%s) (%s);linearized bin number; events"%(mass_point,region,year_str,technique_str))
 
     """# Check if histograms exist
     if not sig_hist or not allBR_hist or not QCD_hist or not TTbar_hist or not ST_hist:
@@ -397,8 +379,6 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
     legend.SetTextSize(0.02) 
     legend.AddEntry(QCD_hist, "QCD", "f")
     legend.AddEntry(TTbar_hist, "TTbar", "f")
-    legend.AddEntry(ST_hist, "ST", "f")
-    legend.AddEntry(WJets_hist, "WJets", "f")
     legend.AddEntry(sig_hists[0], r"\mbox{signal } (\mbox{M}_{S_{uu}} = \mbox{ 4 TeV, } \mbox{M}_{\chi} = \mbox{ 1 TeV)}", "l")
     legend.AddEntry(sig_hists[1], r"\mbox{signal } (\mbox{M}_{S_{uu}} = \mbox{ 6 TeV, } \mbox{M}_{\chi} = \mbox{ 2 TeV)}", "l")
     legend.AddEntry(sig_hists[2], r"\mbox{signal } (\mbox{M}_{S_{uu}} = \mbox{ 8 TeV, } \mbox{M}_{\chi} = \mbox{ 3 TeV)}", "l")
@@ -407,8 +387,17 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
 
     write_cms_text.write_cms_text(CMS_label_xpos=0.132, SIM_label_xpos=0.248,CMS_label_ypos = 0.92, SIM_label_ypos = 0.93, lumistuff_xpos=0.90, lumistuff_ypos=0.91, year = "", uses_data=False)
 
+
+
+    if not os.path.exists("plots/"):
+        os.mkdir("plots/linearized_sigBR/") 
+    if not os.path.exists("plots/linearized_sigBR"):
+        os.mkdir("plots/linearized_sigBR/") 
+    if not os.path.exists("plots/linearized_sigBR/%s"%(QCD_type)):
+        os.mkdir("plots/linearized_sigBR/%s"%(QCD_type)) 
+
     # Save the canvas as an image
-    output_file = "plots/linearized_sigBR/%s/sig_vs_BR_multi_mass_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/linearized_sigBR/%s/sig_vs_BR_multi_mass_%s_%s_%s.png"%(QCD_type,WP,region,year)
     c.SaveAs(output_file)
 
 
@@ -422,12 +411,11 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
     del c
     del QCD_hist
     del TTbar_hist
-    del ST_hist
 
 
 
 # plots signal and BR (stacked) with signal sensitity as a function of linerized bin number
-def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_count,QCD_type):
+def plot_linearized_BR_histogram(year,region,mass_point, run_count,QCD_type,WP):
 
     if run_count > 0: return   #only need to plot this once
 
@@ -435,10 +423,8 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     SIM_label_pos = 0.335
 
     technique_str = "cut-based"
-    if "NN" in technique_type:
-        technique_str = "NN-based"
 
-    file_name = "finalCombineFilesNewStats/%s/combine_%s%s_%s.root"%(QCD_type,technique_type, year, mass_point)
+    file_name = "finalCombineFilesNewStats/%s/%s/combine_%s_%s.root"%(QCD_type,WP, year, mass_point)
     
     root_file = ROOT.TFile.Open(file_name)
 
@@ -447,8 +433,6 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
         return
     QCD_hist_name = "%s/QCD"%region
     TTbar_hist_name = "%s/TTbar"%region
-    ST_hist_name = "%s/ST"%region
-    WJets_hist_name = "%s/WJets"%region
 
     QCD_hist = root_file.Get(QCD_hist_name)
     #QCD_hist.SetLineWidth(2)
@@ -456,24 +440,15 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     TTbar_hist = root_file.Get(TTbar_hist_name)
     #TTbar_hist.SetLineWidth(2)
     TTbar_hist.SetMinimum(1e-4)
-    WJets_hist = root_file.Get(WJets_hist_name)
-    #WJets_hist.SetLineWidth(2)
-    WJets_hist.SetMinimum(1e-4)
-    ST_hist = root_file.Get(ST_hist_name)
-    #ST_hist.SetLineWidth(2)
-    ST_hist.SetMinimum(1e-4)
 
     # Set colors for each sub-histogram in the stack
     QCD_hist.SetFillColor(ROOT.kRed)
     TTbar_hist.SetFillColor(ROOT.kYellow)
-    WJets_hist.SetFillColor(ROOT.kViolet)
-    ST_hist.SetFillColor(ROOT.kGreen)
+
 
     # Create a THStack and add the sub-histograms
     hs = ROOT.THStack("h_stack", "Linearized Backgrounds (%s) (%s) (%s);linearized bin number; events"%(region,year, technique_str))
     hs.Add(TTbar_hist)
-    hs.Add(ST_hist)
-    hs.Add(WJets_hist)
     hs.Add(QCD_hist)
 
     hs.SetMinimum(1e-4)
@@ -481,8 +456,6 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
 
     QCD_hist.SetTitle("Linearized Backgrounds (%s) (%s) (%s);linearized bin number; events"%(region,year,technique_str))
     TTbar_hist.SetTitle("Linearized Backgrounds (%s) (%s) (%s);linearized bin number; events"%(region,year,technique_str))
-    ST_hist.SetTitle("Linearized Backgrounds (%s) (%s) (%s);linearized bin number; events"%(region,year,technique_str))
-    WJets_hist.SetTitle("Linearized Backgrounds (%s) (%s) (%s);linearized bin number; events"%(region,year,technique_str))
 
     # Create a canvas and pads for upper and lower plots
     c = ROOT.TCanvas("c", "", 1200, 1000)
@@ -497,34 +470,31 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
     legend.AddEntry(QCD_hist, "QCD", "f")
     legend.AddEntry(TTbar_hist, "TTbar", "f")
-    legend.AddEntry(WJets_hist, "WJets", "f")
-    legend.AddEntry(ST_hist, "ST", "f")
 
     legend.Draw()
 
+    if not os.path.exists("plots/"):
+        os.mkdir("plots/linearized_background/") 
+    if not os.path.exists("plots/linearized_background"):
+        os.mkdir("plots/linearized_background/") 
+    if not os.path.exists("plots/linearized_background/%s"%(QCD_type)):
+        os.mkdir("plots/linearized_background/%s"%(QCD_type)) 
+
+
     # Save the canvas as an image
-    output_file = "plots/linearized_background/%s/linearized_BR_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/linearized_background/%s/linearized_BR_%s_%s_%s.png"%(QCD_type,WP,region,year)
     c.SaveAs(output_file)
 
-    output_file = "plots/linearized_background/%s/linearized_QCD_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/linearized_background/%s/linearized_QCD_%s_%s_%s.png"%(QCD_type,WP,region,year)
     QCD_hist.SetLineWidth(4)
     QCD_hist.Draw("HIST")
     c.SaveAs(output_file)
 
-    output_file = "plots/linearized_background/%s/linearized_TTbar_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/linearized_background/%s/linearized_TTbar_%s_%s_%s.png"%(QCD_type,WP,region,year)
     TTbar_hist.SetLineWidth(4)
     TTbar_hist.Draw("HIST")
     c.SaveAs(output_file)
 
-    output_file = "plots/linearized_background/%s/linearized_WJets_%s%s_%s.png"%(QCD_type,technique_type,region,year)
-    WJets_hist.SetLineWidth(4)
-    WJets_hist.Draw("HIST")
-    c.SaveAs(output_file)
-
-    output_file = "plots/linearized_background/%s/linearized_ST_%s%s_%s.png"%(QCD_type,technique_type,region,year)
-    ST_hist.SetLineWidth(4)
-    ST_hist.Draw("HIST")
-    c.SaveAs(output_file)
 
     # Close the ROOT file
     root_file.Close()
@@ -532,7 +502,6 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     del c
     del QCD_hist
     del TTbar_hist
-    del ST_hist
 
 if __name__=="__main__":
 
@@ -541,35 +510,49 @@ if __name__=="__main__":
     years = ["2015","2016","2017","2018"]
     mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1","Suu5_chi1p5","Suu5_chi2","Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1",
     "Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"] 
-    regions = ["SR","CR","AT0b", "AT1b"]   # "AT1tb", "AT0tb"
-    technique_types = ["", "NN_"]
-
-    technique_types = [""]
 
 
     QCD_types = ["QCDPT","QCDHT"]
 
+
+    WPs = []
+
+    ET_cuts = ["200","300","400"]
+    jet_HT_cuts = ["1600","1800","2000","2200"]
+    nAK8_cuts   = ["2","3","4"]
+    nHeavyAK8_cuts   = ["2","3"]
+
+
+    for ET_cut in ET_cuts:
+        for jet_HT_cut in jet_HT_cuts:
+            for nAK8_cut in nAK8_cuts:
+                for nHeavyAK8_cut in nHeavyAK8_cuts:
+                    WPs.append("ET%s_HT%s_nAK8%s_nHAK8%s"%(ET_cut,jet_HT_cut,nAK8_cut,nHeavyAK8_cut))
+
+
+    regions = ["postBtagCut"]   # "AT1tb", "AT0tb"
+
+
     if debug:
         years = ["2015"]
         mass_points = ["Suu4_chi1",] 
-        regions = ["SR"]   # "AT1tb", "AT0tb"
-        technique_types = [""]
 
-    for QCD_type in QCD_types:
 
-        for year in years:
-            for region in regions:
-                for technique_type in technique_types:
+
+    for WP in WPs:
+        for QCD_type in QCD_types:
+            for year in years:
+                for region in regions:
                     run_count = 0 
 
-                    plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type) ## only need to run once per year/region/technique
+                    plot_linearized_signal_vs_BR_multi_mass(year,region,QCD_type,WP) ## only need to run once per year/region/technique
 
                     for mass_point in mass_points:
                         
                         #try:
                         if "Suu4_chi1" in mass_point:
-                            plot_linearized_BR_histogram(year,region,mass_point, technique_type,run_count,QCD_type)  # only need to do this once
-                        plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_type,QCD_type)
+                            plot_linearized_BR_histogram(year,region,mass_point,run_count,QCD_type,WP)  # only need to do this once
+                        plot_linearized_signal_vs_BR_histogram(year,region,mass_point,QCD_type,WP)
                         run_count+=1
                         #except:
                         #    print("ERROR: failed for %s/%s/%s/%s"%(year,region,mass_point,technique_type))

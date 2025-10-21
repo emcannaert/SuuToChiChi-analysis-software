@@ -1,10 +1,12 @@
 import math
 import numpy as np
 # overloaded version to work for the individual decays 
-def return_signal_SF(year,mass_point,decay, y_uu = 2.0, y_x = 2.0):    ## parameters are theory couplings
+def return_signal_SF(year,mass_point,decay, y_uu = 2.0, y_x = 2.0, WB_BR = 0.50, ZT_BR = 0.25, HT_BR = 0.25):    ## parameters are theory couplings
 	## input signal mass point in the format Suu$Mass_chi$Mass
 	## can be imported into other modules when needed
 
+	if( abs(WB_BR+ZT_BR+HT_BR - 1.0) > 1e-3    ): 
+		print("ERROR: branching fractions do not add to 1.0: WB_BR = %s, ZT_BR = %s, HT_BR = %s."%(WB_BR,ZT_BR,HT_BR))
 
 	Suu_mass = 4000
 	if "Suu5" in mass_point: Suu_mass = 5000
@@ -45,10 +47,6 @@ def return_signal_SF(year,mass_point,decay, y_uu = 2.0, y_x = 2.0):    ## parame
 	"""
 
 	collected_data = {"2015":19.52,"2016":16.81, "2017":41.48, "2018":59.83}  # collected luminosity per year 
-
-	WB_BR = 0.50
-	ZT_BR = 0.25
-	HT_BR = 0.25
 
 	Z_had_BR = 0.6991
 	W_had_BR = 0.6741

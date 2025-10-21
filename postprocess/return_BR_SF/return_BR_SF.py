@@ -57,8 +57,11 @@ def return_BR_SF(year=None,sample=None):
 				scale_factor = scale_factors["QCDMC1500to2000"][year]
 			elif "2000toInf" in sample:
 				scale_factor = scale_factors["QCDMC2000toInf"][year]
+			elif "QCD_Pt" in sample:
+				sample = sample.replace("QCD_Pt","QCDMC_Pt")
+				scale_factor = scale_factors[sample][year]
 			else:
-				print("ERROR: Sample name not found: %s"%sample)
+				print("ERROR in return_BR_SF: Sample name not found: %s"%sample)
 				return
 		elif "TTTo" in sample:
 			if "Hadronic" in sample:

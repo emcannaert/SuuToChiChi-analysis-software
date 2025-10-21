@@ -814,27 +814,61 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				else if     ((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "up"))t1->SetBranchAddress("bTag_eventWeight_light_M_up", &bTag_eventWeight_light_M_up);
 				else if((systematic == "bTag_eventWeight_light_M_year") && (*systematic_suffix == "down"))t1->SetBranchAddress("bTag_eventWeight_light_M_down", &bTag_eventWeight_light_M_down);
 			}
+
+
 			//////// pileup systematic 
-			if     ((systematic == "PUSF") && (*systematic_suffix == "up"))        t1->SetBranchAddress("PU_eventWeight_up", &PU_eventWeight);
+			if     ((systematic == "PUSF") && (*systematic_suffix == "up"))t1->SetBranchAddress("PU_eventWeight_up", &PU_eventWeight);
 			else if((systematic == "PUSF") && (*systematic_suffix == "down")) t1->SetBranchAddress("PU_eventWeight_down", &PU_eventWeight);
 			
-			//////// pdf weight systematic 
-			else if((systematic == "pdf") && (*systematic_suffix == "up"))        t1->SetBranchAddress("PDFWeightUp_BEST", &pdf_weight);
-			else if((systematic == "pdf") && (*systematic_suffix == "down")) t1->SetBranchAddress("PDFWeightDown_BEST", &pdf_weight);
 
+			//// for these uncerts, need to have clauses for QCDMC_Pt
+			//////// pdf weight systematic 
+			else if((systematic == "pdf") && (*systematic_suffix == "up"))
+			{
+				if(inFileName.find("QCDMC_Pt") != std::string::npos) t1->SetBranchAddress("PDFWeight_RMS_up", &pdf_weight);
+				else { t1->SetBranchAddress("PDFWeightUp_BEST", &pdf_weight); } 
+			}
+			else if((systematic == "pdf") && (*systematic_suffix == "down"))
+			{
+
+				if(inFileName.find("QCDMC_Pt") != std::string::npos) t1->SetBranchAddress("PDFWeight_RMS_down", &pdf_weight);
+				else { t1->SetBranchAddress("PDFWeightDown_BEST", &pdf_weight); } 
+			}
 			/////// scale stuff 
 			//////// renormalization scale systematic 
-			else if((systematic == "renorm") && (*systematic_suffix == "up"))   t1->SetBranchAddress("QCDRenormalization_up_BEST", &renormWeight); // alternative:  PDFWeights_renormWeight_up
-			else if((systematic == "renorm") && (*systematic_suffix == "down")) t1->SetBranchAddress("QCDRenormalization_down_BEST", &renormWeight); // alternative: PDFWeights_renormWeight_down
+			else if((systematic == "renorm") && (*systematic_suffix == "up"))
+			{
 
+				if(inFileName.find("QCDMC_Pt") != std::string::npos) t1->SetBranchAddress("renormWeight_nQCD2_up", &renormWeight);
+				else { t1->SetBranchAddress("QCDRenormalization_up_BEST", &renormWeight); }  // alternative:  PDFWeights_renormWeight_up
+			}
+			else if((systematic == "renorm") && (*systematic_suffix == "down"))
+			{
+				if(inFileName.find("QCDMC_Pt") != std::string::npos)  t1->SetBranchAddress("renormWeight_nQCD2_down", &renormWeight);
+				else{ t1->SetBranchAddress("QCDRenormalization_down_BEST", &renormWeight); } // alternative: PDFWeights_renormWeight_down
+			}
 			//////// factorization scale systematic 
-			else if((systematic == "fact") && (*systematic_suffix == "up"))   t1->SetBranchAddress("QCDFactorization_up_BEST", &factWeight);     // alternative:  PDFWeights_factWeightsRMS_up 
-			else if((systematic == "fact") && (*systematic_suffix == "down")) t1->SetBranchAddress("QCDFactorization_down_BEST", &factWeight);     // alternative: PDFWeights_factWeightsRMS_down
-			
+			else if((systematic == "fact") && (*systematic_suffix == "up"))
+			{	
+				if(inFileName.find("QCDMC_Pt") != std::string::npos) t1->SetBranchAddress("factWeights_up", &factWeight);
+				else{ t1->SetBranchAddress("QCDFactorization_up_BEST", &factWeight); }    // alternative:  PDFWeights_factWeightsRMS_up 
+			}
+			else if((systematic == "fact") && (*systematic_suffix == "down"))
+			{
+				if(inFileName.find("QCDMC_Pt") != std::string::npos)  t1->SetBranchAddress("factWeights_down", &factWeight);
+				else{ t1->SetBranchAddress("QCDFactorization_down_BEST", &factWeight); }    // alternative: PDFWeights_factWeightsRMS_down
+			}
 			//////// renormalization and factorization scale systematics COMBImED
-			else if((systematic == "scale") && (*systematic_suffix == "up"))   t1->SetBranchAddress("PDFWeights_envelope_scale_uncertainty_up", &scale_weight); // alternative:  PDFWeights_renormWeight_up
-			else if((systematic == "scale") && (*systematic_suffix == "down")) t1->SetBranchAddress("PDFWeights_envelope_scale_uncertainty_down", &scale_weight); // alternative: PDFWeights_renormWeight_down
-		   
+			else if((systematic == "scale") && (*systematic_suffix == "up"))
+			{
+				if(inFileName.find("QCDMC_Pt") != std::string::npos)  t1->SetBranchAddress("scale_uncert_envelope_nQCD2_up", &scale_weight); 
+				else{ t1->SetBranchAddress("PDFWeights_envelope_scale_uncertainty_up", &scale_weight); } // alternative:  PDFWeights_renormWeight_up
+			}
+			else if((systematic == "scale") && (*systematic_suffix == "down"))
+			{
+				if(inFileName.find("QCDMC_Pt") != std::string::npos) t1->SetBranchAddress("scale_uncert_envelope_nQCD2_down", &scale_weight); 
+				else{ t1->SetBranchAddress("PDFWeights_envelope_scale_uncertainty_down", &scale_weight);} // alternative: PDFWeights_renormWeight_down
+		   }
 			//////// prefiring systematic 
 			else if((systematic == "L1Prefiring") && (*systematic_suffix == "up"))        t1->SetBranchAddress("prefiringWeight_up", &prefiringWeight);
 			else if((systematic == "L1Prefiring") && (*systematic_suffix == "down")) t1->SetBranchAddress("prefiringWeight_down", &prefiringWeight);
@@ -904,7 +938,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 			// cut down on run time
 
-			if ( (totHT < 1600.) || (nfatjets < 3) || ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)))     ) continue; // 
+			//if ( (totHT < 1600.) || (nfatjets < 3) || ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)))     ) continue; // 
 			//if ( (systematic != "nom" )  &&  ( (totHT < 1600.) || (nfatjets < 3) || ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)))     )) continue;  // 
 
 
@@ -1324,7 +1358,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 			//&& ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  )
 
-			if ((nfatjet_pre < 2) )
+			if (  (nfatjet_pre < 2)   && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.))      )
 			{
 				h_failed_events->Fill(7);
 				continue;
@@ -2190,8 +2224,8 @@ void rootProcessor()
    bool runSignal    	= false;
    bool runBR	  			= false;
    bool runAll	 			= false;
-   bool runDataBR    	= true;
-   bool runSelection 	= false;
+   bool runDataBR    	= false;
+   bool runSelection 	= true;
    bool runSingleFile 	= false;
    int nFailedFiles = 0;
    std::string failedFiles = "";
@@ -2203,12 +2237,10 @@ void rootProcessor()
  										  
    std::vector<std::string> dataYears = {"2015","2016","2017","2018"};
    
-   dataYears = {"2017"};
-
-   if(runSelection) dataYears = {"2015","2018"};
+   if(runSelection) dataYears = {"2017"};
 
    // REMOVED: "bTagSF_tight",  "bTagSF_tight_corr", 
-   std::vector<std::string> systematics = { "nom", "scale", "bTagSF_med",   "bTagSF_med_corr",  "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring", "pdf","renorm", "fact"};  // "scale"    "JEC_HF", "JEC_BBEC1", "JEC_EC2","JEC_HF_year", "JEC_EC2_year",   "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M",  "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year",
+   std::vector<std::string> systematics = { "nom", "pdf","renorm", "fact", "scale", "bTagSF_med",   "bTagSF_med_corr",  "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",  "JER", "JER_eta193", "JER_193eta25", "JEC", "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_Absolute", "JEC_AbsoluteCal",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory", "JEC_AbsolutePU", "JEC_BBEC1_year",  "JEC_Absolute_year",  "JEC_RelativeSample_year", "PUSF", "topPt", "L1Prefiring"};  // "scale"    "JEC_HF", "JEC_BBEC1", "JEC_EC2","JEC_HF_year", "JEC_EC2_year",   "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M",  "bTag_eventWeight_bc_T_corr", "bTag_eventWeight_light_T_corr", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year",
 
    std::vector<std::string> JEC1_ucerts = {"JEC_FlavorQCD", "JEC_RelativeBal","JEC_BBEC1_year",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_AbsoluteTheory"}; // the types of JEC uncertainties stored in the "JEC1" file for BR/data
    std::vector<std::string> JEC2_ucerts = {"JEC_Absolute_year",  "JEC_RelativeSample_year", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC"}; // the types of JEC uncertainties stored in the "JEC1" file for bR/data
@@ -2464,8 +2496,16 @@ void rootProcessor()
 		{
 			dataBlocks = 
 			{
-			"QCDMC_Pt_600to800_",
-         } ; 
+			"QCDMC_Pt_170to300_",
+			"QCDMC_Pt_300to470_",
+         "QCDMC_Pt_470to600_",
+         "QCDMC_Pt_600to800_",
+         "QCDMC_Pt_800to1000_",
+         "QCDMC_Pt_1000to1400_",
+         "QCDMC_Pt_1400to1800_",
+         "QCDMC_Pt_1800to2400_",
+         "QCDMC_Pt_2400to3200_",
+         "QCDMC_Pt_3200toInf_"         } ; 
 		}
 		else if ( runSingleFile)
 		{

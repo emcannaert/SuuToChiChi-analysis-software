@@ -361,21 +361,21 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
       if(corrJet.pt() > 30.)totHT+= abs(corrJet.pt() );
 
       //loose WP 0.1522
-      if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
+      if( (corrJet.pt()  < 30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
 
-      if (isHEM(corrJet.eta(),corrJet.phi())) return false;
+      if (isHEM(corrJet.eta(),corrJet.phi())) continue;
 
       nAK4++;
    }
 
 
 
-   if (totHT < 1600.) 
+   if (totHT < 1500.) 
    {
       //std::cout << "failed HT" << std::endl;
       return false;  //btagged jet cuts
    }
-   if (nAK4 < 4)
+   if (nAK4 < 2)
    {
       //std::cout << "failed nAK4" << std::endl;
       return false;
@@ -446,18 +446,18 @@ bool hadronFilter_bTagSF::filter(edm::Event& iEvent, const edm::EventSetup& iSet
       corrJet.setP4(corrJetP4);
 
       if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8) ) && (corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 45.))nHeavyAK8++;
-      if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 200.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8 )) || (corrJet.mass()< 0.))continue;
+      if((sqrt(pow(corrJet.mass(),2)+pow(corrJet.pt(),2)) < 300.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8 )) || (corrJet.mass()< 0.))continue;
       if (isHEM(corrJet.eta(),corrJet.phi())) return false;
 
       nAK8++;
    }
 
-   if(nAK8 < 3 )
+   if(nAK8 < 2 )
    {
       //std::cout << "failed nAK8" << std::endl;
       return false;
    } 
-   if (nHeavyAK8<2)
+   if (nHeavyAK8<1)
    {
       //std::cout << "failed nHeavyAK8" << std::endl;
       return false;

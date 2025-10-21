@@ -288,7 +288,7 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    edm::Handle<std::vector<pat::Jet> > smallJets;
    iEvent.getByToken(jetToken_, smallJets);
-   int nBtaggedAK4 = 0;
+   //int nBtaggedAK4 = 0;
 
    if(_verbose) std::cout << "Looking at AK4 jets." << std::endl;
 
@@ -302,7 +302,7 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       ///////////////////////////////////////////////////////
       /////////////// _JEC ENERGY CORRECTIONS ///////////////
       ///////////////////////////////////////////////////////
-      if(doJEC)
+      /*if(doJEC)
       {
          double AK4_JEC_corr_factor = 1.0;
 
@@ -318,7 +318,7 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
             AK4_JEC_corr_factor = 1 - AK4_uncertainty;
          }
          AK4_sf_total *= AK4_JEC_corr_factor;
-      }
+      }*/
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////   _JET ENERGY RESOLUTION STUFF //////////////////////////////////////////////////////////////////
@@ -376,15 +376,15 @@ bool hadronFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       corrJet.setP4(corrJetP4);
 
 
-      if(corrJet.pt() > 30.)totHT+= abs(corrJet.pt() );
+      if(corrJet.pt() > 28.5)totHT+= abs(corrJet.pt() );
 
       //loose WP 0.1522
       if( (corrJet.pt()  <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction())) ) continue;
       if (isHEM(corrJet.eta(),corrJet.phi())) return false;
 
-      if( ((corrJet.bDiscriminator("pfDeepCSVJetTags:probb") + corrJet.bDiscriminator("pfDeepCSVJetTags:probbb") )< 0.4184)||(corrJet.pt() < 30.) )continue;
+      //if( ((corrJet.bDiscriminator("pfDeepCSVJetTags:probb") + corrJet.bDiscriminator("pfDeepCSVJetTags:probbb") )< 0.4184)||(corrJet.pt() < 30.) )continue;
       //loose
-      nBtaggedAK4++;
+      //nBtaggedAK4++;
    }
 
    if ((totHT < 1400.)) 
