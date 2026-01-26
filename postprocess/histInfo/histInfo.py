@@ -13,7 +13,7 @@ from return_BR_SF.return_BR_SF import return_BR_SF
 ### Written by Ethan Cannaert, September 2023
 
 class histInfo:    # this needs to be initialized for every new region + year, use when looping over the superbin_indices and filling out the uncertainties
-	def __init__(self, year, region, bin_min_x, bin_min_y,n_bins_x,n_bins_y,technique_str,includeTTJetsMCHT800to1200,includeWJets,useTTTo,useQCDHT,debug=False,runEos = False, WP=None):
+	def __init__(self, year, region, bin_min_x, bin_min_y,n_bins_x,n_bins_y,technique_str,includeTTJetsMCHT800to1200,includeWJets,useTTTo,useQCDHT,runShifted,debug=False,runEos = False, WP=None, useOptWP=False):
 		ROOT.TH1.AddDirectory(False)
 		self.region = region
 		self.year   = year
@@ -25,12 +25,18 @@ class histInfo:    # this needs to be initialized for every new region + year, u
 		self.n_bins_y = n_bins_y
 		self.doSideband = False
 		self.useQCDHT = useQCDHT
-
-
+		self.runShifted = runShifted
+		self.useOptWP    = useOptWP
 		self.eos_path = "root://cmseos.fnal.gov/"
 
 		self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles/"
-		if runEos:  self.processed_file_path =  self.eos_path + "/store/user/ecannaer/processedFiles/"
+		if self.useOptWP:
+			self.processed_file_path = os.getenv('CMSSW_BASE') + "/src/combinedROOT/processedFiles_optWP/"
+
+		if runEos:  
+			if self.useOptWP: self.processed_file_path =  self.eos_path + "/store/user/ecannaer/processedFiles_optWP/"
+			else: self.processed_file_path =  self.eos_path + "/store/user/ecannaer/processedFiles/"
+			if self.runShifted:  self.processed_file_path = self.eos_path + "/store/user/ecannaer/processedFiles_shiftedMass/"
 		if WP: 
 			if "AT" in WP: WP_folder = WP[2:]
 			else: WP_folder = WP

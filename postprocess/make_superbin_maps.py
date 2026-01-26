@@ -37,7 +37,7 @@ ROOT.gStyle.SetPalette(ROOT.kViridis)
 
 class combineHistBins:
 
-	def __init__(self,year,region,technique_str, useQCDHT, debug=False, dryRun=False, runEos=False):   #constructor will convert TH2 to a 2D array, do the optimized bin merging, and then return a TH2 with those associated bins
+	def __init__(self,year,region,technique_str, useQCDHT,  runShifted, debug=False, dryRun=False, runEos=False,useOptWP=False):   #constructor will convert TH2 to a 2D array, do the optimized bin merging, and then return a TH2 with those associated bins
 
 		self.year = year
 		self.region = region
@@ -45,6 +45,7 @@ class combineHistBins:
 		self.dryRun = dryRun ## perform a "dry run" where text files are not made
 		self.debug = debug
 
+		self.useOptWP = useOptWP
 
 		#### characteristic thresholds for merging process ----- CHANGE THESE -----
 		self.max_stat_uncert 	 		= 0.175  ## maximum statistical uncertainty
@@ -60,8 +61,12 @@ class combineHistBins:
 
 		if "NN" in self.technique_str: self.max_stat_uncert = 0.30  ## maximum statistical uncertainty for NN method
 		
+		if self.region in ["AT1b","AT0b"]: self.max_stat_uncert = 0.12
+
+
+
 		self.min_unscaled_QCD_bin_counts   = 2.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
-		self.min_scaled_QCD_bin_counts   = 0.5   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
+		self.min_scaled_QCD_bin_counts     = 0.5   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
 
 
 		## options for which MCs to include
@@ -72,6 +77,7 @@ class combineHistBins:
 		self.useQCDHT = useQCDHT
 		self.QCD_str = "QCDPT"
 		if self.useQCDHT: self.QCD_str = "QCDHT"
+		self.runShifted = runShifted
 
 		if self.min_unscaled_QCD_bin_counts > 0:
 			print("")
@@ -101,6 +107,11 @@ class combineHistBins:
 		self.bin_min_x = 3  ## start x bin in the 2D distribution (diSJ mass) --> this is chosen for analysis purposes
 		self.bin_min_y = 1  ## start y bin in the 2D distribution (SJ mass)   --> this is chosen for analysis purposes
 
+
+		if self.region in ["AT1b","AT0b"]: # the sideband of these is somewhat untrustworthy, so need to be more strict here
+			self.bin_min_x = 5
+			self.bin_min_y = 2
+
 		self.n_bins_x = 22
 		self.n_bins_y = 20
 
@@ -114,7 +125,7 @@ class combineHistBins:
 			self.max_stat_uncert = 0.30  ## maximum statistical uncertainty
 		
 		## get container that holds all histogram values
-		self.all_hist_values =  histInfo.histInfo(year,region, self.bin_min_x, self.bin_min_y, self.n_bins_x, self.n_bins_y, self.technique_str, self.includeTTJetsMCHT800to1200, self.includeWJets, self.useTTTo	, self.useQCDHT,  debug, runEos, False)	#histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
+		self.all_hist_values =  histInfo.histInfo(year, region, self.bin_min_x, self.bin_min_y, self.n_bins_x, self.n_bins_y, self.technique_str, self.includeTTJetsMCHT800to1200, self.includeWJets, self.useTTTo	, self.useQCDHT,  self.runShifted, debug, runEos, False,useOptWP)	#histInfo.histInfo(year,region) ## everywhere there is originally a sqrt, will need to call get_bin_total_uncert and get 
 		
 		## initialize list of all superbin indices
 		self.superbin_indices = self.init_superbin_indices()	 
@@ -819,7 +830,13 @@ class combineHistBins:
 		plt.tight_layout()
 
 		# Save the plot to a file 
-		plt.savefig('plots/statUncertaintyPlots/postMergedPlots/%s_post_merge_superbin_yields_%s_%s%s.png'%( self.QCD_str, self.year,self.technique_str,self.region))
+
+		plt_name = 'plots/statUncertaintyPlots/postMergedPlots/%s_post_merge_superbin_yields_%s_%s%s.png'%( self.QCD_str, self.year,self.technique_str,self.region)
+
+		if self.runShifted: plt_name = 'plots/statUncertaintyPlots/shiftedMass/postMergedPlots/%s_post_merge_superbin_yields_%s_%s%s.png'%( self.QCD_str, self.year,self.technique_str,self.region)
+
+		plt.savefig(plt_name)
+
 		plt.close()
 
 
@@ -881,7 +898,9 @@ class combineHistBins:
 		plt.tight_layout()
 
 		# Save the plot to a file
-		plt.savefig('plots/statUncertaintyPlots/postMergedPlots/%s_post_merge_superbin_yields_%s_%s%s.png'%(self.QCD_str,self.year,self.technique_str,self.region))
+		plt_name = 'plots/statUncertaintyPlots/postMergedPlots/%s_post_merge_superbin_yields_%s_%s%s.png'%(self.QCD_str,self.year,self.technique_str,self.region)
+		if self.runShifted: plt_name = 'plots/statUncertaintyPlots/shiftedMass/postMergedPlots/%s_post_merge_superbin_yields_%s_%s%s.png'%(self.QCD_str,self.year,self.technique_str,self.region)
+		plt.savefig(plt_name)
 		plt.close()
 
 		return new_superbin_indices
@@ -923,13 +942,15 @@ class combineHistBins:
 
 if __name__=="__main__":
 
-	debug	= False
-	dryRun   = False
-	runEos 	 = True
-
-
+	debug	   = False
+	dryRun     = False
+	runEos 	   = True
+	runShifted = False
+	useOptWP    = True
 	print("Calculating bin groupings for best statistical uncertainties")
-		
+	
+	optWP_str = ""
+	if useOptWP: optWP_str = "optWP"
 
 
 	useQCDHT_opts = [True,False] # true = use HT-binned QCD, false means use Pt-binned QCD
@@ -958,6 +979,9 @@ if __name__=="__main__":
 		useQCDHT_opts= [True]
 
 
+	if useOptWP:
+		useQCDHT_opts  = [False] # true = use HT-binned QCD, false means use Pt-binned QCD
+		useQCDHT_strs  = ["QCDPT"]
 
 	for jjj,useQCDHT_opt in enumerate(useQCDHT_opts):
 			
@@ -967,6 +991,15 @@ if __name__=="__main__":
 		neighbor_output_path = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinNeighbors/"
 
 
+		if runShifted:
+			text_output_path  = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/binMaps/shiftedMass/"   #output_map_file_name
+			group_output_path = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinGroups/shiftedMass/"
+			neighbor_output_path = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinNeighbors/shiftedMass/"
+
+
+
+
+
 		if not dryRun:
 			SB_index_CB_cmd = 'rm %s/%s_superbin_indices_*.txt'%( text_output_path,useQCDHT_strs[jjj])
 			SB_index_NN_cmd = 'rm %s/%s_superbin_indicesNN_*.txt'%(useQCDHT_strs[jjj],text_output_path)
@@ -974,7 +1007,7 @@ if __name__=="__main__":
 			SB_group_CB_cmd	= 'rm %s/%s_superbin_groups_*.txt'%(group_output_path,useQCDHT_strs[jjj])
 			SB_group_NN_cmd	= 'rm %s/%s_superbin_groupsNN_*.txt'%(group_output_path,useQCDHT_strs[jjj]) 
 
-			SB_neighbors_CB_cmd = 'rm %s/%s_superbin_neighbor_*.txt'%(neighbor_output_path,useQCDHT_strs[jjj])
+			SB_neighbors_CB_cmd = 'rm %s/%s_superbin_neighbors_*.txt'%(neighbor_output_path,useQCDHT_strs[jjj])
 			SB_neighbors_NN_cmd = 'rm %s/%s_superbin_neighborsNN_*.txt'%(neighbor_output_path,useQCDHT_strs[jjj])
 
 			os.system(SB_index_CB_cmd )
@@ -1006,19 +1039,21 @@ if __name__=="__main__":
 						print("===============================================================================")
 
 					if not dryRun:  
-						out_txt_file = open("%s/%s_superbin_indices%s_%s.txt"%(text_output_path, useQCDHT_strs[jjj],output_strs[iii],year),"a")
-						superbin_group_txt_file = open("%s/%s_superbin_groups%s_%s.txt"%(group_output_path, useQCDHT_strs[jjj], output_strs[iii],year),"a")
-						superbin_neighbor_txt_file = open("%s/%s_superbin_neighbors%s_%s.txt"%(neighbor_output_path,useQCDHT_strs[jjj],output_strs[iii],year),"a")
+						out_txt_file = open("%s/%s/%s_superbin_indices%s_%s.txt"%(text_output_path, optWP_str, useQCDHT_strs[jjj],output_strs[iii],year),"a")
+						superbin_group_txt_file = open("%s/%s/%s_superbin_groups%s_%s.txt"%(group_output_path, optWP_str, useQCDHT_strs[jjj], output_strs[iii],year),"a")
+						superbin_neighbor_txt_file = open("%s/%s/%s_superbin_neighbors%s_%s.txt"%(neighbor_output_path, optWP_str, useQCDHT_strs[jjj],output_strs[iii],year),"a")
 
 
 					print("Creating maps for %s/%s/useQCDHT = %s"%(region,year,useQCDHT_strs[jjj]))
 
 					TH2_hist_merged_name   = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/outputs/binMergingOutputs/postMergedFiles/allBR_statUncert_%s%s_%s_MERGED_BINS.root"%(output_strs[iii],region,year)
 					TH2_hist_new_bins_name = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/outputs/binMergingOutputs/postMergedFiles/allBR_statUncert_%s%s_%s_NEW_BINS.root"%(output_strs[iii],region,year)
+					
+
 					out_file = ROOT.TFile.Open(TH2_hist_new_bins_name,"RECREATE")
 
 					# give histogram to constructor
-					testCase = combineHistBins(year, region, output_strs[iii], useQCDHT_opt, debug,dryRun,runEos)
+					testCase = combineHistBins(year, region, output_strs[iii], useQCDHT_opt, runShifted ,debug,dryRun,runEos, useOptWP)
 					#create a dummy histogram with dimensions 20x22
 					merged_bins = testCase.superbin_indices
 					bin_map_hist = ROOT.TH2F("bin_map_hist%s"%output_strs[iii], ("Superbin Map for the %s for %s (%s); disuperjet mass (GeV); avg. superjet mass (GeV)"%(region, year_str,technique_strs[iii])), testCase.n_bins_x,1250., 10000, testCase.n_bins_y, 500, 5000)  # 375 * 125
@@ -1208,7 +1243,15 @@ if __name__=="__main__":
 
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
-					c.SaveAs( os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlots/postMergedPlots/%s_bin_map_%s%s_%s.png"%(useQCDHT_strs[jjj], output_strs[iii],region,year)) 
+					
+
+
+					plt_home = os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlots/postMergedPlots/"
+					if runShifted: plt_home = os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlots/shiftedMass/postMergedPlots/"
+					if useOptWP: plt_home = os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlotsOptWP/postMergedPlots/"
+
+
+					c.SaveAs( "%s/%s_bin_map_%s%s_%s.png"%( plt_home, useQCDHT_strs[jjj],output_strs[iii],region,year)) 
 					
 
 					###### superbin map with superbin numbering scheme
@@ -1274,9 +1317,9 @@ if __name__=="__main__":
 
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
-					c.SaveAs( os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlots/postMergedPlots/%s_bin_map_wSBNumbering_%s%s_%s.png"%(useQCDHT_strs[jjj], output_strs[iii],region,year)) 
 					
-
+					c.SaveAs( "%s/%s_bin_map_wSBNumbering_%s%s_%s.png"%(plt_home, useQCDHT_strs[jjj], output_strs[iii],region,year)) 
+					
 
 
 
@@ -1345,7 +1388,9 @@ if __name__=="__main__":
 
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
-					c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlots/postMergedPlots/%s_stat_uncert_%s%s_%s.png"%(useQCDHT_strs[jjj],output_strs[iii],region,year)) 
+
+					c.SaveAs( "%s/%s_stat_uncert_%s%s_%s.png"%(plt_home,useQCDHT_strs[jjj],output_strs[iii],region,year))
+
 
 					ROOT.gStyle.SetPalette(ROOT.kViridis)
 
@@ -1409,8 +1454,8 @@ if __name__=="__main__":
 							latex.DrawLatex(x_text, y_text, str(group_id))
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
-					c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlots/postMergedPlots/%s_bin_counts_%s%s_%s.png"%(useQCDHT_strs[jjj],output_strs[iii],region,year)) 
-					
+					c.SaveAs( "%s/%s_bin_counts_%s%s_%s.png"%(plt_home,useQCDHT_strs[jjj],output_strs[iii],region,year)) 
+
 
 					ROOT.gStyle.SetPalette(ROOT.kViridis)
 					merged_hist_count_scaled.Draw("colz")
@@ -1471,8 +1516,10 @@ if __name__=="__main__":
 							latex.DrawLatex(x_text, y_text, str(group_id))
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
-					c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlots/postMergedPlots/%s_scaled_bin_counts_%s%s_%s.png"%(useQCDHT_strs[jjj],output_strs[iii],region,year)) 
+					c.SaveAs( "%s/%s_scaled_bin_counts_%s%s_%s.png"%(plt_home,useQCDHT_strs[jjj],output_strs[iii],region,year)) 
 					
+
+
 					c.SetRightMargin(0.18)
 					c.cd()
 					c.Clear()
@@ -1539,9 +1586,7 @@ if __name__=="__main__":
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 					c.Modified()
 					c.Update()
-
-					c.SaveAs(os.getenv('CMSSW_BASE')+  "/src/SuuToChiChi_analysis_software/postprocess/plots/statUncertaintyPlots/postMergedPlots/%s_unscaled_QCD_bin_counts_%s%s_%s.png"%(useQCDHT_strs[jjj],output_strs[iii],region,year)) 
-					
+					c.SaveAs( "%s/%s_unscaled_QCD_bin_counts_%s%s_%s.png"%(plt_home,useQCDHT_strs[jjj],output_strs[iii],region,year)) 
 
 					c.SetLogz(False)
 

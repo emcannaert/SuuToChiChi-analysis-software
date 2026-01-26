@@ -523,7 +523,7 @@ class linearized_plot:
 
 				if self.use_QCD_Pt:
 
-					SFs_QCDMC_Pt = [  {"2015":72.27560548, "2016":58.13790684, "2017":144.0132837, "2018":208.6671047},
+					SFs_QCDMC_Pt = [  # {"2015":72.27560548, "2016":58.13790684, "2017":144.0132837, "2018":208.6671047},
 				    {"2015":2.464537119, "2016":2.077524247, "2017":5.087240079, "2018":7.056447936},
 				    {"2015":0.2122207081, "2016":0.1770874866, "2017":0.4500561659, "2018":0.6298074855},
 				    {"2015":0.04929452011, "2016":0.04041858714, "2017":0.09634485522, "2018":0.1387005244},
@@ -534,6 +534,9 @@ class linearized_plot:
 				    {"2015":0.00003408026676, "2016":0.00003090490169, "2017":0.00007246889556, "2018":0.0001045278212},
 				    {"2015":0.000002648864, "2016":0.000002290278112, "2017":0.000005628836, "2018":0.000008118931} ]
 
+
+
+				    ### this is a bad way of doing this, should have used a dictionary instead
 					### need to lineraize the histograms separately and THEN add them to linear_plot
 					linear_plots_QCD_Pt =  [  #ROOT.TH1D("%s%s"%("QCDMC_Pt_170to300",sys_str),"linearized %s (%s) (%s); bin; Events / bin"%( "QCDMC_Pt_170to300",year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
 					ROOT.TH1D("%s%s"%("QCDMC_Pt_300to470",sys_str),"linearized %s (%s) (%s); bin; Events / bin"%( "QCDMC_Pt_300to470",year, " ".join(use_sys.split("_"))),linear_plot_size,-0.5,linear_plot_size-0.5),
@@ -988,7 +991,7 @@ class linearized_plot:
 	def load_superbin_indices(self,region):	
 	# load in the superbin indices (located in a text file ), 
 		_superbin_indices = []
-		open_file = open(self.index_file_home+"/%s_superbin_indices%s_%s.txt"%(self.use_QCD_Pt_str, self.technique_str,self.year),"r")
+		open_file = open(self.index_file_home+"/%s_superbin_indices_%s.txt"%(self.use_QCD_Pt_str,self.year),"r")
 		for line in open_file:
 			columns = line.split('/')
 			if columns[0] == self.year and region in columns[1]:
@@ -1060,11 +1063,11 @@ if __name__=="__main__":
 	args = parser.parse_args()
 	
 
-	mass_points = ["Suu4_chi1", "Suu4_chi1p5", 
-				   "Suu5_chi1", "Suu5_chi1p5",  "Suu5_chi2", 
-				   "Suu6_chi1", "Suu6_chi1p5", "Suu6_chi2", "Suu6_chi2p5",
-				   "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3",
-				   "Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3" ]
+	mass_points = [ "Suu4_chi1p5",   #"Suu4_chi1",
+				    "Suu5_chi1p5",  "Suu5_chi2",  # "Suu5_chi1",
+				    "Suu6_chi1p5", "Suu6_chi2", "Suu6_chi2p5", #"Suu6_chi1"
+				   "Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3", # "Suu7_chi1",
+				    "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3" ] # "Suu8_chi1",
 
 
 	if debug:
@@ -1088,7 +1091,7 @@ if __name__=="__main__":
 	ET_cuts = ["200","300","400"]
 	jet_HT_cuts = ["1600","1800","2000","2200"]
 	nAK8_cuts   = ["2","3","4"]
-	nHeavyAK8_cuts   = ["2","3"]
+	nHeavyAK8_cuts   = ["1","2","3"]
 
 
 	for ET_cut in ET_cuts:
@@ -1104,6 +1107,7 @@ if __name__=="__main__":
 
 		for WP in WPs:
 
+			print("Running WP = %s"%WP)
 			for jjj,use_QCD_Pt in enumerate(use_QCD_Pt_opts):
 
 				for iii,technique_str in enumerate(technique_strs):

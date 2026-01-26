@@ -83,7 +83,7 @@ def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
             var_str_title = "(%s var)"%var_str
             if var_str == "nom": var_str_title = ""
 
-            hist.SetTitle("%s Shape (%s) (%s) %s (%s)"%(hist.GetTitle(), BR_type, systematic, var_str_title, year_converter[year]))
+            hist.SetTitle("%s Shape (%s) (%s) %s (%s)"%(hist.GetTitle(), BR_type, systematic, var_str_title))
 
             if hist.Integral() > 0:
                 hist.Scale(1.0 / hist.Integral())
@@ -106,7 +106,7 @@ def plot_var_weight_comparisons_by_sample(hist_name, sample_list, systematic):
         text.SetTextAlign(22)  # Center alignment (horizontal and vertical)
         
         # Draw the text lines
-        text.DrawLatexNDC(0.35, 0.86, BR_type + ", " + year_converter[year])
+        text.DrawLatexNDC(0.35, 0.86, BR_type)
         text.DrawLatexNDC(0.35, 0.81, hist_name  )
 
         variation_str =  var.split("_")[1] + " variation" if var in ["_up", "_down"] else ""

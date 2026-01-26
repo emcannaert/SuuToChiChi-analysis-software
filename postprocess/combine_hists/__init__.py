@@ -25,8 +25,14 @@ def combine_hists(sample_types, file_paths, hist_name, hist_weights=None, new_ti
     combined_hist = None
 
     for sample in sample_types:
+
+        #print('sample is %s'%sample )
+
         file_path = file_paths[sample]
-        weight = hist_weights.get(sample, 1.0) if hist_weights else 1.0
+        #weight = hist_weights.get(sample, 1.0) if hist_weights else 1.0 ## not good, need to know when something doesn't work
+
+        weight = hist_weights[sample]
+
 
         # Open ROOT file
         f = ROOT.TFile.Open(file_path, "READ")

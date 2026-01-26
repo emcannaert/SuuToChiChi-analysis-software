@@ -9,14 +9,17 @@ import datetime
 ROOT.gROOT.SetBatch(True)
 
 
-def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
+def make_plots(file_dir, hist_names,output_dir, masks, split_BRs,runOptimal=False):
 
 
-    legend_translator = {"ST_":"Single Top", "TTTo":r"t \bar{t}","WJets":"W+Jets","QCD":"QCD"}
+    legend_translator = {"ST_":"Single Top", "TTJets":r"t \bar{t}","WJets":"W+Jets","QCD":"QCD"}
 
 
     if not file_dir:
         file_dir    =  "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/"
+
+    if runOptimal:
+        file_dir = "../combinedROOT/selectionStudy/optimal/"
 
     years = ["2015", "2016", "2017", "2018"]
 
@@ -66,9 +69,12 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
     "WJetsMC_LNu-HT2500toInf",
      "WJetsMC_LNu-HT800to1200",
     "WJetsMC_QQ-HT800toInf",
-     "TTToLeptonicMC",
-    "TTToSemiLeptonicMC",
-    "TTToHadronicMC",
+     #"TTToLeptonicMC",
+    #"TTToSemiLeptonicMC",
+    #"TTToHadronicMC",
+    "TTJetsMCHT800to1200",
+    "TTJetsMCHT1200to2500",
+    "TTJetsMCHT2500toInf",
     #"QCDMC1000to1500",
     #"QCDMC1500to2000",
     #"QCDMC2000toInf"
@@ -85,6 +91,22 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
     "QCDMC_Pt_3200toInf"
 
     ] 
+
+
+    if runOptimal:
+          BR_samples = [
+
+            "QCD_Pt_300to470",
+            "QCD_Pt_470to600",
+            "QCD_Pt_600to800",
+            "QCD_Pt_800to1000",
+            "QCD_Pt_1000to1400",
+            "QCD_Pt_1400to1800",
+            "QCD_Pt_1800to2400",
+            "QCD_Pt_2400to3200",
+            "QCD_Pt_3200toInf"
+            ]   
+
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
@@ -134,6 +156,11 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
                 "TTToSemiLeptonicMC": return_BR_SF(year, "TTToSemiLeptonicMC"),
                 "TTToHadronicMC": return_BR_SF(year, "TTToHadronicMC"),
 
+                "TTJetsMCHT800to1200": return_BR_SF(year, "TTJetsMCHT800to1200"),
+                "TTJetsMCHT1200to2500": return_BR_SF(year, "TTJetsMCHT1200to2500"),
+                "TTJetsMCHT2500toInf": return_BR_SF(year, "TTJetsMCHT2500toInf"),
+
+
                 "QCDMC1000to1500": return_BR_SF(year, "QCD1000to1500"),
                 "QCDMC1500to2000": return_BR_SF(year, "QCD1500to2000"),
                 "QCDMC2000toInf": return_BR_SF(year, "QCD2000toInf"),
@@ -148,10 +175,20 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
                 "QCDMC_Pt_1400to1800":  return_BR_SF(year, "QCDMC_Pt_1400to1800"),
                 "QCDMC_Pt_1800to2400":  return_BR_SF(year, "QCDMC_Pt_1800to2400"),
                 "QCDMC_Pt_2400to3200":  return_BR_SF(year, "QCDMC_Pt_2400to3200"),
-                "QCDMC_Pt_3200toInf":   return_BR_SF(year, "QCDMC_Pt_3200toInf")
+                "QCDMC_Pt_3200toInf":   return_BR_SF(year, "QCDMC_Pt_3200toInf"),
+
+
+                "QCD_Pt_170to300":   return_BR_SF(year, "QCDMC_Pt_170to300"),
+                "QCD_Pt_300to470":    return_BR_SF(year, "QCDMC_Pt_300to470"),
+                "QCD_Pt_470to600":     return_BR_SF(year, "QCDMC_Pt_470to600"),
+                "QCD_Pt_600to800":    return_BR_SF(year, "QCDMC_Pt_600to800"),
+                "QCD_Pt_800to1000":   return_BR_SF(year, "QCDMC_Pt_800to1000"),
+                "QCD_Pt_1000to1400":   return_BR_SF(year, "QCDMC_Pt_1000to1400"),
+                "QCD_Pt_1400to1800":  return_BR_SF(year, "QCDMC_Pt_1400to1800"),
+                "QCD_Pt_1800to2400":  return_BR_SF(year, "QCDMC_Pt_1800to2400"),
+                "QCD_Pt_2400to3200":  return_BR_SF(year, "QCDMC_Pt_2400to3200"),
+                "QCD_Pt_3200toInf":   return_BR_SF(year, "QCDMC_Pt_3200toInf")
             
-
-
 
             }
 
@@ -161,7 +198,11 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
             "2018": ["dataA","dataB", "dataC", "dataD"] }
 
 
-
+            if runOptimal:
+                data_samples = {"2015": ["JetHT"], 
+                "2016": ["JetHT"], 
+                "2017": ["JetHT"], 
+                "2018": ["JetHT"] }
 
             ### combined BRs
 
@@ -181,7 +222,11 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
             if split_BRs:
                 BR_types = BR_samples
             else: 
-                BR_types = ["ST_", "WJets", "TTTo", "QCD" ]
+                BR_types = ["ST_", "WJets", "TTJets", "QCD" ]
+
+            if runOptimal:
+                BR_types = ["TTJets","QCD"]
+
             BR_groups = {BR_type: None for BR_type in BR_types}
 
             for iii,sample in enumerate(BR_samples):
@@ -469,6 +514,20 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs):
                 legend.AddEntry(combined_data, "Data", "p")
                 legend.Draw()
 
+
+                obj_str = "Events"
+                if "jet" in combined_hist_BR.GetTitle() or "Jet" in combined_hist_BR.GetTitle(): obj_str = "Jets"
+
+                text = ROOT.TText()
+                text.SetNDC(True)  
+                text.SetTextSize(0.025)
+                text.DrawText(0.4, 0.85, "MC %s = %s"%(obj_str,np.round(combined_hist_BR.Integral(),2)))
+                text.DrawText(0.4, 0.80, "Data %s = %s"%(obj_str,np.round(combined_data.Integral(),2)))
+
+
+
+
+
                 write_cms_text.write_cms_text(CMS_label_xpos=0.138, SIM_label_xpos=0.305,CMS_label_ypos = 0.925, SIM_label_ypos = 0.925, lumistuff_xpos=0.90, lumistuff_ypos=0.91, year = "", uses_data=True)
                 png_path = os.path.join(output_dir, "dataMC_" + hist_name + "_" + year + "_"+ region + ".png")
                 #root_out_path = os.path.join(output_dir, "dataMC_" + hist_name + "_" + year + ".root")
@@ -510,6 +569,10 @@ if __name__=="__main__":
     parser.add_argument("--output_dir", required=True, help="Path to desired output directory")
     parser.add_argument("--mask",     default=None ,required=False, help="Lower bound to mask certain input hists. Ex: --mask h_totHT:1500,h_jet_mass:1000, ...")
     parser.add_argument("--split_BRs",     action="store_true" , help="Option to combine like backgrounds into processes.")
+    parser.add_argument("--runOptimal",     action="store_true" , help="Option to combine like backgrounds into processes.")
+
+
+
 
     args = parser.parse_args()
     hist_names = [name.strip() for name in args.hist_names.split(',')]
@@ -522,10 +585,17 @@ if __name__=="__main__":
     else:
         masks = None
 
-    make_plots(args.file_dir, hist_names,args.output_dir,masks, args.split_BRs)
+    make_plots(args.file_dir, hist_names,args.output_dir,masks, args.split_BRs, args.runOptimal)
 
 
 
 
 # EX:
 #python plot_var_dataMC.py --hist_names h_nAK4_all,h_totHT,h_AK8_jet_mass,h_AK8_jet_pt,h_nfatjets,h_nfatjets_pre,h_dijet_mass,h_AK8_jet_mass_CR,h_AK4_jet_mass_CR,h_totHT_CR,h_totHT_AT1b,h_totHT_AT0b,h_nfatjets_CR,h_nAK4_CR,h_SJ_nAK4_100_CR,h_SJ_nAK4_200_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_SJ_mass_AT0b,h_disuperjet_mass_AT0b,h_nAK4_AT0b,h_nMedBTags,h_AK8_eta,h_AK8_phi,h_AK4_eta,h_AK4_phi --output_dir plots/B2G_update --mask h_totHT:3000,h_AK8_jet_mass:500,h_AK8_jet_pt:1200,h_dijet_mass:1200,h_totHT_AT1b:4000
+
+#OPTIMAL RUN:
+#python plot_var_dataMC.py --hist_names h_AK8_jet_mass_CR,h_totHT_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_JEC_uncert_AK8_CR,h_JEC_uncert_AK4_CR,h_AK4_jet_mass_CR,h_nAK4_pt75_CR,h_AK8_jet_pt_CR,h_Full_Event_Weight_CR,h_AK8_eta_CR,h_AK8_phi_CR,h_AK4_eta_CR,h_AK4_phi_CR --output_dir plots/optimal/  --runOptimal
+
+
+
+

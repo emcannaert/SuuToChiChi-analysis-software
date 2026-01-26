@@ -2,6 +2,7 @@ import ROOT
 import sys,os
 from math import sqrt
 import ast
+import numpy as np
 
 #### operates on the final, linearized files that go to combine in order to fix asymmetrix uncertainties, mainly JECs
 #### the "fixed" outputs are written to the postprocess/finalCombineFiles/correctedFinalCombineFiles/
@@ -9,14 +10,22 @@ import ast
 ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
 
-def load_superbin_neighbors(year, region,technique_str="",debug=False):
+def load_superbin_neighbors(year, region, use_QCD_Pt_str, technique_str="", runShifted=False, useOptWP=False, debug=False):
+
 
 	if debug: print("--- LOADING SUPERBIN NEIGHBORS FOR %s/%s/%s"%(year,region,technique_str))
 	region_to_use = "SR"
 	if region in ["AT1b", "AT0b"]: region_to_use = "AT1b"
 
 	_superbin_indices = []
-	open_file = open("superbinNeighbors/superbin_neighbors%s_%s.txt"%(technique_str,year),"r")
+
+	neighbor_dir = "superbinNeighbors"
+
+	if useOptWP:
+		neighbor_dir = "superbinNeighborsOptWP"
+
+	#if runShifted: neighbor_dir = "superbinNeighbors/shiftedMass/"
+	open_file = open("%s/%s_superbin_neighbors%s_%s.txt"%(neighbor_dir,use_QCD_Pt_str,technique_str,year),"r")
 	for line in open_file:
 		columns = line.split('/')
 		if columns[0] == year and columns[1] == region_to_use:
@@ -33,7 +42,198 @@ def create_directories(dirs_to_create):
 			os.makedirs(dir_to_create)
 
 
-def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, technique_str, useMask=False, use_QCD_Pt=False, debug = False):
+# if superbin neighbor avg. is much lower than value, use superbin neighbor average
+
+"""def fix_outliers( bin_number, superbin_neighbors, hist_nom, hist_var, thresh_up = 2.0, thresh_down = 0.5, averaging_method = "median-only-neighbors" ):
+
+	#print("---- new bin ----")
+	cand_bin_deviation = (hist_var.GetBinContent(bin_number) - hist_nom.GetBinContent(bin_number))/ hist_nom.GetBinContent(bin_number) if hist_nom.GetBinContent(bin_number) > 1e-8 else 0
+
+	cand_bin_deviation_abs = abs(cand_bin_deviation) 
+	cand_bin_deviation_sign = cand_bin_deviation / cand_bin_deviation_abs if cand_bin_deviation_abs > 0 else 1.0
+
+
+	#print("looking at bin %s (of total %s), superbin_neighbors are %s, (length = %s)"%(bin_number,hist_nom.GetNbinsX(), superbin_neighbors, len(superbin_neighbors)) ) 
+
+
+	neighbor_yields_nom = np.array([ hist_nom.GetBinContent(superbin_neighbor) for superbin_neighbor in superbin_neighbors[bin_number-1] if hist_nom.GetBinContent(superbin_neighbor) > 0  ])
+	neighbor_yields_var = np.array([ hist_var.GetBinContent(superbin_neighbor) for superbin_neighbor in superbin_neighbors[bin_number-1] if hist_nom.GetBinContent(superbin_neighbor) > 0  ])
+
+	neighbor_deviations = abs((neighbor_yields_var - neighbor_yields_nom) / neighbor_yields_nom)	## problem here
+	neighbor_deviations_copy  = list(neighbor_deviations[:])
+
+	neighbor_deviations = np.nan_to_num(neighbor_deviations)
+	neighbor_deviations[np.isinf(neighbor_deviations)] = 0.0
+
+
+	neighbor_deviations = [ neighbor_deviation for neighbor_deviation in neighbor_deviations if abs(neighbor_deviation) < 1.0  ]
+
+	neighbor_deviations = np.sort(neighbor_deviations)
+
+
+	if len(neighbor_deviations) == 0: # nothing can be done about this 
+		return  hist_var.GetBinContent(bin_number)
+
+
+	n = len(neighbor_deviations)
+
+	if n % 2 == 0:
+		medians = neighbor_deviations[n//2 - 1 : n//2 + 1].mean()  # two middle values
+	else:
+		medians = neighbor_deviations[n//2 : n//2 + 1].mean()	  # single median value
+
+	neighbor_deviations = np.sort(neighbor_deviations)
+	n = len(neighbor_deviations)
+	if n == 0:
+		median = 0
+
+	mid = n // 2
+
+	if n % 2 == 0:
+		median = neighbor_deviations[mid - 1 : mid + 1].mean()
+	else:
+		if n == 1:
+			median = neighbor_deviations.mean()
+		else:
+			start = max(0, mid - 1)
+			end	= min(n, mid + 2)
+			median = neighbor_deviations[start:end].mean()
+
+	#print("candidate deviation is %s"%(cand_bin_deviation))
+	#print("neighbor deviations are %s"%neighbor_deviations)
+
+	#neighbor_deviation_avg = neighbor_deviations.mean()
+
+	#neighbor_deviation_avg = median
+
+	#print("neighbor devation mean is %s"%(neighbor_deviation_avg))
+
+	neighbor_deviation_avg_wOutlier = (sum(neighbor_deviations) + cand_bin_deviation) / (len(neighbor_deviations) + 1)  ## problem here ...
+
+	if averaging_method == "median-only-neighbors":
+		if ( abs(cand_bin_deviation) > 0.1) and (  abs(cand_bin_deviation) > thresh_up * median or  abs(cand_bin_deviation) < thresh_down * median  ):
+			#print("Changed bin %s ----- cand_bin_deviation = %s to %s"%(bin_number, cand_bin_deviation,neighbor_deviation_avg))
+			
+			cand_bin_deviation = median # actually the average of the median values
+	elif averaging_method == "mean-include-outlier":
+		if ( abs(cand_bin_deviation) > 0.1) and (  abs(cand_bin_deviation) > thresh_up * neighbor_deviation_avg_wOutlier or  abs(cand_bin_deviation) < thresh_down * neighbor_deviation_avg_wOutlier  ):
+			cand_bin_deviation = neighbor_deviation_avg_wOutlier
+	else: 
+		raise valueError("ERROR: averaging method for fix_outliers not recognized: %s."%averaging_method)
+
+	#print("cand_bin_deviation / cand_bin_deviation_sign /  hist_nom.GetBinContent(bin_number) = %s / %s / %s"%(cand_bin_deviation,cand_bin_deviation_sign, hist_nom.GetBinContent(bin_number)))
+
+	var_yield_fixed = ( 1 + abs(cand_bin_deviation)* cand_bin_deviation_sign  ) * hist_nom.GetBinContent(bin_number) ## problem here ...
+
+
+	return var_yield_fixed"""
+
+def nan_to_num_py2(x, nan=0.0, posinf=0.0, neginf=0.0):
+	x = np.array(x, copy=True)
+
+	# Replace NaN
+	x[np.isnan(x)] = nan
+
+	# Replace +inf
+	x[np.isposinf(x)] = posinf
+
+	# Replace -inf
+	x[np.isneginf(x)] = neginf
+
+	return x
+
+def fix_outliers(bin_number, superbin_neighbors, hist_nom, hist_var,
+					  thresh_up=2.0, thresh_down=0.5,
+					  averaging_method="median-only-neighbors"):
+
+	 nom_val = hist_nom.GetBinContent(bin_number)
+	 var_val = hist_var.GetBinContent(bin_number)
+
+	 # ---------------------------------------------------------
+	 # SAFETY: avoid division by zero or nan in candidate deviation
+	 # ---------------------------------------------------------
+	 if nom_val <= 0:
+		  return var_val if var_val >= 0 else 0.0
+
+	 cand_bin_deviation = (var_val - nom_val) / nom_val
+	 cand_bin_deviation_abs = abs(cand_bin_deviation)
+	 cand_bin_deviation_sign = cand_bin_deviation / cand_bin_deviation_abs if cand_bin_deviation_abs > 0 else 1.0
+
+	 # ---- neighbors ----
+	 neighbors = superbin_neighbors[bin_number - 1]
+
+	 # ---------------------------------------------------------
+	 # SAFETY: keep only neighbors with positive nominal content
+	 # ---------------------------------------------------------
+	 nom_neighbors = np.array([hist_nom.GetBinContent(i) for i in neighbors if hist_nom.GetBinContent(i) > 0])
+	 var_neighbors = np.array([hist_var.GetBinContent(i) for i in neighbors if hist_nom.GetBinContent(i) > 0])
+
+	 if len(nom_neighbors) == 0:
+		  return var_val if var_val >= 0 else 0.0
+
+	 # ---------------------------------------------------------
+	 # SAFETY: deviation = (v-n)/n with zero-division protection
+	 # ---------------------------------------------------------
+	 neighbor_deviations = (var_neighbors - nom_neighbors) / nom_neighbors
+
+	 # Handle NaN / inf explicitly
+	 neighbor_deviations = nan_to_num_py2(neighbor_deviations, nan=0.0, posinf=0.0, neginf=0.0)
+
+	 # Remove pathological values >1
+	 neighbor_deviations = np.array([d for d in neighbor_deviations if abs(d) < 1.0])
+
+	 # ---------------------------------------------------------
+	 # SAFETY: after filtering, again check for empty
+	 # ---------------------------------------------------------
+	 if len(neighbor_deviations) == 0:
+		  return var_val if var_val >= 0 else 0.0
+
+	 neighbor_deviations = np.sort(neighbor_deviations)
+	 n = len(neighbor_deviations)
+	 mid = n // 2
+
+	 # --------- median with safety ----------
+	 if n == 1:
+		  median = neighbor_deviations[0]
+	 elif n % 2 == 0:
+		  median = 0.5 * (neighbor_deviations[mid - 1] + neighbor_deviations[mid])
+	 else:
+		  median = neighbor_deviations[mid]
+
+	 # ---------------------------------------------------------
+	 # SAFETY: avoid divide by zero in averaging method
+	 # ---------------------------------------------------------
+	 neighbor_deviation_avg_wOutlier = (neighbor_deviations.sum() + cand_bin_deviation) / (n + 1)
+
+	 # -------- apply rules ----------
+	 if averaging_method == "median-only-neighbors":
+		  if (abs(cand_bin_deviation) > 0.1) and \
+			  (abs(cand_bin_deviation) > thresh_up * abs(median) or
+				abs(cand_bin_deviation) < thresh_down * abs(median)):
+				cand_bin_deviation = median
+
+	 elif averaging_method == "mean-include-outlier":
+		  if (abs(cand_bin_deviation) > 0.1) and \
+			  (abs(cand_bin_deviation) > thresh_up * abs(neighbor_deviation_avg_wOutlier) or
+				abs(cand_bin_deviation) < thresh_down * abs(neighbor_deviation_avg_wOutlier)):
+				cand_bin_deviation = neighbor_deviation_avg_wOutlier
+
+	 else:
+		  raise ValueError("Unknown averaging method: %s" % averaging_method)
+
+	 # ---------------------------------------------------------
+	 # SAFETY: final yield
+	 # if nominal bin content is zero, don't apply correction
+	 # ---------------------------------------------------------
+	 final_yield = (1 + abs(cand_bin_deviation) * cand_bin_deviation_sign) * nom_val
+
+	 if not np.isfinite(final_yield) or final_yield < 0:
+		  final_yield = 0.0
+
+	 return final_yield
+
+
+def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, technique_str, useMask=False, use_QCD_Pt=False,runShifted=False, useOptWP=False, debug = False):
 	ROOT.TH1.AddDirectory(False)
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
@@ -47,16 +247,19 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 
 
-	asymmetry_threshold              = 0.4     ## value below which symmetry will be forced for a NP. Set to some large value to force all NPs to be symmetrix 
-	fix_small_sandwiched_uncerts     = True
+	asymmetry_threshold			  = 0.4	 ## value below which symmetry will be forced for a NP. Set to some large value to force all NPs to be symmetrix 
+	fix_small_sandwiched_uncerts	 = True
 	fix_opposite_sided_uncertainties = False
-	bin_variation_ratio_threshold     = 0.20 # the ratio of bin_i variation / bin_i+-1 variation that determines if a bin needs to be changed manually
+	fix_outlierss					 = True
+	averaging_method					 = "mean-include-outlier"		#"median-only-neighbors" 
+	bin_variation_ratio_threshold	 = 0.20 # the ratio of bin_i variation / bin_i+-1 variation that determines if a bin needs to be changed manually
+
 
 
 
 
 	## list of uncorrelated systematics to the correct hist name is grabbed
-	uncorrelated_systematics = ["CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)     "CMS_btagSF",
+	uncorrelated_systematics = ["CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
 
 	use_QCD_Pt_str = "QCDHT"
 	if use_QCD_Pt:
@@ -72,9 +275,24 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 		year_str = "18"
 
 	infile_dir = "finalCombineFilesNewStats/%s/"%(use_QCD_Pt_str)
-	infile_name = infile_dir+ "combine_%s%s_%s.root"%(technique_str,year,mass_point)
+
+	if runShifted:
+		infile_dir = "root://cmseos.fnal.gov//store/user/ecannaer/finalCombineFilesNewStats_shiftedMass/"
 
 	outfile_dir = "finalCombineFilesNewStats/%s/correctedFinalCombineFiles/"%(use_QCD_Pt_str)
+
+	if useOptWP:
+		infile_dir = "finalCombineFilesNewStatsOptWP/%s/"%(use_QCD_Pt_str)
+		outfile_dir = "finalCombineFilesNewStatsOptWP/%s/correctedFinalCombineFiles/"%(use_QCD_Pt_str)
+
+
+	infile_name = infile_dir+ "combine_%s%s_%s.root"%(technique_str,year,mass_point)
+
+
+	if runShifted:
+		outfile_dir = "root://cmseos.fnal.gov//store/user/ecannaer/finalCombineFilesNewStats_shiftedMass_corrected/"
+
+
 	outfile_name = outfile_dir + "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
 	if useMask:
@@ -84,18 +302,23 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 		outfile_dir = "finalCombineFilesNewStats/%s/maskedCorrectedFinalCombineFiles/"%(use_QCD_Pt_str)
 		outfile_name = outfile_dir + "combine_%s%s_%s.root"%(technique_str,year,mass_point)
 
+
+
+
+
+
 	create_directories([infile_dir,outfile_dir])
 
 	print("Looking for file %s"%(infile_name))
 	## open root file
 
-	infile = ROOT.TFile(infile_name,"r")
-	outfile = ROOT.TFile(outfile_name,"RECREATE")
+	infile = ROOT.TFile.Open(infile_name,"r")
+	outfile = ROOT.TFile.Open(outfile_name,"RECREATE")
 
 
 	for region in regions:
 
-		superbin_neighbors = load_superbin_neighbors(year, region, technique_str,debug)
+		superbin_neighbors = load_superbin_neighbors(year, region,use_QCD_Pt_str, technique_str,runShifted, useOptWP, debug)
 
 		## create a folder in the root file and CD into it
 
@@ -130,10 +353,10 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 				#if uncert_to_fix_ == "CMS_jec": continue # this is not set up
 				if uncert_to_fix_ == "CMS_topPt" and sample not in ["allBR","TTbar", "TTTo"] : continue
 				if uncert_to_fix_ not in ["nom"] and sample == "data_obs": continue # data_obs only has this one uncertainty 
-				if (sample == "sig" or sample == "WJets" or sample == "TTTo"   )and "stat" in uncert_to_fix_: continue
+				if ("sig" in sample  or sample == "TTTo" )and "stat" in uncert_to_fix_: continue
 				uncert_to_fix = uncert_to_fix_
 				if uncert_to_fix in ["CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_scale"] :
-					if   sample == "sig":   
+					if	"sig" in sample:	
 						uncert_to_fix+= "_sig"
 						uncert_to_fix_use+= "_sig"
 					elif "TTbar" in sample and uncert_to_fix == "CMS_pdf": 
@@ -149,7 +372,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 						uncert_to_fix+= "_allBR"
 						uncert_to_fix_use+= "_allBR"
 					elif uncert_to_fix == "CMS_pdf" and sample in ["QCD","WJets", "TTbar"]: 
-						uncert_to_fix += "_misc"     ### IF THE systematic is pdf and sample is NOT TTTo or sig, create a combined uncertainty  
+						uncert_to_fix += "_misc"	 ### IF THE systematic is pdf and sample is NOT TTTo or sig, create a combined uncertainty  
 						uncert_to_fix_use += "_misc"
 					elif sample == "QCD": 
 						uncert_to_fix+= "_QCD"
@@ -200,7 +423,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 				#print("Cloning up and down histograms")
 				#create doppelganger histograms to go into the "corrected" file
 				hist_up_corr 	  = hist_up.Clone() ## could be some problem with multiple histograms having the same name?
-				hist_down_corr    = hist_down.Clone()
+				hist_down_corr	= hist_down.Clone()
 
 				hist_up_corr.Sumw2()
 				hist_down_corr.Sumw2()
@@ -213,33 +436,54 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 				if uncert_to_fix_ in uncerts_to_fix:
 					## loop over all bins
 
+
+
+					if fix_outliers:
+
+						#print("Running for %s / %s / %s / %s"%(year, region, sample,uncert_to_fix_use))
+						for iii in range(1, hist_nom.GetNbinsX()+1):
+
+							new_yield_up	= fix_outliers( iii, superbin_neighbors, hist_nom, hist_up_corr,	thresh_up = 2.0, thresh_down = 0.5 )
+							new_yield_down = fix_outliers( iii, superbin_neighbors, hist_nom, hist_down_corr, thresh_up = 2.0, thresh_down = 0.5 )
+
+							hist_up_corr.SetBinContent(iii,new_yield_up)
+							hist_down_corr.SetBinContent(iii,new_yield_down)
+
+							hist_up_corr.SetBinError(iii, sqrt(abs(new_yield_up)) ) 
+							hist_down_corr.SetBinError(iii, sqrt( abs(new_yield_down)) ) 
+
+
+
+
+
+					## fix asymmetric vars
 					for iii in range(1, hist_up.GetNbinsX()+1):
 						## (1) find direction (relative to the nom) the furthest uncertainty is 
 						## (2) set the other uncertainty to be in the opposite direction
-
+  
 						yield_nom = hist_nom.GetBinContent(iii)
-						yield_up = hist_up.GetBinContent(iii)
-						yield_down = hist_down.GetBinContent(iii)
+						yield_up = hist_up_corr.GetBinContent(iii)	  #hist_up.GetBinContent(iii)
+						yield_down = hist_down_corr.GetBinContent(iii)  #hist_down.GetBinContent(iii)
 
-						distance_up   = yield_up - yield_nom
+						distance_up	= yield_up - yield_nom
 
 						#print("iii = %s, first instance of distance_up is %s"%(iii, distance_up))
 						distance_down = yield_down - yield_nom
 
-						if distance_up > 0: sign_up_var   = distance_up/abs(distance_up)
+						if distance_up > 0: sign_up_var	= distance_up/abs(distance_up)
 						else: sign_up_var = 0
 						if distance_down > 0: sign_down_var = distance_down/abs(distance_down)
 						else: sign_down_var = 0
 
 						### ONLY DO THIS IF up/down ratios are less than define threshold
 
-						"""if (  (abs(distance_up) > 0)   and  (abs(distance_down) < 1e-8)      ):
+						"""if (  (abs(distance_up) > 0)	and  (abs(distance_down) < 1e-8)	  ):
 
-						elif (  (abs(distance_up) < 1e-8)   and  (abs(distance_down) > 0)      ): """
+						elif (  (abs(distance_up) < 1e-8)	and  (abs(distance_down) > 0)	  ): """
 
-						if (   (abs(distance_down ) > 0) and ( abs(distance_up) > 0   ) and     (( abs(distance_up)/abs(distance_down) < asymmetry_threshold) or (abs(distance_down)/abs(distance_up)  < asymmetry_threshold)) or (  (distance_up *distance_down)  > 0     ) ):
+						if (	(abs(distance_down ) > 0) and ( abs(distance_up) > 0	) and	 (( abs(distance_up)/abs(distance_down) < asymmetry_threshold) or (abs(distance_down)/abs(distance_up)  < asymmetry_threshold)) or (  (distance_up *distance_down)  > 0	 ) ):
 
-							## find which uncertainty is further from nom ( abs(up - nom) / abs(nom - down)   )
+							## find which uncertainty is further from nom ( abs(up - nom) / abs(nom - down)	)
 							
 
 							var_ratio = abs(distance_up) / abs(distance_down)
@@ -248,7 +492,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 								avg_var = (abs(distance_up) + abs(distance_down))/2.0
 
-								distance_up   = avg_var * distance_up / abs(distance_up) # same direction as up
+								distance_up	= avg_var * distance_up / abs(distance_up) # same direction as up
 								distance_down = -1*distance_up
 
 							else:
@@ -280,16 +524,16 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 						for iii in range(1, hist_up.GetNbinsX()+1):
 
 							yield_nom  = hist_nom.GetBinContent(iii)
-							yield_up   = hist_up_corr.GetBinContent(iii)
+							yield_up	= hist_up_corr.GetBinContent(iii)
 							yield_down = hist_down_corr.GetBinContent(iii)
 
 							if yield_nom < 1e-9: continue
 
-							distance_up   = yield_up - yield_nom
+							distance_up	= yield_up - yield_nom
 							distance_down = yield_down - yield_nom
 
 							if abs(distance_up) > 0:
-								sign_up_var   = distance_up / abs(distance_up)
+								sign_up_var	= distance_up / abs(distance_up)
 							else: sign_up_var = 1
 							if abs(distance_down) > 0:
 								sign_down_var = distance_down / abs(distance_down)
@@ -300,16 +544,16 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 							if debug: print("hist_nom has %s entires."%(hist_nom.GetNbinsX()))
 							if debug: print("Looking at bin %s of histogram. There are %s entries in superbin_neighbors."%(iii,len(superbin_neighbors)))
-							#### try to remove large spikes amongst neighbors in the 2D plane  ______
+							#### try to remove large spikes amongst neighbors in the 2D plane  
 							if debug: print("sample/year/region/mass_point/technique/uncertainty: %s/%s/%s/%s/%s ----- Looking at bin %s, superbin_neighbors has size %s"%(sample, year, region, mass_point, uncert_to_fix,  iii,len(superbin_neighbors)))
 							neighbor_superbin_indices = superbin_neighbors[iii-1] # get indexing right
 							if debug: print("Bin %s has superbin neighbors: %s"%(iii, neighbor_superbin_indices))
 
-							avg_neighbor_superbin_up   = 0  # sum of the signed value of the up variations 
+							avg_neighbor_superbin_up	= 0  # sum of the signed value of the up variations 
 							avg_neighbor_superbin_down = 0 # sum of the signed value of the down variations 
 
-							avg_neighbor_superbin_absolute_up = 0     # sum of the absolute value of the up variations 
-							avg_neighbor_superbin_absolute_down = 0   # sum of the absolute value of the down variations 
+							avg_neighbor_superbin_absolute_up = 0	 # sum of the absolute value of the up variations 
+							avg_neighbor_superbin_absolute_down = 0	# sum of the absolute value of the down variations 
 
 
 							### GET AVERAGE NEIGHBOR VARIATIONS
@@ -317,27 +561,27 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 							for neighbor_superbin_index in neighbor_superbin_indices:
 
 								neighbor_yield_nom  = hist_nom.GetBinContent(neighbor_superbin_index+1)
-								neighbor_yield_up   = hist_up_corr.GetBinContent(neighbor_superbin_index+1)      ## use the versions that were just corrected above
+								neighbor_yield_up	= hist_up_corr.GetBinContent(neighbor_superbin_index+1)	  ## use the versions that were just corrected above
 								neighbor_yield_down = hist_down_corr.GetBinContent(neighbor_superbin_index+1)
 
 
 								if debug: print("hist_nom/hist_up_corr/hist_down_corr have %s/%s/%s total bins."%(hist_nom.GetNbinsX(),hist_up_corr.GetNbinsX(),hist_down_corr.GetNbinsX()  ))
 
 								if debug: print("for bin %s and superbin neighbor index %s, neighbor_yield_nom  is %s."%(iii,neighbor_superbin_index,neighbor_yield_nom))
-								if debug: print("for bin %s and superbin neighbor index %s, neighbor_yield_up   is %s."%(iii,neighbor_superbin_index,neighbor_yield_up))
+								if debug: print("for bin %s and superbin neighbor index %s, neighbor_yield_up	is %s."%(iii,neighbor_superbin_index,neighbor_yield_up))
 								if debug: print("for bin %s and superbin neighbor index %s, neighbor_yield_down is %s."%(iii,neighbor_superbin_index,neighbor_yield_down))
 
 
 								if neighbor_yield_nom > 0:
-									neighbor_up_var   = (neighbor_yield_up - neighbor_yield_nom) / neighbor_yield_nom
+									neighbor_up_var	= (neighbor_yield_up - neighbor_yield_nom) / neighbor_yield_nom
 									neighbor_down_var = (neighbor_yield_down - neighbor_yield_nom) / neighbor_yield_nom
 
 									if debug: print("neighbor_up_var/neighbor_down_var are %s/%s"%(neighbor_up_var,neighbor_down_var))
 
 
-									avg_neighbor_superbin_up   += neighbor_up_var
+									avg_neighbor_superbin_up	+= neighbor_up_var
 									avg_neighbor_superbin_down += neighbor_down_var
-									avg_neighbor_superbin_absolute_up   += abs(neighbor_up_var)
+									avg_neighbor_superbin_absolute_up	+= abs(neighbor_up_var)
 									avg_neighbor_superbin_absolute_down += abs(neighbor_down_var)
 
 									num_nonzero_neighbors+=1
@@ -355,14 +599,14 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 								## if there are nonzero neighbors, don't even both with the rest of this process
 								## just check if the uncertainty is greater than 25% and cut it off if so
 								if yield_nom > 0:
-									var_up_old    = distance_up / yield_nom
+									var_up_old	= distance_up / yield_nom
 									var_down_old  = distance_down / yield_nom
 
 									## cut uncertainties off at 20% 
 
 									if var_up_old > 0.25:
 										hist_up_corr.SetBinContent(iii,  (1+0.25)*yield_nom)
-										hist_up_corr.SetBinError(iii,   sqrt(abs((1+0.25)*yield_nom  )) ) 
+										hist_up_corr.SetBinError(iii,	sqrt(abs((1+0.25)*yield_nom  )) ) 
 									if var_down_old > 0.25: 
 										hist_down_corr.SetBinContent(iii,(1-0.25)*yield_nom)
 										hist_down_corr.SetBinError(iii, sqrt(abs((1-0.25)*yield_nom)) ) 
@@ -377,10 +621,10 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 							## calculate the old variations 
 							if yield_nom > 0:
-								var_up_old    = distance_up / yield_nom
+								var_up_old	= distance_up / yield_nom
 								var_down_old  = distance_down / yield_nom
 
-								var_up_corr   = distance_up / yield_nom
+								var_up_corr	= distance_up / yield_nom
 								var_down_corr = distance_down / yield_nom
 							#elif (abs(var_up_corr) > 0) or (abs(var_down_corr) > 0):
 							#	var_up_old = 1.0
@@ -404,15 +648,15 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 								#print("var_up_old is ", var_up_old)
 								# if this uncertainty is more than twice as large as the average of neighbor superjets
 
-								if abs(var_up_corr)    > 0.25: 
+								if abs(var_up_corr)	> 0.25: 
 									if "sig" in sample: continue 
 									if debug: print("----- CHANGED:  var_up_corr > 0.25: %s, setting to %s"%(var_up_corr, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0) )
-									#var_up_corr = min( 0.2, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0   ) #CHANGED 29/08/2025
-									var_up_corr = (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0    #CHANGED 29/08/2025
+									#var_up_corr = min( 0.2, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0	) #CHANGED 29/08/2025
+									var_up_corr = (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0	#CHANGED 29/08/2025
 
 								if abs(var_down_corr) > 0.25: 
-									#var_down_corr = min( 0.2, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0   ) #CHANGED 29/08/2025
-									var_down_corr = (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0   #CHANGED 29/08/2025
+									#var_down_corr = min( 0.2, (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0	) #CHANGED 29/08/2025
+									var_down_corr = (avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0	#CHANGED 29/08/2025
 
 									if debug: print("----- CHANGED:  var_down_corr > 0.25: %s, setting to %s"%(var_down_corr,(avg_neighbor_superbin_absolute_up + avg_neighbor_superbin_absolute_down)/2.0))
 
@@ -466,19 +710,20 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 								hist_up_corr.SetBinContent(iii,  (1+var_up_corr)*yield_nom)
 								hist_down_corr.SetBinContent(iii,(1+var_down_corr)*yield_nom)
 
-								hist_up_corr.SetBinError(iii,   sqrt(abs((1+var_up_corr)*yield_nom  )) ) 
+								hist_up_corr.SetBinError(iii,	sqrt(abs((1+var_up_corr)*yield_nom  )) ) 
 								hist_down_corr.SetBinError(iii, sqrt(abs((1+var_down_corr)*yield_nom)) ) 
 
 								## if these have changed, print 
 								if (abs( var_up_old - var_up_corr) > 0) or (abs( var_down_old - var_down_corr) > 0):
-									if debug: print("For bin %s %s/%s/%s/%s changed var_up_old=%s   ---> var_up_corr=%s."%(iii,year,region,sample,uncert_to_fix, var_up_old,var_up_corr))
+									if debug: print("For bin %s %s/%s/%s/%s changed var_up_old=%s	---> var_up_corr=%s."%(iii,year,region,sample,uncert_to_fix, var_up_old,var_up_corr))
 									if debug: print("For bin %s %s/%s/%s/%s changed var_down_old=%s ---> var_down_corr=%s."%(iii,year,region,sample,uncert_to_fix,var_down_old,var_down_corr))
-								if debug:   
+								if debug:	
 									print("#######################################################################")
 									print("#######################################################################")
 									print("##  In the end, for bin %s, var_up_corr = %s, var_down_corr = %s  ##"%(var_up_corr,var_down_corr))
 									print("#######################################################################")
 									print("#######################################################################") """
+
 
 					if fix_small_sandwiched_uncerts:
 						for iii in range(1, hist_up.GetNbinsX()+1):
@@ -500,12 +745,12 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 							direction_up_nom = 1
 							if (new_yield_up - yield_nom) > 0:
-								direction_up_nom = (new_yield_up - yield_nom) / abs( new_yield_up - yield_nom)   ## positive if it's a positive variation
+								direction_up_nom = (new_yield_up - yield_nom) / abs( new_yield_up - yield_nom)	## positive if it's a positive variation
 
-							variation_down_nom = abs( yield_nom - new_yield_down   )
+							variation_down_nom = abs( yield_nom - new_yield_down	)
 							direction_down_nom = 1
 							if (yield_nom - new_yield_down) > 0:
-								direction_down_nom = (new_yield_down - yield_nom) / abs( yield_nom - new_yield_down)   ## positive if it's a positive variation
+								direction_down_nom = (new_yield_down - yield_nom) / abs( yield_nom - new_yield_down)	## positive if it's a positive variation
 
 
 							ratio_up_nom = 0
@@ -568,22 +813,22 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 									if direction_up_nom_iminus1 < 0:
 										iminus1_sign = "-"
 
-									if (avg_ratio_plus_minus_1 > 0 and ((ratio_up_nom / avg_ratio_plus_minus_1) < bin_variation_ratio_threshold)) or (fix_opposite_sided_uncertainties and direction_up_nom*direction_up_nom_iplus1 < 0 and direction_up_nom_iplus1*direction_up_nom_iminus1 > 0) : # if this, then there is a problem      and ( direction_up_nom * direction_up_nom_iplus1 > 0  )
+									if (avg_ratio_plus_minus_1 > 0 and ((ratio_up_nom / avg_ratio_plus_minus_1) < bin_variation_ratio_threshold)) or (fix_opposite_sided_uncertainties and direction_up_nom*direction_up_nom_iplus1 < 0 and direction_up_nom_iplus1*direction_up_nom_iminus1 > 0) : # if this, then there is a problem	  and ( direction_up_nom * direction_up_nom_iplus1 > 0  )
 
 
 										## set the new up variation to be equal to nom_yield + average_ratio_plus_minus_1 * direction_up_iplus1 * nom_yield
 										new_yield_up = yield_nom + direction_up_nom_iplus1 * avg_ratio_plus_minus_1 * yield_nom
 
 										if debug:
-											print(" ------------------ Changing bin with up bin i variation --- %s --- when i+1/i-1 variations are ---- %s/%s ---- (%s/%s directions). Directions of bins i-1/i/i+1 go like $$$    %s%s%s     $$$    .Yield changed to ----- %s. "%(ratio_up_nom, ratio_up_nom_iplus1, ratio_up_nom_iminus1,direction_up_nom_iplus1,direction_up_nom_iminus1, iminus1_sign,i_sign,iplus_sign, new_yield_up   )  )
+											print(" ------------------ Changing bin with up bin i variation --- %s --- when i+1/i-1 variations are ---- %s/%s ---- (%s/%s directions). Directions of bins i-1/i/i+1 go like $$$	%s%s%s	 $$$	.Yield changed to ----- %s. "%(ratio_up_nom, ratio_up_nom_iplus1, ratio_up_nom_iminus1,direction_up_nom_iplus1,direction_up_nom_iminus1, iminus1_sign,i_sign,iplus_sign, new_yield_up	)  )
 											print("yield_nom = %s  /  direction_up_nom_iplus1  = %s /  avg_ratio_plus_minus_1 = %s / yield_nom = %s."%( yield_nom, direction_up_nom_iplus1,avg_ratio_plus_minus_1 ,yield_nom))
 									else:
-										if debug: print("bin %s up variation NOT changed. Bin i variation --- %s --- when i+1/i-1 variations are ---- %s/%s ---- (%s/%s directions). Directions of bins i-1/i/i+1 go like $$$    %s%s%s     $$$     "%(iii,ratio_up_nom, ratio_up_nom_iplus1, ratio_up_nom_iminus1,direction_up_nom_iplus1,    direction_up_nom_iminus1,  iminus1_sign,i_sign,iplus_sign,   )  )
+										if debug: print("bin %s up variation NOT changed. Bin i variation --- %s --- when i+1/i-1 variations are ---- %s/%s ---- (%s/%s directions). Directions of bins i-1/i/i+1 go like $$$	%s%s%s	 $$$	 "%(iii,ratio_up_nom, ratio_up_nom_iplus1, ratio_up_nom_iminus1,direction_up_nom_iplus1,	direction_up_nom_iminus1,  iminus1_sign,i_sign,iplus_sign,	)  )
 
 
 
 								####### down uncertainty 
-								yield_nom_iplus1   = hist_nom.GetBinContent(iii+1)
+								yield_nom_iplus1	= hist_nom.GetBinContent(iii+1)
 								yield_down_iplus1  = hist_down_corr.GetBinContent(iii+1)
 
 								yield_nom_iminus1  = hist_nom.GetBinContent(iii-1)
@@ -630,7 +875,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 									iminus1_sign = "-"
 									if direction_up_nom_iminus1 < 0:
 										iminus1_sign = "-"
-									if (avg_ratio_plus_minus_1 > 0 and ((ratio_down_nom / avg_ratio_plus_minus_1) < bin_variation_ratio_threshold)) or (fix_opposite_sided_uncertainties and direction_down_nom*direction_down_nom_iplus1 < 0 and  direction_down_nom_iplus1*direction_down_nom_iminus1 > 0) : # if this, then there is a problem      and ( direction_down_nom * direction_down_nom_iplus1 > 0  )
+									if (avg_ratio_plus_minus_1 > 0 and ((ratio_down_nom / avg_ratio_plus_minus_1) < bin_variation_ratio_threshold)) or (fix_opposite_sided_uncertainties and direction_down_nom*direction_down_nom_iplus1 < 0 and  direction_down_nom_iplus1*direction_down_nom_iminus1 > 0) : # if this, then there is a problem	  and ( direction_down_nom * direction_down_nom_iplus1 > 0  )
 
 
 										## set the new down variation to be equal to nom_yield + average_ratio_plus_minus_1 * direction_down_iplus1 * nom_yield
@@ -638,11 +883,11 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 										new_yield_down = yield_nom + direction_down_nom_iplus1 * avg_ratio_plus_minus_1 * yield_nom
 										if debug:
-											print(" ------------------ Changing bin with down bin i variation --- %s --- when i+1/i-1 variations are ---- %s/%s ---- (%s/%s directions). Directions of bins i-1/i/i+1 go like $$$    %s%s%s     $$$    .Yield changed to ----- %s. "%(ratio_down_nom, ratio_down_nom_iplus1, ratio_down_nom_iminus1,direction_down_nom_iplus1,direction_down_nom_iminus1, iminus1_sign,i_sign,iplus_sign, new_yield_down   )  )
+											print(" ------------------ Changing bin with down bin i variation --- %s --- when i+1/i-1 variations are ---- %s/%s ---- (%s/%s directions). Directions of bins i-1/i/i+1 go like $$$	%s%s%s	 $$$	.Yield changed to ----- %s. "%(ratio_down_nom, ratio_down_nom_iplus1, ratio_down_nom_iminus1,direction_down_nom_iplus1,direction_down_nom_iminus1, iminus1_sign,i_sign,iplus_sign, new_yield_down	)  )
 											print("yield_nom = %s  /  direction_down_nom_iplus1  = %s /  avg_ratio_plus_minus_1 = %s / yield_nom = %s."%( yield_nom, direction_down_nom_iplus1,avg_ratio_plus_minus_1 ,yield_nom))
 
 									else:
-										if debug: print("bin %s down variation NOT changed. Bin i variation --- %s --- when i+1/i-1 variations are ---- %s/%s ---- (%s/%s directions). Directions of bins i-1/i/i+1 go like $$$    %s%s%s     $$$     "%(iii,ratio_down_nom, ratio_down_nom_iplus1, ratio_down_nom_iminus1,direction_down_nom_iplus1,    direction_down_nom_iminus1,  iminus1_sign,i_sign,iplus_sign,   )  )
+										if debug: print("bin %s down variation NOT changed. Bin i variation --- %s --- when i+1/i-1 variations are ---- %s/%s ---- (%s/%s directions). Directions of bins i-1/i/i+1 go like $$$	%s%s%s	 $$$	 "%(iii,ratio_down_nom, ratio_down_nom_iplus1, ratio_down_nom_iminus1,direction_down_nom_iplus1,	direction_down_nom_iminus1,  iminus1_sign,i_sign,iplus_sign,	)  )
 
 										#print("i variation ratio is %s, i+1/i-1 variation ratios are %s/%s. downdating new variation ratio to %s."% (ratio_down_nom, ratio_down_nom_iplus1, ratio_down_nom_iminus1, avg_ratio_plus_minus_1 ))
 
@@ -661,16 +906,16 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 							elif iii == hist_nom.GetNbinsX():
 
 								yield_nom_iminus1  = hist_nom.GetBinContent(iii-1)
-								yield_up_iminus1   = hist_up.GetBinContent(iii-1)
+								yield_up_iminus1	= hist_up.GetBinContent(iii-1)
 
 								yield_nom_iminus2  = hist_nom.GetBinContent(iii-2)
-								yield_up_iminus2   = hist_up.GetBinContent(iii-2)"""
+								yield_up_iminus2	= hist_up.GetBinContent(iii-2)"""
 
 
 							## now set the corrected histogram bin values 
 
 
-							new_yield_up = max(0, new_yield_up)   ## yields can never be 0
+							new_yield_up = max(0, new_yield_up)	## yields can never be 0
 							new_yield_down = max(0,new_yield_down)
 
 							hist_up_corr.SetBinContent(iii,new_yield_up)
@@ -684,35 +929,50 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 
 
-						# now go over the corrected bins AGAIN and see make sure they are symmetric
-								## use linear function to estimate the new variations
-						for iii in range(1, hist_up.GetNbinsX()+1):
-							## (1) find direction (relative to the nom) the furthest uncertainty is 
-							## (2) set the other uncertainty to be in the opposite direction
+					# now go over the corrected bins AGAIN and see make sure they are symmetric
+							## use linear function to estimate the new variations
+					for iii in range(1, hist_up.GetNbinsX()+1):
+						## (1) find direction (relative to the nom) the furthest uncertainty is 
+						## (2) set the other uncertainty to be in the opposite direction
 
-							yield_nom = hist_nom.GetBinContent(iii)
-							yield_up = hist_up_corr.GetBinContent(iii)
-							yield_down = hist_down_corr.GetBinContent(iii)
+						yield_nom = hist_nom.GetBinContent(iii)
+						yield_up = hist_up_corr.GetBinContent(iii)
+						yield_down = hist_down_corr.GetBinContent(iii)
 
-							distance_up   = yield_up - yield_nom
-							distance_down = yield_down - yield_nom
+						distance_up	= yield_up - yield_nom
+						distance_down = yield_down - yield_nom
 
-							## find which uncertainty is further from nom ( abs(up - nom) / abs(nom - down)   )
-							if abs(distance_up) > abs(distance_down): 
-								distance_down = -1*distance_up
+						## find which uncertainty is further from nom ( abs(up - nom) / abs(nom - down)	)
+						if abs(distance_up) > abs(distance_down): 
+							distance_down = -1*distance_up
 
-							else:
-								distance_up = -1*distance_down
+						else:
+							distance_up = -1*distance_down
 
-							## set bin content (and bin error) for the new, "corrected" histogram 
+						## set bin content (and bin error) for the new, "corrected" histogram 
 
-							new_yield_up = max(0, yield_nom + distance_up)
-							new_yield_down = max(0,yield_nom + distance_down)
-							hist_up_corr.SetBinContent(iii,new_yield_up)
-							hist_down_corr.SetBinContent(iii,new_yield_down)
+						new_yield_up = max(0, yield_nom + distance_up)
+						new_yield_down = max(0,yield_nom + distance_down)
+						hist_up_corr.SetBinContent(iii,new_yield_up)
+						hist_down_corr.SetBinContent(iii,new_yield_down)
 
-							hist_up_corr.SetBinError(iii, sqrt(abs(new_yield_up)) ) 
-							hist_down_corr.SetBinError(iii, sqrt( abs(new_yield_down)) ) 
+						hist_up_corr.SetBinError(iii, sqrt(abs(new_yield_up)) ) 
+						hist_down_corr.SetBinError(iii, sqrt( abs(new_yield_down)) ) 
+					
+					#print("-----running %s/%s/%s/%s"%(sample, region, uncert_to_fix,year))
+					#print("--------- After this, the deviations are ")
+					for iii in range(1, hist_up.GetNbinsX()+1):
+						## (1) find direction (relative to the nom) the furthest uncertainty is 
+						## (2) set the other uncertainty to be in the opposite direction
+
+						yield_nom = hist_nom.GetBinContent(iii)
+						yield_up = hist_up_corr.GetBinContent(iii)
+						yield_down = hist_down_corr.GetBinContent(iii)
+
+
+						distance_up	= yield_up - yield_nom
+						distance_down = yield_down - yield_nom
+						#print("---- bin %s, deviation up = %s, deviation down = %s"%(iii, distance_up/yield_nom, distance_down/yield_nom))
 
 
 				#print("fixed uncertainty")
@@ -725,8 +985,8 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 
 				if "shape" in uncert_to_fix_use:
-					hist_up_corr.Scale(1.0/hist_up_corr.Integral())
-					hist_down_corr.Scale(1.0/hist_down_corr.Integral())
+					hist_up_corr.Scale(hist_nom.Integral()/hist_up_corr.Integral())
+					hist_down_corr.Scale(hist_nom.Integral()/hist_down_corr.Integral())
 
 				hist_up_corr.Write();
 				hist_down_corr.Write();
@@ -734,7 +994,7 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 				#print("wrote histograms")
 				#except: 
-				#	print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     Failed for %s/%s/%s/%s/%s"%(sample,uncert_to_fix,mass_point,year,region))
+				#	print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$	 Failed for %s/%s/%s/%s/%s"%(sample,uncert_to_fix,mass_point,year,region))
 		# cd to outside folder of root file to move onto a new systematic
 		outfile.cd()					
 	print("Wrote histograms to %s"%outfile_dir)
@@ -746,45 +1006,88 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 if __name__=="__main__":
 	
 	debug 			 = False
-	include_ATxtb    = False
+	include_ATxtb	 = False
 	include_sideband = False
 
-	include_WJets    = True
-	include_TTTo     = True
+	include_WJets	 = True
+	include_TTTo	 = True
 	useMask 		 = False
 
+	runShifted       = True
+	useOptWP 		 = True
+
+
 	if useMask:
-		toMask   		 = [True,False]
+		toMask			 = [True,False]
 	else:
-		toMask   		 = [False]
-	all_uncerts = [ "CMS_scale_shape", "CMS_pdf_shape","nom",  "CMS_bTagSF_M" ,  "CMS_jer", "CMS_jec", "CMS_bTagSF_M_corr" ,  "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",		  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale", "stat"]  ## systematic namings for cards   "CMS_btagSF", 
-	#all_uncerts = [  "nom",    "CMS_jer", "CMS_jec",  "CMS_bTagSF_M" ,   "CMS_bTagSF_bc_M_corr",	        "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale", ]  ## systematic namings for cards   "CMS_btagSF", 
+		toMask			 = [False]
+	all_uncerts = [ "CMS_scale_shape", "CMS_pdf_shape","nom",  "CMS_bTagSF_M" ,  "CMS_jer", "CMS_jec", "CMS_bTagSF_M_corr" ,  "CMS_bTagSF_bc_M_corr",		"CMS_bTagSF_light_M_corr",		  "CMS_bTagSF_bc_M_year",		"CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",	"CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",	"CMS_jec_AbsoluteScale" ,	"CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale", "stat"]  ## systematic namings for cards	"CMS_btagSF", 
+	#all_uncerts = [  "nom",	"CMS_jer", "CMS_jec",  "CMS_bTagSF_M" ,	"CMS_bTagSF_bc_M_corr",			"CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",		"CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",	"CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",	"CMS_L1Prefiring",	"CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",	"CMS_jec_AbsolutePU",	"CMS_jec_AbsoluteScale" ,	"CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale", ]  ## systematic namings for cards	"CMS_btagSF", 
 
-	#"CMS_bTagSF_T", "CMS_bTagSF_T_corr",   "CMS_bTagSF_bc_T_corr",  "CMS_bTagSF_light_T_corr",   "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",
+	#"CMS_bTagSF_T", "CMS_bTagSF_T_corr",	"CMS_bTagSF_bc_T_corr",  "CMS_bTagSF_light_T_corr",	"CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",
 
-	uncerts_to_fix =  [ "CMS_jer", "CMS_jec", "CMS_bTagSF_M" ,  "CMS_bTagSF_T",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",   "CMS_bTagSF_bc_T_corr", "CMS_bTagSF_light_T_corr",  "CMS_bTagSF_bc_M_corr", "CMS_bTagSF_light_M_corr", "CMS_bTagSF_bc_T_year",  "CMS_bTagSF_light_T_year",  
-	     "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",  "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",
-	      "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year",
-	       "CMS_jec_RelativeSample_year", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",  "CMS_pu",  "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_pdf", "CMS_scale_shape", "CMS_pdf_shape"]  ## systematic namings for cards   "CMS_btagSF",  ,   "CMS_bTagSF_bc_T",      "CMS_bTagSF_light_T",       "CMS_bTagSF_bc_M",       "CMS_bTagSF_light_M", 
+	uncerts_to_fix =  [ "CMS_jer", "CMS_jec", "CMS_bTagSF_M" ,  "CMS_bTagSF_T",  "CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr",	"CMS_bTagSF_bc_T_corr", "CMS_bTagSF_light_T_corr",  "CMS_bTagSF_bc_M_corr", "CMS_bTagSF_light_M_corr", "CMS_bTagSF_bc_T_year",  "CMS_bTagSF_light_T_year",  
+		 "CMS_bTagSF_bc_M_year",		"CMS_bTagSF_light_M_year",  "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",
+		  "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year",
+			"CMS_jec_RelativeSample_year", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",  "CMS_pu",  "CMS_jec_AbsoluteScale" ,	"CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_pdf", "CMS_scale_shape", "CMS_pdf_shape"]  ## systematic namings for cards	"CMS_btagSF",  ,	"CMS_bTagSF_bc_T",	  "CMS_bTagSF_light_T",		"CMS_bTagSF_bc_M",		"CMS_bTagSF_light_M", 
+
+	if runShifted:
+		all_uncerts = ["nom", "CMS_scale_shape", "CMS_pdf_shape","CMS_scale",   "CMS_pdf",      "CMS_bTagSF_bc_M_corr",           "CMS_bTagSF_light_M_corr",      "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",         "CMS_jer",    "CMS_jec_FlavorQCD",  "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	      "CMS_jec_Absolute_year",   "CMS_jec_RelativeSample_year",  "CMS_pu",   "CMS_L1Prefiring", "stat"]
+
+		uncerts_to_fix =  [ "CMS_jer", 	 "CMS_bTagSF_bc_M_corr", "CMS_bTagSF_light_M_corr",   
+		 "CMS_bTagSF_bc_M_year",		"CMS_bTagSF_light_M_year",   "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",
+		  "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_Absolute_year", 
+			"CMS_jec_RelativeSample_year",  "CMS_pu",  "CMS_pdf", "CMS_scale_shape", "CMS_pdf_shape"]  ## systematic namings for cards	"CMS_btagSF",  ,	"CMS_bTagSF_bc_T",	  "CMS_bTagSF_light_T",		"CMS_bTagSF_bc_M",		"CMS_bTagSF_light_M", 
+
 
 
 
 	#SOME DAY SWITCH TO THESE 
-	#	self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",       "CMS_bTagSF_light_T",       "CMS_bTagSF_bc_M",       "CMS_bTagSF_light_M",      "CMS_bTagSF_bc_T_year",        "CMS_bTagSF_light_T_year",      "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",         "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",    "CMS_jec_Absolute_year",       "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias".  "CMS_jec_RelativeFSR"]  ## systematic namings for cards   "CMS_btagSF", 
+	#	self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T", "CMS_jer", "CMS_jec",	"CMS_bTagSF_bc_T",		"CMS_bTagSF_light_T",		"CMS_bTagSF_bc_M",		"CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",		"CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",	"CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_Absolute_year",		"CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",	"CMS_jec_AbsoluteScale" ,	"CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias".  "CMS_jec_RelativeFSR"]  ## systematic namings for cards	"CMS_btagSF", 
 
-	#uncerts_to_fix =  [ "CMS_jer", "cms_jec", "CMS_bTagSF_M" ,  "CMS_bTagSF_T",    "CMS_bTagSF_bc_T",      
-	# "CMS_bTagSF_light_T",       "CMS_bTagSF_bc_M",       "CMS_bTagSF_light_M",      "CMS_bTagSF_bc_T_year",        "CMS_bTagSF_light_T_year",  
-	#     "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",         "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",
-	#     "CMS_jec_Absolute", "CMS_jec_BBEC1_year",  "CMS_jec_Absolute_year",  "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias".  "CMS_jec_RelativeFSR",
-	#       "CMS_jec_RelativeSample_year", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU", "stat"]  ## systematic namings for cards   "CMS_btagSF",  ,  
+	#uncerts_to_fix =  [ "CMS_jer", "cms_jec", "CMS_bTagSF_M" ,  "CMS_bTagSF_T",	"CMS_bTagSF_bc_T",	  
+	# "CMS_bTagSF_light_T",		"CMS_bTagSF_bc_M",		"CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",  
+	#	 "CMS_bTagSF_bc_M_year",		"CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25", "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",
+	#	 "CMS_jec_Absolute", "CMS_jec_BBEC1_year",  "CMS_jec_Absolute_year",  "CMS_jec_AbsoluteScale" ,	"CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias".  "CMS_jec_RelativeFSR",
+	#		"CMS_jec_RelativeSample_year", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU", "stat"]  ## systematic namings for cards	"CMS_btagSF",  ,  
 
 
 	years = ["2015","2016","2017","2018"]
 	regions = ["SR","CR","AT1b","AT0b"]
-	if include_ATxtb:    regions.extend( [ "AT1tb", "AT0tb" ]  )
+	if include_ATxtb:	regions.extend( [ "AT1tb", "AT0tb" ]  )
 	if include_sideband: regions.extend( [ "SB1b", "SB0b" ]  )
 
-	samples = ["allBR", "QCD","TTbar", "ST", "sig", "WJets","data_obs"] 
+	samples = ["allBR", "QCD","TTbar", "ST", "WJets","data_obs"] 
+
+
+
+	### signal theory options
+	couplings_yuu = [0.1,0.8,1.0,1.5,1.75,2.0]   # 0.5 , ,3.0
+	couplings_yx  = [0.1,0.8,1.0,1.5,1.75,2.0] # ,0.5, ,3.0
+
+
+					# Wb	#Ht	  #Zt
+	BFs = [ [0.33333,0.33333,0.33334],
+				 [0.50,	0.25,	0.25 ],
+				 [0.25,	0.50,	0.25 ],
+				 [0.25,	0.25,	0.50 ]]
+
+
+	for y_uu in couplings_yuu:
+		for y_x in couplings_yx:
+			for BF in BFs:
+
+				WB_BR = BF[0]
+				HT_BR = BF[1]
+				ZT_BR = BF[2]
+
+				y_uu_str = str(np.round(y_uu,2)).replace(".","p")
+				y_x_str  = str(np.round(y_x,2)).replace(".","p")
+				WB_BR_str = str(np.round(WB_BR,2)).replace(".","p")
+				HT_BR_str = str(np.round(HT_BR,2)).replace(".","p")
+				ZT_BR_str = str(np.round(ZT_BR,2)).replace(".","p")
+
+				samples.append("sig_yuu%s_yx%s_WBBR%s_HTBR%s_ZTBR%s"%(y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str))
 
 	if include_WJets: samples.extend( ["WJets"] )
 	if include_TTTo:  samples.extend( ["TTTo"] )
@@ -792,8 +1095,8 @@ if __name__=="__main__":
 	mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1","Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"]
 
 	technique_strs = ["NN_",""]
-
 	technique_strs = [""]
+
 
 	#### debugging stuff
 	if debug:
@@ -808,6 +1111,22 @@ if __name__=="__main__":
 	use_QCD_Pt_strs = ["QCDPT","QCDHT"]
 
 
+	if runShifted:
+		use_QCD_Pt_opts = [True]
+		use_QCD_Pt_strs = ["QCDPT"]
+
+	#years = ["2018"]
+	#use_QCD_Pt_opts = [True]
+	#uncerts_to_fix =  [ "CMS_jec"]  ## systematic namings for cards	"CMS_btagSF",  ,	"CMS_bTagSF_bc_T",	  "CMS_bTagSF_light_T",		"CMS_bTagSF_bc_M",		"CMS_bTagSF_light_M", 
+	#mass_points = ["Suu4_chi1"]
+	#samples = ["QCD"] 
+
+	#couplings_yuu = [2.0]	# 0.5 , ,3.0
+	#couplings_yx  = [2.0] # ,0.5, ,3.0
+					# Wb	#Ht	  #Zt
+	#BFs = [ [0.50,	0.25,	0.25 ] ]
+
+
 	for jjj,use_QCD_Pt in enumerate(use_QCD_Pt_opts):
 
 		for mask_opt in toMask:
@@ -815,8 +1134,8 @@ if __name__=="__main__":
 				for year in years:
 						for mass_point in mass_points:
 								#try:
-								#fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, True, debug   )
-								fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, technique_str, mask_opt, use_QCD_Pt, debug   )
+								#fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, True, debug	)
+								fix_uncerts( samples, mass_point, all_uncerts, uncerts_to_fix, year, regions, technique_str, mask_opt, use_QCD_Pt, runShifted, useOptWP,debug	)
 
 								#except: 
 								#print("ERROR: failed %s/%s"%(mass_point,year))

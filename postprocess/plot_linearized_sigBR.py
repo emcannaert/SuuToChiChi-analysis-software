@@ -26,6 +26,8 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     CMS_label_pos = 0.132
     SIM_label_pos = 0.270
 
+    sig_model_pars = "yuu2p0_yx2p0_WBBR0p5_HTBR0p25_ZTBR0p25"
+
     technique_str = "cut-based"
     if "NN" in technique_type:
         #print("Technique type is %s."%technique_type)
@@ -37,7 +39,7 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     if not root_file:
         print("ERROR: couldn't find file %s"%file_name)
         return
-    sig_hist_name   = "%s/sig"%region
+    sig_hist_name   = "%s/sig_%s"%(region,sig_model_pars)
     allBR_hist_name = "%s/allBR"%region
 
     QCD_hist_name = "%s/QCD"%region
@@ -227,6 +229,8 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
 def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type):
 
 
+    sig_model_pars = "yuu2p0_yx2p0_WBBR0p5_HTBR0p25_ZTBR0p25"
+
     year_str = "2016preAPV"
     if year == "2016": year_str = "2016postAPV"
     elif year == "2017": year_str = "2017"
@@ -247,7 +251,7 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
             return
 
 
-    sig_hist_name   = "%s/sig"%region
+    sig_hist_name   = "%s/sig_%s"%(region, sig_model_pars)
     allBR_hist_name = "%s/allBR"%region
 
     QCD_hist_name = "%s/QCD"%region
@@ -256,6 +260,8 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
     ST_hist_name = "%s/ST"%region
 
     line_colors = [ROOT.kBlack, ROOT.kCyan,ROOT.kGreen]
+
+
 
     # Get the histograms
     hist_line_styles = [2,8,10]

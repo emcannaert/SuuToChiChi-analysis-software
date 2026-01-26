@@ -17,7 +17,7 @@ class hist_loader:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, technique_str, use_QCD_Pt = False, doHTdist = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, runCorrected = False, WP=None, debug=False):
+	def __init__(self, year, technique_str, use_QCD_Pt = False, doHTdist = False, doMassShift = False, doSideband = False, doATxtb = False, includeTTJets800to1200 = False, includeTTTo = False, includeWJets = False, run_from_eos = False, runCorrected = False, WP=None, useOptWP=False, debug=False):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
@@ -29,6 +29,9 @@ class hist_loader:
 		self.use_QCD_Pt = use_QCD_Pt
 		self.runCorrected = runCorrected
 		self.debug = debug
+		self.doMassShift = doMassShift
+		self.useOptWP    = useOptWP
+
 		if self.WP: 
 
 			if "ET" in self.WP:
@@ -74,6 +77,14 @@ class hist_loader:
 				self.MC_root_file_home		=  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 				self.data_root_file_home	=  self.eos_path + "/uscms_data/d3/cannaert/analysis/CMSSW_10_6_30/src/combinedROOT/ATWP_study/%s/"%self.WP_folder
 
+			if self.doMassShift:
+				self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles_shiftedMass/"
+				self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles_shiftedMass/"
+
+
+			if self.useOptWP:
+				self.MC_root_file_home		=  self.eos_path + "/store/user/ecannaer/processedFiles_optWP/"
+				self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles_optWP/"
 
 
 		## region options
@@ -112,21 +123,43 @@ class hist_loader:
 				self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStats/WPStudy/%s/"%WP
 				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlots/WPStudy/%s/"%WP
 
+		if self.useOptWP:
+			self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/binMaps/optWP/"
+			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/postprocess/finalCombineFilesNewStatsOptWP/"
+			self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/postprocess/plots/finalCombinePlotsOptWP/"
+			
 
 		self.data_systematics 	   = ["nom"]
 		self.data_systematic_names = ["nom"]
 
-		self.systematics 	  = ["nom",	  "JER",     "JEC",	  "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	  "JEC_RelativeBal",		"JEC_Absolute",	   "JEC_BBEC1_year",	   "JEC_Absolute_year",		 "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",			"pdf",	   "renorm",	 "fact",	  "JEC_AbsoluteCal",	"JEC_AbsoluteTheory",	   "JEC_AbsolutePU",		"JEC_AbsoluteScale",		  "JEC_Fragmentation",		"JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",	   "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
-		self.systematic_names = ["nom",	"CMS_jer", "CMS_jec",	"CMS_bTagSF_bc_M_corr",			"CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year",  "CMS_pu",	"CMS_L1Prefiring",   "CMS_pdf",   "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",	"CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+		#self.systematics 	  = ["nom",	  "JER",     "JEC",	  "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	  "JEC_RelativeBal",		"JEC_Absolute",	   "JEC_BBEC1_year",	   "JEC_Absolute_year",		 "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",			"pdf",	   "renorm",	 "fact",	  "JEC_AbsoluteCal",	"JEC_AbsoluteTheory",	   "JEC_AbsolutePU",		"JEC_AbsoluteScale",		  "JEC_Fragmentation",		"JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",	   "scale"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
+		#self.systematic_names = ["nom",	"CMS_jer", "CMS_jec",	"CMS_bTagSF_bc_M_corr",			"CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year",  "CMS_pu",	"CMS_L1Prefiring",   "CMS_pdf",   "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",	"CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", 
+
+		self.systematics 	  = ["nom",      "JER",	    "JEC",    "bTagSF_med",      "bTagSF_med_corr",     "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	"JER_eta193",	     "JER_193eta25",     "JEC_FlavorQCD",  	  "JEC_RelativeBal",		   "JEC_Absolute",	     "JEC_BBEC1_year",	    "JEC_Absolute_year",	 "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",	     "pdf",	    "renorm",	  "fact",	  "JEC_AbsoluteCal",     "JEC_AbsoluteTheory",        "JEC_AbsolutePU",	       "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	     "JEC_RelativeFSR",     "scale",         "topPt"   ]   ## systematic namings as used in analyzer	 "bTagSF",   
+		self.systematic_names = ["nom",    "CMS_jer", "CMS_jec",  "CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" ,       "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",     "CMS_jer_eta193",    "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",      "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale",    "CMS_topPt" ]  ## systematic namings for cards   "CMS_btagSF", 
+
 
 		self.uncorrelated_systematics = ["CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
-		if not self.runCorrected:
-			self.systematics.extend([ "bTagSF_med",	"bTagSF_med_corr",   "topPt"])
-			self.systematic_names.extend(["CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" , "CMS_topPt"])
+		
+
+
+		if self.doMassShift:
+			self.systematics 	  = ["nom",   "scale",       "pdf",     "bTag_eventWeight_bc_M_corr",     "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",      "JER",        "JEC_FlavorQCD",     "JEC_RelativeBal",         "JEC_Absolute",    "JEC_BBEC1_year",              "JEC_Absolute_year",       "JEC_RelativeSample_year",     "PUSF",      "L1Prefiring"]   ## systematic namings as used in analyzer	 "bTagSF",   
+			self.systematic_names = ["nom", "CMS_scale",   "CMS_pdf",      "CMS_bTagSF_bc_M_corr",           "CMS_bTagSF_light_M_corr",      "CMS_bTagSF_bc_M_year",       "CMS_bTagSF_light_M_year",         "CMS_jer",    "CMS_jec_FlavorQCD",  "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	      "CMS_jec_Absolute_year",   "CMS_jec_RelativeSample_year",  "CMS_pu",   "CMS_L1Prefiring"]  ## systematic namings for cards   "CMS_btagSF", 
+
+
+		#if not self.runCorrected:
+		#	self.systematics.extend([ "bTagSF_med",	"bTagSF_med_corr",   "topPt"])
+		#	self.systematic_names.extend(["CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" , "CMS_topPt"])
+
+
+
+		if self.debug:
+			self.systematics 	  = ["nom",  "L1Prefiring"]
+			self.systematic_names = ["nom",  "CMS_L1Prefiring"]
+
 
 		if self.WP:
-
-
 			if "ET" not in self.WP:
 				self.systematics 	  = ["nom",  "JEC",		   "PUSF",	"bTagSF_med" ]
 				self.systematic_names = ["nom",   "CMS_jec",	"CMS_pu",  "CMS_bTagSF_M" ]  
@@ -468,7 +501,7 @@ class hist_loader:
 			#####  INDIVIDUAL MC HISTOGRAMS
 			## sideband Absolute JEC uncertainty names are currently different (change this when they are not)
 			systematic_SB = systematic
-			if systematic in ["Absolute", "AbsolutePU", "AbsoluteCal","AbsoluteTheory"] :
+			if systematic in ["Absolute", "AbsolutePU", "AbsoluteCal","AbsoluteTheory"]:
 				systematic_SB = "JEC_" + systematic_SB	
 			### SR
 			
@@ -485,6 +518,8 @@ class hist_loader:
 				self.QCDMC_Pt_1800to2400_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_1800to2400"))
 				self.QCDMC_Pt_2400to3200_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_2400to3200"))
 				self.QCDMC_Pt_3200toInf_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC_Pt_3200toInf"))
+
+
 			else:
 				self.QCD1000to1500_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC1000to1500"))
 				self.QCD1500to2000_hist_SR.append(self.load_QCD_hists("SR",systematic,False,"QCDMC1500to2000"))
@@ -774,7 +809,29 @@ class hist_loader:
 			#print("The merged AT1b superbin indices are %s."%self.HT_dist_superbins["AT1b"])
 			#print("The merged SB1b superbin indices are %s."%self.HT_dist_superbins["SB1b"])
 
-
+		if self.debug and self.use_QCD_Pt:
+			print("")
+			print("")
+			print("")
+			print("")
+			print(" --------------------- after initializing hist_loader.py for year %s, QCD hists are "%self.year)
+			for iii,systematic in enumerate(self.systematics):
+				if systematic == "nom": continue
+				print("QCDMC_Pt_170to300_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_170to300_hist_SR[iii][0].Integral(),self.QCDMC_Pt_170to300_hist_SR[0][0].Integral(), self.QCDMC_Pt_170to300_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_300to470_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_300to470_hist_SR[iii][0].Integral(),self.QCDMC_Pt_300to470_hist_SR[0][0].Integral(), self.QCDMC_Pt_300to470_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_470to600_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_470to600_hist_SR[iii][0].Integral(),self.QCDMC_Pt_470to600_hist_SR[0][0].Integral(), self.QCDMC_Pt_470to600_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_600to800_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_600to800_hist_SR[iii][0].Integral(),self.QCDMC_Pt_600to800_hist_SR[0][0].Integral(), self.QCDMC_Pt_600to800_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_800to1000_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_800to1000_hist_SR[iii][0].Integral(),self.QCDMC_Pt_800to1000_hist_SR[0][0].Integral(), self.QCDMC_Pt_800to1000_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_1000to1400_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_1000to1400_hist_SR[iii][0].Integral(),self.QCDMC_Pt_1000to1400_hist_SR[0][0].Integral(), self.QCDMC_Pt_1000to1400_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_1400to1800_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_1400to1800_hist_SR[iii][0].Integral(),self.QCDMC_Pt_1400to1800_hist_SR[0][0].Integral(), self.QCDMC_Pt_1400to1800_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_1800to2400_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_1800to2400_hist_SR[iii][0].Integral(),self.QCDMC_Pt_1800to2400_hist_SR[0][0].Integral(), self.QCDMC_Pt_1800to2400_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_2400to3200_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_2400to3200_hist_SR[iii][0].Integral(),self.QCDMC_Pt_2400to3200_hist_SR[0][0].Integral(), self.QCDMC_Pt_2400to3200_hist_SR[iii][1].Integral() ))
+				print("QCDMC_Pt_3200toInf_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_3200toInf_hist_SR[iii][0].Integral(),self.QCDMC_Pt_3200toInf_hist_SR[0][0].Integral(), self.QCDMC_Pt_3200toInf_hist_SR[iii][1].Integral() ))
+			print("")
+			print("")
+			print("")
+			print("")
+			print("")
 
 	def load_QCD_hists(self,region,systematic, forStats = False, hist_type = ""):
 		ROOT.TH1.SetDefaultSumw2()
@@ -828,52 +885,16 @@ class hist_loader:
 			if "QCD" in hist_type:
 				hist_path = use_filepath + "%s_%s_%sprocessed.root"%(hist_type, self.year, self.WP_str)
 				if self.debug: print("For QCD hists, looking for hist %s in file %s."%(hist_name, hist_path))
+
 				#print("hist_name / file name = %s / %s"%(	 hist_name,hist_path))
 				TH2_file = ROOT.TFile.Open(hist_path,"READ")
 				TH2_hist = self.clean_histogram(TH2_file.Get(hist_name), systematic, hist_type ) 
 				TH2_hist.SetDirectory(0)
+				if self.debug:
+					print("Integral for %s / %s /%s / %s (from hist %s) is %s."%(self.year, region, sys_str, hist_type, hist_name, TH2_hist.Integral()) )
+
 				all_combined_QCD_hist.append( TH2_hist  )  #### THESE ARE UNSCALED!!!
 
-			## COMBINED PORTION BELOW IS NOT IMPLEMENTED FOR QCD_Pt hists
-			elif hist_type == "":
-
-
-				TH2_file_1000to1500 = ROOT.TFile.Open(hist_path_1000to1500,"READ")
-				TH2_hist_1000to1500 = self.clean_histogram(TH2_file_1000to1500.Get(hist_name), systematic, "QCDMC1000to1500" )
-
-				TH2_file_1500to2000 = ROOT.TFile.Open(hist_path_1500to2000,"READ")
-				TH2_hist_1500to2000 = self.clean_histogram(TH2_file_1500to2000.Get(hist_name), systematic, "QCDMC1500to2000" )
-
-				if region not in ["SB1b", "SB0b"] : 
-					TH2_file_2000toInf = ROOT.TFile.Open(hist_path_2000toInf,"READ")
-					TH2_hist_2000toInf = self.clean_histogram(TH2_file_2000toInf.Get(hist_name), systematic, "QCDMC2000toInf" )
-
-				TH2_hist_1000to1500.SetDirectory(0)   # histograms lose their references when the file destructor is called
-				TH2_hist_1500to2000.SetDirectory(0)   # histograms lose their references when the file destructor is called
-				if region not in ["SB1b", "SB0b"] : TH2_hist_2000toInf.SetDirectory(0)   # histograms lose their references when the file destructor is called
-
-
-
-				### return the COMBINED histograms
-
-				### scale each histogram
-				TH2_hist_1000to1500.Scale(self.BR_SF_scale*SF_1000to1500[self.year])
-				TH2_hist_1500to2000.Scale(self.BR_SF_scale*SF_1500to2000[self.year])
-				if region not in ["SB1b", "SB0b"] : 
-					TH2_hist_2000toInf.Scale(self.BR_SF_scale*SF_2000toInf[self.year])
-
-
-
-				if region in ["SB1b", "SB0b"] : combined_QCD_hist = ROOT.TH2F("combined_QCD_%s%s"%(self.technique_str ,sys_str), ("QCD (HT1000-Inf) Events in the %s (%s) (%s)"%(region, year, sys_str)), 15 ,0.0, 8000, 12, 0.0, 3000)
-				else: 
-					if self.doHTdist: combined_QCD_hist = ROOT.TH1F("combined_QCD_%s"%(region),"Event H_{T} (%s) (%s) (%s); H_{T} [GeV]; Events / 200 GeV"%(region, max(hist_type,"QCD"),  self.technique_str ),50,0.,10000)
-					else: combined_QCD_hist = ROOT.TH2F("combined_QCD_%s%s"%(self.technique_str ,sys_str), ("QCD (HT1000-Inf) Events in the %s (%s) (%s)"%(region, year, sys_str)), 22,1250., 10000, 20, 500, 5000)
-				combined_QCD_hist.Add(TH2_hist_1000to1500)
-				combined_QCD_hist.Add(TH2_hist_1500to2000)
-				if region not in ["SB1b", "SB0b"] : combined_QCD_hist.Add(TH2_hist_2000toInf)
-
-				combined_QCD_hist.SetDirectory(0)   # histograms lose their references when the file destructor is called
-				all_combined_QCD_hist.append(combined_QCD_hist)
 			else: 
 				print("ERROR in load_QCD_hists: hist_type=%s is not correct (options are : '', 'QCDMC1000to1500', 'QCDMC1500to2000', and 'QCDMC2000toInf' )"%hist_type)
 				return []

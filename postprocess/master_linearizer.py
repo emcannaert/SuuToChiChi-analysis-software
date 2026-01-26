@@ -28,7 +28,7 @@ class linearized_plot:
 	ROOT.TH1.SetDefaultSumw2()
 	ROOT.TH2.SetDefaultSumw2()
 
-	def __init__(self, year, mass_point, technique_str, all_BR_hists,output_map_file,  use_QCD_Pt=False, useMask=False, use_1b_bin_maps = False, createDummyChannel=False, run_from_eos = False, runCorrected = False, debug=False):
+	def __init__(self, year, mass_point, technique_str, all_BR_hists,output_map_file,  use_QCD_Pt=False, doMassShift=False,useMask=False, use_1b_bin_maps = False, createDummyChannel=False, run_from_eos = False, runCorrected = False, useOptWP = False, debug=False):
 
 		self.c = ROOT.TCanvas("","",1200,1000)
 		self.BR_SF_scale = 1.0
@@ -40,9 +40,10 @@ class linearized_plot:
 		self.debug = debug
 		self.use_1b_bin_maps = use_1b_bin_maps
 		self.use_QCD_Pt = use_QCD_Pt
+		self.useOptWP = useOptWP
 
 		self.runCorrected = runCorrected
-		
+		self.doMassShift  = doMassShift
 
 		self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src//SuuToChiChi_analysis_software/src/combinedROOT/processedFiles/"
 		self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/src/combinedROOT/processedFiles/"
@@ -50,6 +51,9 @@ class linearized_plot:
 			self.MC_root_file_home	  = 	os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/src/combinedROOT/processedFilesCorrected/"
 			self.data_root_file_home	=   os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/src/combinedROOT/processedFilesCorrected/"
 
+		if self.runCorrected and self.doMassShift: 
+			raise ValueError("ERROR: cannot run corrected and do mass shift together")
+			return
 
 		self.use_QCD_Pt_str = "QCDHT"
 		if self.use_QCD_Pt: self.use_QCD_Pt_str = "QCDPT"
@@ -68,6 +72,15 @@ class linearized_plot:
 			if self.runCorrected:
 				self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
 				self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFilesCorrected/"
+			elif self.doMassShift:
+				self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles_shiftedMass/"
+				self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles_shiftedMass/"
+
+			if self.useOptWP:
+				self.MC_root_file_home	    =  self.eos_path + "/store/user/ecannaer/processedFiles_optWP/"
+				self.data_root_file_home	=  self.eos_path + "/store/user/ecannaer/processedFiles_optWP/"
+
+
 
 		## region options
 		self.doSideband = all_BR_hists.doSideband
@@ -84,8 +97,8 @@ class linearized_plot:
 
 
 		### signal theory options
-		self.couplings_yuu = [0.1,1.0,2.0]   # 0.5 , ,3.0
-		self.couplings_yx  = [0.1,1.0,2.0] # ,0.5, ,3.0
+		self.couplings_yuu = [0.1,0.8,1.0,1.5,1.75,2.0,2.25,2.5,3.0,4.0]   # 0.5 , ,3.0
+		self.couplings_yx  = [0.1,0.8,1.0,1.5,1.75,2.0,2.25,2.5,3.0,4.0] # ,0.5, ,3.0
 
 						# Wb    #Ht      #Zt
 		self.BFs = [ [0.33333,0.33333,0.33334],
@@ -93,6 +106,11 @@ class linearized_plot:
 					 [0.25,    0.50,    0.25 ],
 					 [0.25,    0.25,    0.50 ]]
 
+
+		if self.debug:
+			self.couplings_yuu = [2.0]
+			self.couplings_yx  = [2.0]
+			self.BFs = [[0.50,    0.25,    0.25 ]]
 
 		### sample inclusion options
 		self.includeWJets =           all_BR_hists.includeWJets
@@ -109,7 +127,18 @@ class linearized_plot:
 			if self.use_QCD_Pt: 
 				self.output_file_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/finalCombineFilesNewStats/%s/maskedFinalCombineFiles/"%(self.use_QCD_Pt_str)
 				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/plots/finalCombinePlots/%s/maskedFinalCombineFiles/"%(self.use_QCD_Pt_str)
+		elif self.doMassShift:
+				#self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/binMaps/shiftedMass/"
+				self.output_file_home	 = self.eos_path+ "/store/user/ecannaer/finalCombineFilesNewStats_shiftedMass/"
+				self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/plots/finalCombinePlots/shiftedMass/"
 
+		if self.useOptWP:
+			self.index_file_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/binMaps/optWP/"
+			self.output_file_home	= os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/finalCombineFilesNewStatsOptWP/%s/"%self.use_QCD_Pt_str
+			self.final_plot_home	 = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/plots/finalCombinePlotsOptWP/%s/"%(self.use_QCD_Pt_str)
+
+
+		print("Using superbin indices in %s."%(self.index_file_home))
 		if self.useMask and self.doHTdist: return
 
 		self.create_directories()  ## make sure all above directories exist
@@ -149,14 +178,20 @@ class linearized_plot:
 		#self.systematics 	  = ["nom",   "bTagSF_med",   "bTagSF_tight",	  "JER",	 "JEC",  "bTag_eventWeight_bc_T", "bTag_eventWeight_light_T", "bTag_eventWeight_bc_M", "bTag_eventWeight_light_M", "bTag_eventWeight_bc_T_year", "bTag_eventWeight_light_T_year", "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	   "JER_eta193",	 "JER_193eta25",	  "JEC_FlavorQCD",	"JEC_RelativeBal",	   "Absolute",	 "JEC_BBEC1_year",		"JEC_Absolute_year",	  "JEC_RelativeSample_year",	"PUSF",	"topPt",	 "L1Prefiring",	       "pdf",	 "renorm",	 "fact",	  "AbsoluteCal",		    "AbsoluteTheory",	     "AbsolutePU"     ]   ## systematic namings as used in analyzer   removed:  "bTagSF",			  "JEC_HF",	 "JEC_BBEC1",	 "JEC_EC2",	 "JEC_EC2_year",		 "JEC_HF_year",	
 		#self.systematic_names = ["nom",  "CMS_bTagSF_M" , "CMS_bTagSF_T",	"CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T",	   "CMS_bTagSF_light_T",	   "CMS_bTagSF_bc_M",	   "CMS_bTagSF_light_M",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		"CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal", "CMS_jec_Absolute", "CMS_jec_BBEC1_year", "CMS_jec_Absolute_year", "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU"]  ## systematic namings for cards   "CMS_btagSF",  "CMS_jer",	 "CMS_jec_HF", "CMS_jec_BBEC1", "CMS_jec_EC2",   "CMS_jec_EC2_year",   "CMS_jec_HF_year",   
 		
-		self.systematics 	  = ["nom",      "JER",	    "JEC",    "bTagSF_med",      "bTagSF_med_corr",     "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",		"JER_eta193",	   "JER_193eta25",  "JEC_FlavorQCD",  	"JEC_RelativeBal",		    "JEC_Absolute",	     "JEC_BBEC1_year",	     "JEC_Absolute_year",	     "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",	     "pdf",	    "renorm",	 "fact",	  "JEC_AbsoluteCal",    "JEC_AbsoluteTheory",       "JEC_AbsolutePU",	    "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	   "JEC_RelativeFSR",     "scale",           "topPt",   ]   ## systematic namings as used in analyzer	 "bTagSF",   
-		self.systematic_names = ["nom",    "CMS_jer", "CMS_jec",  "CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" ,       "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",     "CMS_jer_eta193",  "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",      "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale",    "CMS_topPt", ]  ## systematic namings for cards   "CMS_btagSF", 
+		#self.systematics 	  = ["nom",      "JER",	    "JEC",    "bTagSF_med",      "bTagSF_med_corr",     "bTag_eventWeight_bc_M_corr", "bTag_eventWeight_light_M_corr",  "bTag_eventWeight_bc_M_year", "bTag_eventWeight_light_M_year",	"JER_eta193",	     "JER_193eta25",     "JEC_FlavorQCD",  	  "JEC_RelativeBal",		   "JEC_Absolute",	     "JEC_BBEC1_year",	    "JEC_Absolute_year",	 "JEC_RelativeSample_year",	   "PUSF",		 "L1Prefiring",	     "pdf",	    "renorm",	  "fact",	  "JEC_AbsoluteCal",     "JEC_AbsoluteTheory",        "JEC_AbsolutePU",	       "JEC_AbsoluteScale",		  "JEC_Fragmentation",	    "JEC_AbsoluteMPFBias",	     "JEC_RelativeFSR",     "scale",         "topPt",   ]   ## systematic namings as used in analyzer	 "bTagSF",   
+		#self.systematic_names = ["nom",    "CMS_jer", "CMS_jec",  "CMS_bTagSF_M" ,  "CMS_bTagSF_M_corr" ,       "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  	 "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",     "CMS_jer_eta193",    "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",      "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	 "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu",    "CMS_L1Prefiring",   "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory",    "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",  "CMS_scale",    "CMS_topPt", ]  ## systematic namings for cards   "CMS_btagSF", 
 
 		#if not self.runCorrected:
 			#self.systematics.extend([ ])
 			#self.systematic_names.extend([])
-			
 
+		self.systematics 	  = all_BR_hists.systematics
+		self.systematic_names = all_BR_hists.systematic_names
+
+
+		#if self.debug:
+		#	self.systematics 	  = ["nom",    "JEC_Absolute",    "L1Prefiring"]
+		#	self.systematic_names = ["nom", "CMS_jec_Absolute", "CMS_L1Prefiring"]
 
 		self.uncorrelated_systematics = [ "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
 			## removed from uncorrelated uncertainties :  "CMS_pu"
@@ -177,6 +212,34 @@ class linearized_plot:
 			self.QCDMC_Pt_1800to2400_hist_SR 	= all_BR_hists.QCDMC_Pt_1800to2400_hist_SR
 			self.QCDMC_Pt_2400to3200_hist_SR 	= all_BR_hists.QCDMC_Pt_2400to3200_hist_SR
 			self.QCDMC_Pt_3200toInf_hist_SR 	= all_BR_hists.QCDMC_Pt_3200toInf_hist_SR
+
+
+			if self.debug:
+				print("")
+				print("")
+				print("")
+				print("")
+				print(" --------------------- MOVING OVER hist_loader LIST TO master_linearizer.py for year %s, QCD hists are "%self.year)
+				for iii,systematic in enumerate(self.systematics):
+					if systematic == "nom": continue
+					print("QCDMC_Pt_170to300_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_170to300_hist_SR[iii][0].Integral(),self.QCDMC_Pt_170to300_hist_SR[0][0].Integral(), self.QCDMC_Pt_170to300_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_300to470_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_300to470_hist_SR[iii][0].Integral(),self.QCDMC_Pt_300to470_hist_SR[0][0].Integral(), self.QCDMC_Pt_300to470_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_470to600_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_470to600_hist_SR[iii][0].Integral(),self.QCDMC_Pt_470to600_hist_SR[0][0].Integral(), self.QCDMC_Pt_470to600_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_600to800_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_600to800_hist_SR[iii][0].Integral(),self.QCDMC_Pt_600to800_hist_SR[0][0].Integral(), self.QCDMC_Pt_600to800_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_800to1000_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_800to1000_hist_SR[iii][0].Integral(),self.QCDMC_Pt_800to1000_hist_SR[0][0].Integral(), self.QCDMC_Pt_800to1000_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_1000to1400_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_1000to1400_hist_SR[iii][0].Integral(),self.QCDMC_Pt_1000to1400_hist_SR[0][0].Integral(), self.QCDMC_Pt_1000to1400_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_1400to1800_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_1400to1800_hist_SR[iii][0].Integral(),self.QCDMC_Pt_1400to1800_hist_SR[0][0].Integral(), self.QCDMC_Pt_1400to1800_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_1800to2400_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_1800to2400_hist_SR[iii][0].Integral(),self.QCDMC_Pt_1800to2400_hist_SR[0][0].Integral(), self.QCDMC_Pt_1800to2400_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_2400to3200_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_2400to3200_hist_SR[iii][0].Integral(),self.QCDMC_Pt_2400to3200_hist_SR[0][0].Integral(), self.QCDMC_Pt_2400to3200_hist_SR[iii][1].Integral() ))
+					print("QCDMC_Pt_3200toInf_hist_SR for systematic %s: down integral = %s, nom integral = %s, up integral = %s"%(systematic, self.QCDMC_Pt_3200toInf_hist_SR[iii][0].Integral(),self.QCDMC_Pt_3200toInf_hist_SR[0][0].Integral(), self.QCDMC_Pt_3200toInf_hist_SR[iii][1].Integral() ))
+				print("")
+				print("")
+				print("")
+				print("")
+				print("")
+
+
+
 
 		else:
 			self.QCD1000to1500_hist_SR 	= all_BR_hists.QCD1000to1500_hist_SR
@@ -1216,7 +1279,7 @@ class linearized_plot:
 			TTTo_SR_stat_uncert_up = self.TTTo_linear_SR[0][0].Clone("TTTo_stat%sUp"%year_str)
 			TTTo_SR_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 			TTTo_SR_stat_uncert_up.Reset()
-			TTTo_SR_stat_uncert_down = self.TTTo_linear_SR[0][0].Clone("ST_stat%sDown"%year_str)
+			TTTo_SR_stat_uncert_down = self.TTTo_linear_SR[0][0].Clone("TTTo_stat%sDown"%year_str)
 			TTTo_SR_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 			TTTo_SR_stat_uncert_down.Reset()
 
@@ -1358,7 +1421,7 @@ class linearized_plot:
 			TTTo_CR_stat_uncert_up = self.TTTo_linear_SR[0][0].Clone("TTTo_stat%sUp"%year_str)
 			TTTo_CR_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 			TTTo_CR_stat_uncert_up.Reset()
-			TTTo_CR_stat_uncert_down = self.TTTo_linear_SR[0][0].Clone("ST_stat%sDown"%year_str)
+			TTTo_CR_stat_uncert_down = self.TTTo_linear_SR[0][0].Clone("TTTo_stat%sDown"%year_str)
 			TTTo_CR_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 			TTTo_CR_stat_uncert_down.Reset()
 		if self.includeWJets:
@@ -1442,10 +1505,10 @@ class linearized_plot:
 			allBR_stat_uncert_down.SetBinContent(iii, (total_bin_stat_uncert/total_bin_nom_value)  )
 			allBR_stat_uncert_down.SetBinError(iii, (total_bin_stat_uncert/total_bin_nom_value))
 
-			allBR_stat_uncert_up.SetBinContent(iii,1+(total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_up.SetBinError(iii, 1+(total_bin_stat_uncert/total_bin_nom_value))
-			allBR_stat_uncert_down.SetBinContent(iii, 1 - (total_bin_stat_uncert/total_bin_nom_value)  )
-			allBR_stat_uncert_down.SetBinError(iii, 1 - (total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_up_FULL.SetBinContent(iii,1+(total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_up_FULL.SetBinError(iii, 1+(total_bin_stat_uncert/total_bin_nom_value))
+			allBR_stat_uncert_down_FULL.SetBinContent(iii, 1 - (total_bin_stat_uncert/total_bin_nom_value)  )
+			allBR_stat_uncert_down_FULL.SetBinError(iii, 1 - (total_bin_stat_uncert/total_bin_nom_value))
 
 
 
@@ -1496,7 +1559,7 @@ class linearized_plot:
 			TTTo_AT1b_stat_uncert_up = self.TTTo_linear_AT1b[0][0].Clone("TTTo_stat%sUp"%year_str)
 			TTTo_AT1b_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 			TTTo_AT1b_stat_uncert_up.Reset()
-			TTTo_AT1b_stat_uncert_down = self.TTTo_linear_AT1b[0][0].Clone("ST_stat%sDown"%year_str)
+			TTTo_AT1b_stat_uncert_down = self.TTTo_linear_AT1b[0][0].Clone("TTTo_stat%sDown"%year_str)
 			TTTo_AT1b_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 			TTTo_AT1b_stat_uncert_down.Reset()
 
@@ -1633,7 +1696,7 @@ class linearized_plot:
 			TTTo_AT0b_stat_uncert_up = self.TTTo_linear_AT0b[0][0].Clone("TTTo_stat%sUp"%year_str)
 			TTTo_AT0b_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 			TTTo_AT0b_stat_uncert_up.Reset()
-			TTTo_AT0b_stat_uncert_down = self.TTTo_linear_AT0b[0][0].Clone("ST_stat%sDown"%year_str)
+			TTTo_AT0b_stat_uncert_down = self.TTTo_linear_AT0b[0][0].Clone("TTTo_stat%sDown"%year_str)
 			TTTo_AT0b_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 			TTTo_AT0b_stat_uncert_down.Reset()
 		if self.includeWJets:
@@ -1774,7 +1837,7 @@ class linearized_plot:
 				TTTo_AT0tb_stat_uncert_up = self.TTTo_linear_AT0tb[0][0].Clone("TTTo_stat%sUp"%year_str)
 				TTTo_AT0tb_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 				TTTo_AT0tb_stat_uncert_up.Reset()
-				TTTo_AT0tb_stat_uncert_down = self.TTTo_linear_AT0tb[0][0].Clone("ST_stat%sDown"%year_str)
+				TTTo_AT0tb_stat_uncert_down = self.TTTo_linear_AT0tb[0][0].Clone("TTTo_stat%sDown"%year_str)
 				TTTo_AT0tb_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 				TTTo_AT0tb_stat_uncert_down.Reset()
 			if self.includeWJets:
@@ -1895,7 +1958,7 @@ class linearized_plot:
 				TTTo_AT1tb_stat_uncert_up = self.TTTo_linear_AT1tb[0][0].Clone("TTTo_stat%sUp"%year_str)
 				TTTo_AT1tb_stat_uncert_up.SetTitle("linearized TTTo in the SR (%s) (statUp)"%self.year)
 				TTTo_AT1tb_stat_uncert_up.Reset()
-				TTTo_AT1tb_stat_uncert_down = self.TTTo_linear_AT1tb[0][0].Clone("ST_stat%sDown"%year_str)
+				TTTo_AT1tb_stat_uncert_down = self.TTTo_linear_AT1tb[0][0].Clone("TTTo_stat%sDown"%year_str)
 				TTTo_AT1tb_stat_uncert_down.SetTitle("linearized TTTo in the SR (%s) (statDown)"%self.year)
 				TTTo_AT1tb_stat_uncert_down.Reset()
 			if self.includeWJets:
@@ -2570,7 +2633,7 @@ class linearized_plot:
 							continue
 						for _tuple in superbin:
 							for jjj in range(len(total_counts)):
-								total_counts[jjj] +=split_up_hists_for_systematic[jjj][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
+								total_counts[jjj] += split_up_hists_for_systematic[jjj][iii].GetBinContent(_tuple[0]+1,_tuple[1]+1)
 
 
 						for jjj in range(len(total_counts)):
@@ -2590,6 +2653,11 @@ class linearized_plot:
 
 						### NOW add together with the weight information intact
 						linear_plot.Add(linear_plots_QCD_Pt[jjj])
+
+
+					if self.debug: 
+						for hist in linear_plots_QCD_Pt:
+							print("---------- %s: year %s, region %s, systematic %s, the QCD integral is %s."%(hist.GetName(), self.year, region, sys_str,hist.Integral()))
 
 					all_linear_plots.append(linear_plot)
 
@@ -3339,7 +3407,7 @@ class linearized_plot:
 							else: linear_plot = ROOT.TH1D("%s%s_yuu%s_yx%s_WBBR%s_HTBR%s_ZTBR%s"%(BR_type,sys_str,y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str),"linearized %s in the %s (%s) (%s) (y_{uu} = %s, y_{x} = %s) (WB/HT/Zt BR = %s/%s/%s) (UNSCALED); bin; Events / bin"%(BR_type,region,year, " ".join(use_sys.split("_")), y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str),linear_plot_size,-0.5,linear_plot_size-0.5)
 						else:
 							if self.doHTdist: linear_plot = ROOT.TH1F("%s_yuu%s_yx%s_WBBR%s_HTBR%s_ZTBR%s%s"%(BR_type,y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str,sys_str),"Event H_{T} (%s) (%s) (%s) (y_{uu} = %s, y_{x} = %s) (WB/HT/Zt BR = %s/%s/%s); H_{T} [GeV]; Events / 200 GeV"%(region, BR_type, self.technique_str, y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str ),linear_plot_size,-0.5,linear_plot_size-0.5)
-							else:  linear_plot = ROOT.TH1D("%s%s_yuu%s_yx%s_WBBR%s_HTBR%s_ZTBR%s"%(BR_type,sys_str,y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str),"linearized %s in the %s (%s) (%s) (y_{uu} = %s, y_{x} = %s) (WB/HT/Zt BR = %s/%s/%s); bin; Events / bin"%(BR_type,region,year, " ".join(use_sys.split("_")), y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str),linear_plot_size,-0.5,linear_plot_size-0.5)
+							else:  linear_plot = ROOT.TH1D("%s_yuu%s_yx%s_WBBR%s_HTBR%s_ZTBR%s%s"%(BR_type,y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str,sys_str),"linearized %s in the %s (%s) (%s) (y_{uu} = %s, y_{x} = %s) (WB/HT/Zt BR = %s/%s/%s); bin; Events / bin"%(BR_type,region,year, " ".join(use_sys.split("_")), y_uu_str,y_x_str,WB_BR_str,HT_BR_str,ZT_BR_str),linear_plot_size,-0.5,linear_plot_size-0.5)
 
 						linear_plot.GetYaxis().SetTitleOffset(1.48)
 
@@ -3657,7 +3725,7 @@ class linearized_plot:
 
 				if systematic != "stat":
 					for jjj in range(len( signal_hists[kkk][iii]  )):   # looping over different systematic variations, couplings, and branching fraction permutations
-						print("for year / region / systematic = %s / %s / %s, length of signal_hists[kkk][iii] is %s, jjj is %s"%(self.year,region, systematic, len(signal_hists[kkk][iii]), jjj))
+						if debug: print("for year / region / systematic = %s / %s / %s, length of signal_hists[kkk][iii] is %s, jjj is %s"%(self.year,region, systematic, len(signal_hists[kkk][iii]), jjj))
 						signal_hists[kkk][iii][jjj].Write()
 
 
@@ -3889,7 +3957,7 @@ if __name__=="__main__":
 	##################################################
 	##############  Options to change  ###############
 	##################################################
-	debug 					 = True
+	debug 					 = False
 
 	doHTdist   				 = False
 	doSideband 				 = False
@@ -3904,8 +3972,12 @@ if __name__=="__main__":
 	usMask        			 = False  
 	use_1b_bin_maps 	     = True
 
-
 	runCorrected			 = False # use the "corrected" versions of the uncertainties stored in processedFilesCorrected, these have the fixed scale and pdf uncertainties for QCDPT
+	useOptWP			     = True
+
+
+	if useOptWP:
+		includeTTTo = False
 
 	##################################################
 	##################################################
@@ -3916,6 +3988,7 @@ if __name__=="__main__":
 	parser.add_argument( "--doHTdist",   default=False, action='store_true', required=False, help="Option to run on HT distributions instead of 2D plots.")
 	parser.add_argument( "--doSideband",  default=False, action='store_true',  required=False, help="Option to run the sideband region (in addition to normal regions).")
 	parser.add_argument( "--doATxtb",   default=False, action='store_true', required=False, help="Option to run over the AT1tb and AT0tb regions (in addition to normal regions).")
+	parser.add_argument( "--doMassShift",   default=False, action='store_true', required=False, help="Option to run over the AT1tb and AT0tb regions (in addition to normal regions).")
 
 	args = parser.parse_args()
 	
@@ -3942,10 +4015,34 @@ if __name__=="__main__":
 	else:
 		years = [args.year]
 
+	doMassShift = args.doMassShift
+
+	if debug:
+		years = ["2015"]
+		use_QCD_Pt_opts = [True]
+		use_QCD_Pt_strs = ["QCDPT"]
+		technique_strs  = [""] 
+
+
+	if doMassShift:
+		use_QCD_Pt_opts = [True]
+		use_QCD_Pt_strs = ["QCDPT"]
+		technique_strs  = [""] 
+
+
+	if useOptWP:
+		use_QCD_Pt_opts = [True]
+		use_QCD_Pt_strs = ["QCDPT"]
+
+
+
+
+
 	for year in years:
 
 		print("=============== Running for %s ===============."%year)
 
+		if useOptWP: print("Running for OptWP")
 		for jjj,use_QCD_Pt in enumerate(use_QCD_Pt_opts):
 
 			#remove the old "used binMap" file 
@@ -3962,14 +4059,14 @@ if __name__=="__main__":
 				if doHTdist and "NN" in technique_str: continue 
 
 				# create instance of hist_loader (containing all BR histograms) for the year + technique str combination
-				all_BR_hists  = hist_loader(year, technique_str, use_QCD_Pt, doHTdist, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, runCorrected, None, debug)
+				all_BR_hists  = hist_loader(year, technique_str, use_QCD_Pt, doHTdist, doMassShift, doSideband, doATxtb, includeTTJets800to1200, includeTTTo, includeWJets, run_from_eos, runCorrected, None, useOptWP, debug)
 
 				for mass_point in mass_points:
 					#try:
 
 					print("Running for %s/%s/%s/useQCDPT = %s"%(year,mass_point,technique_descr[iii],use_QCD_Pt_strs[jjj] ))
-					if usMask: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file,use_QCD_Pt, True, use_1b_bin_maps, createDummyChannel,run_from_eos, runCorrected, debug)   ### run with masked bins
-					else: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file, use_QCD_Pt, False, use_1b_bin_maps ,createDummyChannel,run_from_eos, runCorrected, debug)	### run without masked bins
+					if usMask: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file,use_QCD_Pt, doMassShift,True, use_1b_bin_maps, createDummyChannel,run_from_eos, runCorrected, useOptWP, debug)   ### run with masked bins
+					else: final_plot = linearized_plot(year, mass_point, technique_str, all_BR_hists, output_map_file, use_QCD_Pt, doMassShift, False, use_1b_bin_maps ,createDummyChannel,run_from_eos, runCorrected, useOptWP, debug)	### run without masked bins
 
 					# write out the "effective" bin maps = bin maps that are actually being used, to binMaps/ 
 
