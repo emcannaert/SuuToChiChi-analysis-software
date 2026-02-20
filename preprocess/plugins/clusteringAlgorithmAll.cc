@@ -523,16 +523,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
                 pdfname = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
             }
 
-
-            // determine the number of QCD vertices for the process
-
-            if (runType.find("QCD") != std::string::npos) nQCD_vertices = 4;
-            else if (runType.find("TTJets") != std::string::npos) nQCD_vertices = 4;  // conservative estimate of the number of vertices (should be 2-5: https://github.com/cms-sw/genproductions/blob/cc7c71f6ef532c0d0eede714537ce0c50ea65e1a/bin/MadGraph5_aMCatNLO/cards/production/2017/13TeV/tt0123j_5f_ckm_HT_LO_MLM/tt0123j_5f_ckm_HT-1200to2500_LO_MLM/tt0123j_5f_ckm_HT-1200to2500_LO_MLM_proc_card.dat)
-            else if (runType.find("WJets") != std::string::npos) nQCD_vertices = 3;
-            else if (runType.find("Suu") != std::string::npos) nQCD_vertices = 0; // signal has no QCD vertices in diagram
-            else {nQCD_vertices = 0;  }
-
-
             nVars = LHAPDF_VAR_HIGH - LHAPDF_VAR_LOW + 1;
             std::cout << "The PDF sets are LHAPDF_VAR_LOW-LHAPDF_VAR_HIGH: " << LHAPDF_VAR_LOW << "/" << LHAPDF_VAR_HIGH << std::endl;
 
@@ -4327,7 +4317,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
             PDFWeightNom = lheEventProduct->originalXWGTUP();
 
-            for(unsigned int iii = 0; iii < lheEventProduct->weights().size(); iii++) {
+            for(unsigned int iii = 0; iii < lheEventProduct->weights().size(); iii++) 
+            {
                 //std::cout<<"Systematic "<<iii<<" ID: "<<lheEventProduct->weights()[iii].id<<", value "<<lheEventProduct->weights()[iii].wgt<<", ratio "<<lheEventProduct->weights()[iii].wgt/PDFWeightNom<<std::endl;
                 if( iii >= PDFstart && iii < PDFend) 
                 {
