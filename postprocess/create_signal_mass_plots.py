@@ -481,16 +481,28 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	h_disuperjet_mass_AT0b = ROOT.THStack( "h_disuperjet_mass_AT0b", "SuuToChiChi signal disuperjet mass (combined) (%s) (%s) (AT0b) (%s); disuperjet mass [GeV]; events / 200 GeV"%(mass_point,year_str,tagging_str));
 
 
-	legend_SJ_mass_SR 	= ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
-	legend_diSJ_mass_SR = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
-	legend_SJ_mass_CR 	= ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
-	legend_diSJ_mass_CR = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
-	legend_SJ_mass_AT1b = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
-	legend_diSJ_mass_AT1b = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
-	legend_SJ_mass_AT0b   = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
-	legend_diSJ_mass_AT0b = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
+	leg_x = 0.7
+	leg_y = 0.7
 
+	if "Suu8" in mass_point or "Suu7" in mass_point or "Suu6" in mass_point:
+		leg_x = 0.2
+		leg_y = 0.45
 
+	legend_SJ_mass_SR 	= ROOT.TLegend(leg_x, leg_y, leg_x+0.2, leg_y+0.2)
+	legend_diSJ_mass_SR = ROOT.TLegend(leg_x, leg_y, leg_x+0.2, leg_y+0.2)
+	legend_SJ_mass_CR 	= ROOT.TLegend(leg_x, leg_y, leg_x+0.2, leg_y+0.2)
+	legend_diSJ_mass_CR = ROOT.TLegend(leg_x,leg_y, leg_x+0.2, leg_y+0.2)
+	legend_SJ_mass_AT1b = ROOT.TLegend(leg_x, leg_y, leg_x+0.2, leg_y+0.2)
+	legend_diSJ_mass_AT1b = ROOT.TLegend(leg_x, leg_y, leg_x+0.2, leg_y+0.2)
+	legend_SJ_mass_AT0b   = ROOT.TLegend(leg_x, leg_y, leg_x+0.2, leg_y+0.2)
+	legend_diSJ_mass_AT0b = ROOT.TLegend(leg_x, leg_y, leg_x+0.2, leg_y+0.2)
+
+	legends = [legend_SJ_mass_SR,legend_diSJ_mass_SR,legend_SJ_mass_CR,legend_diSJ_mass_CR,
+	legend_SJ_mass_AT1b, legend_diSJ_mass_AT1b, legend_SJ_mass_AT0b, legend_diSJ_mass_AT0b ]
+
+	for leg in legends:
+		leg.SetFillStyle(0)
+		leg.SetBorderSize(0)
 
 
 	print("Running year/mass_point/tagging_type/tagging_str:  %s/%s/%s/%s"%( year, mass_point,tagging_type, tagging_str) )
@@ -661,7 +673,7 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 
 	# Define the text
 	text = ROOT.TLatex()
-	text.SetTextSize(0.04)
+	text.SetTextSize(0.03)
 	text.SetTextFont(62)
 	text.SetTextAlign(22)  # Center alignment (horizontal and vertical)
 	
@@ -703,49 +715,81 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	h_MSJ_mass_vs_MdSJ_AT0b.GetYaxis().SetTitle(h_MSJ_mass_vs_MdSJ_AT0b.GetYaxis().GetTitle() + " [GeV]")
 
 
+	if "Suu8" in mass_point or "Suu7" in mass_point or "Suu6" in mass_point: 
+		text_x = 0.25
+		text_y = 0.35
+	else: 
+		text_x = 0.725
+		text_y = 0.65
+ 
 	c.SetRightMargin(0.05)
 
 	h_SJ_mass_SR.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_SJ_mass_SR.Draw()
+	text.DrawLatexNDC(0.8, 0.65, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.8, 0.60, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.8, 0.55, "Region: SR") 
+
 	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_SR%s.png"%(mass_point,year,tagging_type))
 
 	h_disuperjet_mass_SR.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_diSJ_mass_SR.Draw()
+	text.DrawLatexNDC(text_x, text_y, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(text_x, text_y-0.05, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(text_x, text_y-0.1, "Region: SR") 
 	c.SaveAs(plot_dir+"h_disuperjet_mass_%s_allHadDecays_%s_SR%s.png"%(mass_point,year,tagging_type))
 
 
 	h_SJ_mass_CR.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_SJ_mass_CR.Draw()
+	text.DrawLatexNDC(0.8, 0.65, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.8, 0.60, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.8, 0.55, "Region: CR") 
 	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
 
 	h_disuperjet_mass_CR.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_diSJ_mass_CR.Draw()
+	text.DrawLatexNDC(text_x, text_y, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(text_x, text_y-0.05, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(text_x, text_y-0.1, "Region: CR") 
 	c.SaveAs(plot_dir+"h_disuperjet_mass_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
 
 
 	h_SJ_mass_AT1b.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_SJ_mass_AT1b.Draw()
+	text.DrawLatexNDC(0.8, 0.65, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.8, 0.60, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.8, 0.55, "Region: AT1b") 
 	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_AT1b%s.png"%(mass_point,year,tagging_type))
 
 	h_disuperjet_mass_AT1b.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_diSJ_mass_AT1b.Draw()
+	text.DrawLatexNDC(text_x, text_y, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(text_x, text_y-0.05, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(text_x, text_y-0.1, "Region: AT1b") 
 	c.SaveAs(plot_dir+"h_disuperjet_mass_%s_allHadDecays_%s_AT1b%s.png"%(mass_point,year,tagging_type))
 
 
 	h_SJ_mass_AT0b.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_SJ_mass_AT0b.Draw()
+	text.DrawLatexNDC(0.8, 0.65, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(0.8, 0.60, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(0.8, 0.55, "Region: AT0b") 
 	c.SaveAs(plot_dir+"h_SJ_mass_%s_allHadDecays_%s_AT0b%s.png"%(mass_point,year,tagging_type))
 
 	h_disuperjet_mass_AT0b.Draw("HIST")
 	write_cms_text.write_cms_text(CMS_label_xpos, SIM_label_xpos,CMS_label_ypos, SIM_label_ypos, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 	legend_diSJ_mass_AT0b.Draw()
+	text.DrawLatexNDC(text_x, text_y, Suu_mass_point_str_to_use)
+	text.DrawLatexNDC(text_x, text_y-0.05, chi_mass_point_str_to_use)
+	text.DrawLatexNDC(text_x, text_y-0.1, "Region: AT0b") 
 	c.SaveAs(plot_dir+"h_disuperjet_mass_%s_allHadDecays_%s_AT0b%s.png"%(mass_point,year,tagging_type))
 
 
@@ -757,6 +801,7 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	text.DrawLatexNDC(0.33, 0.77, Suu_mass_point_str_to_use)
 	text.DrawLatexNDC(0.33, 0.72, chi_mass_point_str_to_use)
 	text.DrawLatexNDC(0.33, 0.67, "Integral: %s Events"%( np.around(h_MSJ_mass_vs_MdSJ_SR.Integral(),2)))
+	text.DrawLatexNDC(0.33, 0.62, "Region: SR") 
 
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_SR%s.png"%(mass_point,year,tagging_type))
@@ -767,6 +812,7 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	text.DrawLatexNDC(0.33, 0.75, Suu_mass_point_str_to_use)
 	text.DrawLatexNDC(0.33, 0.70, chi_mass_point_str_to_use)
 	text.DrawLatexNDC(0.33, 0.65, "Integral: %s Events"%(np.around(h_MSJ_mass_vs_MdSJ_CR.Integral(),2)))
+	text.DrawLatexNDC(0.33, 0.62, "Region: CR") 
 
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_CR%s.png"%(mass_point,year,tagging_type))
@@ -777,6 +823,7 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	text.DrawLatexNDC(0.33, 0.75, Suu_mass_point_str_to_use)
 	text.DrawLatexNDC(0.33, 0.70, chi_mass_point_str_to_use)
 	text.DrawLatexNDC(0.33, 0.65, "Integral: %s Events"%(np.around(h_MSJ_mass_vs_MdSJ_AT1b.Integral(),2)))
+	text.DrawLatexNDC(0.33, 0.62, "Region: AT1b") 
 
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_AT1b%s.png"%(mass_point,year,tagging_type))
@@ -787,6 +834,7 @@ def make_combined_plots( year, mass_point,tagging_type, tagging_str, runEOS = Fa
 	text.DrawLatexNDC(0.33, 0.75, Suu_mass_point_str_to_use)
 	text.DrawLatexNDC(0.33, 0.70, chi_mass_point_str_to_use)
 	text.DrawLatexNDC(0.33, 0.65, "Integral: %s Events"%(np.around(h_MSJ_mass_vs_MdSJ_AT0b.Integral(),2)))
+	text.DrawLatexNDC(0.33, 0.62, "Region: AT0b") 
 
 	c.Update()
 	c.SaveAs(plot_dir+"h_MSJ_mass_vs_MdSJ_%s_allHadDecays_%s_AT0b%s.png"%(mass_point,year,tagging_type))

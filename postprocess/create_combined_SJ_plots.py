@@ -13,8 +13,8 @@ ROOT.gStyle.SetPalette(ROOT.kViridis);
 ROOT.TColor.InvertPalette();
 ROOT.gStyle.SetNumberContours(255);
 
-useTTTo  = True
-useQCDHT = True
+useTTTo  = False
+useQCDHT = False
 ### create_combined_SJ_plots.py
 #
 # creates plots of SJ mass, diSJ mass, and avg. SJ mass vs diSJ mass for ALL years combined.
@@ -449,43 +449,50 @@ def make_plots(region, isMasked, hist_name):
     signal_hists = [None,None,None]
 
     for iii,mass_point in enumerate(mass_points):
-        for decay in decays:
+        for year in years:
+            for decay in decays:
 
-            file_name = mass_point + "_" + decay + "_" + year + "_processed.root"
-            file_path = os.path.join(file_dir, file_name)
+                file_name = mass_point + "_" + decay + "_" + year + "_processed.root"
+                file_path = os.path.join(file_dir, file_name)
 
-            if not "cmseos" in file_dir:
-                if not os.path.exists(file_path):
-                    print "  WARNING: File not found:", file_path
+                if not "cmseos" in file_dir:
+                    if not os.path.exists(file_path):
+                        print "  WARNING: File not found:", file_path
+                        continue
+
+                f = ROOT.TFile.Open(file_path)
+                if not f or f.IsZombie():
+                    print "  ERROR: Could not open:", file_path
                     continue
 
-            f = ROOT.TFile.Open(file_path)
-            if not f or f.IsZombie():
-                print "  ERROR: Could not open:", file_path
-                continue
+                hist = f.Get("nom/" + hist_name + "_" + region)
+                if not hist:
+                    print "  ERROR: Histogram not found:", hist_name, "in", file_path
+                    f.Close()
+                    continue
 
-            hist = f.Get("nom/" + hist_name + "_" + region)
-            if not hist:
-                print "  ERROR: Histogram not found:", hist_name, "in", file_path
+                hist.SetDirectory(0)
+                hist.SetMinimum(1e-2)
+                hist.SetStats(0)
+
+                scale = return_signal_SF(year,mass_point,decay)
+
+                hist.Scale(scale)
+
+
+
+                print("For mass point %s, year %s, and decay %s, adding %s events to hist."%(mass_point,year,decay, hist.Integral()))
+                if signal_hists[iii]: print("Hist had %s total events"%signal_hists[iii].Integral())
+                else:  print("Hist had 0 total events")
+
+                if signal_hists[iii]:
+                    signal_hists[iii].Add(hist)
+                    #print("added hist to %s"%signal_hists[iii].GetName())
+                else:
+                    signal_hists[iii] = hist.Clone("combined_%s"%(mass_point))
+                    #print("created hist %s"%signal_hists[iii].GetName())
+                signal_hists[iii].SetDirectory(0)
                 f.Close()
-                continue
-
-            hist.SetDirectory(0)
-            hist.SetMinimum(1e-2)
-            hist.SetStats(0)
-
-            scale = return_signal_SF(year,mass_point,decay)
-
-            hist.Scale(scale)
-
-            if signal_hists[iii]:
-                signal_hists[iii].Add(hist)
-                #print("added hist to %s"%signal_hists[iii].GetName())
-            else:
-                signal_hists[iii] = hist.Clone("combined_%s"%(mass_point))
-                #print("created hist %s"%signal_hists[iii].GetName())
-            signal_hists[iii].SetDirectory(0)
-            f.Close()
 
     valid_sig_hists = sum([  not sig_hist.IsZombie() for sig_hist in signal_hists])
 

@@ -341,10 +341,23 @@ if __name__=="__main__":
 
 
 
+  	output_folder_temp = "combinedROOT_temp"
+  	output_folder_final = "combinedROOT"
+
+	print("Running with system arguments %s"%sys.argv)
+
 	years = ["2015","2016","2017","2018"]
 	eos_path = open(sys.argv[1], "r")
+	if sys.argv[2] != "":
+		output_folder_temp = "combinedROOT_temp_optWP"
+		output_folder_final = "combinedROOT_optWP" 
+		print("Running as optimal WP - will save to %s for temp and %s for final combined output."%(output_folder_temp,output_folder_final)  )
+ 
 	command_path = open("eos_copy_commands.sh", "w")
 	for line in eos_path:
+
+		if "_OptWP_" in line and sys.argv[2] == "": raise ValueError("ERROR in create_eos_copy_commands.py: The files at %s seem to be optimized, but the optimized option was not used in merge_eos_files.sh. Run this again with the '--runOptWP' option."%{sys.argv[1]})
+
 		if line.split() == "[]" or line == "\n" or line == "":
 			continue
 		num_str = ""
@@ -390,7 +403,7 @@ if __name__=="__main__":
 			all_files_made[year_str][sample_str][sys_str].append("%s_%s_%s_combined_%s.root"%(sample_str, year_str, sys_str, num_str))
 			nCommands[year_str][sample_str][sys_str]+=1
 		pipe = '|'
-		command_path.write(r'hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s_%s_%s_combined_%s.root `xrdfsls -u %s %s grep "\.root"`'%(sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
+		command_path.write(r'hadd -f root://cmseos.fnal.gov/$EOSHOME/%s/%s_%s_%s_combined_%s.root `xrdfsls -u %s %s grep "\.root"`'%(output_folder_temp, sample_str, year_str, sys_str, num_str,line.strip(),pipe) + "\n")
 
 	#print(all_files_made)
 	### now add to this .sh script a section that combines all files together into a single "_combined.root", renames files to this if they don't need to be added together
@@ -400,16 +413,16 @@ if __name__=="__main__":
 				combined_file_name = "%s_%s_%s_combined.root"%(sample, year, syst)
 				if len(syst_dict) > 1:    # if there are actually files in this 
 					rm_cmd = ""
-					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT/%s '%combined_file_name)
+					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/%s/%s '%(output_folder_temp,combined_file_name))
 					for iii,one_file in enumerate(syst_dict):
-						command_path.write(" root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s"%one_file.strip()) 
-						rm_cmd += "eosrm $EOSHOME/combinedROOT_temp/%s\n"%one_file.strip()
+						command_path.write(" root://cmseos.fnal.gov/$EOSHOME/%s/%s"%(output_folder_temp,one_file.strip()) )
+						rm_cmd += "eosrm $EOSHOME/%s/%s\n"%(output_folder_temp,one_file.strip())
 						if iii == (len(syst_dict)-1):
 							command_path.write("\n")
 					command_path.write("%s"%rm_cmd)
 				elif len(syst_dict) == 1:
 					## rename the one file 
-					command_path.write("eosmv $EOSHOME/combinedROOT_temp/%s $EOSHOME/combinedROOT/%s\n"%(syst_dict[0], combined_file_name) )
+					command_path.write("eosmv $EOSHOME/%s/%s $EOSHOME/%s/%s\n"%(output_folder_temp,syst_dict[0], output_folder_final,combined_file_name) )
 
 	## merge together the signal files
 	for year,year_dict in signal_files_made.items():
@@ -417,14 +430,14 @@ if __name__=="__main__":
 			for syst,syst_dict in sample_dict.items():
 				combined_file_name = "%s_%s_%s_combined.root"%(sample, year, syst)
 				if len(syst_dict) > 1:    # if there are actually files in this 
-					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/combinedROOT_temp/%s '%combined_file_name)
+					command_path.write('hadd -f root://cmseos.fnal.gov/$EOSHOME/%s/%s '%(output_folder_temp,combined_file_name) )
 					for iii,one_file in enumerate(syst_dict):
 						command_path.write(" %s"%one_file.strip()) 
 						if iii == (len(syst_dict)-1):
 							command_path.write("\n")
 				elif len(syst_dict) == 1:
 					## rename the one file 
-					command_path.write("eosmv $EOSHOME/combinedROOT_temp/%s $EOSHOME/combinedROOT/%s\n"%(syst_dict[0], combined_file_name) )
+					command_path.write("eosmv $EOSHOME/%s/%s $EOSHOME/%s/%s\n"%(output_folder_temp,syst_dict[0], output_folder_final,combined_file_name) )
 
 	#except:
 	#	print("Enter in a valid text file with a list of the files you want to copy from EOS (no spaces in between)")

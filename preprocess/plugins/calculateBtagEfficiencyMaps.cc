@@ -189,6 +189,7 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
    {
       NBINSX = 40;
       PTMAX  = 6000.;  // best to keep bin sizes the same between these
+         // change this to an even wider range?
    }
    else
    {
@@ -198,7 +199,7 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
 
    // tight WP
    h_nLightJets_tight = new TH2F("h_nLightJets_tight" ,"total number of true light jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruebJets_tight = new TH2F("h_nTruebJets_tight" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  NBINSX,0, 6000, 18, -2.4, 2.4);
+   h_nTruebJets_tight = new TH2F("h_nTruebJets_tight" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  NBINSX,0, PTMAX, 18, -2.4, 2.4);
    h_nTruecJets_tight = new TH2F("h_nTruecJets_tight" ,"total number of true c jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 
    h_nLightJets_tight_btagged = new TH2F("h_nLightJets_tight_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
@@ -207,7 +208,7 @@ calculateBtagEfficiencyMaps::calculateBtagEfficiencyMaps(const edm::ParameterSet
 
    // med WP
    h_nLightJets_med = new TH2F("h_nLightJets_med" ,"total number of true light jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
-   h_nTruebJets_med = new TH2F("h_nTruebJets_med" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  NBINSX,0, 6000, 18, -2.4, 2.4);
+   h_nTruebJets_med = new TH2F("h_nTruebJets_med" ,"total number of true b jets; jet p_{T} [GeV];jet eta",  NBINSX,0, PTMAX, 18, -2.4, 2.4);
    h_nTruecJets_med = new TH2F("h_nTruecJets_med" ,"total number of true c jets; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);
 
    h_nLightJets_med_btagged = new TH2F("h_nLightJets_med_btagged" ,"total number of true light jets that are b-tagged; jet p_{T} [GeV];jet eta", NBINSX ,0, PTMAX, 18, -2.4, 2.4);

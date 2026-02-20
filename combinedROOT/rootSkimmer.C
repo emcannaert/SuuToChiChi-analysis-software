@@ -8,7 +8,7 @@
 
 
 
-bool doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::vector<std::string> systematics, std::string dataBlock, std::string runType, bool dryRun)
+bool doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::vector<std::string> systematics, std::string dataBlock, std::string runType, bool runOptimizedWP, bool dryRun)
 {
    double totHT, dijetMassOne, dijetMassTwo;
    int nfatjets, nfatjet_pre,nAK4;
@@ -182,8 +182,8 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("SJ_nAK4_100", SJ_nAK4_100);
          t1->SetBranchAddress("SJ_nAK4_150", SJ_nAK4_150);
 
-         t1->SetBranchAddress("SJ1_decision", &SJ1_decision);
-         t1->SetBranchAddress("SJ2_decision", &SJ2_decision);
+         //t1->SetBranchAddress("SJ1_decision", &SJ1_decision);
+         //t1->SetBranchAddress("SJ2_decision", &SJ2_decision);
 
          t1->SetBranchAddress("SJ_nAK4_50", SJ_nAK4_50);
          t1->SetBranchAddress("AK4_DeepJet_disc", AK4_DeepJet_disc); 
@@ -216,12 +216,11 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("diSuperJet_mass", &diSuperJet_mass); 
          t1->SetBranchAddress("lab_AK4_pt", AK4_pt); 
 
-         t1->SetBranchAddress("AK8_SJ_assignment", AK8_SJ_assignment); 
-         t1->SetBranchAddress("AK4_SJ_assignment", AK4_SJ_assignment); 
-         t1->SetBranchAddress("AK8_is_near_highE_CA4", AK8_is_near_highE_CA4); 
-         t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
+         //t1->SetBranchAddress("AK8_SJ_assignment", AK8_SJ_assignment); 
+         //t1->SetBranchAddress("AK4_SJ_assignment", AK4_SJ_assignment); 
+         //t1->SetBranchAddress("AK8_is_near_highE_CA4", AK8_is_near_highE_CA4); 
+         //t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
 
-         t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
 
          t1->SetBranchAddress("jet_pre_isHEM", jet_pre_isHEM); 
          t1->SetBranchAddress("jet_isHEM", jet_isHEM); 
@@ -230,7 +229,6 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("AK8_fails_veto_map", AK8_fails_veto_map); 
          t1->SetBranchAddress("AK4_fails_veto_map", AK4_fails_veto_map); 
 
-         t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
          //t1->SetBranchAddress("eventNumber", &eventNumber); 
 
 
@@ -668,6 +666,14 @@ void rootSkimmer()
    bool runExtras     = false;
    bool runSideband   = false;
 
+   bool runOptimizedWP  = true;
+
+
+   if (runOptimizedWP)
+   {
+      combinedROOT_eos_path       =  "root://cmseos.fnal.gov//store/user/ecannaer/combinedROOT_optWP/";   //"root://cmsxrootd.fnal.gov//store/user/ecannaer/sideband_combinedROOT/";
+      skimmedFiles_eos_path       =  "root://cmseos.fnal.gov//store/user/ecannaer/skimmedFiles_optWP/";       //  "root://cmsxrootd.fnal.gov//store/user/ecannaer/combinedROOT/";
+   }
 
 
 
@@ -676,8 +682,6 @@ void rootSkimmer()
    std::vector<std::string> years = {"2015","2016","2017","2018"};  
    std::vector<std::string> systematics = {"nom", "JEC1", "JEC2", "JER" };//{"nom", "JEC","JER"};   // will eventually use this to skim the systematic files too
 
-
-   years = {"2018"};  
    //systematics = {"nom"};
 
    int yearNum = 0;
@@ -687,7 +691,7 @@ void rootSkimmer()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   //if (runSelection) years = {"2016"};  // single year to run over 
+   if (runSelection) years = {"2016"};  // single year to run over 
 
    if(runSingleFile)
    {
@@ -702,7 +706,7 @@ void rootSkimmer()
       std::string inFileName_ = (pathToFile + dataBlock_ + year_ +  systematic_str_ + "_combined.root").c_str();
       std::string outFileName_ = (dataBlock_ + year_ +  systematic_str_ + "_SKIMMED.root").c_str();
 
-      doThings(inFileName_, outFileName_, eventScaleFactor, year_, use_systematic_, dataBlock_, runType,dryRun);
+      doThings(inFileName_, outFileName_, eventScaleFactor, year_, use_systematic_, dataBlock_, runType,runOptimizedWP, dryRun);
       return;
    }
 
@@ -833,9 +837,14 @@ void rootSkimmer()
       else if(runSelection)
       {
          std::cout << "Running a selection of samples" << std::endl;
-         dataBlocks = 
+
+         if(*datayear == "2015")
          {
-            "QCDMC_Pt_170to300_",
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"  };
+
+
+         /*,"ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
             "QCDMC_Pt_300to470_",
             "QCDMC_Pt_470to600_",
             "QCDMC_Pt_600to800_",
@@ -844,7 +853,47 @@ void rootSkimmer()
             "QCDMC_Pt_1400to1800_",
             "QCDMC_Pt_1800to2400_",
             "QCDMC_Pt_2400to3200_",
-            "QCDMC_Pt_3200toInf_"         };  
+            "QCDMC_Pt_3200toInf_"}; // dataB-ver1 not present */
+         }
+         else if(*datayear == "2016")
+         {
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"}; /*  ,"ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"};*/
+         }
+         else if(*datayear == "2017")
+         {
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"}; /* ,"ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
+            "QCDMC_Pt_300to470_",
+            "QCDMC_Pt_470to600_",
+            "QCDMC_Pt_600to800_",
+            "QCDMC_Pt_800to1000_",
+            "QCDMC_Pt_1000to1400_",
+            "QCDMC_Pt_1400to1800_",
+            "QCDMC_Pt_1800to2400_",
+            "QCDMC_Pt_2400to3200_",
+            "QCDMC_Pt_3200toInf_"}; */
+         }
+         else if(*datayear == "2018")
+         {
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+         "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_"}; /* ,"ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_"}; */
+         }   
+
+         dataBlocks = 
+         {
+            "Suu4_chi1_ZTZT_"
+         };  
+
       }
       else if(runExtras)
       {
@@ -1039,7 +1088,7 @@ void rootSkimmer()
             std::cout << "======================================================================================================================= " << std::endl;
             std::cout << "======================================================================================================================= " << std::endl;
 
-            if (!doThings(inFileName, outFileName, eventScaleFactor, year, use_systematics, *dataBlock, runType, dryRun))
+            if (!doThings(inFileName, outFileName, eventScaleFactor, year, use_systematics, *dataBlock, runType, runOptimizedWP, dryRun))
             {
 
                std::cout << "ERROR: Failed with file " << inFileName << "  ----   (" << *dataBlock << "/" << year  << "/"  << systematic_str <<")"  <<std::endl;

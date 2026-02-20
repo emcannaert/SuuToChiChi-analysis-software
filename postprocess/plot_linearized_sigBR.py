@@ -21,10 +21,16 @@ def create_sqrt_histogram(original_hist):
 
 
 # plots linearized signal and BR (stacked) with signal sensitity as a function of linerized bin number
-def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_type,QCD_type):
+def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_type,QCD_type,useOptWP):
 
     CMS_label_pos = 0.132
     SIM_label_pos = 0.270
+
+    WP_str = ""
+    output_str = ""
+    if useOptWP: 
+        WP_str = "OptWP"
+        output_str = "optWP"
 
     sig_model_pars = "yuu2p0_yx2p0_WBBR0p5_HTBR0p25_ZTBR0p25"
 
@@ -33,7 +39,7 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
         #print("Technique type is %s."%technique_type)
         technique_str = "NN-based"
 
-    file_name = "finalCombineFilesNewStats/%s/combine_%s%s_%s.root"%(QCD_type,technique_type, year, mass_point)
+    file_name = "finalCombineFilesNewStats%s/%s/combine_%s%s_%s.root"%(WP_str,QCD_type,technique_type, year, mass_point)
     
     root_file = ROOT.TFile.Open(file_name)
     if not root_file:
@@ -189,7 +195,7 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
 
 
     # Save the canvas as an image
-    output_file = "plots/linearized_sigBR/%s/sig_vs_BR_%s_%s%s_%s.png"%(QCD_type,mass_point,technique_type,region,year)
+    output_file = "plots/%s/linearized_sigBR/%s/sig_vs_BR_%s_%s%s_%s.png"%(output_str,QCD_type,mass_point,technique_type,region,year)
     c.SaveAs(output_file)
 
     sig_hist.Draw("HIST")
@@ -212,7 +218,7 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     text.DrawLatexNDC(0.75, 0.70, "Integral: %s Events"%( np.around(sig_hist.Integral(),2) )  )
 
 
-    output_file = "plots/linearized_sig/%s/linearized_sig_%s_%s%s_%s.png"%(QCD_type,mass_point,technique_type,region,year)
+    output_file = "plots/%s/linearized_sig/%s/linearized_sig_%s_%s%s_%s.png"%(output_str,QCD_type,mass_point,technique_type,region,year)
     c.SaveAs(output_file)
 
     # Close the ROOT file
@@ -226,10 +232,15 @@ def plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_typ
     del ST_hist
 
 # plots linearized signal (a few mass points) and BR (stacked) with signal sensitity as a function of linerized bin number
-def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type):
-
+def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type,useOptWP):
 
     sig_model_pars = "yuu2p0_yx2p0_WBBR0p5_HTBR0p25_ZTBR0p25"
+
+    WP_str = ""
+    output_str = ""
+    if useOptWP: 
+        WP_str = "OptWP"
+        output_str = "optWP"
 
     year_str = "2016preAPV"
     if year == "2016": year_str = "2016postAPV"
@@ -242,7 +253,7 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
         technique_str = "NN-based"
 
     mass_points = ["Suu4_chi1", "Suu6_chi2","Suu8_chi3"]
-    file_names = [ "finalCombineFilesNewStats/%s/combine_%s%s_%s.root"%(QCD_type,technique_type, year, mass_point) for mass_point in mass_points ] 
+    file_names = [ "finalCombineFilesNewStats%s/%s/combine_%s%s_%s.root"%(WP_str,QCD_type,technique_type, year, mass_point) for mass_point in mass_points ] 
     
     root_files = [ ROOT.TFile.Open(file_name) for file_name in file_names    ]
     for iii,root_file in enumerate(root_files):
@@ -414,7 +425,7 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
     write_cms_text.write_cms_text(CMS_label_xpos=0.132, SIM_label_xpos=0.248,CMS_label_ypos = 0.92, SIM_label_ypos = 0.93, lumistuff_xpos=0.90, lumistuff_ypos=0.91, year = "", uses_data=False)
 
     # Save the canvas as an image
-    output_file = "plots/linearized_sigBR/%s/sig_vs_BR_multi_mass_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/%s/linearized_sigBR/%s/sig_vs_BR_multi_mass_%s%s_%s.png"%(output_str,QCD_type,technique_type,region,year)
     c.SaveAs(output_file)
 
 
@@ -433,9 +444,15 @@ def plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type
 
 
 # plots signal and BR (stacked) with signal sensitity as a function of linerized bin number
-def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_count,QCD_type):
+def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_count,QCD_type,useOptWP):
 
     if run_count > 0: return   #only need to plot this once
+
+    WP_str = ""
+    output_str = ""
+    if useOptWP: 
+        WP_str = "OptWP"
+        output_str = "optWP"
 
     CMS_label_pos = 0.152
     SIM_label_pos = 0.335
@@ -444,7 +461,7 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     if "NN" in technique_type:
         technique_str = "NN-based"
 
-    file_name = "finalCombineFilesNewStats/%s/combine_%s%s_%s.root"%(QCD_type,technique_type, year, mass_point)
+    file_name = "finalCombineFilesNewStats%s/%s/combine_%s%s_%s.root"%(WP_str,QCD_type,technique_type, year, mass_point)
     
     root_file = ROOT.TFile.Open(file_name)
 
@@ -509,25 +526,25 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
     legend.Draw()
 
     # Save the canvas as an image
-    output_file = "plots/linearized_background/%s/linearized_BR_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/%s/linearized_background/%s/linearized_BR_%s%s_%s.png"%(output_str,QCD_type,technique_type,region,year)
     c.SaveAs(output_file)
 
-    output_file = "plots/linearized_background/%s/linearized_QCD_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/%s/linearized_background/%s/linearized_QCD_%s%s_%s.png"%(output_str,QCD_type,technique_type,region,year)
     QCD_hist.SetLineWidth(4)
     QCD_hist.Draw("HIST")
     c.SaveAs(output_file)
 
-    output_file = "plots/linearized_background/%s/linearized_TTbar_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/%s/linearized_background/%s/linearized_TTbar_%s%s_%s.png"%(output_str,QCD_type,technique_type,region,year)
     TTbar_hist.SetLineWidth(4)
     TTbar_hist.Draw("HIST")
     c.SaveAs(output_file)
 
-    output_file = "plots/linearized_background/%s/linearized_WJets_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/%s/linearized_background/%s/linearized_WJets_%s%s_%s.png"%(output_str,QCD_type,technique_type,region,year)
     WJets_hist.SetLineWidth(4)
     WJets_hist.Draw("HIST")
     c.SaveAs(output_file)
 
-    output_file = "plots/linearized_background/%s/linearized_ST_%s%s_%s.png"%(QCD_type,technique_type,region,year)
+    output_file = "plots/%s/linearized_background/%s/linearized_ST_%s%s_%s.png"%(output_str,QCD_type,technique_type,region,year)
     ST_hist.SetLineWidth(4)
     ST_hist.Draw("HIST")
     c.SaveAs(output_file)
@@ -542,14 +559,14 @@ def plot_linearized_BR_histogram(year,region,mass_point, technique_type, run_cou
 
 if __name__=="__main__":
 
-    debug = False
+    debug    = False
+    useOptWP = True
 
     years = ["2015","2016","2017","2018"]
     mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1","Suu5_chi1p5","Suu5_chi2","Suu6_chi1","Suu6_chi1p5","Suu6_chi2","Suu6_chi2p5","Suu7_chi1",
     "Suu7_chi1p5","Suu7_chi2","Suu7_chi2p5","Suu7_chi3","Suu8_chi1","Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"] 
     regions = ["SR","CR","AT0b", "AT1b"]   # "AT1tb", "AT0tb"
     technique_types = ["", "NN_"]
-
     technique_types = [""]
 
 
@@ -561,6 +578,10 @@ if __name__=="__main__":
         regions = ["SR"]   # "AT1tb", "AT0tb"
         technique_types = [""]
 
+    if useOptWP:
+        QCD_types = ["QCDPT"]
+
+
     for QCD_type in QCD_types:
 
         for year in years:
@@ -568,14 +589,14 @@ if __name__=="__main__":
                 for technique_type in technique_types:
                     run_count = 0 
 
-                    plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type) ## only need to run once per year/region/technique
+                    plot_linearized_signal_vs_BR_multi_mass(year,region, technique_type,QCD_type,useOptWP) ## only need to run once per year/region/technique
 
                     for mass_point in mass_points:
                         
                         #try:
                         if "Suu4_chi1" in mass_point:
-                            plot_linearized_BR_histogram(year,region,mass_point, technique_type,run_count,QCD_type)  # only need to do this once
-                        plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_type,QCD_type)
+                            plot_linearized_BR_histogram(year,region,mass_point, technique_type,run_count,QCD_type,useOptWP)  # only need to do this once
+                        plot_linearized_signal_vs_BR_histogram(year,region,mass_point, technique_type,QCD_type,useOptWP)
                         run_count+=1
                         #except:
                         #    print("ERROR: failed for %s/%s/%s/%s"%(year,region,mass_point,technique_type))

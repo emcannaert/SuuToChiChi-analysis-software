@@ -76,13 +76,16 @@ jec_file_AK8 = { '2015': { 'BR': 'data/JEC/2016_UL_preAPV/MC/Summer19UL16APV_V7_
 
 
 
-def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
+def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString,useOptimalWP):
 
 	if do_sideband: print("WARNING: RUNNING SIDEBAND REGION.")
 
 	## SKIP DOING JEC FOR TTTo datasets (COULD WANT TO CHANGE THIS SOME DAY)
 	#if "TTTo" in sample and "JEC" in systematic: return
 	if "Suu" in sample and "JEC2" in systematic: return
+
+	WP_str = ""
+	if useOptimalWP: WP_str = "OptWP_"
 
 
 	file_base = ""
@@ -173,8 +176,8 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 			newCfg.write("config.Data.lumiMask = '../data/lumimasks/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'\n")
 			#inputFiles.append('data/lumimasks/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt')
 
-	newCfg.write("config.Data.outputDatasetTag = 'clustAlg_%s_%s_%s'\n"%(sample,year,systematic))
-	newCfg.write("config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_%s%s'\n"%(dateTimeString,sideband_str))
+	newCfg.write("config.Data.outputDatasetTag = 'clustAlg_%s_%s_%s%s'\n"%(sample,year,WP_str, systematic))
+	newCfg.write("config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_%s%s%s'\n"%(WP_str,dateTimeString,sideband_str))
 	#newCfg.write("config.Data.outLFNDirBase = '/store/user/ecannaer/SuuToChiChi_2025106_16330'\n")
 
 
@@ -254,11 +257,17 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString):
 def main():
 
 
+	useOptimalWP = True
+
+
+
+
 	lastCrabSubmission = open("lastCrabSubmission.txt", "a")
 
 	current_time = datetime.now()
 	dateTimeString = "%s%s%s_%s%s%s"%(current_time.year,current_time.month,current_time.day,current_time.hour,current_time.minute,current_time.second )
-	lastCrabSubmission.write("/store/user/ecannaer/SuuToChiChi_AltDatasets_%s%s\n"%(dateTimeString,sideband_str))
+	if useOptimalWP: lastCrabSubmission.write("/store/user/ecannaer/SuuToChiChi_%s%s\n"%(dateTimeString,sideband_str))
+	else: lastCrabSubmission.write("/store/user/ecannaer/SuuToChiChi_optWP_%s%s\n"%(dateTimeString,sideband_str))
 	years   = ["2015","2016","2017","2018"]
 
    #systematics = [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JER_eta193", "JER_193eta25",  "JEC","JER","nom" ]
@@ -416,9 +425,7 @@ def main():
 								"QCDMC_Pt_1800to2400": "/QCD_Pt_1800to2400_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
 								"QCDMC_Pt_2400to3200": "/QCD_Pt_2400to3200_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM",
 								"QCDMC_Pt_3200toInf": "/QCD_Pt_3200toInf_TuneCP5_13TeV_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM"
-
 							  }
-
    }
 
 
@@ -564,12 +571,12 @@ def main():
 				if "Suu" in sample:
 					if systematic == "JER": continue
 					try:
-						makeAltCrabCfg(sample, year, systematic, datasets_signal[year][sample],dateTimeString)   # need a different dataset for signal mass points, only make a single signal cfg file to
+						makeAltCrabCfg(sample, year, systematic, datasets_signal[year][sample],dateTimeString, useOptimalWP)   # need a different dataset for signal mass points, only make a single signal cfg file to
 					except:
 						print("Failed for sample/year/systematic: %s/%s/%s."%(sample,year,systematic))
 				elif "data" in sample and (systematic == "JER" or "JEC" in systematic): continue  # do NOT need to do these. Tons of extra calculations
 				else:
-					makeAltCrabCfg(sample, year, systematic, datasets[year][sample],dateTimeString)   
+					makeAltCrabCfg(sample, year, systematic, datasets[year][sample],dateTimeString,useOptimalWP)   
 	print("Created %i cfg files."%num_files_created)
 	return
 

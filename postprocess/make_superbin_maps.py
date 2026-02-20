@@ -48,7 +48,7 @@ class combineHistBins:
 		self.useOptWP = useOptWP
 
 		#### characteristic thresholds for merging process ----- CHANGE THESE -----
-		self.max_stat_uncert 	 		= 0.175  ## maximum statistical uncertainty
+		self.max_stat_uncert 	 		= 0.20  ## maximum statistical uncertainty
 		self.distance_threshold  		= 5.0
 		self.superbin_size_threshold	= 25
 
@@ -63,11 +63,8 @@ class combineHistBins:
 		
 		if self.region in ["AT1b","AT0b"]: self.max_stat_uncert = 0.12
 
-
-
 		self.min_unscaled_QCD_bin_counts   = 2.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
-		self.min_scaled_QCD_bin_counts     = 0.5   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
-
+		self.min_scaled_QCD_bin_counts     = 0.0   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
 
 		## options for which MCs to include
 		self.includeTTJetsMCHT800to1200 = True
@@ -992,23 +989,21 @@ if __name__=="__main__":
 
 
 		if runShifted:
-			text_output_path  = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/binMaps/shiftedMass/"   #output_map_file_name
-			group_output_path = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinGroups/shiftedMass/"
+			text_output_path     = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/binMaps/shiftedMass/"   #output_map_file_name
+			group_output_path    = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinGroups/shiftedMass/"
 			neighbor_output_path = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinNeighbors/shiftedMass/"
 
 
 
-
-
 		if not dryRun:
-			SB_index_CB_cmd = 'rm %s/%s_superbin_indices_*.txt'%( text_output_path,useQCDHT_strs[jjj])
-			SB_index_NN_cmd = 'rm %s/%s_superbin_indicesNN_*.txt'%(useQCDHT_strs[jjj],text_output_path)
+			SB_index_CB_cmd = 'rm %s/%s/%s_superbin_indices_*.txt'%( text_output_path,optWP_str,useQCDHT_strs[jjj])
+			#SB_index_NN_cmd = 'rm %s/%s/%s_superbin_indicesNN_*.txt'%(useQCDHT_strs[jjj],optWP_str,text_output_path)
 
-			SB_group_CB_cmd	= 'rm %s/%s_superbin_groups_*.txt'%(group_output_path,useQCDHT_strs[jjj])
-			SB_group_NN_cmd	= 'rm %s/%s_superbin_groupsNN_*.txt'%(group_output_path,useQCDHT_strs[jjj]) 
+			SB_group_CB_cmd	= 'rm %s/%s/%s_superbin_groups_*.txt'%(group_output_path,optWP_str,useQCDHT_strs[jjj])
+			#SB_group_NN_cmd	= 'rm %s/%s/%s_superbin_groupsNN_*.txt'%(group_output_path,optWP_str,useQCDHT_strs[jjj]) 
 
-			SB_neighbors_CB_cmd = 'rm %s/%s_superbin_neighbors_*.txt'%(neighbor_output_path,useQCDHT_strs[jjj])
-			SB_neighbors_NN_cmd = 'rm %s/%s_superbin_neighborsNN_*.txt'%(neighbor_output_path,useQCDHT_strs[jjj])
+			SB_neighbors_CB_cmd = 'rm %s/%s/%s_superbin_neighbors_*.txt'%(neighbor_output_path,optWP_str,useQCDHT_strs[jjj])
+			#SB_neighbors_NN_cmd = 'rm %s/%s/%s_superbin_neighborsNN_*.txt'%(neighbor_output_path,optWP_str,useQCDHT_strs[jjj])
 
 			os.system(SB_index_CB_cmd )
 			os.system(SB_index_NN_cmd ) 

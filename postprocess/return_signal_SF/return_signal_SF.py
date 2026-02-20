@@ -197,7 +197,7 @@ def return_Suu_to_chi_chi_xs(mass_point,decay, y_uu = 2.0, y_x = 2.0, WB_BR = 0.
 		return None
 
 
-def return_Suu_to_chi_chi_full_xs(Suu_mass, chi_mass, y_uu = 2.0, y_x = 2.0, quiet = False):
+def return_Suu_to_chi_chi_full_xs(Suu_mass, chi_mass, y_uu = 2.0, y_x = 2.0, WB_BR=0.5, ZT_BR=0.25, HT_BR=0.25, quiet = False):
 	## input signal mass point in the format Suu$Mass_chi$Mass
 	## can be imported into other modules when needed
 

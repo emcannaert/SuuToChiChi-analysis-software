@@ -77,12 +77,17 @@ def get_maxmin_bin_content(histogram):
 			min_content = bin_content
 	return max_content,min_content
 
-def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, year, sample_type, sample_description, mass_point, technique_str,region, run_corrected, QCD_type, isSignal=False, ):
+def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, year, sample_type, sample_description, mass_point, technique_str,region, run_corrected, QCD_type, isSignal=False, useOptWP = False ):
 
 	ROOT.TH1.AddDirectory(False)
 
 	output_dir = "plots/linearized_systematic_comparisons/%s/"%QCD_type
+
+	if useOptWP:
+		output_dir = "plots/optWP/linearized_systematic_comparisons/%s/"%QCD_type
+	
 	if run_corrected: output_dir+= "correctedSystematics/"
+
 
 	technique_folder = "cutbased"
 	if "NN" in technique_str: technique_folder = "NN_based"
@@ -283,7 +288,7 @@ def create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, hist_type, systematic, 
 
 
 
-def create_systematic_comparison_plot(year, mass_point, histname, systematic, year_str, technique_str, region, QCD_type, run_corrected = False ):
+def create_systematic_comparison_plot(year, mass_point, histname, systematic, year_str, technique_str, region, QCD_type, run_corrected = False, useOptWP = False ):
 
 	if systematic == "CMS_topPt" and histname not in ["allBR", "TTbar"]: return # skip these
 	if systematic == "stat" and histname == "sig": return
@@ -295,6 +300,11 @@ def create_systematic_comparison_plot(year, mass_point, histname, systematic, ye
 	inputFile = "finalCombineFilesNewStats/%s/combine_%s%s_%s.root"%(QCD_type, technique_str, year,mass_point) 
 
 	if run_corrected: inputFile = "finalCombineFilesNewStats/%s/correctedFinalCombineFiles/combine_%s%s_%s.root"%(QCD_type, technique_str, year,mass_point) 
+
+	if useOptWP:
+		inputFile = "finalCombineFilesNewStatsOptWP/%s/combine_%s%s_%s.root"%(QCD_type, technique_str, year,mass_point) 
+		if run_corrected:
+			inputFile = "finalCombineFilesNewStatsOptWP/%s/correctedFinalCombineFiles/combine_%s%s_%s.root"%(QCD_type, technique_str, year,mass_point) 
 
 	print("Opening file %s"%(inputFile))
 
@@ -438,16 +448,21 @@ def create_systematic_comparison_plot(year, mass_point, histname, systematic, ye
 	
 
 	if histname == "sig":
-		create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, histname, systematic, year, histname, histname, mass_point, technique_str, region, run_corrected, QCD_type, True)
+		create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, histname, systematic, year, histname, histname, mass_point, technique_str, region, run_corrected, QCD_type, True, useOptWP)
 	else:
-		create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, histname, systematic, year, histname, histname, mass_point, technique_str,region, run_corrected, QCD_type)
+		create_3_hist_ratio_plot(up_hist,nom_hist,down_hist, histname, systematic, year, histname, histname, mass_point, technique_str,region, run_corrected, QCD_type, False, useOptWP)
 
-def create_2_hist_ratio_plot(year, technique_str,sample_type,QCD_type):   #### hist1 will be CR hist, hist2 will be SR hist
+def create_2_hist_ratio_plot(year, technique_str,sample_type,QCD_type, useOptWP):   #### hist1 will be CR hist, hist2 will be SR hist
 	# Create a canvas
 
 
 	input_path = "finalCombineFilesNewStats/%s/"%QCD_type 
 	output_path = "plots/SRCR_shape_comparisons/"
+
+	if useOptWP:
+		input_path = "finalCombineFilesNewStatsOptWP/%s/"%QCD_type 
+		output_path = "plots/optWP/SRCR_shape_comparisons/"
+
 	inputFile = input_path+ "combine_%s%s_Suu4_chi1.root"%(technique_str, year) 
 	finput = ROOT.TFile(inputFile)
 
@@ -556,14 +571,14 @@ def create_2_hist_ratio_plot(year, technique_str,sample_type,QCD_type):   #### h
 
 
 #### create plots comparing the shape of the linearized SR QCD and CR QCD
-def create_linear_SRCR_plots(year, technique_str, QCD_type ):
+def create_linear_SRCR_plots(year, technique_str, QCD_type, useOptWP ):
 
 	print("Creating SRCR plot for %s/%s"%(year, technique_str))
 
-	create_2_hist_ratio_plot(year, technique_str,"QCD",QCD_type)
-	create_2_hist_ratio_plot(year, technique_str,"TTbar",QCD_type)
-	create_2_hist_ratio_plot(year, technique_str,"ST",QCD_type)
-	create_2_hist_ratio_plot(year, technique_str,"allBR",QCD_type)
+	create_2_hist_ratio_plot(year, technique_str,"QCD",QCD_type, useOptWP)
+	create_2_hist_ratio_plot(year, technique_str,"TTbar",QCD_type, useOptWP)
+	create_2_hist_ratio_plot(year, technique_str,"ST",QCD_type, useOptWP)
+	create_2_hist_ratio_plot(year, technique_str,"allBR",QCD_type, useOptWP)
 
 	return
 
@@ -574,6 +589,7 @@ if __name__== "__main__":
 	###########
 	debug     = False
 	runSignal = False
+	useOptWP  = True
 	###########
 	#systematics = ["btagSFbc", "jec" ,"jer","pu", "pdf","fact", "renorm" ]
 	#"nom",  
@@ -598,6 +614,10 @@ if __name__== "__main__":
 	QCD_types = ["QCDPT","QCDHT"]
 
 	correction_only_uncerts = ["CMS_pdf_shape", "CMS_scale_shape"] ## these aren't defined in the uncorrected files
+
+	if useOptWP: 
+		QCD_types = ["QCDPT"]
+
 	for QCD_type in QCD_types:
 
 		#technique_strs = [""]
@@ -633,7 +653,7 @@ if __name__== "__main__":
 			regions = ["SR"]
 		for iii,year in enumerate(years):
 			for technique_str in technique_strs:
-				create_linear_SRCR_plots(year,technique_str,QCD_type)
+				create_linear_SRCR_plots(year,technique_str,QCD_type,useOptWP)
 
 
 
@@ -655,7 +675,7 @@ if __name__== "__main__":
 										print("============================================")"""
 
 								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
-								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region,QCD_type, True )
+								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region,QCD_type, True , useOptWP)
 								#except:
 								#	print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region))
 
@@ -677,7 +697,7 @@ if __name__== "__main__":
 
 								if systematic in correction_only_uncerts: continue
 								if histname in ["allBR","QCD","TTbar"] and mass_point != "Suu4_chi1": continue ## only want to run once for these
-								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region,QCD_type, False )
+								create_systematic_comparison_plot(year,mass_point,histname,systematic, year_str[iii], technique_str,region,QCD_type, False, useOptWP )
 								#except:
 								#	print("Failed %s/%s/%s/%s/%s/%s"%(year,technique_str,mass_point,histname,systematic,region)) 
 

@@ -22,7 +22,7 @@ def load_superbin_neighbors(year, region, use_QCD_Pt_str, technique_str="", runS
 	neighbor_dir = "superbinNeighbors"
 
 	if useOptWP:
-		neighbor_dir = "superbinNeighborsOptWP"
+		neighbor_dir = "superbinNeighbors/optWP"
 
 	#if runShifted: neighbor_dir = "superbinNeighbors/shiftedMass/"
 	open_file = open("%s/%s_superbin_neighbors%s_%s.txt"%(neighbor_dir,use_QCD_Pt_str,technique_str,year),"r")
@@ -317,7 +317,6 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 
 	for region in regions:
-
 		superbin_neighbors = load_superbin_neighbors(year, region,use_QCD_Pt_str, technique_str,runShifted, useOptWP, debug)
 
 		## create a folder in the root file and CD into it
@@ -327,7 +326,6 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 
 		for sample in samples: # name of BR type to fix
-
 
 			folder_name = region + "/"
 
@@ -927,6 +925,27 @@ def fix_uncerts(samples,mass_point, all_uncerts,uncerts_to_fix, year, region, te
 
 
 
+					## try fixing any outliers with the bins in reverse
+
+					if fix_outliers:
+
+						#print("Running for %s / %s / %s / %s"%(year, region, sample,uncert_to_fix_use))
+						for iii in reversed(range(1, hist_nom.GetNbinsX()+1)):
+
+							new_yield_up	= fix_outliers( iii, superbin_neighbors, hist_nom, hist_up_corr,	thresh_up = 2.0, thresh_down = 0.5 )
+							new_yield_down = fix_outliers( iii, superbin_neighbors, hist_nom, hist_down_corr, thresh_up = 2.0, thresh_down = 0.5 )
+
+							hist_up_corr.SetBinContent(iii,new_yield_up)
+							hist_down_corr.SetBinContent(iii,new_yield_down)
+
+							hist_up_corr.SetBinError(iii, sqrt(abs(new_yield_up)) ) 
+							hist_down_corr.SetBinError(iii, sqrt( abs(new_yield_down)) ) 
+
+
+
+
+
+
 
 
 					# now go over the corrected bins AGAIN and see make sure they are symmetric
@@ -1013,10 +1032,15 @@ if __name__=="__main__":
 	include_TTTo	 = True
 	useMask 		 = False
 
-	runShifted       = True
+	runShifted       = False
 	useOptWP 		 = True
 
 
+
+
+
+	if useOptWP:
+		include_TTTo	 = False
 	if useMask:
 		toMask			 = [True,False]
 	else:
@@ -1114,6 +1138,13 @@ if __name__=="__main__":
 	if runShifted:
 		use_QCD_Pt_opts = [True]
 		use_QCD_Pt_strs = ["QCDPT"]
+
+
+	if useOptWP:
+		use_QCD_Pt_opts = [True]
+		use_QCD_Pt_strs = ["QCDPT"]
+		include_TTTo = False
+
 
 	#years = ["2018"]
 	#use_QCD_Pt_opts = [True]

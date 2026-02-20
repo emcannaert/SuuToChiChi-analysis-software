@@ -9,6 +9,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    includeAllBranches = False
    slimmedSelection   = True
+   useOptimizedWP     = True
+   skipReclustering   = False
    verbose            = False
    runSideband        = False
    doPDF              = True
@@ -225,10 +227,19 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    for systematic in systematic_:
 
+
+      if "Suu" in sample:
+         if systematic == "nom": doPDF = True
+         else:  doPDF = False
+
+
       #### VERY IMPORTANT:  
       slimmedSelection = False if (systematic == "nom" or "Suu" in sample) else True  # save all nominal events, save all signal events 
      
 
+      ## want the selection here to be totally slimmed (can get yields a different time)
+
+      #if useOptimizedWP: slimmedSelection = False
 
 
       systematicSuffices = ["_up", "_down"]
@@ -329,6 +340,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          newCfg.write(' jetVetoMapName = cms.string("%s"),\n'%(jet_veto_map_name) )
          newCfg.write(' includeAllBranches = cms.bool(%s),\n'%(includeAllBranches ))
          newCfg.write(' slimmedSelection   = cms.bool(%s),\n'%(slimmedSelection) )
+         newCfg.write(' useOptimizedWP   = cms.bool(%s),\n'%(useOptimizedWP) )
+         newCfg.write(' skipReclustering = cms.bool(%s), \n'%(skipReclustering))
          newCfg.write(' verbose            = cms.bool(%s),\n'%(verbose) )
          newCfg.write(' runSideband            = cms.bool(%s),\n'%(runSideband) )
          newCfg.write(' year = cms.string("%s"), #types: 2015,2016,2017,2018\n'%year)

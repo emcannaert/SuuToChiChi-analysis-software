@@ -19,7 +19,7 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs,runOptimal=Fals
         file_dir    =  "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/"
 
     if runOptimal:
-        file_dir = "../combinedROOT/selectionStudy/optimal/"
+        file_dir = "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles_optWP/"
 
     years = ["2015", "2016", "2017", "2018"]
 
@@ -93,7 +93,7 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs,runOptimal=Fals
     ] 
 
 
-    if runOptimal:
+    """if runOptimal:
           BR_samples = [
 
             "QCD_Pt_300to470",
@@ -105,7 +105,7 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs,runOptimal=Fals
             "QCD_Pt_1800to2400",
             "QCD_Pt_2400to3200",
             "QCD_Pt_3200toInf"
-            ]   
+            ]   """
 
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
@@ -198,11 +198,11 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs,runOptimal=Fals
             "2018": ["dataA","dataB", "dataC", "dataD"] }
 
 
-            if runOptimal:
+            """if runOptimal:
                 data_samples = {"2015": ["JetHT"], 
                 "2016": ["JetHT"], 
                 "2017": ["JetHT"], 
-                "2018": ["JetHT"] }
+                "2018": ["JetHT"] } """
 
             ### combined BRs
 
@@ -224,8 +224,8 @@ def make_plots(file_dir, hist_names,output_dir, masks, split_BRs,runOptimal=Fals
             else: 
                 BR_types = ["ST_", "WJets", "TTJets", "QCD" ]
 
-            if runOptimal:
-                BR_types = ["TTJets","QCD"]
+            #if runOptimal:
+            #    BR_types = ["TTJets","QCD"]
 
             BR_groups = {BR_type: None for BR_type in BR_types}
 
@@ -585,8 +585,10 @@ if __name__=="__main__":
     else:
         masks = None
 
-    make_plots(args.file_dir, hist_names,args.output_dir,masks, args.split_BRs, args.runOptimal)
 
+    if args.runOptimal: args.output_dir = "plots/dataMC_optWP/"
+
+    make_plots(args.file_dir, hist_names,args.output_dir,masks, args.split_BRs, args.runOptimal)
 
 
 

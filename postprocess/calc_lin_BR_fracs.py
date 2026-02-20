@@ -2,20 +2,27 @@
 import ROOT
 import os
 
-def makeBRFracs():
+def makeBRFracs(useOptWP):
     regions   = ["SR", "CR", "AT1b", "AT0b"]
     QCD_types = ["QCDHT", "QCDPT"]
     years     = ["2015", "2016", "2017", "2018"]
     BR_types  = ["QCD", "TTbar", "WJets", "ST"]
 
 
+    dir_str = ""
+
+    if useOptWP: 
+        dir_str = "OptWP"
+        QCD_types = ["QCDPT"]
+
+
     for qcd in QCD_types:
-	if not os.path.exists("finalCombineFilesNewStats/BR_fracs/%s"%(qcd)):
-        	os.makedirs("finalCombineFilesNewStats/BR_fracs/%s"%(qcd))
-	outname = "finalCombineFilesNewStats/BR_fracs/%s/BR_fracs.root"%qcd
+	if not os.path.exists("finalCombineFilesNewStats%s/BR_fracs/%s"%(dir_str,qcd)):
+        	os.makedirs("finalCombineFilesNewStats%s/BR_fracs/%s"%(dir_str,qcd))
+	outname = "finalCombineFilesNewStats%s/BR_fracs/%s/BR_fracs.root"%(dir_str,qcd)
 	fout = ROOT.TFile(outname, "RECREATE")
         for year in years:
-            infile_name = "finalCombineFilesNewStats/{}/correctedFinalCombineFiles/combine_{}_Suu4_chi1.root".format(qcd, year)
+            infile_name = "finalCombineFilesNewStats{}/{}/correctedFinalCombineFiles/combine_{}_Suu4_chi1.root".format(dir_str,qcd, year)
             fin = ROOT.TFile.Open(infile_name, "READ")
             if not fin or fin.IsZombie():
                 print("Could not open {}".format(infile_name))
@@ -67,4 +74,7 @@ def makeBRFracs():
     print("Output written to {}".format(outname))
 
 if __name__ == "__main__":
-    makeBRFracs()
+
+    useOptWP = True
+
+    makeBRFracs(useOptWP)

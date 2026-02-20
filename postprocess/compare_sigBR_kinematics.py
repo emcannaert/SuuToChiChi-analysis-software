@@ -7,19 +7,18 @@ from return_BR_SF.return_BR_SF import return_BR_SF
 from return_signal_SF.return_signal_SF import return_signal_SF
 from combine_hists import combine_hists
 
-### creates plots of initial selection variables (directly before their corresponding cut is applied) 
-### for combined BRs (as stack) and a few signal mass points
+### Create plots comparing kinematic variables (normalized) for combined background and a few signal mass points
 
 def era_translator(year):
 	if year == "2015": return "2016preAPV"
 	elif year == "2016": return "2016postAPV"
 	else: return year
 
-def create_initial_selction_plots(year, hist_type, hist_cut ):   # year = year, hist_type = the name of the histogram to plot, hist_cut = where to draw red line
+def compare_sigBR_kinematics(year, hist_type ):   # year = year, hist_type = the name of the histogram to plot
 
 
 	infile_path 	 = "root://cmseos.fnal.gov//store/user/ecannaer/processedFiles/"   # location of processed files 
-	output_plot_path = "plots/initial_selection/"
+	output_plot_path = "plots/sig_BR_kinematics_comp/"
 
 	QCD_samples   = ["QCDMC_Pt_170to300","QCDMC_Pt_300to470","QCDMC_Pt_470to600","QCDMC_Pt_600to800","QCDMC_Pt_800to1000",
 						 "QCDMC_Pt_1000to1400","QCDMC_Pt_1400to1800","QCDMC_Pt_1800to2400","QCDMC_Pt_2400to3200", "QCDMC_Pt_3200toInf" ]
@@ -122,32 +121,9 @@ def create_initial_selction_plots(year, hist_type, hist_cut ):   # year = year, 
 		sig_hist.Draw("HIST, SAME")
 		legend.AddEntry(sig_hist, sig_types[iii], "l")
 
-
-	# Draw line where cut is put in place
-	line = ROOT.TLine(hist_cut-0.5, 0, hist_cut-0.5, 1e2 * hs.GetMaximum() )
-	line.SetLineColor(ROOT.kRed)
-	line.SetLineWidth(4)  # Optional: make the line thicker
-	line.SetLineStyle(1)  # Optional: dashed line (1 = solid, 2 = dashed, 3 = dotted, etc.)
-
-	# Draw the line on the same canvas
-	line.Draw("SAME")
-
 	c1.Update()  # refresh canvas
 
 	c1.SetLogy()
-
-	# Add text along the line
-	text = ROOT.TText()
-	text.SetTextAngle(90)      # rotate 90 degrees along vertical line
-	text.SetTextAlign(22)      # centered
-	text.SetTextSize(0.015)     # normalized size
-	text.SetTextColor(ROOT.kBlack)
-	#offset_val = 1.05 if hist_cut > 10 else 1.025
-	#text.DrawText((1.08)*(hist_cut-0.5), 0.4 , "Selection cut applied")
-	text.DrawText((1.125)*(hist_cut-0.5), 25 * hs.GetMaximum() , "Selection cut applied")
-
-	#text.DrawText(hist_cut - 0.5 + 0.05, 0.25, "Selection cut applied")
-
 
 	# Add label under legend using TLatex or TText
 	label = ROOT.TLatex()
@@ -157,15 +133,6 @@ def create_initial_selction_plots(year, hist_type, hist_cut ):   # year = year, 
 	y_label = 0.55  # just below the legend
 	#label.DrawLatex(x_label, y_label, r"#bf{Note: Combined background and individual signal samples are normalized}")
 
-
-	# Define the text
-	text = ROOT.TLatex()
-	text.SetTextSize(0.032)
-	text.SetTextFont(62)
-	text.SetTextAlign(22)  # Center alignment (horizontal and vertical)
-	text.DrawLatexNDC(0.65, 0.60, "Era: %s"%(era_translator(year))) 
-	text.DrawLatexNDC(0.65, 0.56, "Normalized") 
-
 	legend.SetBorderSize(0)
 	legend.SetFillStyle(0)
 	legend.Draw()
@@ -174,6 +141,18 @@ def create_initial_selction_plots(year, hist_type, hist_cut ):   # year = year, 
 	SIM_label_pos = 0.342
 	write_cms_text(CMS_label_pos, SIM_label_pos)
 
+
+	# Define the text
+	text = ROOT.TLatex()
+	text.SetTextSize(0.032)
+	text.SetTextFont(62)
+	text.SetTextAlign(22)  # Center alignment (horizontal and vertical)
+	text.DrawLatexNDC(0.25, 0.80, "Era: %s"%(era_translator(year))) 
+	text.DrawLatexNDC(0.25, 0.76, "Normalized") 
+
+
+
+
 	c1.SaveAs("%s/%s_sigBR_comparison_%s.png"%(output_plot_path,hist_type, year))
 
 
@@ -181,12 +160,29 @@ if __name__ == "__main__":
 
 	years = ["2015","2016","2017","2018"]
 
-	hist_names = ["h_totHT", "h_nfatjets", "h_nfatjets_pre", "h_dijet_mass", "h_nMedBTags", "h_nCA4_300_1b"]
-	hist_cuts = [1600., 3, 2, 1000., 2,1]
+	hist_names = [ "h_nAK4",
+					"h_nAK4_pt50",
+					"h_nAK4_pt75",
+					"h_nAK4_pt100",
+					"h_nAK4_pt150",
+					"h_AK8_jet_mass",
+					"h_AK8_jet_pt",
+					"h_AK8_eta",
+					"h_AK8_phi",
+					"h_AK4_eta",
+					"h_AK4_phi",
+					"h_nCA4_100_1b",
+					"h_nCA4_50_0b", 
+					"h_SJ_mass",
+					"h_disuperjet_mass"
+
+
+					]
+
 
 	for year in years:
 		for iii,hist_name in enumerate(hist_names):
-			create_initial_selction_plots(year, hist_name, hist_cuts[iii] )
+			compare_sigBR_kinematics(year, hist_name )
 
 
 
