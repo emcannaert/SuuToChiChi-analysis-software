@@ -60,7 +60,7 @@ The analysis proceeds through the following key scripts/utilities (in execution 
      ```
 
 4. **Post-Processing**
-   - `postprocess/calculateStatisticalUncertaintyBins.py`  
+   - `postprocess/make_superbin_maps.py.py`  
      Creates **TH2F→TH1F bin maps** that guarantee a target fractional statistical uncertainty per bin.  
      Maps are stored in  
      ```
@@ -86,13 +86,13 @@ The analysis proceeds through the following key scripts/utilities (in execution 
      ```
      postprocess/finalCombineFilesNewStats/<QCD type>/correctedFinalCombineFiles/
      ```  
-     These corrected ROOT files are the **direct inputs** to the statistical analysis.
+     These corrected ROOT files are the what are used in the statistical analysis.
 
 ---
 
 ## Combine Analysis
 
-The final corrected ROOT files produced by `fix_asymmetric_uncerts.py` are the inputs to the Combine framework. The corresponding Combine repository is hosted here: [suutochichi_combine](https://gitlab.cern.ch/ecannaer/suutochichi_combine)
+The final corrected ROOT files produced by `fix_asymmetric_uncerts.py` are starting point for the Combine framework. The corresponding Combine repository is hosted here: [suutochichi_combine](https://gitlab.cern.ch/ecannaer/suutochichi_combine)
 
 ---
 

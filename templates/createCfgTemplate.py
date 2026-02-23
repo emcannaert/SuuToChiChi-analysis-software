@@ -111,7 +111,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    if not "data" in sample: 
       if year == "2018":
          newCfg.write("process.GlobalTag.globaltag = '106X_upgrade2018_realistic_v16_L1v1'\n")  
-      elif year == "2017":
+      elif year == "2017":                            
          newCfg.write("process.GlobalTag.globaltag = '106X_mc2017_realistic_v10'\n")
       elif year == "2016":
          newCfg.write("process.GlobalTag.globaltag = '106X_mcRun2_asymptotic_v17'\n")
