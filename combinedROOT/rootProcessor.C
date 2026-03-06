@@ -22,7 +22,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
    int eventNumber, ntrueInt, nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse, nMuons_looseID_medIso, nElectrons_looseID_looseISO,nEventsTTbarCR = 0,eventTTbarCRFlag =0, nfatjet_pre;
    int jet_ndaughters[100], jet_nAK4[100],jet_nAK4_20[100],jet_nAK4_30[100],jet_nAK4_50[100],jet_nAK4_70[100],SJ_nAK4_150[100],jet_nAK4_150[100],SJ_nAK4_200[100],SJ_nAK4_400[100],SJ_nAK4_600[100],SJ_nAK4_800[100],SJ_nAK4_1000[100];
    int SJ_nAK4_100[100], SJ_nAK4_300[100],nGenBJets_AK4[100], AK4_partonFlavour[100],AK4_HadronFlavour[100];
-   double diAK8Jet_mass [100],JEC_uncert_AK8[50], JEC_uncert_AK4[50], AK8_JER[50],AK4_eta[100];
+   double diAK8Jet_mass [100],JEC_uncert_AK8[50], JEC_uncert_AK4[50], AK8_JER[50],AK4_eta[100], heavyAK8_isHEM[100];
    double bTag_eventWeight_T ,bTag_eventWeight_M = 1.0, PU_eventWeight = 1.0,fourAK8JetMass;
    double bTag_eventWeight_bc_M_corr_up = 1,  bTag_eventWeight_bc_M_corr_down = 1,bTag_eventWeight_light_M_corr_up = 1, bTag_eventWeight_light_M_corr_down =1;
    double bTag_eventWeight_bc_M_up = 1,  bTag_eventWeight_bc_M_down = 1,bTag_eventWeight_light_M_up = 1, bTag_eventWeight_light_M_down = 1;
@@ -287,6 +287,10 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 
 
+		TH2F *h_AK4_eta_vs_phi = new TH2F("h_AK4_eta_vs_phi","AK4 Jet #eta vs #phi (Post Veto Maps); #phi; #eta", 70,-3.5, 3.5, 60, -3.0, 3.0);  /// 375 * 125
+		TH2F *h_AK8_eta_vs_phi = new TH2F("h_AK8_eta_vs_phi","AK8 Jet #eta vs #phi (Post Veto Maps); #phi; #eta", 70,-3.5, 3.5, 60, -3.0, 3.0);  /// 375 * 125
+		TH2F *h_AK4_eta_vs_phi_SR = new TH2F("h_AK4_eta_vs_phi_SR","AK4 Jet #eta vs #phi (Post Veto Maps) (SR); #phi; #eta", 70,-3.5, 3.5, 60, -3.0, 3.0);  /// 375 * 125
+		TH2F *h_AK8_eta_vs_phi_SR = new TH2F("h_AK8_eta_vs_phi_SR","AK8 Jet #eta vs #phi (Post Veto Maps) (SR); #phi; #eta", 70,-3.5, 3.5, 60, -3.0, 3.0);  /// 375 * 125
 
 
 		// number of tagged superjets per SJ mass bin ----- cut-based
@@ -718,7 +722,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		h_scale_eventWeight_vs_HT,h_scale_eventWeight_vs_SJ_mass,h_PU_eventWeight_vs_HT,h_PU_eventWeight_vs_SJ_mass,h_bTag_eventWeight_T_vs_HT,h_bTag_eventWeight_T_vs_SJ_mass,h_bTag_eventWeight_M_vs_HT,
 		h_bTag_eventWeight_M_vs_SJ_mass,h_JEC_AK8_vs_pt,h_JEC_AK4_vs_pt,h_JER_AK8_vs_pt,h_pdf_eventWeight_vs_HT_SR,h_pdf_eventWeight_vs_SJ_mass_SR,h_scale_eventWeight_vs_HT_SR,h_scale_eventWeight_vs_SJ_mass_SR,
 		h_PU_eventWeight_vs_HT_SR,h_PU_eventWeight_vs_SJ_mass_SR,h_bTag_eventWeight_T_vs_HT_SR,h_bTag_eventWeight_T_vs_SJ_mass_SR,h_bTag_eventWeight_M_vs_HT_SR,h_bTag_eventWeight_M_vs_SJ_mass_SR,h_JEC_AK8_vs_pt_SR,h_JEC_AK4_vs_pt_SR,
-		h_JER_AK8_vs_pt_SR};
+		h_JER_AK8_vs_pt_SR, h_AK4_eta_vs_phi,h_AK8_eta_vs_phi,h_AK4_eta_vs_phi_SR,h_AK8_eta_vs_phi_SR    };
 
 		std::vector<TGraph*> TGraph_container = { g_pdf_eventWeight_vs_HT_SR,g_pdf_eventWeight_vs_SJ_mass_SR,g_scale_eventWeight_vs_HT_SR,g_scale_eventWeight_vs_SJ_mass_SR,g_PU_eventWeight_vs_HT_SR,
 		g_PU_eventWeight_vs_SJ_mass_SR,g_bTag_eventWeight_T_vs_HT_SR,g_bTag_eventWeight_T_vs_SJ_mass_SR,g_bTag_eventWeight_M_vs_HT_SR,g_bTag_eventWeight_M_vs_SJ_mass_SR,g_JEC_AK8_vs_pt_SR,g_JEC_AK4_vs_pt_SR,
@@ -750,13 +754,13 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		t1->SetBranchAddress("passesPFHT", &passesPFHT); 
 		t1->SetBranchAddress("passesPFJet", &passesPFJet); 
 
-		t1->SetBranchAddress("nfatjets", &nfatjets);   
+		t1->SetBranchAddress("nfatjets", &nfatjets);              // NEED TO CHANGE TO nAK8
 		t1->SetBranchAddress("nSuperJets", &nSuperJets);   
 		t1->SetBranchAddress("tot_nAK4_50", &tot_nAK4_50);				//total #AK4 jets (E>50 GeV) for BOTH superjets
 		t1->SetBranchAddress("tot_nAK4_70", &tot_nAK4_70);   
-		t1->SetBranchAddress("disuperJet_mass", &diSuperJet_mass);   
-		t1->SetBranchAddress("disuperJet_mass_100", &diSuperJet_mass_100); 
-		t1->SetBranchAddress("nfatjet_pre", &nfatjet_pre); 
+		t1->SetBranchAddress("diSuperJet_mass", &diSuperJet_mass);   
+		t1->SetBranchAddress("diSuperJet_mass_100", &diSuperJet_mass_100); 
+		t1->SetBranchAddress("nfatjet_pre", &nfatjet_pre);        // NEED TO CHANGE TO nHeavyAK8
 		t1->SetBranchAddress("jet_pt", jet_pt);   
 		t1->SetBranchAddress("jet_eta", jet_eta); 
 		t1->SetBranchAddress("jet_phi", jet_phi);   
@@ -782,7 +786,12 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		t1->SetBranchAddress("AK4_eta", AK4_eta); 
 		t1->SetBranchAddress("AK4_phi", AK4_phi); 
 		t1->SetBranchAddress("AK4_mass", AK4_mass); 
-		t1->SetBranchAddress("lab_AK4_pt", AK4_pt); 
+		t1->SetBranchAddress("lab_AK4_pt", AK4_pt);       // NEED TO CHANGE TO AK4_pt
+
+		t1->SetBranchAddress("fatjet_pre_isHEM", fatjet_pre_isHEM);  // NEED TO CHANGE TO heavyAK8_isHEM
+
+		
+
 
 		t1->SetBranchAddress("dijetMassOne", &dijetMassOne); 
 		t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo); 
@@ -796,8 +805,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 		t1->SetBranchAddress("JEC_uncert_AK8", JEC_uncert_AK8); 
 		t1->SetBranchAddress("JEC_uncert_AK4", JEC_uncert_AK4); 
 
-		t1->SetBranchAddress("fatjet_isHEM", fatjet_isHEM); 
-		t1->SetBranchAddress("jet_isHEM", jet_isHEM); 
+		t1->SetBranchAddress("fatjet_isHEM", fatjet_isHEM);  // NEED TO CHANGE to AK8_isHEM
+		t1->SetBranchAddress("jet_isHEM", jet_isHEM); 		  // NEED TO CHANGE to AK4_isHEM
 		t1->SetBranchAddress("prefiringWeight_nom", &prefiringWeight);
 
       t1->SetBranchAddress("nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse", &nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse); 
@@ -881,24 +890,24 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 			//////// pdf weight systematic 
 			else if((systematic == "pdf") && (*systematic_suffix == "up"))
 			{
-				if(inFileName.find("QCDMC_Pt") != std::string::npos) 
-				{
+				//if(inFileName.find("QCDMC_Pt") != std::string::npos) 
+				//{
 
 					t1->SetBranchAddress("PDFWeight_RMS_up", &pdf_weight);
 					if(debug)std::cout << "Recognized systematic as pdf, sample as QCDMC_Pt, the pdf_weight is " << pdf_weight << std::endl;
-				}
-				else { t1->SetBranchAddress("PDFWeightUp_BEST", &pdf_weight); } 
+				//}
+				//else { t1->SetBranchAddress("PDFWeightUp_BEST", &pdf_weight); } 
 			}
 			else if((systematic == "pdf") && (*systematic_suffix == "down"))
 			{
 
-				if(inFileName.find("QCDMC_Pt") != std::string::npos) 
-				{
+				//if(inFileName.find("QCDMC_Pt") != std::string::npos) 
+				//{
 					t1->SetBranchAddress("PDFWeight_RMS_down", &pdf_weight);
 					if(debug)std::cout << "Recognized systematic as pdf, sample as QCDMC_Pt, the pdf_weight is " << pdf_weight << std::endl;
 
-				}
-				else { t1->SetBranchAddress("PDFWeightDown_BEST", &pdf_weight); } 
+				//}
+				//else { t1->SetBranchAddress("PDFWeightDown_BEST", &pdf_weight); } 
 			}
 			/////// scale stuff 
 			//////// renormalization scale systematic 
@@ -1319,6 +1328,10 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 				h_JEC_uncert_AK4->Fill(JEC_uncert_AK4[iii]);
 				h_AK4_eta->Fill(AK4_eta[iii], eventScaleFactor);
+
+				h_AK4_eta_vs_phi->Fill(AK4_phi[iii],AK4_eta[iii],eventScaleFactor);
+
+
 				h_AK4_phi->Fill(AK4_phi[iii], eventScaleFactor);
 				h_AK4_pt->Fill(AK4_pt[iii], eventScaleFactor);
 				h_JEC_AK4_vs_pt->Fill(AK4_pt[iii],JEC_uncert_AK4[iii]);
@@ -1332,25 +1345,25 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				{
 					nAK4_pt150++;
 					if ( AK4_DeepJet_disc[iii] > tightDeepCSV_DeepJet ) nTightBTags_pt150++;
-					if  (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )   nMedBTags_pt150++;
+					if  (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet && !jet_isHEM[iii]  )   nMedBTags_pt150++;
 				}
 				if (AK4_pt[iii] > 100)
 				{
 					nAK4_pt100++;
 					if ( AK4_DeepJet_disc[iii] > tightDeepCSV_DeepJet ) nTightBTags_pt100++;
-					if  (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )   nMedBTags_pt100++;
+					if  (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet && !jet_isHEM[iii])   nMedBTags_pt100++;
 				}
 				if (AK4_pt[iii] > 75)
 				{
 					nAK4_pt75++;
 					if ( AK4_DeepJet_disc[iii] > tightDeepCSV_DeepJet ) nTightBTags_pt75++;
-					if  (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )   nMedBTags_pt75++;
+					if  (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet && !jet_isHEM[iii])   nMedBTags_pt75++;
 				}
 				if (AK4_pt[iii] > 50)
 				{
 					nAK4_pt50++;
 					if ( AK4_DeepJet_disc[iii] > tightDeepCSV_DeepJet ) nTightBTags_pt50++;
-					if  (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )   nMedBTags_pt50++;
+					if  (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet && !jet_isHEM[iii])   nMedBTags_pt50++;
 				}
 
 				h_AK4_DeepJet_disc->Fill(AK4_DeepJet_disc[iii]);
@@ -1362,7 +1375,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 					else if(abs(AK4_HadronFlavour[iii]) == 0) h_trueLight_jets_tight_b_tagged_by_pt->Fill(AK4_pt[iii]);				
 					nTightBTags++;
 				} 
-				if ( (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )   && (AK4_pt[iii] > 70.)) 
+				if ( (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )   && (AK4_pt[iii] > 70.) && !jet_isHEM[iii] ) 
 				{
 					if(abs(AK4_HadronFlavour[iii]) == 5) h_trueb_jets_med_b_tagged_by_pt->Fill(AK4_pt[iii]);
 					else if(abs(AK4_HadronFlavour[iii]) == 4) h_truec_jets_med_b_tagged_by_pt->Fill(AK4_pt[iii]);
@@ -1405,7 +1418,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 				h_AK8_eta->Fill(jet_eta[iii], eventScaleFactor);
 				h_AK8_phi->Fill(jet_phi[iii], eventScaleFactor);
-
+				
+				h_AK8_eta_vs_phi->Fill(jet_phi[iii], jet_eta[iii], eventScaleFactor);
 			}	
 
 
@@ -1442,7 +1456,14 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 				continue;
 			}
 
-			h_nfatjets_pre->Fill(1.0*nfatjet_pre,eventScaleFactor);
+			nHeavyAK8_noHEM = 0; // recount the nHeavyAK8 here to make sure they are not HEM
+			for(int iii =0; iii< nfatjet_pre)
+			{
+				if(!fatjet_pre_isHEM[iii]) nHeavyAK8_noHEM++;
+			}
+
+
+			h_nfatjets_pre->Fill(1.0*nHeavyAK8_noHEM,eventScaleFactor);
 			h_dijet_mass->Fill(dijetMassOne, eventScaleFactor);
 			h_dijet_mass->Fill(dijetMassTwo, eventScaleFactor);
 			nAK8JetCut+=eventScaleFactor;
@@ -1450,7 +1471,7 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 			//&& ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  )
 
-			if (  (nfatjet_pre < 2)   && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.))      )
+			if (  (nHeavyAK8_noHEM < 2)   && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.))      )
 			{
 				h_failed_events->Fill(7);
 				continue;
@@ -2109,6 +2130,8 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 
 							nTGraphPoints_AK8_SR++;
 
+							h_AK8_eta_vs_phi_SR->Fill(jet_phi[iii], jet_eta[iii], eventWeightToUse);
+
 						}
 						for(int iii=0; iii<nAK4; iii++)
 						{
@@ -2117,6 +2140,9 @@ bool doThings(std::string inFileName, std::string outFileName, double& nEvents, 
 							g_JEC_AK4_vs_pt_SR->SetPoint(nTGraphPoints_AK4_SR, AK4_pt[iii], JEC_uncert_AK4[iii]);
 							h_JEC_AK4_vs_pt_SR->Fill(AK4_pt[iii], JEC_uncert_AK4[iii]);
 							prof_JEC_AK4_vs_pt_SR->Fill(AK4_pt[iii], JEC_uncert_AK4[iii]);
+
+							h_AK4_eta_vs_phi_SR->Fill(AK4_phi[iii], AK4_eta[iii], eventWeightToUse);
+
 							nTGraphPoints_AK4_SR++;
 
 							if ( (AK4_DeepJet_disc[iii] > medDeepCSV_DeepJet )  && (AK4_pt[iii] > 70.)) 
@@ -2399,12 +2425,12 @@ void rootProcessor()
    bool runData			= false;
    bool runSignal    	= false;
    bool runBR	  			= false;
-   bool runAll	 			= false;
+   bool runAll	 			= true;
    bool runDataBR    	= false;
-   bool runSelection 	= true;
+   bool runSelection 	= false;
    bool runSingleFile 	= false;
 
-   bool runOptimizedWP  	 = true;
+   bool runOptimizedWP  	 = false;
    bool simulateShiftedMass = false;
 
    int nFailedFiles = 0;

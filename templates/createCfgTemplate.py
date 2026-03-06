@@ -14,6 +14,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    verbose            = False
    runSideband        = False
    doPDF              = True
+   includeTightBTag   = False
+   runNoiseFilters    = True
    limit_events       = False
    runBEST            = False
 
@@ -195,6 +197,16 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
 
 
+   newCfg.write("##############################################################################\n")
+   newCfg.write('process.noiseFilter = cms.EDFilter("noiseFilter",\n')
+   newCfg.write(' year = cms.string("%s"), #types: 2015,2016,2017,2018\n'%year)
+   newCfg.write(")\n")
+
+
+
+
+
+
 
    ### prefiring weights
    if year == "2015":
@@ -349,11 +361,14 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          newCfg.write(' lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
          newCfg.write(' bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
          newCfg.write(' triggers = cms.string("%s"),\n'%trigger)
-         newCfg.write(' runBEST = cms.bool(%s),\n'%runBEST)
+         #newCfg.write(' runBEST = cms.bool(%s),\n'%runBEST)
          if apply_pu_ID:
             newCfg.write(' doPUID = cms.bool(True),\n')
          else:
             newCfg.write(' doPUID = cms.bool(False),\n')
+
+         newCfg.write(' includeTightBTag = cms.bool(%s),\n'%includeTightBTag)
+
          newCfg.write('  doPDF = cms.bool(%s)\n'%doPDF)
          newCfg.write(")\n")
 
@@ -402,6 +417,10 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    #  newCfg.write("process.makeGenEvt* ")
       
    newCfg.write("process.leptonVeto * process.prefiringweight  ")
+
+
+   if runNoiseFilters: newCfg.write("* process.noiseFilter   ")
+
    ########if you need to check the collections, add this to the path:  process.content
       
    for systematic in systematic_:

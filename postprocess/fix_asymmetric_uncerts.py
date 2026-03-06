@@ -1033,7 +1033,7 @@ if __name__=="__main__":
 	useMask 		 = False
 
 	runShifted       = False
-	useOptWP 		 = True
+	useOptWP 		 = False
 
 
 

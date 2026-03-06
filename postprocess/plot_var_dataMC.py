@@ -593,7 +593,7 @@ if __name__=="__main__":
 
 
 # EX:
-#python plot_var_dataMC.py --hist_names h_nAK4_all,h_totHT,h_AK8_jet_mass,h_AK8_jet_pt,h_nfatjets,h_nfatjets_pre,h_dijet_mass,h_AK8_jet_mass_CR,h_AK4_jet_mass_CR,h_totHT_CR,h_totHT_AT1b,h_totHT_AT0b,h_nfatjets_CR,h_nAK4_CR,h_SJ_nAK4_100_CR,h_SJ_nAK4_200_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_SJ_mass_AT0b,h_disuperjet_mass_AT0b,h_nAK4_AT0b,h_nMedBTags,h_AK8_eta,h_AK8_phi,h_AK4_eta,h_AK4_phi --output_dir plots/B2G_update --mask h_totHT:3000,h_AK8_jet_mass:500,h_AK8_jet_pt:1200,h_dijet_mass:1200,h_totHT_AT1b:4000
+#python plot_var_dataMC.py --hist_names h_AK8_jet_pt,h_nAK4_all,h_totHT,h_AK8_jet_mass,h_AK8_jet_pt,h_nfatjets,h_nfatjets_pre,h_dijet_mass,h_AK8_jet_mass_CR,h_AK4_jet_mass_CR,h_totHT_CR,h_totHT_AT1b,h_totHT_AT0b,h_nfatjets_CR,h_nAK4_CR,h_SJ_nAK4_100_CR,h_SJ_nAK4_200_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_SJ_mass_AT0b,h_disuperjet_mass_AT0b,h_nAK4_AT0b,h_nMedBTags,h_AK8_eta,h_AK8_phi,h_AK4_eta,h_AK4_phi --output_dir plots/B2G_update --mask h_AK8_jet_pt:1500,h_totHT:3000,h_AK8_jet_mass:500,h_AK8_jet_pt:1200,h_dijet_mass:1200,h_totHT_AT1b:4000
 
 #OPTIMAL RUN:
 #python plot_var_dataMC.py --hist_names h_AK8_jet_mass_CR,h_totHT_CR,h_SJ_mass_CR,h_disuperjet_mass_CR,h_JEC_uncert_AK8_CR,h_JEC_uncert_AK4_CR,h_AK4_jet_mass_CR,h_nAK4_pt75_CR,h_AK8_jet_pt_CR,h_Full_Event_Weight_CR,h_AK8_eta_CR,h_AK8_phi_CR,h_AK4_eta_CR,h_AK4_phi_CR --output_dir plots/optimal/  --runOptimal

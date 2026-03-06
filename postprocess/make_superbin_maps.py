@@ -17,6 +17,7 @@ import argparse
 import array
 import copy
 
+import datetime
 
 ROOT.TColor.InvertPalette()
 ROOT.gStyle.SetPalette(ROOT.kViridis)
@@ -48,10 +49,9 @@ class combineHistBins:
 		self.useOptWP = useOptWP
 
 		#### characteristic thresholds for merging process ----- CHANGE THESE -----
-		self.max_stat_uncert 	 		= 0.20  ## maximum statistical uncertainty
+		self.max_stat_uncert 	 		= 0.2  ## maximum statistical uncertainty
 		self.distance_threshold  		= 5.0
 		self.superbin_size_threshold	= 25
-
 
 		#### characteristic thresholds for superbin group making ----- CHANGE THESE -----
 		self.superbin_size_threshold	 = 25  ## any superbins with more constituent 2D bins than this get their own bin parameters automatically
@@ -64,7 +64,7 @@ class combineHistBins:
 		if self.region in ["AT1b","AT0b"]: self.max_stat_uncert = 0.12
 
 		self.min_unscaled_QCD_bin_counts   = 2.0   ## the minimum number of unscaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
-		self.min_scaled_QCD_bin_counts     = 0.0   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
+		self.min_scaled_QCD_bin_counts     = 0.4   ## the minimum number of scaled QCD events required to be in each bin, better to make this 1 or more to prevent weird "migration" stuff
 
 		## options for which MCs to include
 		self.includeTTJetsMCHT800to1200 = True
@@ -939,11 +939,14 @@ class combineHistBins:
 
 if __name__=="__main__":
 
-	debug	   = False
-	dryRun     = False
-	runEos 	   = True
-	runShifted = False
-	useOptWP    = True
+	debug	    = False
+	dryRun      = False
+	runEos 	    = True
+	runShifted  = False
+	useOptWP    = False
+	skipQCDHT   = True
+
+
 	print("Calculating bin groupings for best statistical uncertainties")
 	
 	optWP_str = ""
@@ -952,6 +955,10 @@ if __name__=="__main__":
 
 	useQCDHT_opts = [True,False] # true = use HT-binned QCD, false means use Pt-binned QCD
 	useQCDHT_strs  = ["QCDHT", "QCDPT"]
+
+	if skipQCDHT:
+		useQCDHT_opts = [False] # true = use HT-binned QCD, false means use Pt-binned QCD
+		useQCDHT_strs  = ["QCDPT"]
 
 	years = ["2015","2016","2017","2018"]
 	regions = ["SR","CR", "AT1b", "AT0b"  ]   # "AT0tb", "AT1tb", "SB1b", "SB0b"
@@ -983,9 +990,24 @@ if __name__=="__main__":
 	for jjj,useQCDHT_opt in enumerate(useQCDHT_opts):
 			
 
-		text_output_path  = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/binMaps/"   #output_map_file_name
-		group_output_path = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinGroups/"
+		text_output_path     = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/binMaps/"   #output_map_file_name
+		group_output_path    = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinGroups/"
 		neighbor_output_path = os.getenv('CMSSW_BASE') + "/src/SuuToChiChi_analysis_software/postprocess/superbinNeighbors/"
+
+		timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M") # create folder to keep track of old maps
+		text_output_copy_path     = text_output_path + "/oldBinMaps/" + timestamp
+		group_output_copy_path    = group_output_path + "/oldBinGroups/" + timestamp
+		neighbor_output_copy_path = neighbor_output_path + "/oldNeighbors/" + timestamp
+
+		if not os.path.exists(text_output_copy_path):
+		    os.makedirs(text_output_copy_path)
+		    os.makedirs(text_output_copy_path+ "/plots")
+		if not os.path.exists(group_output_copy_path):
+		    os.makedirs(group_output_copy_path)
+		    os.makedirs(group_output_copy_path+ "/plots")
+		if not os.path.exists(neighbor_output_copy_path):
+		    os.makedirs(neighbor_output_copy_path)
+		    os.makedirs(neighbor_output_copy_path+ "/plots")
 
 
 		if runShifted:
@@ -1006,11 +1028,11 @@ if __name__=="__main__":
 			#SB_neighbors_NN_cmd = 'rm %s/%s/%s_superbin_neighborsNN_*.txt'%(neighbor_output_path,optWP_str,useQCDHT_strs[jjj])
 
 			os.system(SB_index_CB_cmd )
-			os.system(SB_index_NN_cmd ) 
+			#os.system(SB_index_NN_cmd ) 
 			os.system(SB_group_CB_cmd )
-			os.system(SB_group_NN_cmd)
+			#os.system(SB_group_NN_cmd)
 			os.system( SB_neighbors_CB_cmd)
-			os.system( SB_neighbors_NN_cmd)
+			#os.system( SB_neighbors_NN_cmd)
 
 
 		for region in regions:
@@ -1034,6 +1056,7 @@ if __name__=="__main__":
 						print("===============================================================================")
 
 					if not dryRun:  
+
 						out_txt_file = open("%s/%s/%s_superbin_indices%s_%s.txt"%(text_output_path, optWP_str, useQCDHT_strs[jjj],output_strs[iii],year),"a")
 						superbin_group_txt_file = open("%s/%s/%s_superbin_groups%s_%s.txt"%(group_output_path, optWP_str, useQCDHT_strs[jjj], output_strs[iii],year),"a")
 						superbin_neighbor_txt_file = open("%s/%s/%s_superbin_neighbors%s_%s.txt"%(neighbor_output_path, optWP_str, useQCDHT_strs[jjj],output_strs[iii],year),"a")
@@ -1156,7 +1179,6 @@ if __name__=="__main__":
 					if not dryRun:  
 
 
-
 						#print("Writing outputs for QCD type = %s/%s/%s/%s/"%(useQCDHT_strs[jjj],region,year,hist_name))
 
 						out_txt_file.write("%s/%s/number of bins = %s/%s\n"%(year,region, len(testCase.superbin_indices), testCase.superbin_indices))
@@ -1247,8 +1269,9 @@ if __name__=="__main__":
 
 
 					c.SaveAs( "%s/%s_bin_map_%s%s_%s.png"%( plt_home, useQCDHT_strs[jjj],output_strs[iii],region,year)) 
-					
+					c.SaveAs( "%s/%s_bin_map_%s%s_%s.png"%( text_output_copy_path + "/plots/", useQCDHT_strs[jjj],output_strs[iii],region,year)) 
 
+					
 					###### superbin map with superbin numbering scheme
 
 					#ROOT.gStyle.SetPalette(0)  # Suppress default palette
@@ -1308,16 +1331,13 @@ if __name__=="__main__":
 						# Draw label at the best bin center
 						if best_bin:
 							x_text, y_text = best_bin
-							latex.DrawLatex(x_text, y_text, str(group_id))
+							latex.DrawLatex(x_text, y_text, str(group_id+1))
 
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 					
 					c.SaveAs( "%s/%s_bin_map_wSBNumbering_%s%s_%s.png"%(plt_home, useQCDHT_strs[jjj], output_strs[iii],region,year)) 
-					
-
-
-
+					c.SaveAs( "%s/%s_bin_map_wSBNumbering_%s%s_%s.png"%(text_output_copy_path + "/plots/", useQCDHT_strs[jjj], output_strs[iii],region,year)) 
 
 
 
@@ -1385,6 +1405,9 @@ if __name__=="__main__":
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 
 					c.SaveAs( "%s/%s_stat_uncert_%s%s_%s.png"%(plt_home,useQCDHT_strs[jjj],output_strs[iii],region,year))
+					c.SaveAs( "%s/%s_stat_uncert_%s%s_%s.png"%(text_output_copy_path + "/plots/",useQCDHT_strs[jjj],output_strs[iii],region,year))
+
+
 
 
 					ROOT.gStyle.SetPalette(ROOT.kViridis)
@@ -1450,6 +1473,7 @@ if __name__=="__main__":
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 					c.SaveAs( "%s/%s_bin_counts_%s%s_%s.png"%(plt_home,useQCDHT_strs[jjj],output_strs[iii],region,year)) 
+					c.SaveAs( "%s/%s_bin_counts_%s%s_%s.png"%(text_output_copy_path + "/plots/",useQCDHT_strs[jjj],output_strs[iii],region,year)) 
 
 
 					ROOT.gStyle.SetPalette(ROOT.kViridis)
@@ -1512,7 +1536,8 @@ if __name__=="__main__":
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
 					c.SaveAs( "%s/%s_scaled_bin_counts_%s%s_%s.png"%(plt_home,useQCDHT_strs[jjj],output_strs[iii],region,year)) 
-					
+					c.SaveAs( "%s/%s_scaled_bin_counts_%s%s_%s.png"%(text_output_copy_path + "/plots/",useQCDHT_strs[jjj],output_strs[iii],region,year)) 
+
 
 
 					c.SetRightMargin(0.18)
@@ -1582,10 +1607,27 @@ if __name__=="__main__":
 					c.Modified()
 					c.Update()
 					c.SaveAs( "%s/%s_unscaled_QCD_bin_counts_%s%s_%s.png"%(plt_home,useQCDHT_strs[jjj],output_strs[iii],region,year)) 
+					c.SaveAs( "%s/%s_unscaled_QCD_bin_counts_%s%s_%s.png"%(text_output_copy_path + "/plots/",useQCDHT_strs[jjj],output_strs[iii],region,year)) 
+
 
 					c.SetLogz(False)
 
+		
+		for year in years:
+			bin_map_copy_cmd = 'cp %s/%s_superbin_indices_*.txt %s'%( text_output_path,useQCDHT_strs[jjj], text_output_copy_path)
+			os.system(bin_map_copy_cmd)
+
+			group_copy_cmd	= 'cp %s/%s_superbin_groups_*.txt %s'%(group_output_path,useQCDHT_strs[jjj], group_output_copy_path)
+			os.system(group_copy_cmd)
+
+			neighbors_copy_cmd = 'cp %s/%s_superbin_neighbors_*.txt %s'%(neighbor_output_path,useQCDHT_strs[jjj], neighbor_output_copy_path)
+			os.system(neighbors_copy_cmd)
 
 
+			settings_file = open(text_output_path + "/current_settings.txt","w")
+			settings_file.write("Current settings in folder binMaps/%s"%(timestamp))
+			settings_file.close()
+			
+			
 
 

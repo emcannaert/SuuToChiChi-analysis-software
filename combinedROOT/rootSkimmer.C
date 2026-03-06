@@ -11,7 +11,7 @@
 bool doThings(std::string inFileName, std::string outFileName, double &eventScaleFactors, std::string year, std::vector<std::string> systematics, std::string dataBlock, std::string runType, bool runOptimizedWP, bool dryRun)
 {
    double totHT, dijetMassOne, dijetMassTwo;
-   int nfatjets, nfatjet_pre,nAK4;
+   int nAK8, nHeavyAK8,nAK4;
    double SJ_mass_100[100], AK4_pt[100],AK4_DeepJet_disc[100];
    int SJ_nAK4_300[100], SJ_nAK4_50[100], SJ_nAK4_100[100], SJ_nAK4_150[100];
    double PU_eventWeight_nom, bTag_eventWeight_T_nom = 1.0,bTag_eventWeight_M_nom = 1.0;
@@ -30,7 +30,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
    int totEventsUncut = 0;
    bool verbose = true;
 
-	bool jet_isHEM[100], jet_pre_isHEM[100], fatjet_isHEM[100]; 
+	bool AK4_isHEM[100], heavyAK8_isHEM[100], AK8_isHEM[100]; 
 	bool AK8_fails_veto_map[100], AK4_fails_veto_map[100];
    bool passesPFHT = false, passesPFJet = false;
 
@@ -163,8 +163,8 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
 
          t1->SetBranchAddress("totHT", &totHT);   
-         t1->SetBranchAddress("nfatjets", &nfatjets);     
-         t1->SetBranchAddress("nfatjet_pre", &nfatjet_pre); 
+         t1->SetBranchAddress("nAK8", &nAK8);     
+         t1->SetBranchAddress("nHeavyAK8", &nHeavyAK8); 
          t1->SetBranchAddress("dijetMassOne", &dijetMassOne);   
          t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
 
@@ -222,9 +222,9 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          //t1->SetBranchAddress("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4); 
 
 
-         t1->SetBranchAddress("jet_pre_isHEM", jet_pre_isHEM); 
-         t1->SetBranchAddress("jet_isHEM", jet_isHEM); 
-         t1->SetBranchAddress("fatjet_isHEM", fatjet_isHEM); 
+         t1->SetBranchAddress("heavyAK8_isHEM", heavyAK8_isHEM); 
+         t1->SetBranchAddress("AK4_isHEM", AK4_isHEM); 
+         t1->SetBranchAddress("AK8_isHEM", AK8_isHEM); 
 
          t1->SetBranchAddress("AK8_fails_veto_map", AK8_fails_veto_map); 
          t1->SetBranchAddress("AK4_fails_veto_map", AK4_fails_veto_map); 
@@ -370,9 +370,9 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
             bool fails_veto_map = false;
             bool fails_HEM      = false;
-            for(int iii=0;iii<nfatjets;iii++) // a non-zero value is a bad thing from AK8_fails_veto_map 
+            for(int iii=0;iii<nAK8;iii++) // a non-zero value is a bad thing from AK8_fails_veto_map 
             {
-               if( fatjet_isHEM[iii]  )     fails_HEM = true; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
+               if( AK8_isHEM[iii]  )     fails_HEM = true; // CHANGED FROM if (AK8_fails_veto_map[iii]) fails_veto_map = true; 
                if( AK8_fails_veto_map[iii]) fails_veto_map = true;
             }
 
@@ -427,7 +427,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
 
             ///// (F) -------> Apply nAK8 jet cut
-            if( (nfatjets < 3)   ) 
+            if( (nAK8 < 3)   ) 
             {
                nFailed_nAK8++;
                if(!isNom)continue;
@@ -437,7 +437,13 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
             ///// (G) -------> Apply nHeavyAK8 or diJet mass cuts
 
-            if ((nfatjet_pre < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))
+            nHeavyAK8_noHEM = 0; // recount the nHeavyAK8 here to make sure they are not HEM
+            for(int iii =0; iii<nHeavyAK8)
+            {
+               if(!heavyAK8_isHEM[iii]) nHeavyAK8_noHEM++;
+            }
+
+            if ((nHeavyAK8_noHEM < 2) && ( (dijetMassOne < 1000. ) || ( dijetMassTwo < 1000.)  ))
             {
                nFailed_nHeavyAK8++;
                if(!isNom)continue;
@@ -522,7 +528,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                   {
                      if((SJ_nAK4_300[1]>=2) && (SJ_mass_100[1]>=400.)   )
                      {
-                        //std::cout << "In the AT1b region: SJ mass/diSJ mass/nAK8/AK4/nBtags/eventweight are " << superJet_mass[1]<< "/" << diSuperJet_mass<< "/" << nfatjets << "/" << nAK4 << "/"<< nTightBTags << "/" << eventWeight <<  std::endl;
+                        //std::cout << "In the AT1b region: SJ mass/diSJ mass/nAK8/AK4/nBtags/eventweight are " << superJet_mass[1]<< "/" << diSuperJet_mass<< "/" << nAK8 << "/" << nAK4 << "/"<< nTightBTags << "/" << eventWeight <<  std::endl;
                         nAT1b+=eventWeight;
                         nAT1b_noScale++;
                      }
@@ -1143,4 +1149,7 @@ void rootSkimmer()
       }
    }
 }
+
+
+
 

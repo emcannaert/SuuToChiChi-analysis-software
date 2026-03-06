@@ -3973,8 +3973,8 @@ if __name__=="__main__":
 	use_1b_bin_maps 	     = True
 
 	runCorrected			 = False # use the "corrected" versions of the uncertainties stored in processedFilesCorrected, these have the fixed scale and pdf uncertainties for QCDPT
-	useOptWP			     = True
-
+	useOptWP			     = False
+	skipQCDHT 				 = True
 
 	if useOptWP:
 		includeTTTo = False
@@ -4035,7 +4035,9 @@ if __name__=="__main__":
 		use_QCD_Pt_strs = ["QCDPT"]
 
 
-
+	if skipQCDHT:
+		use_QCD_Pt_opts = [True]
+		use_QCD_Pt_strs = ["QCDPT"]		
 
 
 	for year in years:
