@@ -242,7 +242,10 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString,useOptimalWP
 	inputFiles.append(jec_file_AK8[year][sample_type])
 	inputFiles.append(jec_file_AK4[year][sample_type])
 
+	year_str = year
+	if year in ["2015","2016"]: year_str = "2016"
 
+	#inputFiles.append("data/M_SD_corr/puppiCorr_%s.root"%(year_str))
 
 	## include files that are needed 
 	if "Suu" in sample:

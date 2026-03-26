@@ -21,6 +21,10 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
 
    if "QCDMC_Pt" in sample: doPDF = False
 
+   if systematic__ != "nom":
+      doPDF = False
+
+
    if runSideband: print("WARNING: RUNNING SIDEBAND REGION.")
 
    if "data" in sample or "nom" not in systematic__:   # do not want to do pdf weights for data or for the JEC/JER variation runs
@@ -78,6 +82,13 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    elif year == "2018":
       jet_veto_map_name = "h2hot_ul18_plus_hem1516_and_hbp2m1"
       jet_veto_map_file = "SuuToChiChi_analysis_software/data/jetVetoMaps/hotjets-UL18.root"
+
+
+   # for SD corrections
+   year_str = year
+   if year in ["2015","2016"]:
+      year_str = "2016"
+
 
    newCfg.write("from PhysicsTools.PatAlgos.tools.helpers  import getPatAlgosToolsTask\n")
    newCfg.write("import FWCore.ParameterSet.Config as cms\n")
@@ -296,7 +307,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
          elif year == "2018":
             newCfg.write(" PUfile_path = cms.FileInPath('SuuToChiChi_analysis_software/data/POG/LUM/2018_UL/puWeights.json'),\n")
 
-         
+         #newCfg.write(" SD_corr_path = cms.FileInPath('SuuToChiChi_analysis_software/data/M_SD_corr/puppiCorr_%s.root'),\n"%(year_str))
+
          #should this be for data and MC?
          if "MC" in sample or "Suu" in sample:
             """

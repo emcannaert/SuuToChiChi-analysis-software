@@ -74,6 +74,7 @@
 
 #include "TTree.h"
 #include "TFile.h"
+#include "TF1.h"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
@@ -82,6 +83,7 @@
 #include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
 #include "PhysicsTools/PatUtils/interface/SmearedJetProducerT.h"
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -118,10 +120,11 @@ private:
     bool isHEM(const double jet_eta, const double jet_phi);
     double top_pt_SF(double top_pt);
     double calcAlphas(double q2);
+    std::vector<edm::FileInPath> get_AK4_JEC_paths(std::string, std::string);
     double calcRenormWeight(double q2, int up_or_dn, int nQCD);
     double calcFactorizWeight(LHAPDF::PDF* pdf, double id1, double id2, double x1, double x2, double q2, int up_or_dn);
-    std::string returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType);
-    double getJECUncertaintyFromSources(std::string jet_type, double pt, double eta);
+    std::string returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType, bool isAK4PFPuppi);
+    double getJECUncertaintyFromSources(std::string jet_type, double pt, double eta, bool isAK4PFPuppi);
     const reco::Candidate* parse_chain(const reco::Candidate* cand);
     bool applyJERSource(std::string uncertainty_source, double eta);
     int lhapdfPDGID(const int pdgid) const { return std::abs(pdgid) == 21 ? 0 : pdgid; }
@@ -160,8 +163,9 @@ private:
     edm::FileInPath path_;
     edm::FileInPath bTagSF_path;
     edm::FileInPath bTagEff_path;
-    edm::FileInPath JECUncert_AK8_path;
-    edm::FileInPath JECUncert_AK4_path;
+    //edm::FileInPath JECUncert_AK8_path;
+    //edm::FileInPath JECUncert_AK4_path;
+    FactorizedJetCorrector *subjetCorrector;
 
     edm::FileInPath PUfile_path;
     std::string runType;
@@ -169,13 +173,19 @@ private:
     std::string year;
     std::string lumiTag;
 
-
     std::string jetVetoMapName;
     edm::FileInPath jetVetoMapFile;
 
     std::vector<std::string> triggers;
-
     std::unique_ptr<Pythia8::Pythia> pythia_;
+
+    TFile *SD_corr_file;
+    TF1* puppisd_corrGEN;
+    TF1* puppisd_corrRECO_cen;
+    TF1* puppisd_corrRECO_for;
+
+
+    std::vector<edm::FileInPath> AK4_JEC_pars; 
 
     bool doPUID = false;
     bool doPDF = false;
@@ -208,7 +218,7 @@ private:
     double jet_pt[100], jet_eta[100], jet_mass[100], jet_dr[100], raw_jet_mass[100],raw_jet_pt[100],raw_jet_phi[100], jet_jec_full[100], AK4_jec_full[100];
     double SJ_mass_50[2], SJ_mass_70[2],SJ_mass_100[2],superJet_mass[2],SJ_AK4_50_mass[2],SJ_AK4_70_mass[2];
     double SJ_mass_125[2], SJ_mass_150[2], SJ_mass_200[2],SJ_mass_300[2],SJ_mass_400[2],SJ_mass_600[2],SJ_mass_800[2],SJ_mass_1000[2];  
-    double AK4_mass[100], jet_SD_mass[100];
+    double AK4_mass[100], jet_SD_mass[100], M_SD_uncorr_usrstr[100], SD_corr[100];
     double diSuperJet_mass,diSuperJet_mass_300;
 
     double top_pt_weight;
@@ -367,6 +377,7 @@ private:
 
     std::vector<std::string> uncertainty_sources;
     std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK4;   // contains the correctors for each uncertainty source
+    std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK4PFPuppi;   // contains the correctors for each uncertainty source
     std::map<std::string, std::unique_ptr<JetCorrectionUncertainty>> JEC_map_AK8;   // contains the correctors for each uncertainty source
 
     int nMuons_looseID_looseIso = 0, nMuons_medID_looseIso = 0, nMuons_looseID_medIso = 0;
@@ -438,8 +449,8 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
         ET_cut = 300;
     }
 
-   //if(_verbose) 
-   std::cout << "Using ET / HT / nAK8 / nHAK8 cuts = " << ET_cut << " / " << HT_cut << " / " << nAK8Cut << " / " << nHAK8Cut << std::endl;
+    //if(_verbose) 
+    std::cout << "Using ET / HT / nAK8 / nHAK8 cuts = " << ET_cut << " / " << HT_cut << " / " << nAK8Cut << " / " << nHAK8Cut << std::endl;
 
     // "pdfWeights" "NNPDF31"
     //triggers  = iConfig.getParameter<std::string>("triggers"); // not currently set up: am setting triggers manually in this file
@@ -450,6 +461,11 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
     if( systematicType.find("JEC") != std::string::npos)
     {
         doJEC = true;
+        std::cout << "Will vary JEC values by their uncertainties." << std::endl;
+    }
+    else
+    {
+        std::cout << "Will use nominal JECs." << std::endl;
     }
     if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
     {
@@ -462,7 +478,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
         if ((runType.find("TTTo") != std::string::npos) || (runType.find("TTJets") != std::string::npos)) doTopPtReweight = true;  
 
-        bTagSF_path  = iConfig.getParameter<edm::FileInPath>("bTagSF_path");
+        bTagSF_path     = iConfig.getParameter<edm::FileInPath>("bTagSF_path");
         bTagEff_path    = iConfig.getParameter<edm::FileInPath>("bTagEff_path");
 
         GeneratorToken_       = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfoTag")); //generator
@@ -533,8 +549,8 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
       
     }
     PUfile_path       = iConfig.getParameter<edm::FileInPath>("PUfile_path");
-    JECUncert_AK8_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK8_path");
-    JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
+    //JECUncert_AK8_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK8_path");
+    //JECUncert_AK4_path = iConfig.getParameter<edm::FileInPath>("JECUncert_AK4_path");
 
     // prefiring weights
     prefweight_token  = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProb"));
@@ -552,35 +568,50 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
     ///////////////////////////////////////
 
 
-    //initialize JEC text files
+    //initialize JEC text files for standard AK4/AK8 jets
 
     /////////////////////////////////////////////////////////////////////////
     //////////////// create file maps for the JEC sources ///////////////////
 
-    file_map["2015"]["MC"] = "Summer19UL16APV_V9_MC";
-    file_map["2016"]["MC"] = "Summer19UL16_V9_MC";
-    file_map["2017"]["MC"] = "Summer19UL17_V6_MC";
+    file_map["2015"]["MC"] = "Summer19UL16APV_V7_MC";
+    file_map["2016"]["MC"] = "Summer19UL16_V7_MC";
+    file_map["2017"]["MC"] = "Summer19UL17_V5_MC";
     file_map["2018"]["MC"] = "Summer19UL18_V5_MC";
 
     file_map["2015"]["dataBCD"] = "Summer19UL16APV_RunBCD_V7_DATA";
     file_map["2015"]["dataEF"] = "Summer19UL16APV_RunEF_V7_DATA";
     file_map["2016"]["dataFGH"] = "Summer19UL16_RunFGH_V7_DATA";
 
-    file_map["2017"]["dataB"] = "Summer19UL17_RunB_V6_DATA";
-    file_map["2017"]["dataC"] = "Summer19UL17_RunC_V6_DATA";
-    file_map["2017"]["dataD"] = "Summer19UL17_RunD_V6_DATA";
-    file_map["2017"]["dataE"] = "Summer19UL17_RunE_V6_DATA";
-    file_map["2017"]["dataF"] = "Summer19UL17_RunF_V6_DATA";
+    file_map["2017"]["dataB"] = "Summer19UL17_RunB_V5_DATA";
+    file_map["2017"]["dataC"] = "Summer19UL17_RunC_V5_DATA";
+    file_map["2017"]["dataD"] = "Summer19UL17_RunD_V5_DATA";
+    file_map["2017"]["dataE"] = "Summer19UL17_RunE_V5_DATA";
+    file_map["2017"]["dataF"] = "Summer19UL17_RunF_V5_DATA";
 
-    file_map["2018"]["dataA"] = "Summer19UL18_RunA_V6_DATA";
-    file_map["2018"]["dataB"] = "Summer19UL18_RunB_V6_DATA";
-    file_map["2018"]["dataC"] = "Summer19UL18_RunC_V6_DATA";
-    file_map["2018"]["dataD"] = "Summer19UL18_RunD_V6_DATA";
+    file_map["2018"]["dataA"] = "Summer19UL18_RunA_V5_DATA";
+    file_map["2018"]["dataB"] = "Summer19UL18_RunB_V5_DATA";
+    file_map["2018"]["dataC"] = "Summer19UL18_RunC_V5_DATA";
+    file_map["2018"]["dataD"] = "Summer19UL18_RunD_V5_DATA";
+
+
+    // initialize JEC text files for PUPPI AK4 jets (for softdrop correction) in order 
+
+    std::vector<edm::FileInPath> AK4_JEC_paths = get_AK4_JEC_paths(year, runType);
+
+    std::vector<JetCorrectorParameters> AK4_JEC_pars;
+    for(auto fpath : AK4_JEC_paths)
+    {
+        AK4_JEC_pars.push_back( JetCorrectorParameters(fpath.fullPath().c_str()));
+    }
+    // init the corrector
+    subjetCorrector = new FactorizedJetCorrector(AK4_JEC_pars);
 
 
     if(_verbose)std::cout << "Getting text file names." << std::endl;
-    edm::FileInPath  JEC_source_text_AK4 = (edm::FileInPath )returnJECFile(year, systematicType, "AK4", runType );
-    edm::FileInPath  JEC_source_text_AK8 = (edm::FileInPath )returnJECFile(year, systematicType, "AK8", runType );
+    edm::FileInPath  JEC_source_text_AK4        = (edm::FileInPath )returnJECFile(year, systematicType, "AK4", runType, false); 
+    edm::FileInPath  JEC_source_text_AK4PFPuppi = (edm::FileInPath )returnJECFile(year, systematicType, "AK4", runType, true ); // for SD mass correction
+    edm::FileInPath  JEC_source_text_AK8        = (edm::FileInPath )returnJECFile(year, systematicType, "AK8", runType, false );
+
 
     if(_verbose)std::cout << "AK4/AK8 text files are " << JEC_source_text_AK4 << "--------" << JEC_source_text_AK8 << std::endl;
     // OLD way of doing JEC uncertainties, these are paths to the total uncertainties
@@ -696,6 +727,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
     for(const auto &uncertainty_source: uncertainty_sources)
     {
 
+        // AK4PFchs
         if(_verbose)std::cout <<    "----- AK4 jets: -----" << std::endl;
         if(_verbose)std::cout <<    "uncertainty_source: " << uncertainty_source << std::endl;
         JetCorrectorParameters source_parameters_reduced_AK4(JEC_source_text_AK4.fullPath().c_str(), uncertainty_source);
@@ -705,6 +737,17 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
         if(_verbose)std::cout <<    "AK4: adding the uncertainty object to the JEC map" << std::endl;
         JEC_map_AK4.emplace(uncertainty_source, std::move(source_uncertainty_reduced_AK4));
         if(_verbose)std::cout <<    "AK4: added the uncertainty object to the JEC map" << std::endl;
+
+
+        // AK8PFPuppi  (for SD mass corrections)
+        JetCorrectorParameters source_parameters_reduced_AK4PFPuppi(JEC_source_text_AK4PFPuppi.fullPath().c_str(), uncertainty_source);
+        std::unique_ptr<JetCorrectionUncertainty> source_uncertainty_reduced_AK4PFPuppi(new JetCorrectionUncertainty(source_parameters_reduced_AK4PFPuppi));
+        JEC_map_AK4PFPuppi.emplace(uncertainty_source, std::move(source_uncertainty_reduced_AK4PFPuppi));
+
+
+
+
+
 
 
         if(_verbose)std::cout <<    "----- AK8 jets: -----" << std::endl;
@@ -857,6 +900,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
     if(_verbose)std::cout << "Initializing TTree variables." << std::endl;
 
+
     ///////////////////////////////////////
     ////////// init tree branches /////////
     ///////////////////////////////////////
@@ -893,10 +937,10 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
     tree->Branch("nAK4", &nAK4, "nAK4/I");
     tree->Branch("AK4_pt", AK4_pt, "AK4_pt[nAK4]/D");
-    tree->Branch("AK4_px", jet_px, "AK4_px[nAK4]/D");
-    tree->Branch("AK4_py", jet_py, "AK4_py[nAK4]/D");
-    tree->Branch("AK4_pz", jet_pz, "AK4_pz[nAK4]/D");
-    tree->Branch("AK4_E",  jet_E,  "AK4_E[nAK4]/D");
+    tree->Branch("AK4_px", AK4_px, "AK4_px[nAK4]/D");
+    tree->Branch("AK4_py", AK4_py, "AK4_py[nAK4]/D");
+    tree->Branch("AK4_pz", AK4_pz, "AK4_pz[nAK4]/D");
+    tree->Branch("AK4_E",  AK4_E,  "AK4_E[nAK4]/D");
     tree->Branch("AK4_eta", AK4_eta , "AK4_eta[nAK4]/D");
     tree->Branch("AK4_phi", AK4_phi , "AK4_phi[nAK4]/D");
     tree->Branch("AK4_mass", AK4_mass, "AK4_mass[nAK4]/D");
@@ -916,6 +960,8 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
     tree->Branch("jet_phi", jet_phi, "jet_phi[nAK8]/D");
     tree->Branch("jet_mass", jet_mass, "jet_mass[nAK8]/D");
     tree->Branch("jet_SD_mass", jet_SD_mass, "jet_SD_mass[nAK8]/D");
+    tree->Branch("M_SD_uncorr_usrstr", M_SD_uncorr_usrstr, "M_SD_uncorr_usrstr[nAK8]/D");
+    tree->Branch("SD_corr", SD_corr, "SD_corr[nAK8]/D");
     tree->Branch("AK8_fails_veto_map", AK8_fails_veto_map, "AK8_fails_veto_map[nAK8]/O");
     tree->Branch("AK8_isHEM", AK8_isHEM, "AK8_isHEM[nAK8]/O");
     tree->Branch("jet_jec_full", jet_jec_full, "jet_jec_full[nAK8]/D");
@@ -1081,39 +1127,6 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
          tree->Branch("AK4_is_near_highE_CA4", AK4_is_near_highE_CA4 , "AK4_is_near_highE_CA4[nAK4]/O");    // which superjet (1 or 0) was an AK8 jet assigned to
         }
 
-        if( ((runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos)) && doPDFWeights)
-        {
-
-            //tree->Branch("PDFWeights_alphas", &PDFWeights_alphas, "PDFWeights_alphas/D");
-            // alternative calculations as BEST does them
-
-            tree->Branch("QCDFactorization_up_BEST", &QCDFactorization_up_BEST, "QCDFactorization_up_BEST/D");
-            tree->Branch("QCDFactorization_down_BEST", &QCDFactorization_down_BEST, "QCDFactorization_down_BEST/D");
-
-            tree->Branch("QCDRenormalization_up_BEST", &QCDRenormalization_up_BEST, "QCDRenormalization_up_BEST/D");
-            tree->Branch("QCDRenormalization_down_BEST", &QCDRenormalization_down_BEST, "QCDRenormalization_down_BEST/D");
-
-            //tree->Branch("scale_envelope", scale_envelope, "scale_envelope[10]/D");
-
-            tree->Branch("PDFWeights_envelope_scale_uncertainty_up", &PDFWeights_envelope_scale_uncertainty_up, "PDFWeights_envelope_scale_uncertainty_up/D");
-            tree->Branch("PDFWeights_envelope_scale_uncertainty_down", &PDFWeights_envelope_scale_uncertainty_down, "PDFWeights_envelope_scale_uncertainty_down/D");
-
-
-            // above: scale_envelope = all the envelope variations from the pdf as written in https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Factorization_and_renormalizatio
-            // index 0: muF = 2.0, muR = 1.0
-            // index 1: muF = 0.5, muR = 1.0
-            // index 2: muF = 2.0, muR = 2.0
-            // index 3: muF = 1.0, muR = 2.0
-            // index 4: muF = 0.5, muR = 0.5
-            // index 5: muF = 1.0, muR = 0.5
-            // index 6: muF = 2.0, muR = 0.5 // this shouldn't be needed
-            // index 7: muF = 0.5, muR = 2.0 // this shouldn't be needed
-            // index 8: muF = 1.0, muR = 1.0 // this might be needed for normalization
-            // index 9: nominal pdf weight
-        }
-
-
-
     }
 
     if( (runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos))    //don't want these variables for data
@@ -1231,6 +1244,48 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             tree->Branch("PDFWeight_RMS_up", &PDFWeight_RMS_up, "PDFWeight_RMS_up/D");
             tree->Branch("PDFWeight_RMS_down", &PDFWeight_RMS_down, "PDFWeight_RMS_down/D");
 
+
+            if( doPDFWeights)
+            {
+                
+                //tree->Branch("PDFWeights_alphas", &PDFWeights_alphas, "PDFWeights_alphas/D");
+                // alternative calculations as BEST does them
+
+                tree->Branch("QCDFactorization_up_BEST", &QCDFactorization_up_BEST, "QCDFactorization_up_BEST/D");
+                tree->Branch("QCDFactorization_down_BEST", &QCDFactorization_down_BEST, "QCDFactorization_down_BEST/D");
+
+                tree->Branch("QCDRenormalization_up_BEST", &QCDRenormalization_up_BEST, "QCDRenormalization_up_BEST/D");
+                tree->Branch("QCDRenormalization_down_BEST", &QCDRenormalization_down_BEST, "QCDRenormalization_down_BEST/D");
+
+                //tree->Branch("scale_envelope", scale_envelope, "scale_envelope[10]/D");
+
+                tree->Branch("PDFWeights_envelope_scale_uncertainty_up", &PDFWeights_envelope_scale_uncertainty_up, "PDFWeights_envelope_scale_uncertainty_up/D");
+                tree->Branch("PDFWeights_envelope_scale_uncertainty_down", &PDFWeights_envelope_scale_uncertainty_down, "PDFWeights_envelope_scale_uncertainty_down/D");
+
+
+                /// PDF weights as calculated by LHEEventWeight product
+                tree->Branch("PDFWeightUp", &PDFWeightUp, "PDFWeightUp/D");
+                tree->Branch("PDFWeightDown", &PDFWeightDown, "PDFWeightDown/D");
+
+
+
+
+                // above: scale_envelope = all the envelope variations from the pdf as written in https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Factorization_and_renormalizatio
+                // index 0: muF = 2.0, muR = 1.0
+                // index 1: muF = 0.5, muR = 1.0
+                // index 2: muF = 2.0, muR = 2.0
+                // index 3: muF = 1.0, muR = 2.0
+                // index 4: muF = 0.5, muR = 0.5
+                // index 5: muF = 1.0, muR = 0.5
+                // index 6: muF = 2.0, muR = 0.5 // this shouldn't be needed
+                // index 7: muF = 0.5, muR = 2.0 // this shouldn't be needed
+                // index 8: muF = 1.0, muR = 1.0 // this might be needed for normalization
+                // index 9: nominal pdf weight
+            }
+
+
+
+
             if(doPUSF)
             {
                 tree->Branch("PU_eventWeight_up", &PU_eventWeight_up, "PU_eventWeight_up/D");
@@ -1314,12 +1369,19 @@ const reco::Candidate* clusteringAnalyzerAll::parse_chain(const reco::Candidate*
     return cand;
 }
 
+
 //// return back the JEC file for a given systematic, year, and jet type
-std::string clusteringAnalyzerAll::returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType)
+std::string clusteringAnalyzerAll::returnJECFile(std::string year, std::string systematicType, std::string jet_type, std::string runType, bool isAK4PFPuppi = false)
 {
     std::string data_type = "MC";
     std::string jet_str = "AK8PFPuppi";
-    if (jet_type == "AK4"){ jet_str = "AK4PFchs";}
+    if (jet_type == "AK4")
+    { 
+        if(isAK4PFPuppi) jet_str = "AK4PFPuppi";
+        else{ jet_str = "AK4PFchs"; }
+    }
+
+
     if ((runType.find("data") != std::string::npos) )
     {
         if(year == "2015")
@@ -1332,15 +1394,71 @@ std::string clusteringAnalyzerAll::returnJECFile(std::string year, std::string s
         else if (year == "2018") data_type = runType;
 
     } 
-    // Summer19UL16APV_V9_MC/RegroupedV2_Summer19UL16APV_V9_MC_UncertaintySources_AK4PFchs.txt
-    if (data_type.find("data") != std::string::npos ) return ("SuuToChiChi_analysis_software/data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str    + ".txt" ).c_str();
 
-    else { return ("SuuToChiChi_analysis_software/data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str + ".txt" ).c_str(); }
+    std::string year_str = "2016";
+    if      (year == "2017") year_str = "2017";
+    else if (year == "2018") year_str = "2018";
+    // Summer19UL16APV_V9_MC/RegroupedV2_Summer19UL16APV_V9_MC_UncertaintySources_AK4PFchs.txt
+    
+    // OLD WAY
+    //if (data_type.find("data") != std::string::npos ) return ("SuuToChiChi_analysis_software/data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str    + ".txt" ).c_str();
+    //else { return ("SuuToChiChi_analysis_software/data/JEC_uncertainty_sources/" + file_map[year][data_type] + "/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str + ".txt" ).c_str(); }
+
+
+    if (data_type.find("data") != std::string::npos ) return ("SuuToChiChi_analysis_software/data/JEC_uncertainty_sources/" + year_str + "_UL/" + file_map[year][data_type] + "_UncertaintySources_" +jet_str    + ".txt" ).c_str();
+    else { return ("SuuToChiChi_analysis_software/data/JEC_uncertainty_sources/" + year_str + "_UL/" + file_map[year][data_type]  + "_UncertaintySources_" +jet_str + ".txt" ).c_str(); }
+
+
 
 }
 
+// returns the file paths to the AK4 PUPPI JES corrections (one for each step)
+std::vector<edm::FileInPath> clusteringAnalyzerAll::get_AK4_JEC_paths(std::string year, std::string runType)
+{
+    bool isData = false;
+    if(runType.find("data") != std::string::npos) isData = true;
+
+    std::string data_type = "MC";
+    if (isData)
+    {
+        if(year == "2015")
+        {
+            if( (runType.find("dataE") != std::string::npos) || (runType.find("dataF") != std::string::npos)  ) data_type = "dataEF";
+            else {  data_type = "dataBCD";}
+        }
+        if(year == "2016")       data_type = "dataFGH";
+        else if (year == "2017") data_type = runType;
+        else if (year == "2018") data_type = runType;
+
+    } 
+
+    std::string year_str = "2016";
+    if      (year == "2017") year_str = "2017";
+    else if (year == "2018") year_str = "2018";
+
+    std::string JEC_dir = "SuuToChiChi_analysis_software/data/JEC_corrs/" + year_str + "_UL/";
+
+
+    std::vector<edm::FileInPath> AK4_JEC_paths_;
+    std::vector<std::string> corr_steps = {"L1FastJet", "L2Relative","L3Absolute"};
+    if(isData) corr_steps.push_back("L2L3Residual");
+
+
+
+    for(auto corr_step: corr_steps)
+    {
+        edm::FileInPath AK4_JEC_path =  edm::FileInPath((JEC_dir +  file_map[year][data_type] +"_" + corr_step +  "_AK4PFPuppi.txt").c_str());
+        AK4_JEC_paths_.push_back(AK4_JEC_path);
+    }
+
+    return AK4_JEC_paths_;
+}
+
+
+
+
 /// returns the JEC uncertainty scale factor (from a specific, reduced source) for a given jet with pt, eta
-double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type, double pt, double eta)
+double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type, double pt, double eta, bool isAK4PFPuppi = false)
 {  
 
     if(_verbose)std::cout << "----------------------------- new jet --------------------------------- " << std::endl;
@@ -1359,9 +1477,21 @@ double clusteringAnalyzerAll::getJECUncertaintyFromSources(std::string jet_type,
         if( jet_type == "AK4")
         {  
             if(_verbose)std::cout << "For AK4: Trying to access source " << *uncert_source << std::endl;
-            JEC_map_AK4[*uncert_source]->setJetEta(eta );
-            JEC_map_AK4[*uncert_source]->setJetPt( pt );
-            AK4_JEC_uncertainty = fabs(JEC_map_AK4[*uncert_source]->getUncertainty(true));
+
+            if(isAK4PFPuppi)
+            {
+                JEC_map_AK4PFPuppi[*uncert_source]->setJetEta(eta );
+                JEC_map_AK4PFPuppi[*uncert_source]->setJetPt( pt );
+                AK4_JEC_uncertainty = fabs(JEC_map_AK4PFPuppi[*uncert_source]->getUncertainty(true));
+            }
+            else
+            {
+                JEC_map_AK4[*uncert_source]->setJetEta(eta );
+                JEC_map_AK4[*uncert_source]->setJetPt( pt ); 
+                AK4_JEC_uncertainty = fabs(JEC_map_AK4[*uncert_source]->getUncertainty(true));
+           
+            }
+
             if(_verbose)std::cout << "Source: " << *uncert_source << ", value:  " << AK4_JEC_uncertainty << std::endl;
             uncert+= pow(AK4_JEC_uncertainty,2);
             uncertainty_names += (*uncert_source + " ");
@@ -1808,14 +1938,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
         if(doJEC)
         {
-            double AK4_JEC_uncertainty = getJECUncertaintyFromSources("AK4", iJet->pt(), iJet->eta());
-
+            
+            double AK4_JEC_uncertainty;
             if(systematicType.find("_up") != std::string::npos) 
             {
+                AK4_JEC_uncertainty = getJECUncertaintyFromSources("AK4", iJet->pt(), iJet->eta());
                 AK4_JEC_corr_factor = 1 + AK4_JEC_uncertainty;
             }
             else if(systematicType.find("_down") != std::string::npos) 
             {
+                AK4_JEC_uncertainty = getJECUncertaintyFromSources("AK4", iJet->pt(), iJet->eta());
                 AK4_JEC_corr_factor = 1 - AK4_JEC_uncertainty;
             }  
 
@@ -1891,7 +2023,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         nAK4_uncut++;
 
         //measure event HT
-        if((corrJet.pt() > 30.)&&(abs(corrJet.eta()) < 2.5)    )totHT+= abs(corrJet.pt() );
+        if((corrJet.pt() > 50.)&&(abs(corrJet.eta()) < 2.5)    )totHT+= abs(corrJet.pt() ); // changed from 30 GeV
 
         // apply AK4 jet selection (post JEC and JER)
         bool PUID = true; // assumed true if not applying this
@@ -1900,7 +2032,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             PUID = false;
             PUID = bool( corrJet.userInt("pileupJetIdUpdated:fullId") & (1 << 1));
         }
-        if( (corrJet.pt() <30.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(), corrJet.pt() )) ) 
+        if( (corrJet.pt() <50.) || (!(corrJet.isPFJet())) || (!isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(), corrJet.pt() )) )  // changed from 30 GeV
         {
             if(debug) std::cout << "Jet does not pass initial selection " << std::endl;
             continue;
@@ -2566,7 +2698,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
         if ((bTag_eventWeight_M_nom != bTag_eventWeight_M_nom) || (std::isinf(bTag_eventWeight_M_nom)) || (bTag_eventWeight_M_nom < 0.))
         {
-            if(_verbose)std::cout << "data_tagged_med/data_notTagged__med/MC_tagged__med/MC_notTagged_med: " <<data_tagged_med << "/" <<data_notTagged_med << "/" << MC_notTagged_med<< "/" << MC_notTagged_med<< std::endl;
+            if(_verbose)std::cout << "data_tagged_med/data_notTagged_med/MC_tagged__med/MC_notTagged_med: " <<data_tagged_med << "/" <<data_notTagged_med << "/" << MC_notTagged_med<< "/" << MC_notTagged_med<< std::endl;
         } 
 
     } 
@@ -2711,14 +2843,16 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
         if(doJEC)
         {
-            double AK8_JEC_uncertainty = getJECUncertaintyFromSources("AK8",  iJet->pt(), iJet->eta());
+            double AK8_JEC_uncertainty;
 
             if (systematicType.find("_up") != std::string::npos)  
             {
+                AK8_JEC_uncertainty = getJECUncertaintyFromSources("AK8",  iJet->pt(), iJet->eta());
                 AK8_JEC_corr_factor = 1 + AK8_JEC_uncertainty;
             }
             else if (systematicType.find("_down") != std::string::npos)      
             {
+                AK8_JEC_uncertainty = getJECUncertaintyFromSources("AK8",  iJet->pt(), iJet->eta());
                 AK8_JEC_corr_factor = 1 - AK8_JEC_uncertainty;
             }
             if(debug)std::cout << "for systematic type " << systematicType << ", AK8_JEC_corr_factor = " << AK8_JEC_corr_factor << std::endl;
@@ -2796,7 +2930,101 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         if(_verbose)    std::cout << "nominal p4: " << iJet->px()<< "," <<iJet->py() << "," << iJet->pz()<< "," << iJet->energy()<< std::endl;
         if(_verbose)    std::cout << "corrected p4: " << corrJet.px()<< "," <<corrJet.py() << "," << corrJet.pz()<< "," << corrJet.energy()<< std::endl;
 
-        if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8) ) && (AK8_sf_total*corrJet.userFloat("ak8PFJetsPuppiSoftDropMass") > 45.)) 
+
+
+
+        //////// START -- SD mass corrections
+
+        TLorentzVector puppi_softdrop, puppi_softdrop_subjet;
+        auto const & sdSubjetsPuppi = iJet->subjets("SoftDropPuppi");
+        for ( auto const & it : sdSubjetsPuppi ) 
+        {
+            double sj_corr = 1.0;
+            double sj_JEC_corr = 1.0;      
+
+            // get the subjet AK4 JEC value
+            subjetCorrector->setJetPt(it->correctedP4("Uncorrected").pt()); // use the uncorrected subjet pt
+            subjetCorrector->setJetEta(it->eta());
+            subjetCorrector->setJetA(it->jetArea());
+            subjetCorrector->setRho(*rho); 
+            sj_JEC_corr = subjetCorrector->getCorrection();
+
+            // get the fractional JEC uncertainty value
+            double AK4_JEC_uncert;
+            double AK4_JEC_corr_factor = 1.0;
+
+            if(systematicType.find("_up") != std::string::npos) 
+            {
+                AK4_JEC_uncert = getJECUncertaintyFromSources("AK4", sj_JEC_corr*it->correctedP4(0).pt(), it->correctedP4(0).eta(), true);
+                AK4_JEC_corr_factor = 1 + AK4_JEC_uncert;
+            }
+            else if(systematicType.find("_down") != std::string::npos) 
+            {
+                AK4_JEC_uncert = getJECUncertaintyFromSources("AK4", sj_JEC_corr*it->correctedP4(0).pt(), it->correctedP4(0).eta(), true);
+                AK4_JEC_corr_factor = 1 - AK4_JEC_uncert;
+            }  
+
+            sj_corr = AK4_JEC_corr_factor*sj_JEC_corr;
+            if(_verbose)std::cout << "After JECs, the AK8 puppi subjet correction is " << sj_corr << std::endl;
+
+            // get JER correction, USE THE JEC CORRECTED (nom) VALUE TO CALCULATE
+            if(doJER)
+            {
+                if ((runType.find("MC") != std::string::npos) || (runType.find("Suu") != std::string::npos) )
+                {
+                    double AK4_JER_corr = 1.0; // this won't be touched for data
+
+                    double sJER = -1e12;  //JER scale factor
+                    double sigmaJER = -1e12;    //this is the "resolution" you get from the scale factors 
+
+                    //these are for getting the JER scale factors
+                    JME::JetParameters parameters_1;
+                    parameters_1.setJetPt(sj_JEC_corr*it->correctedP4(0).pt());
+                    parameters_1.setJetEta(it->correctedP4(0).eta());
+                    parameters_1.setRho(*rho);
+                    sigmaJER = resolution_AK4.getResolution(parameters_1);    //pT resolution
+
+                    JME::JetParameters parameters;
+                    parameters.setJetPt(sj_JEC_corr*it->correctedP4(0).pt());
+                    parameters.setJetEta(it->correctedP4(0).eta());
+                    sJER    = resolution_sf_AK4.getScaleFactor(parameters ); // nominal sJER value
+
+                    if( applyJERSource(systematicType, it->correctedP4(0).eta()) ) // only true if this is run for the JER uncertainty AND if the jet eta is in the correct range
+                    {
+                        if( systematicType.find("_up") != std::string::npos )        sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::UP    ); // sJER + 1 sigma uncertainty
+                        else if( systematicType.find("_down") != std::string::npos ) sJER = resolution_sf_AK4.getScaleFactor(parameters, Variation::DOWN); // sJER - 1 sigma uncertainty
+                    }
+
+                    randomNum->SetSeed( abs(static_cast<int>(it->correctedP4(0).phi()*1e4)) );
+                    double JERrand = randomNum->Gaus(0.0, sigmaJER);
+                    AK4_JER_corr  = max(0., 1 + JERrand*sqrt(max(pow(sJER,2)-1,0.))); //want to make sure this is truncated at 0
+
+                    sj_corr*= AK4_JER_corr;
+                    if(_verbose)std::cout << "After JERs, the AK8 puppi subjet correction is " << sj_corr << std::endl;
+
+                }
+            } 
+            
+            // add up the subjet 4-vector
+            puppi_softdrop_subjet.SetPtEtaPhiM(sj_corr*it->correctedP4(0).pt(),it->correctedP4(0).eta(),it->correctedP4(0).phi(),sj_corr*it->correctedP4(0).mass());
+            puppi_softdrop+=puppi_softdrop_subjet;
+        }
+
+        double M_SD                = puppi_softdrop.M(); // corrected SD mass
+        if (M_SD < 0) M_SD = 0;
+        double M_SD_uncorr_usrstr_ = iJet->userFloat("ak8PFJetsPuppiSoftDropMass");
+        double SD_corr_            = 1.0; // the correction factor  
+        if(M_SD_uncorr_usrstr_ < 0) M_SD_uncorr_usrstr_ = 0;
+        else {SD_corr_ = M_SD/M_SD_uncorr_usrstr_; }
+
+
+        //////// END -- SD mass corrections
+
+
+
+
+
+        if((corrJet.pt() > 500.) && ((corrJet.isPFJet())) && (isgoodjet(corrJet.eta(),corrJet.neutralHadronEnergyFraction(), corrJet.neutralEmEnergyFraction(),corrJet.numberOfDaughters(),corrJet.chargedHadronEnergyFraction(),corrJet.chargedMultiplicity(),corrJet.muonEnergyFraction(),corrJet.chargedEmEnergyFraction(),nAK8) ) && (M_SD > 45.)) 
         {
             if(isHEM(corrJet.eta(),corrJet.phi())) heavyAK8_isHEM[nHeavyAK8] = true;
             else{ heavyAK8_isHEM[nHeavyAK8] = false;}
@@ -2873,11 +3101,14 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         jet_phi[nAK8]     = corrJet.phi(); 
         jet_eta[nAK8]     = corrJet.eta();
         jet_mass[nAK8]    = corrJet.mass();
-        jet_px[nAK8]    = corrJet.px();
-        jet_py[nAK8]    = corrJet.py();
-        jet_pz[nAK8]    = corrJet.pz();
-        jet_E[nAK8]    = corrJet.energy();
-        jet_SD_mass[nAK8] = AK8_JEC_corr_factor*corrJet.userFloat("ak8PFJetsPuppiSoftDropMass");
+        jet_px[nAK8]      = corrJet.px();
+        jet_py[nAK8]      = corrJet.py();
+        jet_pz[nAK8]      = corrJet.pz();
+        jet_E[nAK8]       = corrJet.energy();
+        jet_SD_mass[nAK8]        = M_SD;  
+        M_SD_uncorr_usrstr[nAK8] = M_SD_uncorr_usrstr_;
+        SD_corr[nAK8]            = SD_corr_;
+
 
         double jec = iJet->pt() / iJet->correctedP4("Uncorrected").pt();
         jet_jec_full[nAK8] = jec;
@@ -3510,10 +3741,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             //// calculate the renormalization and factorizations the "Ben" way
 
             // This is the way BEST is doing it
-            QCDRenormalization_up_BEST      = lheEventProduct->weights()[5].wgt /PDFWeightNom;  // muF = 1.0, muR = 2.0 
-            QCDRenormalization_down_BEST    = lheEventProduct->weights()[10].wgt/PDFWeightNom; // muF = 1.0, muR = 0.5
+            QCDRenormalization_up_BEST      = lheEventProduct->weights()[5].wgt /PDFWeightNom;   // muF = 1.0, muR = 2.0 
+            QCDRenormalization_down_BEST    = lheEventProduct->weights()[10].wgt/PDFWeightNom;   // muF = 1.0, muR = 0.5
             QCDFactorization_up_BEST        = lheEventProduct->weights()[15].wgt/PDFWeightNom;   // muF = 2.0, muR = 1.0
-            QCDFactorization_down_BEST      = lheEventProduct->weights()[30].wgt/PDFWeightNom; // muF = 0.5, muR = 1.0
+            QCDFactorization_down_BEST      = lheEventProduct->weights()[30].wgt/PDFWeightNom;   // muF = 0.5, muR = 1.0
 
             // envelope indices are the same for QCD and TTbarMC  
             scale_envelope[0] = lheEventProduct->weights()[15].wgt; // index 0: muF = 2.0, muR = 1.0 : <weight MUF="2.0" MUR="1.0" PDF="325300" id="1016"> MUF=2.0 </weight>
@@ -3692,6 +3923,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     for (auto iJet=jetsFJ_jet0.begin(); iJet<jetsFJ_jet0.end(); iJet++)          
     {  
 
+        if(iJet->constituents().size() < 2) continue; // drop single particle "jets"
+
         if(_verbose)std::cout << "Looking at MPP AK8 jet " << nMPPAK8 << " with p4 " << iJet->px()  << "/" << iJet->py()  << "/" << iJet->pz()  << "/" << iJet->E()  << "/" << iJet->m()  << std::endl;
         if(iJet->E() > 250.) nReclustered_CA8++;
 
@@ -3768,7 +4001,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
     for (int iii = 0; iii<smallestNJets; iii++)
     {
-
         jet_pt_perc_diff[iii] = (jet_pt_by_pt[iii] - MPP_CA8_pt[iii]   ) / jet_pt_by_pt[iii];
         jet_mass_perc_diff[iii] = (jet_mass_by_mass[iii] - MPP_CA8_mass[iii]   ) / jet_mass_by_mass[iii];
         nParts_perc_diff[iii] = ((double)(jet_nParts_by_mass[iii] - MPP_CA8_nParts[iii]   )) / ((double)jet_nParts_by_mass[iii]);

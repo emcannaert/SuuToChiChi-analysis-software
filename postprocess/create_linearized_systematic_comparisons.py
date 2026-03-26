@@ -589,7 +589,7 @@ if __name__== "__main__":
 	###########
 	debug     = False
 	runSignal = False
-	useOptWP  = True
+	useOptWP  = False
 	###########
 	#systematics = ["btagSFbc", "jec" ,"jer","pu", "pdf","fact", "renorm" ]
 	#"nom",  
@@ -598,7 +598,7 @@ if __name__== "__main__":
 	
 	regions = ["SR","CR","AT1b","AT0b"]
 
-	histnames = ["allBR","QCD","TTbar"] ## "ST"
+	histnames = ["allBR","QCD","TTbar","WJets"] ## "ST"
 	if runSignal: histnames.append("sig")
 	#mass_points = ["Suu4_chi1", "Suu4_chi1p5", "Suu5_chi1", "Suu5_chi1p5", "Suu5_chi2", "Suu6_chi1","Suu6_chi1p5", "Suu6_chi2", "Suu6_chi2p5", "Suu7_chi1","Suu7_chi1p5","Suu7_chi2", "Suu7_chi2p5", "Suu7_chi3","Suu8_chi1", "Suu8_chi1p5","Suu8_chi2","Suu8_chi2p5","Suu8_chi3"]
 	mass_points = ["Suu4_chi1",  "Suu4_chi1p5", "Suu5_chi1p5","Suu5_chi2","Suu6_chi1", "Suu6_chi2", "Suu7_chi2p5", "Suu8_chi2","Suu8_chi3"]

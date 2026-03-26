@@ -95,9 +95,9 @@ void sortJets::findBestJetComb()
 			//massCombinations[nCombinations][1] = useSuperJet2.M();
 			nCombinations++;
 			//std::cout << "Clustered jet masses: " << useSuperJet1.M() << " " << useSuperJet2.M() << std::endl;
- 			if( (abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M())  ) < minMassDiff )
+ 			if( (abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) )  ) < minMassDiff )
 			{
-				minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+				minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 				bestSuperJet1 = _useSuperJet1;
 				bestSuperJet2 = _useSuperJet2;
 			}
@@ -146,9 +146,9 @@ void sortJets::findBestJetComb()
 				//massCombinations[nCombinations][0] = useSuperJet1.M();
 				//massCombinations[nCombinations][1] = useSuperJet2.M();
 				nCombinations++;
-				if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+				if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 				{
-					minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+					minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 					bestSuperJet1 = _useSuperJet1;
 					bestSuperJet2 = _useSuperJet2;
 				}
@@ -201,9 +201,9 @@ void sortJets::findBestJetComb()
 					//massCombinations[nCombinations][0] = useSuperJet1.M();
 					//massCombinations[nCombinations][1] = useSuperJet2.M();
 					nCombinations++;
-					if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+					if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 					{
-							minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+							minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 							bestSuperJet1 = _useSuperJet1;
 							bestSuperJet2 = _useSuperJet2;
 					} 
@@ -256,9 +256,9 @@ void sortJets::findBestJetComb()
 						//massCombinations[nCombinations][0] = useSuperJet1.M();
 						//massCombinations[nCombinations][1] = useSuperJet2.M();
 						nCombinations++;
-						if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+						if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 							{
-								minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+								minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 								bestSuperJet1 = _useSuperJet1;
 								bestSuperJet2 = _useSuperJet2;
 							} 
@@ -314,9 +314,9 @@ void sortJets::findBestJetComb()
 							//massCombinations[nCombinations][0] = useSuperJet1.M();
 							//massCombinations[nCombinations][1] = useSuperJet2.M();
 							nCombinations++;
-							if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+							if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 								{
-									minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+									minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 									bestSuperJet1 = _useSuperJet1;
 									bestSuperJet2 = _useSuperJet2;
 								} 
@@ -375,9 +375,9 @@ void sortJets::findBestJetComb()
 								//massCombinations[nCombinations][0] = useSuperJet1.M();
 								//massCombinations[nCombinations][1] = useSuperJet2.M();
 								nCombinations++;
-								if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+								if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 								{
-										minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+										minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 										bestSuperJet1 = _useSuperJet1;
 										bestSuperJet2 = _useSuperJet2;
 								}
@@ -447,9 +447,9 @@ void sortJets::findBestJetComb()
 									//massCombinations[nCombinations][0] = useSuperJet1.M();
 									//massCombinations[nCombinations][1] = useSuperJet2.M();
 									nCombinations++;
-									if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+									if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 									{
-										minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+										minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 										bestSuperJet1 = _useSuperJet1;
 										bestSuperJet2 = _useSuperJet2;
 									} 
@@ -516,9 +516,9 @@ void sortJets::findBestJetComb()
 										//massCombinations[nCombinations][0] = useSuperJet1.M();
 										//massCombinations[nCombinations][1] = useSuperJet2.M();
 										nCombinations++;
-										if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+										if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 										{
-											minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+											minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 											bestSuperJet1 = _useSuperJet1;
 											bestSuperJet2 = _useSuperJet2;
 										} 
@@ -585,9 +585,9 @@ void sortJets::findBestJetComb()
 											//massCombinations[nCombinations][0] = useSuperJet1.M();
 											//massCombinations[nCombinations][1] = useSuperJet2.M();
 											nCombinations++;
-											if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+											if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 											{
-												minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+												minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 												bestSuperJet1 = _useSuperJet1;
 												bestSuperJet2 = _useSuperJet2;
 											}
@@ -658,9 +658,9 @@ void sortJets::findBestJetComb()
 												//massCombinations[nCombinations][0] = useSuperJet1.M();
 												//massCombinations[nCombinations][1] = useSuperJet2.M();
 												nCombinations++;
-												if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+												if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 												{
-													minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+													minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 													bestSuperJet1 = _useSuperJet1;
 													bestSuperJet2 = _useSuperJet2;
 												}
@@ -734,9 +734,9 @@ void sortJets::findBestJetComb()
 													//massCombinations[nCombinations][0] = useSuperJet1.M();
 													//massCombinations[nCombinations][1] = useSuperJet2.M();
 													nCombinations++;
-													if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+													if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 													{
-														minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+														minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 														bestSuperJet1 = _useSuperJet1;
 														bestSuperJet2 = _useSuperJet2;
 													}
@@ -813,9 +813,9 @@ void sortJets::findBestJetComb()
 														//massCombinations[nCombinations][0] = useSuperJet1.M();
 														//massCombinations[nCombinations][1] = useSuperJet2.M();
 														nCombinations++;
-														if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+														if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 														{
-															minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+															minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 															bestSuperJet1 = _useSuperJet1;
 															bestSuperJet2 = _useSuperJet2;
 														}
@@ -894,9 +894,9 @@ void sortJets::findBestJetComb()
 															//massCombinations[nCombinations][0] = useSuperJet1.M();
 															//massCombinations[nCombinations][1] = useSuperJet2.M();
 															nCombinations++;
-															if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+															if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 															{
-																minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+																minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 																bestSuperJet1 = _useSuperJet1;
 																bestSuperJet2 = _useSuperJet2;
 															}
@@ -978,9 +978,9 @@ void sortJets::findBestJetComb()
 																//massCombinations[nCombinations][0] = useSuperJet1.M();
 																//massCombinations[nCombinations][1] = useSuperJet2.M();
 																nCombinations++;
-																if( abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M()) < minMassDiff )
+																if( abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) ) < minMassDiff )
 																{
-																	minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (useSuperJet1.M() +useSuperJet2.M());
+																	minMassDiff = abs(useSuperJet1.M() - useSuperJet2.M()) / (min(useSuperJet1.M(),useSuperJet2.M()) );
 																	bestSuperJet1 = _useSuperJet1;
 																	bestSuperJet2 = _useSuperJet2;
 																}

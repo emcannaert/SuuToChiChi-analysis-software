@@ -1399,7 +1399,7 @@ if __name__=="__main__":
 						# Draw label at the best bin center
 						if best_bin:
 							x_text, y_text = best_bin
-							latex.DrawLatex(x_text, y_text, str(group_id))
+							latex.DrawLatex(x_text, y_text, str(group_id+1))
 
 
 					write_cms_text(CMS_label_xpos=0.152, SIM_label_xpos=0.31,CMS_label_ypos = 0.92, SIM_label_ypos = 0.918, lumistuff_xpos=0.89, lumistuff_ypos=0.91, year = "", uses_data=False)
