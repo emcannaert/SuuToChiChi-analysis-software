@@ -55,17 +55,22 @@ void plotJetJECvsEta(const char* inputFile)
     Double_t jet_eta[MAXJETS];
     Double_t jet_jec_full[MAXJETS];
     Double_t jet_pt[MAXJETS];
+    Double_t jet_gen_pt[MAXJETS];
     Double_t jet_pt_perc_diff[MAXJETS];
+
+    Double_t AK8_JER[MAXJETS];
 
     tree->SetBranchAddress("nAK8", &nfatjets);
     tree->SetBranchAddress("jet_eta", jet_eta);
     tree->SetBranchAddress("jet_pt", jet_pt);
+    tree->SetBranchAddress("jet_pt_gen", jet_gen_pt);
     tree->SetBranchAddress("jet_jec_full", jet_jec_full);
 
     tree->SetBranchAddress("smallestNJets", &smallestNJets);
     tree->SetBranchAddress("jet_pt_perc_diff", jet_pt_perc_diff);
+    tree->SetBranchAddress("AK8_JER", AK8_JER);
 
-    // Graph
+    // vs reco pt
     TGraph* gr_eta0p5 = new TGraph();
     gr_eta0p5->SetName(Form("gr_eta0p5_jec_vs_eta_%s", tag.c_str()));
     gr_eta0p5->SetTitle(Form("AK8 JEC Scale Factor vs AK8 p_{T} (%s) (|#eta| < 0.5);jet p_{T} [GeV];JEC Factor", tag.c_str()));
@@ -78,7 +83,29 @@ void plotJetJECvsEta(const char* inputFile)
     gr_eta1p5to2p5->SetName(Form("gr_eta1p5to2p5_jec_vs_eta_%s", tag.c_str()));
     gr_eta1p5to2p5->SetTitle(Form("AK8 JEC Scale Factor vs AK8 p_{T} (%s) (1.5 < #eta < 2.5 or -1.5 > #eta > -2.5);jet p_{T} [GeV];JEC Factor", tag.c_str()));
 
+
+
+    // vs gen pt 
+    TGraph* gr_gen_eta0p5 = new TGraph();
+    gr_gen_eta0p5->SetName(Form("gr_gen_eta0p5_jec_vs_eta_%s", tag.c_str()));
+    gr_gen_eta0p5->SetTitle(Form("AK8 JEC Scale Factor vs AK8 gen jet p_{T} (%s) (|#eta| < 0.5);jet p_{T} [GeV];JEC Factor", tag.c_str()));
+
+    TGraph* gr_gen_eta0p5to1p5 = new TGraph();
+    gr_gen_eta0p5to1p5->SetName(Form("gr_gen_eta0p5to1p5_jec_vs_eta_%s", tag.c_str()));
+    gr_gen_eta0p5to1p5->SetTitle(Form("AK8 JEC Scale Factor vs AK8 gen jet p_{T} (%s) (0.5 < #eta < 1.5 or -0.5 > #eta > -1.5);jet p_{T} [GeV];JEC Factor", tag.c_str()));
+
+    TGraph* gr_gen_eta1p5to2p5 = new TGraph();
+    gr_gen_eta1p5to2p5->SetName(Form("gr_gen_eta1p5to2p5_jec_vs_eta_%s", tag.c_str()));
+    gr_gen_eta1p5to2p5->SetTitle(Form("AK8 JEC Scale Factor vs AK8 gen jet p_{T} (%s) (1.5 < #eta < 2.5 or -1.5 > #eta > -2.5);jet p_{T} [GeV];JEC Factor", tag.c_str()));
+
     TH1F* h_jet_pt_perc_diff  = new TH1F("h_jet_pt_perc_diff","Percent p_{T} Difference Between Corresponding Lab-Frame AK8 and COM-frame CA8 Jets; p_{T, AK8, lab} - p_{T, CA8, COM}) / p_{T, AK8, lab} ; Jets",75,-1.1,1.1);
+
+    TGraph* gr_JER = new TGraph();
+    gr_JER->SetName(Form("gr_JER%s", tag.c_str()));
+    gr_JER->SetTitle(Form("AK8 JER Scale Factor vs AK8 p_{T} (%s);jet p_{T} [GeV];JEC Factor", tag.c_str()));
+
+    gr_JER->SetMarkerStyle(20);
+    gr_JER->SetMarkerSize(0.5);
 
     gr_eta0p5->SetMarkerStyle(20);
     gr_eta0p5to1p5->SetMarkerStyle(20);
@@ -89,7 +116,7 @@ void plotJetJECvsEta(const char* inputFile)
     gr_eta1p5to2p5->SetMarkerSize(0.5);
 
     Long64_t nEntries = tree->GetEntries();
-    int point_eta0p5 = 0,point_eta0p5to1p5 = 0, point_eta1p5to2p5 = 0;
+    int point_eta0p5 = 0,point_eta0p5to1p5 = 0, point_eta1p5to2p5 = 0, point_JER = 0;
 
     for (Long64_t i = 0; i < nEntries; ++i) 
     {
@@ -101,21 +128,28 @@ void plotJetJECvsEta(const char* inputFile)
             if( jet_eta[j] < 0.5 && jet_eta[j] > -0.5)
             {
                 gr_eta0p5->SetPoint(point_eta0p5, jet_pt[j], jet_jec_full[j]);
+                gr_gen_eta0p5->SetPoint(point_eta0p5, jet_gen_pt[j], jet_jec_full[j]);
+
                 //std::cout << "Setting point_eta0p5 " << jet_pt[j] << ", " << jet_jec_full[j] << std::endl;
                 ++point_eta0p5;
             }
             else if( (jet_eta[j] < 1.5 && jet_eta[j] > 0.5) || (jet_eta[j] > -1.5 && jet_eta[j] < -0.5)) 
             {
                 gr_eta0p5to1p5->SetPoint(point_eta0p5to1p5, jet_pt[j], jet_jec_full[j]);
+                gr_gen_eta0p5to1p5->SetPoint(point_eta0p5to1p5, jet_gen_pt[j], jet_jec_full[j]);
                 //std::cout << "Setting point_eta0p5 " << jet_pt[j] << ", " << jet_jec_full[j] << std::endl;
                 ++point_eta0p5to1p5;
             }
             else if( (jet_eta[j] < 2.5 && jet_eta[j] > 1.5) || (jet_eta[j] > -2.5 && jet_eta[j] < -1.5)) 
             {
                 gr_eta1p5to2p5->SetPoint(point_eta1p5to2p5, jet_pt[j], jet_jec_full[j]);
+                gr_gen_eta1p5to2p5->SetPoint(point_eta1p5to2p5, jet_gen_pt[j], jet_jec_full[j]);
                 //std::cout << "Setting point_eta0p5 " << jet_pt[j] << ", " << jet_jec_full[j] << std::endl;
                 ++point_eta1p5to2p5;
             }
+
+            gr_JER->SetPoint(point_JER, jet_pt[j], AK8_JER[j]);
+            ++point_JER;
         }
         for (int j = 0; j < smallestNJets; ++j) 
         {
@@ -260,7 +294,6 @@ void plotJetJECvsEta(const char* inputFile)
     c2->SaveAs(Form("%s_JEC_diff_eta1p5to2p5.png", tag.c_str()));
 
 
-
     h_jet_pt_perc_diff->Draw("HIST");
     c2->SaveAs(Form("%s_pt_diff.png", tag.c_str()));
 
@@ -269,5 +302,186 @@ void plotJetJECvsEta(const char* inputFile)
 
 
 
+   fit = new TF1(
+        Form("fit_%s", tag.c_str()),
+        "pol2",
+        400, 1400.0
+    );
+    gr_JER->Fit(fit, "Q");
+
+    c = new TCanvas(
+        Form("c_%s", tag.c_str()),
+        "JER vs eta",
+        1600, 1200
+    );
+
+    gr_JER->Draw("AP");
+    fit->Draw("same");
+
+    c->SetLeftMargin(0.1);
+
+    // Save output
+    c->SaveAs(Form("%s_JER_vs_pt.png", tag.c_str()));
+
+    ratio = new TF1(
+    "ratio",
+    [fit](double* x, double*) {
+        double v = x[0];
+        return fit->Eval(1.10 * v) / fit->Eval(v);
+    },
+    fit->GetXmin(),
+    fit->GetXmax(),
+    0 );
+
+
+    c2 = new TCanvas("c_ratio", "JER ratio", 1600, 1200);
+    c2->SetLeftMargin(0.1);
+
+    ratio->SetTitle("JER response to +10% shift;AK8 Jet p_{T};f(1.10x)/f(x)");
+    ratio->Draw();
+
+    c2->SaveAs(Form("%s_JER_diff.png", tag.c_str()));
+
+
+
+
+    // vs gen pt
+
+    // Fit |eta| < 0.5
+    fit = new TF1(
+        Form("fit_%s", tag.c_str()),
+        "pol2",
+        0, 6000.0
+    );
+    gr_gen_eta0p5->Fit(fit, "Q");
+
+    // Draw
+    c = new TCanvas(
+        Form("c_%s", tag.c_str()),
+        "JEC vs eta",
+        1600, 1200
+    );
+
+    gr_gen_eta0p5->Draw("AP");
+    fit->Draw("same");
+
+    c->SetLeftMargin(0.1);
+
+    // Save output
+    c->SaveAs(Form("%s_JEC_vs_gen_pt_eta0p5.png", tag.c_str()));
+    // c->SaveAs(Form("%s_JEC_vs_eta.pdf", tag.c_str()));
+
+
+    ratio = new TF1(
+    "ratio",
+    [fit](double* x, double*) {
+        double v = x[0];
+        return fit->Eval(1.10 * v) / fit->Eval(v);
+    },
+    fit->GetXmin(),
+    fit->GetXmax(),
+    0 );
+
+
+    c2 = new TCanvas("c_ratio", "JEC ratio", 1600, 1200);
+    c2->SetLeftMargin(0.1);
+
+    ratio->SetTitle("JEC response to +10% shift (|#eta| < 0.5);AK8 Jet p_{T};f(1.10x)/f(x)");
+    ratio->Draw();
+
+    c2->SaveAs(Form("%s_JEC_diff_gen_eta0p5.png", tag.c_str()));
+
+
+
+
+    // Fit 0.5 < eta < 1.5, -0.5 > eta > -1.5
+    fit = new TF1(
+        Form("fit_%s", tag.c_str()),
+        "pol2",
+        300, 1600.0
+    );
+    gr_gen_eta0p5to1p5->Fit(fit, "Q");
+
+    c = new TCanvas(
+        Form("c_%s", tag.c_str()),
+        "JEC vs eta",
+        1600, 1200
+    );
+
+    gr_gen_eta0p5to1p5->Draw("AP");
+    fit->Draw("same");
+
+    c->SetLeftMargin(0.1);
+
+    // Save output
+    c->SaveAs(Form("%s_JEC_vs_gen_pt_eta0p5to1p5.png", tag.c_str()));
+
+    ratio = new TF1(
+    "ratio",
+    [fit](double* x, double*) {
+        double v = x[0];
+        return fit->Eval(1.10 * v) / fit->Eval(v);
+    },
+    fit->GetXmin(),
+    fit->GetXmax(),
+    0 );
+
+
+    c2 = new TCanvas("c_ratio", "JEC ratio", 1600, 1200);
+    c2->SetLeftMargin(0.1);
+
+    ratio->SetTitle("JEC response to +10% shift (0.5 < #eta < 1.5 or -0.5 > #eta > -1.5);AK8 Jet p_{T};f(1.10x)/f(x)");
+    ratio->Draw();
+
+    c2->SaveAs(Form("%s_JEC_diff_gen_eta0p5to1p5.png", tag.c_str()));
+
+
+
+    // Fit 1.5 < eta < 2.5, -1.5 > eta > -2.5
+    fit = new TF1(
+        Form("fit_%s", tag.c_str()),
+        "pol2",
+        400, 1400.0
+    );
+    gr_gen_eta1p5to2p5->Fit(fit, "Q");
+
+    c = new TCanvas(
+        Form("c_%s", tag.c_str()),
+        "JEC vs eta",
+        1600, 1200
+    );
+
+    gr_gen_eta1p5to2p5->Draw("AP");
+    fit->Draw("same");
+
+    c->SetLeftMargin(0.1);
+
+    // Save output
+    c->SaveAs(Form("%s_JEC_vs_gen_pt_eta1p5to2p5.png", tag.c_str()));
+
+    ratio = new TF1(
+    "ratio",
+    [fit](double* x, double*) {
+        double v = x[0];
+        return fit->Eval(1.10 * v) / fit->Eval(v);
+    },
+    fit->GetXmin(),
+    fit->GetXmax(),
+    0 );
+
+
+    c2 = new TCanvas("c_ratio", "JEC ratio", 1600, 1200);
+    c2->SetLeftMargin(0.1);
+
+    ratio->SetTitle("JEC response to +10% shift (1.5 < #eta < 2.5 or -1.5 > #eta > -2.5);AK8 Jet p_{T};f(1.10x)/f(x)");
+    ratio->Draw();
+
+    c2->SaveAs(Form("%s_JEC_diff_gen_eta1p5to2p5.png", tag.c_str()));
+
+
+
+
+
 
 }
+

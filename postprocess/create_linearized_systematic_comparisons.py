@@ -323,7 +323,9 @@ def create_systematic_comparison_plot(year, mass_point, histname, systematic, ye
 			break """
 
 
-	uncorrelated_systematics = [ "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", "CMS_jec_EC2_year", "CMS_jec_Absolute_year", "CMS_jec_HF_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",
+	uncorrelated_systematics = [ "CMS_jec", "CMS_jer","CMS_jer_eta193", "CMS_jer_193eta25", "CMS_L1Prefiring","CMS_bTagSF_M",  
+	"CMS_bTagSF_bc_M_year","CMS_bTagSF_light_M_year", "CMS_jec_BBEC1_year", 
+	"CMS_jec_Absolute_year", "CMS_jec_RelativeSample_year", "stat"] ## systematics that are correlated (will not have year appended to names)	 "CMS_btagSF",  "CMS_jec_HF_year", "CMS_bTagSF_T", "CMS_bTagSF_bc_T_year", "CMS_bTagSF_light_T_year", "CMS_jec_EC2_year",
 
 	year_str = ""			
 	if systematic in uncorrelated_systematics:
@@ -594,7 +596,10 @@ if __name__== "__main__":
 	#systematics = ["btagSFbc", "jec" ,"jer","pu", "pdf","fact", "renorm" ]
 	#"nom",  
 	#systematics = ["CMS_bTagSF_M" , 	"CMS_bTagSF_M_corr" , "CMS_bTagSF_T_corr", "CMS_jer", "CMS_jec",   "CMS_bTagSF_bc_T_corr",	   "CMS_bTagSF_light_T_corr",	   "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	  "CMS_bTagSF_bc_T_year",		"CMS_bTagSF_light_T_year",	  "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",		 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_topPt", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", "CMS_bTagSF_T",
-	systematics = [ "CMS_pdf_shape", "CMS_scale_shape", "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	   "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",	 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",   "CMS_jec_Absolute", "CMS_jec_BBEC1_year",		   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_L1Prefiring", "CMS_pdf", "CMS_renorm", "CMS_fact", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" , "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR", "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", "CMS_bTagSF_T",
+	systematics = [ "CMS_pdf_shape", "CMS_scale_shape", "CMS_jer", "CMS_jec",    "CMS_bTagSF_bc_M_corr",	   "CMS_bTagSF_light_M_corr",	
+	   "CMS_bTagSF_bc_M_year",	   "CMS_bTagSF_light_M_year",	 "CMS_jer_eta193", "CMS_jer_193eta25",  "CMS_jec_FlavorQCD", "CMS_jec_RelativeBal",  
+	    "CMS_jec_Absolute", "CMS_jec_BBEC1_year",	"CMS_jec_BBEC1",	   "CMS_jec_Absolute_year",  "CMS_jec_RelativeSample_year", "CMS_pu", "CMS_L1Prefiring", "CMS_pdf",
+	     "CMS_renorm", "CMS_fact",  "CMS_scale"]  ## systematic namings for cards   "CMS_btagSF", "CMS_bTagSF_T", "CMS_jec_AbsoluteCal", "CMS_jec_AbsoluteTheory", "CMS_jec_AbsolutePU",   "CMS_jec_AbsoluteScale" ,   "CMS_jec_Fragmentation" ,  "CMS_jec_AbsoluteMPFBias",  "CMS_jec_RelativeFSR",
 	
 	regions = ["SR","CR","AT1b","AT0b"]
 

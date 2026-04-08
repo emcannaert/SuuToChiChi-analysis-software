@@ -214,7 +214,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
          t1->SetBranchAddress("superJet_mass", superJet_mass); 
          t1->SetBranchAddress("diSuperJet_mass", &diSuperJet_mass); 
-         t1->SetBranchAddress("lab_AK4_pt", AK4_pt); 
+         t1->SetBranchAddress("AK4_pt", AK4_pt); 
 
          //t1->SetBranchAddress("AK8_SJ_assignment", AK8_SJ_assignment); 
          //t1->SetBranchAddress("AK4_SJ_assignment", AK4_SJ_assignment); 
@@ -1020,11 +1020,7 @@ void rootSkimmer()
                std::cout << "looking at sample/year/systematic:" << year<< "/" << *dataBlock<< "/" <<systematic_str << std::endl;
                if((*systematic == "nom") ) 
                {
-
-                  // BELOW WAS CHANGED FROM THIS 
-                  //use_systematics = {"nom", "JER_eta193", "JER_193eta25", "JER", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute" };
-
-                   use_systematics = {"nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_AbsoluteMPFBias","JEC_RelativeFSR"};
+                   use_systematics = {"nom", "JER_eta193", "JER_193eta25", "JER", "JEC_Absolute", "JEC_BBEC1" };  // "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_AbsoluteMPFBias","JEC_RelativeFSR"
 
                   inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
                   outFileName= (*dataBlock + year + "_SKIMMED.root").c_str();
@@ -1038,11 +1034,7 @@ void rootSkimmer()
                }
                else if( *systematic == "JEC1")
                {
-
-                  // BELOW WAS CHANGED FROM THIS
-                  //use_systematics = {"JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "JEC"};
-
-                   use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_BBEC1_year",  "JEC_Absolute_year", "JEC_RelativeSample_year", "JEC", "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteTheory"};
+                   use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_BBEC1_year",  "JEC_Absolute_year", "JEC_RelativeSample_year", "JEC" }; // "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteTheory"
 
                   inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_"+ systematic_str + "_combined.root").c_str();
                   outFileName= (*dataBlock + year + "_JEC_SKIMMED.root").c_str();
@@ -1056,12 +1048,9 @@ void rootSkimmer()
 
                if     (*systematic == "JEC") use_systematics = { "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_Absolute", "JEC_BBEC1_year", "JEC_EC2_year", "JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year","JEC"};   
                
-               // the below lines were changed from this
-               //else if(*systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_HF", "JEC_BBEC1", "JEC_EC2", "JEC_BBEC1_year", "JEC_EC2_year"}; 
-               //else if(*systematic == "JEC2") use_systematics = {"JEC_Absolute_year", "JEC_HF_year", "JEC_RelativeSample_year", "AbsoluteCal","AbsoluteTheory", "AbsolutePU", "Absolute", "JEC"}; 
+               else if(*systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal","JEC_BBEC1_year"};  // "JEC_AbsoluteScale", "JEC_Fragmentation", ,"JEC_RelativeFSR","JEC_AbsoluteTheory" "JEC_AbsoluteMPFBias"
+               else if(*systematic == "JEC2") use_systematics = {"JEC_Absolute_year",  "JEC_RelativeSample_year", "JEC_Absolute", "JEC_BBEC1", "JEC"};  // "JEC_AbsoluteCal", "JEC_AbsolutePU", 
 
-               else if(*systematic == "JEC1") use_systematics = {  "JEC_FlavorQCD", "JEC_RelativeBal","JEC_BBEC1_year",  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteMPFBias","JEC_RelativeFSR","JEC_AbsoluteTheory"}; 
-               else if(*systematic == "JEC2") use_systematics = {"JEC_Absolute_year",  "JEC_RelativeSample_year", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC"}; 
 
                inFileName  = (combinedROOT_eos_path + *dataBlock + year +"_" + *systematic + "_combined.root").c_str();   // all JEC systematics will be in the JEC_combined.root file
                // if the JEC file has not yet been opened, delete the file so that it is being started from fresh 

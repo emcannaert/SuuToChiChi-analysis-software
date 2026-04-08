@@ -1,6 +1,5 @@
 ////////////////////////////HELP////////////////////////////////
 //////////////Uses new clustering algorithm to capture heavy resonance jet substructure//////////////
-////////////////Last updated 17 Jul 2024 ////////////////////////////////////////////////////////////
 
 //_top_
 // system include files
@@ -229,7 +228,7 @@ private:
     double AK4_bdisc[100], AK4_DeepJet_disc[100];
     int jet_ndaughters[100], jet_nAK4[100],jet_nAK4_20[100],jet_nAK4_30[100],jet_nAK4_50[100],jet_nAK4_70[100],jet_nAK4_100[100],jet_nAK4_150[100];
     double totMET;
-    double AK4_pt[100];
+    double AK4_pt[100], jet_pt_gen[100];
     //double btag_score_uncut[100];
     int nAK4_uncut = 0;
     int nGenBJets_AK4[100],AK4_hadronFlavour[100], AK4_partonFlavour[100];
@@ -330,7 +329,11 @@ private:
 
     int nQCD_vertices = 0; // this will depend on the process
     PDF* nomPDF;
+    PDF* nomPDF_hess;
+
     PDF* varPDFs[102];
+    PDF* varPDFs_hess[102];
+
     double scale_uncert_envelope_nQCD1_up, scale_uncert_envelope_nQCD1_down, scale_uncert_envelope_nQCD2_up, scale_uncert_envelope_nQCD2_down;
     double scale_uncert_envelope_nQCD3_up, scale_uncert_envelope_nQCD3_down;
 
@@ -398,8 +401,15 @@ private:
     int nChis = 0;
 
 
+    // hessian pdf weights
+    TH1F *h_PDFWeights_hess;
+    int nPDFWeights_hess;
+    double PDFWeights_hess[110] = {}; // might be longer than the expected 100?
+    //std::vector<LHAPDF::PDF*> pdfs_replica;
+    //std::vector<LHAPDF::PDF*> pdfs_hessian;
 
     std::string pdfname;
+    std::string pdfname_hess;
 };
 
 //_constructor_
@@ -507,7 +517,8 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
                 LHAPDF_NOM = 303600;
                 LHAPDF_VAR_LOW = 303601;
                 LHAPDF_VAR_HIGH = 303700;
-                pdfname = "NNPDF31_nnlo_as_0118";
+                pdfname      = "NNPDF31_nnlo_as_0118";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_hessian";
             }
 
             else if((runType.find("QCDMC") != std::string::npos) || ((runType.find("TTJets") != std::string::npos)))
@@ -515,14 +526,16 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
                 LHAPDF_NOM = 325300;
                 LHAPDF_VAR_LOW = 325301;
                 LHAPDF_VAR_HIGH = 325402;
-                pdfname = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
+                pdfname      = "NNPDF31_nnlo_as_0118";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian";
             }
             else if(runType.find("WJets") != std::string::npos)
             {
                 LHAPDF_NOM = 325300;
                 LHAPDF_VAR_LOW = 325301;
                 LHAPDF_VAR_HIGH = 325402;
-                pdfname = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
+                pdfname      = "NNPDF31_nnlo_as_0118";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian";
             }
 
             else if(runType.find("Suu") != std::string::npos)
@@ -530,21 +543,28 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
                 LHAPDF_NOM = 325500;
                 LHAPDF_VAR_LOW = 325501;
                 LHAPDF_VAR_HIGH = 325600;
-                pdfname = "NNPDF31_nnlo_as_0118_nf_4_mc_hessian";
+                pdfname      = "NNPDF31_nnlo_as_0118_nf_4";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_nf_4_mc_hessian";
             }
             else  // NOT correct for TTTo
             {
                 LHAPDF_NOM = 325300;
                 LHAPDF_VAR_LOW = 325301;
                 LHAPDF_VAR_HIGH = 325402;
-                pdfname = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
+                pdfname      = "NNPDF31_nnlo_as_0118";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian";
             }
 
             nVars = LHAPDF_VAR_HIGH - LHAPDF_VAR_LOW + 1;
             std::cout << "The PDF sets are LHAPDF_VAR_LOW-LHAPDF_VAR_HIGH: " << LHAPDF_VAR_LOW << "/" << LHAPDF_VAR_HIGH << std::endl;
 
             LHAPDF::initPDFSet(1,pdfname);
+            LHAPDF::initPDFSet(2,pdfname_hess); 
             LHAPDF::setVerbosity(0);
+
+            //pdfs_replica = LHAPDF::mkPDFs(pdfname.c_str());
+            //pdfs_hessian = LHAPDF::mkPDFs(pdfname_hess.c_str());
+
         }
       
     }
@@ -689,6 +709,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
     else if ((systematicType.find("RelativeSample_year") != std::string::npos))  uncertainty_sources = {"RelativeSample"};
     else if ((systematicType.find("FlavorQCD") != std::string::npos) )    uncertainty_sources = {"FlavorQCD"};
     else if ((systematicType.find("RelativeBal") != std::string::npos)) uncertainty_sources = {"RelativeBal"};
+    else if ((systematicType.find("BBEC1") != std::string::npos) )       uncertainty_sources = {"PileUpPtBB", "PileUpPtEC1", "RelativePtBB"};
 
     // this has been changed to split the absolute uncertainty into 2 new sources
     else if ((systematicType.find("AbsoluteCal") != std::string::npos) )    uncertainty_sources = {"SinglePionECAL","SinglePionHCAL"};
@@ -702,11 +723,10 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
     // THESE ARE ALWAYS 0 
     else if ((systematicType.find("HF") != std::string::npos) )          uncertainty_sources = {"PileUpPtHF", "RelativeJERHF","RelativePtHF"};
     else if ((systematicType.find("EC2_year") != std::string::npos) )    uncertainty_sources = {"RelativeJEREC2","RelativePtEC2"};
-    else if ((systematicType.find("BBEC1") != std::string::npos) )       uncertainty_sources = {"PileUpPtBB", "PileUpPtEC1", "RelativePtBB"};
     else if ((systematicType.find("EC2") != std::string::npos) )        uncertainty_sources = {"PileUpPtEC2"};
     else if ((systematicType.find("HF_year") != std::string::npos) )  uncertainty_sources = {"RelativeStatHF"};
 
-    // AND REPLACE THEM WITH THESE
+    // THESE ARE DIFFERENT SPLITTINGS (NOT USED)
     else if ((systematicType.find("AbsoluteScale") != std::string::npos) )  uncertainty_sources = {"AbsoluteScale"};
     else if ((systematicType.find("Fragmentation") != std::string::npos) )  uncertainty_sources = {"Fragmentation"};
     else if ((systematicType.find("AbsoluteMPFBias") != std::string::npos) )    uncertainty_sources = {"AbsoluteMPFBias"};
@@ -960,11 +980,13 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
     tree->Branch("jet_phi", jet_phi, "jet_phi[nAK8]/D");
     tree->Branch("jet_mass", jet_mass, "jet_mass[nAK8]/D");
     tree->Branch("jet_SD_mass", jet_SD_mass, "jet_SD_mass[nAK8]/D");
-    tree->Branch("M_SD_uncorr_usrstr", M_SD_uncorr_usrstr, "M_SD_uncorr_usrstr[nAK8]/D");
-    tree->Branch("SD_corr", SD_corr, "SD_corr[nAK8]/D");
+    //tree->Branch("M_SD_uncorr_usrstr", M_SD_uncorr_usrstr, "M_SD_uncorr_usrstr[nAK8]/D");
+    //tree->Branch("SD_corr", SD_corr, "SD_corr[nAK8]/D");
     tree->Branch("AK8_fails_veto_map", AK8_fails_veto_map, "AK8_fails_veto_map[nAK8]/O");
     tree->Branch("AK8_isHEM", AK8_isHEM, "AK8_isHEM[nAK8]/O");
     tree->Branch("jet_jec_full", jet_jec_full, "jet_jec_full[nAK8]/D");
+    tree->Branch("jet_pt_gen", jet_pt_gen, "jet_pt_gen[nAK8]/D");
+
 
     tree->Branch("dijetMassOne", &dijetMassOne, "dijetMassOne/D");
     tree->Branch("dijetMassTwo", &dijetMassTwo, "dijetMassTwo/D");
@@ -1048,7 +1070,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
 
         //////// JEC Particle Shedding Study vars
-        tree->Branch("MPP_CA8_nParts", MPP_CA8_nParts, "MPP_CA8_nParts[nMPP_CA8_jets]/I");
+        //tree->Branch("MPP_CA8_nParts", MPP_CA8_nParts, "MPP_CA8_nParts[nMPP_CA8_jets]/I");
         tree->Branch("jet_nParts_by_mass", jet_nParts_by_mass, "jet_nParts_by_mass[nAK8]/I");
         tree->Branch("nParts_perc_diff", nParts_perc_diff, "nParts_perc_diff[smallestNJets]/D");
         tree->Branch("NJetMass", &NJetMass, "NJetMass/D");
@@ -1180,7 +1202,8 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             // for calculation of QCD_Pt pdf uncertainty
             if(_verbose) std::cout << "Getting nominal PDF for PDF number " << LHAPDF_NOM << std::endl;
 
-            nomPDF = LHAPDF::mkPDF(LHAPDF_NOM); //Nominal PDF
+            nomPDF      = LHAPDF::mkPDF(pdfname.c_str(),0); //Nominal PDF , previously took this as an input: LHAPDF_NOM
+            nomPDF_hess = LHAPDF::mkPDF(pdfname_hess.c_str(),0); //Nominal PDF , previously took this as an input: LHAPDF_NOM
 
             if(_verbose)
             {
@@ -1192,9 +1215,9 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
             for (int i = 0; i< nVars; i++)
             {
-                varPDFs[i] = LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
+                varPDFs[i]      = LHAPDF::mkPDF(pdfname.c_str(),i); // previously was LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
+                varPDFs_hess[i] = LHAPDF::mkPDF(pdfname_hess.c_str(),i);
             } 
-
 
             //LHAPDF::PDFSet pdfSet("NNPDF31_nnlo_as_0118");
             //int nMembers = pdfSet.size();
@@ -1219,10 +1242,11 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             tree->Branch("renormWeight_nQCD2_up",  &renormWeight_nQCD2_up, "renormWeight_nQCD2_up/D");
             tree->Branch("renormWeight_nQCD2_down",    &renormWeight_nQCD2_down, "renormWeight_nQCD2_down/D");
 
+            /*
             tree->Branch("renormWeight_nQCD3_up",  &renormWeight_nQCD3_up, "renormWeight_nQCD3_up/D");
             tree->Branch("renormWeight_nQCD3_down",    &renormWeight_nQCD3_down, "renormWeight_nQCD3_down/D");
 
-            /*
+
             tree->Branch("renormWeight_nQCD4_up",  &renormWeight_nQCD4_up, "renormWeight_nQCD4_up/D");
             tree->Branch("renormWeight_nQCD4_down",    &renormWeight_nQCD4_down, "renormWeight_nQCD4_down/D");
 
@@ -1243,6 +1267,12 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
             tree->Branch("PDFWeight_RMS_up", &PDFWeight_RMS_up, "PDFWeight_RMS_up/D");
             tree->Branch("PDFWeight_RMS_down", &PDFWeight_RMS_down, "PDFWeight_RMS_down/D");
+
+
+            // for Hessian method (from LHAPDF)
+            tree->Branch("nPDFWeights_hess", &nPDFWeights_hess    , "nPDFWeights_hess/I");
+            tree->Branch("PDFWeights_hess", PDFWeights_hess    , "PDFWeights_hess[nPDFWeights_hess]/D");
+            h_PDFWeights_hess = fs->make<TH1F>("h_PDFWeights_hess", "h_PDFWeights_hess", 101, 0, 101); 
 
 
             if( doPDFWeights)
@@ -3122,6 +3152,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         selected_AK8_pz += corrJet.pz();
         selected_AK8_E  += corrJet.energy();
 
+        const reco::GenJet *genJet_ = iJet->genJet();
+        jet_pt_gen[nAK8] = ( genJet_) ? genJet_->pt() : 0.0;
+
+
+
         jet_nParts_by_mass[nAK8] = corrJet.numberOfDaughters(); 
 
         if(_verbose)    std::cout << "Collecting particles from selected AK8 jets." << std::endl;
@@ -3167,7 +3202,6 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     std::sort(jet_mass_by_mass, jet_mass_by_mass + nAK8, std::greater<double>());
     std::sort(jet_pt_by_pt, jet_pt_by_pt + nAK8, std::greater<double>());
     std::sort(jet_nParts_by_mass , jet_nParts_by_mass + nAK8, std::greater<double>());
-
 
 
     if(_verbose)  std::cout << "Calcualting dijet variables." << std::endl;
@@ -3335,16 +3369,25 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             if(_verbose)  std::cout << "x1/x2 are" << x1 << "/" << x2 << std::endl;
 
 
-            // --- Nominal PDF and weight ---
-            double w_nom = nomPDF->xfxQ2(id1, x1, scalePDF*scalePDF) * nomPDF->xfxQ2(id2, x2, scalePDF*scalePDF); // #########
-
-            // --- Initialize accumulators ---
-            double varWeightsRMS = 0.;
-
             int nPDFVars = nVars; // number of replicas / PDF variations
-            double maxPDFWeight = 2.5; 
+
             if (nPDFVars > 0)
             {
+
+
+                /////////////////////////////////////////////////////////
+                ////////////// PDF Weight via relic Method //////////////
+                /////////////////////////////////////////////////////////
+
+
+                // --- Nominal PDF and weight ---
+                double w_nom = nomPDF->xfxQ2(id1, x1, scalePDF*scalePDF) * nomPDF->xfxQ2(id2, x2, scalePDF*scalePDF); // #########
+
+                // --- Initialize accumulators ---
+                double varWeightsRMS = 0.;
+                double maxPDFWeight = 2.5; 
+                      
+
                 // --- PDF weights ---
                 for (int varN = 0; varN < nPDFVars; ++varN) 
                 {
@@ -3439,10 +3482,36 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                 /////////////////////////////////////////
 
 
+
+
+
+                /////////////////////////////////////////////////////////
+                ///////////// PDF Weight via Hessian Method /////////////
+                /////////////////////////////////////////////////////////
+
+
+
+                nPDFWeights_hess = nVars;  // PDF Weight via Hessian Method
+                double w_nom_hess = nomPDF_hess->xfxQ2(id1, x1, scalePDF *scalePDF) * nomPDF_hess->xfxQ2(id2, x2, scalePDF*scalePDF); // #########
+
+                for (int varN = 0; varN < nPDFWeights_hess; ++varN) 
+                {
+                    double w_var = min(5.0,max(0.,varPDFs_hess[varN]->xfxQ2(id1, x1, scalePDF*scalePDF) * varPDFs_hess[varN]->xfxQ2(id2, x2, scalePDF*scalePDF) / w_nom_hess)); // prevents unphysical values
+                    PDFWeights_hess[varN] = w_var;                     
+                    h_PDFWeights_hess->Fill(varN+1,w_var); 
+                }
+
+
+
+
+                /////////////////////////////////////////////////////////
+                /////////////////// QCD Scale Weights ///////////////////
+                /////////////////////////////////////////////////////////
+
+
                  //redefine the ids to be pythia compliant
                 id1 = lhapdfPDGID(evt_info->pdf()->id.first);     
                 id2 = lhapdfPDGID(evt_info->pdf()->id.second);
-
 
                 double kUp = 2;
                 double kDn = 0.5;
@@ -3490,9 +3559,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
                     renormWeight_nQCD2_up = std::pow(alpEMup/alpEM, nEM_) * std::pow(alpSup/alpS, 2);
                     renormWeight_nQCD2_down = std::pow(alpEMdn/alpEM, nEM_) * std::pow(alpSdn/alpS, 2);
 
+ 
                     renormWeight_nQCD3_up = std::pow(alpEMup/alpEM, nEM_) * std::pow(alpSup/alpS, 3);
                     renormWeight_nQCD3_down = std::pow(alpEMdn/alpEM, nEM_) * std::pow(alpSdn/alpS, 3);
 
+                   /*
                     renormWeight_nQCD1_up = std::pow(alpEMup/alpEM, nEM_) * std::pow(alpSup/alpS, 1);
                     renormWeight_nQCD1_down = std::pow(alpEMdn/alpEM, nEM_) * std::pow(alpSdn/alpS, 1);
 
@@ -3501,7 +3572,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
                     renormWeight_nQCD5_up = std::pow(alpEMup/alpEM, nEM_) * std::pow(alpSup/alpS, 5);
                     renormWeight_nQCD5_down = std::pow(alpEMdn/alpEM, nEM_) * std::pow(alpSdn/alpS, 5);
-
+                    */
 
                     // calculate scale uncertainty with envelope method
                     // --- 7-point scale variations ---
@@ -3893,7 +3964,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
         // shedding particles happens here -> can change this energy threshold 
 
-        jetsFJ_jet0 = fastjet::sorted_by_E(cs_jet0.inclusive_jets(0.));
+        jetsFJ_jet0 = fastjet::sorted_by_E(cs_jet0.inclusive_jets(10.));
         if(_verbose)std::cout << "Total of " <<jetsFJ_jet0.size() << " reclustered jets." << std::endl;
     }
 
@@ -3923,20 +3994,23 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     for (auto iJet=jetsFJ_jet0.begin(); iJet<jetsFJ_jet0.end(); iJet++)          
     {  
 
-        if(iJet->constituents().size() < 2) continue; // drop single particle "jets"
+        if(iJet->constituents().size() < 5) continue; // drop low-multiplicity "jets"
 
         if(_verbose)std::cout << "Looking at MPP AK8 jet " << nMPPAK8 << " with p4 " << iJet->px()  << "/" << iJet->py()  << "/" << iJet->pz()  << "/" << iJet->E()  << "/" << iJet->m()  << std::endl;
-        if(iJet->E() > 250.) nReclustered_CA8++;
+        nReclustered_CA8++; // if(iJet->E() > 250.) 
 
-        if(iJet->E() > 0) 
+        if(iJet->E() > 0.) 
         {
             if(_verbose) std::cout << "Getting MPP_CA8_mass" << std::endl;
 
             MPP_CA8_mass[nMPP_CA8_jets] = iJet->m();  
-            MPP_CA8_pt[nMPP_CA8_jets] = iJet->pt();  
+
+            TLorentzVector CA8_jet_to_lab(iJet->px(),iJet->py(),iJet->pz(),iJet->E()); 
+            CA8_jet_to_lab.Boost(totJetBeta.X(),totJetBeta.Y(),totJetBeta.Z()); /// boost BACK to lab frame
+            MPP_CA8_pt[nMPP_CA8_jets] = CA8_jet_to_lab.Pt();  
 
             if(_verbose) std::cout << "MPP_CA8_nParts" << std::endl;
-            MPP_CA8_nParts[nMPP_CA8_jets] = iJet->constituents().size();
+            //MPP_CA8_nParts[nMPP_CA8_jets] = iJet->constituents().size();
             nMPP_CA8_jets++;
         }
         if(_verbose) std::cout << "About to loop over daughter particles." << std::endl;
@@ -3964,17 +4038,18 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
     std::sort(MPP_CA8_mass, MPP_CA8_mass + nMPP_CA8_jets, std::greater<double>());
     std::sort(MPP_CA8_pt, MPP_CA8_pt + nMPP_CA8_jets, std::greater<double>());
-    std::sort(MPP_CA8_nParts, MPP_CA8_nParts + nMPP_CA8_jets, std::greater<double>());
+    //std::sort(MPP_CA8_nParts, MPP_CA8_nParts + nMPP_CA8_jets, std::greater<double>());
 
 
+    if( _verbose &&  systematicType == "nom") 
+    {    
 
-    if(_verbose && systematicType == "nom")
-    {
+        std::cout << "-------------- new event -----------------" << std::endl;
         for(int iii=0; iii< nAK8; iii++)
         {
             std::cout << "lab-frame jet pt for jet     " << iii << " (by pt)    is " << jet_pt_by_pt[iii] << std::endl;
             std::cout << "lab-frame jet mass for jet   " << iii << " (by mass)   is " << jet_mass_by_mass[iii] << std::endl;
-            std::cout << "lab-frame jet nparts for jet " << iii << " (by nparts) is " << jet_nParts_by_mass[iii] << std::endl;
+            //std::cout << "lab-frame jet nparts for jet " << iii << " (by nparts) is " << jet_nParts_by_mass[iii] << std::endl;
 
         }
 
@@ -3982,7 +4057,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         {
             std::cout << "MPP-frame jet pt for jet     " << iii << " (by pt)    is " << MPP_CA8_pt[iii] << std::endl;
             std::cout << "MPP-frame jet mass for jet   " << iii << " (by mass)   is " << MPP_CA8_mass[iii] << std::endl;
-            std::cout << "MPP-frame jet nparts for jet " << iii << " (by nparts) is " << MPP_CA8_nParts[iii] << std::endl;
+            //std::cout << "MPP-frame jet nparts for jet " << iii << " (by nparts) is " << MPP_CA8_nParts[iii] << std::endl;
 
         }
     }
@@ -4003,7 +4078,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     {
         jet_pt_perc_diff[iii] = (jet_pt_by_pt[iii] - MPP_CA8_pt[iii]   ) / jet_pt_by_pt[iii];
         jet_mass_perc_diff[iii] = (jet_mass_by_mass[iii] - MPP_CA8_mass[iii]   ) / jet_mass_by_mass[iii];
-        nParts_perc_diff[iii] = ((double)(jet_nParts_by_mass[iii] - MPP_CA8_nParts[iii]   )) / ((double)jet_nParts_by_mass[iii]);
+        //nParts_perc_diff[iii] = ((double)(jet_nParts_by_mass[iii] - MPP_CA8_nParts[iii]   )) / ((double)jet_nParts_by_mass[iii]);
     }
 
     if(_verbose)std::cout << "In this event, there were " << nAK8 << " lab frame AK8 jets selected, and " << nReclustered_CA8 << " reclustered MPP frame CA jets w/ E> 250 GeV" << std::endl;
@@ -4021,6 +4096,8 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
     for (auto iJet=jetsFJ_jet0.begin(); iJet<jetsFJ_jet0.end(); iJet++)         
     {
+        if(iJet->constituents().size() < 2) continue; // drop single particle "jets"
+
         TLorentzVector candJet(iJet->px(),iJet->py(),iJet->pz(),iJet->E());
         TVector3 candJet_vec = candJet.Vect();
         double cosAngle = cos(candJet_vec.Angle(thrust_vector));
@@ -4126,6 +4203,9 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
     for (auto iJet=jetsFJ_jet0.begin(); iJet<jetsFJ_jet0.end(); iJet++)         
     { 
+
+        if(iJet->constituents().size() < 5) continue; // drop single particle "jets"
+
         TLorentzVector candJet(iJet->px(),iJet->py(),iJet->pz(),iJet->E());
 
         int SJMatch = 1e5;
@@ -4134,7 +4214,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         else if(SJMatch == 0) std::cout << "Something didn't work... " << std::endl;
 
         //sort jet particles into either SuperJet 1 or SuperJet 2
-        if (iJet->constituents().size() > 0)
+        if (iJet->constituents().size() > 4)
         {
             for(auto iJ = iJet->constituents().begin(); iJ != iJet->constituents().end(); iJ++)
             {  
