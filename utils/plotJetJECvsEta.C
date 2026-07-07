@@ -85,6 +85,10 @@ void plotJetJECvsEta(const char* inputFile)
 
 
 
+    TH2F *h_JEC_diff_vs_pt = new TH2F("h_JEC_AK8_vs_pt","AK8 Jet Energy Corrections (JEC) (preselected events) as a function of AK8 Jet p_{T}; AK8 Jet p_{T} [GeV]; JEC Factor", 30,0., 5000, 50, 0.93, 1.07); 
+
+
+
     // vs gen pt 
     TGraph* gr_gen_eta0p5 = new TGraph();
     gr_gen_eta0p5->SetName(Form("gr_gen_eta0p5_jec_vs_eta_%s", tag.c_str()));

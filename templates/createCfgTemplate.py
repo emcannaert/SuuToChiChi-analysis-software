@@ -3,13 +3,24 @@
 import sys
 import os
 import pickle
+
+
+
+
+def get_pdf_set_type(sample):
+   if "QCDMC_Pt" in sample: return "relic"
+   for hess_samp in ["QCD","TTJets","Suu", "WJets"]:
+      if hess_samp in sample: return "hessian"
+   else: 
+      raise ValueError("ERROR: correct PDF set type not determined for %s."%sample)
+
 ### this can be updated to create the different cfgs for each systematic
 def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, all_systematics):
 
 
    includeAllBranches = False
    slimmedSelection   = True
-   useOptimizedWP     = True
+   useOptimizedWP     = False
    skipReclustering   = False
    verbose            = False
    runSideband        = False
@@ -19,7 +30,7 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    limit_events       = False
    runBEST            = False
 
-   if "QCDMC_Pt" in sample: doPDF = False
+   if "QCDMC_Pt" in sample or "ST_" in sample or "TTTo" in sample: doPDF = False
 
    if systematic__ != "nom":
       doPDF = False
@@ -36,8 +47,8 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    if "Suu" in sample:
       if  systematic__ == "JEC2": return 
       elif systematic__ == "JER": return 
-      elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_BBEC1_year",  "JEC_Absolute_year", "JEC_RelativeSample_year", "JEC", "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteTheory"]
-      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_Absolute", "JEC_AbsoluteMPFBias","JEC_RelativeFSR", "JEC_BBEC1" ]        #all_systematics
+      elif systematic__ == "JEC1": systematic_ = [ "JEC_FlavorQCD", "JEC_RelativeBal",  "JEC_BBEC1_year",  "JEC_Absolute_year", "JEC_RelativeSample_year", "JEC"] #  "JEC_AbsoluteScale", "JEC_Fragmentation", "JEC_AbsoluteTheory"
+      elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER", "JEC_Absolute",  "JEC_BBEC1" ]        # "JEC_AbsoluteCal", "JEC_AbsolutePU", "JEC_AbsoluteMPFBias","JEC_RelativeFSR",
 
       else:        #elif systematic__ == "nom": systematic_ =  ["nom", "JER_eta193", "JER_193eta25", "JER" ]        #all_systematics
          print("ERROR: Suu systematic is neither JEC nor nom.")
@@ -45,15 +56,6 @@ def makeACfg(sample, year, systematic__, datafile, jec_file_AK4, jec_file_AK8, a
    elif systematic__ == "JEC1": systematic_ =   [ "JEC_FlavorQCD", "JEC_RelativeBal", "JEC_BBEC1_year" ] # removed: "JEC_Fragmentation", "JEC_AbsoluteMPFBias",  "JEC_AbsoluteScale", "JEC_RelativeFSR", "JEC_AbsoluteTheory"
    elif systematic__ == "JEC2": systematic_ =   [ "JEC_Absolute_year",  "JEC_RelativeSample_year",  "JEC_Absolute", "JEC_BBEC1", "JEC"] # removed: "JEC_AbsoluteCal", "JEC_AbsolutePU",
    elif systematic__ == "JER":  systematic_ =   [  "JER_eta193", "JER_193eta25", "JER"] ## we aren't using JERs for eta > 2.5, so no need for the other 4 uncertainties
-
-AbsoluteCal
-AbsolutePU
-AbsoluteTheory
-AbsoluteScale
-Fragmentation
-AbsoluteMPFBias
-RelativeFSR
-
 
    apply_pu_ID = True
    doTopPtReweight = False
@@ -381,6 +383,7 @@ RelativeFSR
          newCfg.write(' genEventInfoTag=cms.InputTag("generator"),\n')
          newCfg.write(' lheEventInfoTag=cms.InputTag("externalLHEProducer"),\n')
          newCfg.write(' bits = cms.InputTag("TriggerResults", "", "HLT"),\n')
+         if doPDF or ("QCDMC_Pt" in sample and systematic == "nom"): newCfg.write(' pdfSetType = cms.string("%s"),\n'%(get_pdf_set_type(sample)) )
          newCfg.write(' triggers = cms.string("%s"),\n'%trigger)
          #newCfg.write(' runBEST = cms.bool(%s),\n'%runBEST)
          if apply_pu_ID:
@@ -767,7 +770,7 @@ def main():
    num_files =0
    for year in years:
       if year == "2015":
-         samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf", "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200", "WW_MC", "ZZ_MC",   "QCDMC_Pt_170to300",
+         samples = ["dataB-ver1","dataB-ver2","dataC-HIPM","dataD-HIPM","dataE-HIPM" ,"dataF-HIPM","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf", "TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf", "ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200",  "QCDMC_Pt_170to300",
             "QCDMC_Pt_300to470",
             "QCDMC_Pt_470to600",
             "QCDMC_Pt_600to800",
@@ -776,9 +779,9 @@ def main():
             "QCDMC_Pt_1400to1800",
             "QCDMC_Pt_1800to2400",
             "QCDMC_Pt_2400to3200",
-            "QCDMC_Pt_3200toInf"]
+            "QCDMC_Pt_3200toInf"] #"WW_MC", "ZZ_MC",  
       elif year == "2016":
-         samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200", "WW_MC", "ZZ_MC",   "QCDMC_Pt_170to300",
+         samples = ["dataF","dataG","dataH","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200",   "QCDMC_Pt_170to300",
             "QCDMC_Pt_300to470",
             "QCDMC_Pt_470to600",
             "QCDMC_Pt_600to800",
@@ -787,9 +790,9 @@ def main():
             "QCDMC_Pt_1400to1800",
             "QCDMC_Pt_1800to2400",
             "QCDMC_Pt_2400to3200",
-            "QCDMC_Pt_3200toInf"]
+            "QCDMC_Pt_3200toInf"] #"WW_MC", "ZZ_MC", 
       elif year == "2017":
-         samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC" , "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200", "WW_MC", "ZZ_MC",   "QCDMC_Pt_170to300",
+         samples = ["dataB","dataC","dataD","dataE","dataF","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC" , "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200",    "QCDMC_Pt_170to300",
             "QCDMC_Pt_300to470",
             "QCDMC_Pt_470to600",
             "QCDMC_Pt_600to800",
@@ -798,9 +801,9 @@ def main():
             "QCDMC_Pt_1400to1800",
             "QCDMC_Pt_1800to2400",
             "QCDMC_Pt_2400to3200",
-            "QCDMC_Pt_3200toInf"]
+            "QCDMC_Pt_3200toInf"] # "WW_MC", "ZZ_MC",
       elif year == "2018":
-         samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200", "WW_MC", "ZZ_MC",   "QCDMC_Pt_170to300",
+         samples = ["dataA","dataB", "dataC", "dataD","QCDMC1000to1500","QCDMC1500to2000","QCDMC2000toInf","TTJetsMCHT1200to2500", "TTJetsMCHT2500toInf","ST_t-channel-top_inclMC","ST_t-channel-antitop_inclMC","ST_s-channel-hadronsMC","ST_s-channel-leptonsMC","ST_tW-antiTop_inclMC","ST_tW-top_inclMC","TTToHadronicMC", "TTToSemiLeptonicMC", "TTToLeptonicMC", "TTToHadronicMC",    "WJetsMC_LNu-HT800to1200", "WJetsMC_LNu-HT1200to2500",  "WJetsMC_LNu-HT2500toInf", "WJetsMC_QQ-HT800toInf",  "TTJetsMCHT800to1200",    "QCDMC_Pt_170to300",
             "QCDMC_Pt_300to470",
             "QCDMC_Pt_470to600",
             "QCDMC_Pt_600to800",
@@ -809,7 +812,7 @@ def main():
             "QCDMC_Pt_1400to1800",
             "QCDMC_Pt_1800to2400",
             "QCDMC_Pt_2400to3200",
-            "QCDMC_Pt_3200toInf" ]
+            "QCDMC_Pt_3200toInf" ] # "WW_MC", "ZZ_MC",
       samples.extend(signal_samples)
       for iii, sample in enumerate(samples):
          for systematic in systematics:

@@ -3957,7 +3957,7 @@ if __name__=="__main__":
 	##################################################
 	##############  Options to change  ###############
 	##################################################
-	debug 					 = False
+	debug 					 = True
 
 	doHTdist   				 = False
 	doSideband 				 = False

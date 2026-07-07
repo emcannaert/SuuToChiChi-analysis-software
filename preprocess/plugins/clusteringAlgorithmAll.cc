@@ -20,6 +20,8 @@
 #include "TH2.h"
 #include<TRandom3.h>
 
+#include <numeric>
+
 #include "correction.h"
 #include "ROOT/RDataFrame.hxx"
 // user include files
@@ -172,6 +174,8 @@ private:
     std::string year;
     std::string lumiTag;
 
+    std::string pdfSetType;
+
     std::string jetVetoMapName;
     edm::FileInPath jetVetoMapFile;
 
@@ -271,7 +275,7 @@ private:
     double fourAK8JetMass;
     int nAK8diJets = 2;
 
-    double MPP_CA8_mass[100], MPP_CA8_pt[100]; 
+    double MPP_CA8_mass[100], MPP_CA8_pt[100], MPP_CA8_mass_[100]; 
     int nMPP_CA8_jets;
     double NJetMass, diSJ_mass_perc_diff, diSJ_Pt_perc_diff, NJetPt, diSuperJet_Pt;
 
@@ -324,12 +328,11 @@ private:
     double scale_envelope[10];
 
     int LHAPDF_NOM;
-    int LHAPDF_VAR_LOW;
-    int LHAPDF_VAR_HIGH;
+    int LHAPDF_VAR_LOW, LHAPDF_VAR_LOW_hess;
+    int LHAPDF_VAR_HIGH, LHAPDF_VAR_HIGH_hess;
 
     int nQCD_vertices = 0; // this will depend on the process
     PDF* nomPDF;
-    PDF* nomPDF_hess;
 
     PDF* varPDFs[102];
     PDF* varPDFs_hess[102];
@@ -345,11 +348,11 @@ private:
     double renormWeight_nQCD5_up, renormWeight_nQCD5_down;
 
     double PDFWeights_envelope_scale_uncertainty_up,PDFWeights_envelope_scale_uncertainty_down;
-    double PDFWeightUp, PDFWeightDown; // BEST-style PDF weights
+    double PDFWeightUp_replica, PDFWeightDown_replica; // BEST-style PDF weights
     TRandom3 *randomNum = new TRandom3(); // for JERs
 
     bool passesJetPUID[100];
-    double jet_mass_by_mass[100], jet_mass_perc_diff[100], jet_pt_by_pt[100], jet_pt_perc_diff[100];
+    double jet_mass_by_mass[100], jet_mass_by_mass_[100], jet_mass_perc_diff[100], jet_pt_by_pt[100], jet_pt_perc_diff[100];
     int smallestNJets;
     int jet_nParts_by_mass[100], MPP_CA8_nParts[100];
 
@@ -441,6 +444,9 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
     skipReclustering = iConfig.getParameter<bool>("skipReclustering");
 
 
+    if(doPDF || ( runType.find("QCDMC_Pt") != std::string::npos  && systematicType == "nom")) pdfSetType       = iConfig.getParameter<std::string>("pdfSetType");
+    
+
     if(useOptimizedWP)
     {
         if(slimmedSelection) // slimmed optimized selection       
@@ -514,52 +520,93 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
 
             if(runType.find("QCDMC_Pt") != std::string::npos)
             {
-                LHAPDF_NOM = 303600;
-                LHAPDF_VAR_LOW = 303601;
-                LHAPDF_VAR_HIGH = 303700;
+                LHAPDF_NOM = 306000; // previously 303600
+                //LHAPDF_VAR_LOW_hess  = 306001; // old 303601
+                //LHAPDF_VAR_HIGH_hess = 306100; // old 303700
+
+                LHAPDF_VAR_LOW  = 306001; // old 303201
+                LHAPDF_VAR_HIGH = 306100; // old 303300
+
                 pdfname      = "NNPDF31_nnlo_as_0118";
-                pdfname_hess = "NNPDF31_nnlo_as_0118_hessian";
+                //pdfname_hess = "NNPDF31_nnlo_as_0118_hessian";
             }
 
             else if((runType.find("QCDMC") != std::string::npos) || ((runType.find("TTJets") != std::string::npos)))
             {
                 LHAPDF_NOM = 325300;
-                LHAPDF_VAR_LOW = 325301;
-                LHAPDF_VAR_HIGH = 325402;
-                pdfname      = "NNPDF31_nnlo_as_0118";
-                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian";
+                LHAPDF_VAR_LOW_hess  = 325301;
+                LHAPDF_VAR_HIGH_hess = 325402;
+
+                //LHAPDF_VAR_LOW  = 316301;
+                //LHAPDF_VAR_HIGH = 316400;
+
+                //pdfname      = "NNPDF31_nnlo_as_0118_mc";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
             }
+            else if(runType.find("TTJets") != std::string::npos)
+            {
+                LHAPDF_NOM = 325300;
+                LHAPDF_VAR_LOW_hess  = 325301;
+                LHAPDF_VAR_HIGH_hess = 325402;
+
+                //LHAPDF_VAR_LOW  = 316301;
+                //LHAPDF_VAR_HIGH = 316400;
+
+                //pdfname      = "NNPDF31_nnlo_as_0118_mc";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
+            }      
             else if(runType.find("WJets") != std::string::npos)
             {
                 LHAPDF_NOM = 325300;
-                LHAPDF_VAR_LOW = 325301;
-                LHAPDF_VAR_HIGH = 325402;
-                pdfname      = "NNPDF31_nnlo_as_0118";
-                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian";
+                LHAPDF_VAR_LOW_hess  = 325301;
+                LHAPDF_VAR_HIGH_hess = 325402;
+
+                //LHAPDF_VAR_LOW  = 316301;
+                //LHAPDF_VAR_HIGH = 316400;
+
+                //pdfname      = "NNPDF31_nnlo_as_0118_mc";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
             }
 
             else if(runType.find("Suu") != std::string::npos)
             {
                 LHAPDF_NOM = 325500;
-                LHAPDF_VAR_LOW = 325501;
-                LHAPDF_VAR_HIGH = 325600;
-                pdfname      = "NNPDF31_nnlo_as_0118_nf_4";
+                LHAPDF_VAR_LOW_hess = 325501;
+                LHAPDF_VAR_HIGH_hess = 325600;
+
+                //LHAPDF_VAR_LOW  = 320901;
+                //LHAPDF_VAR_HIGH = 321000;
+
+                //pdfname      = "NNPDF31_nnlo_as_0118_nf_4";
                 pdfname_hess = "NNPDF31_nnlo_as_0118_nf_4_mc_hessian";
             }
             else  // NOT correct for TTTo
             {
                 LHAPDF_NOM = 325300;
-                LHAPDF_VAR_LOW = 325301;
-                LHAPDF_VAR_HIGH = 325402;
-                pdfname      = "NNPDF31_nnlo_as_0118";
-                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian";
+                //LHAPDF_VAR_LOW = 325301;
+                //LHAPDF_VAR_HIGH = 325402;
+
+                LHAPDF_VAR_LOW_hess  = 325301;
+                LHAPDF_VAR_HIGH_hess = 325402;
+
+                //pdfname      = "NNPDF31_nnlo_as_0118_mc";
+                pdfname_hess = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
             }
 
-            nVars = LHAPDF_VAR_HIGH - LHAPDF_VAR_LOW + 1;
-            std::cout << "The PDF sets are LHAPDF_VAR_LOW-LHAPDF_VAR_HIGH: " << LHAPDF_VAR_LOW << "/" << LHAPDF_VAR_HIGH << std::endl;
 
-            LHAPDF::initPDFSet(1,pdfname);
-            LHAPDF::initPDFSet(2,pdfname_hess); 
+            if     (pdfSetType == "relic")
+            {
+                nVars      = LHAPDF_VAR_HIGH      - LHAPDF_VAR_LOW + 1;
+                std::cout << "The Relic PDF sets are LHAPDF_VAR_LOW-LHAPDF_VAR_HIGH: " << LHAPDF_VAR_LOW << "/" << LHAPDF_VAR_HIGH << std::endl;
+                LHAPDF::initPDFSet(1,pdfname);
+            }
+            else if(pdfSetType == "hessian") 
+            {
+                nVars = LHAPDF_VAR_HIGH_hess - LHAPDF_VAR_LOW_hess + 1;
+                std::cout << "The Hessian PDF sets are LHAPDF_VAR_LOW-LHAPDF_VAR_HIGH: " << LHAPDF_VAR_LOW_hess << "/" << LHAPDF_VAR_HIGH_hess << std::endl;
+                LHAPDF::initPDFSet(1,pdfname_hess); 
+            }
+            
             LHAPDF::setVerbosity(0);
 
             //pdfs_replica = LHAPDF::mkPDFs(pdfname.c_str());
@@ -1202,10 +1249,38 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             // for calculation of QCD_Pt pdf uncertainty
             if(_verbose) std::cout << "Getting nominal PDF for PDF number " << LHAPDF_NOM << std::endl;
 
-            nomPDF      = LHAPDF::mkPDF(pdfname.c_str(),0); //Nominal PDF , previously took this as an input: LHAPDF_NOM
-            nomPDF_hess = LHAPDF::mkPDF(pdfname_hess.c_str(),0); //Nominal PDF , previously took this as an input: LHAPDF_NOM
 
-            if(_verbose)
+            if((doPDFWeights) || (runType.find("QCD") != std::string::npos  && systematicType == "nom"))
+            {
+
+                if(pdfSetType == "relic")
+                {
+                    nomPDF      = LHAPDF::mkPDF(pdfname.c_str(),0); //Nominal PDF , previously took this as an input: LHAPDF_NOM
+                    if(_verbose) std::cout << "Loaded the replica nominal PDF." << std::endl;
+                    for (int i = 0; i < nVars; i++)
+                    {
+                        varPDFs[i]      = LHAPDF::mkPDF(pdfname.c_str(),i); // previously was LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
+                    } 
+                    if(_verbose) std::cout << "Loaded the replica variation PDFs." << std::endl;
+
+                }
+                else if(pdfSetType == "hessian")
+                {
+                    nomPDF = LHAPDF::mkPDF(pdfname_hess.c_str(),0); //Nominal PDF , previously took this as an input: LHAPDF_NOM
+                    if(_verbose) std::cout << "Loaded the hessian nominal PDF." << std::endl;
+
+                    for (int i = 0; i< nVars; i++)
+                    {
+                        varPDFs_hess[i] = LHAPDF::mkPDF(pdfname_hess.c_str(),i);
+                    }
+                    if(_verbose) std::cout << "Loaded the hessian variation PDFs." << std::endl;
+                }
+                else
+                {
+                    std::cout << "ERROR: PDF type " << pdfSetType << " not recognized. "  << std::endl;
+                }
+            }
+            if(_verbose )
             {
                 auto flavors = nomPDF->flavors();  
                 std::cout << "Flavors: ";
@@ -1213,11 +1288,7 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
                 std::cout << "\n";
             }
 
-            for (int i = 0; i< nVars; i++)
-            {
-                varPDFs[i]      = LHAPDF::mkPDF(pdfname.c_str(),i); // previously was LHAPDF::mkPDF(LHAPDF_VAR_LOW + i);
-                varPDFs_hess[i] = LHAPDF::mkPDF(pdfname_hess.c_str(),i);
-            } 
+
 
             //LHAPDF::PDFSet pdfSet("NNPDF31_nnlo_as_0118");
             //int nMembers = pdfSet.size();
@@ -1226,53 +1297,63 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
             // get PDF weights
             if(_verbose) std::cout << "Loading variation PDFs " << std::endl;
 
+            if( (doPDFWeights) || (runType.find("QCD") != std::string::npos  && systematicType == "nom"))
+            {
 
-            tree->Branch("id1", &id1, "id1/I");
-            tree->Branch("id2", &id2, "id2/I");
-            tree->Branch("x1", &x1, "x1/D");
-            tree->Branch("x2", &x2, "x2/D");
-            tree->Branch("q2", &q2, "q2/D");    
+                tree->Branch("id1", &id1, "id1/I");
+                tree->Branch("id2", &id2, "id2/I");
+                tree->Branch("x1", &x1, "x1/D");
+                tree->Branch("x2", &x2, "x2/D");
+                tree->Branch("q2", &q2, "q2/D");    
 
-            tree->Branch("factWeights_up",    &factWeights_up, "factWeights_up/D");
-            tree->Branch("factWeights_down",   &factWeights_down, "factWeights_down/D");
+                tree->Branch("factWeights_up",    &factWeights_up, "factWeights_up/D");
+                tree->Branch("factWeights_down",   &factWeights_down, "factWeights_down/D");
 
-            tree->Branch("renormWeight_nQCD1_up",  &renormWeight_nQCD1_up, "renormWeight_nQCD1_up/D");
-            tree->Branch("renormWeight_nQCD1_down",    &renormWeight_nQCD1_down, "renormWeight_nQCD1_down/D");
+                //tree->Branch("renormWeight_nQCD1_up",  &renormWeight_nQCD1_up, "renormWeight_nQCD1_up/D");
+                //tree->Branch("renormWeight_nQCD1_down",    &renormWeight_nQCD1_down, "renormWeight_nQCD1_down/D");
 
-            tree->Branch("renormWeight_nQCD2_up",  &renormWeight_nQCD2_up, "renormWeight_nQCD2_up/D");
-            tree->Branch("renormWeight_nQCD2_down",    &renormWeight_nQCD2_down, "renormWeight_nQCD2_down/D");
+                tree->Branch("renormWeight_nQCD2_up",  &renormWeight_nQCD2_up, "renormWeight_nQCD2_up/D");
+                tree->Branch("renormWeight_nQCD2_down",    &renormWeight_nQCD2_down, "renormWeight_nQCD2_down/D");
 
-            /*
-            tree->Branch("renormWeight_nQCD3_up",  &renormWeight_nQCD3_up, "renormWeight_nQCD3_up/D");
-            tree->Branch("renormWeight_nQCD3_down",    &renormWeight_nQCD3_down, "renormWeight_nQCD3_down/D");
-
-
-            tree->Branch("renormWeight_nQCD4_up",  &renormWeight_nQCD4_up, "renormWeight_nQCD4_up/D");
-            tree->Branch("renormWeight_nQCD4_down",    &renormWeight_nQCD4_down, "renormWeight_nQCD4_down/D");
-
-            tree->Branch("renormWeight_nQCD5_up",  &renormWeight_nQCD5_up, "renormWeight_nQCD5_up/D");
-            tree->Branch("renormWeight_nQCD5_down",    &renormWeight_nQCD5_down, "renormWeight_nQCD5_down/D"); */
-
-            tree->Branch("scale_uncert_envelope_nQCD1_up", &scale_uncert_envelope_nQCD1_up, "scale_uncert_envelope_nQCD1_up/D");
-            tree->Branch("scale_uncert_envelope_nQCD1_down", &scale_uncert_envelope_nQCD1_down, "scale_uncert_envelope_nQCD1_down/D");
-
-            tree->Branch("scale_uncert_envelope_nQCD2_up", &scale_uncert_envelope_nQCD2_up, "scale_uncert_envelope_nQCD2_up/D");
-            tree->Branch("scale_uncert_envelope_nQCD2_down", &scale_uncert_envelope_nQCD2_down, "scale_uncert_envelope_nQCD2_down/D");
-
-            tree->Branch("scale_uncert_envelope_nQCD3_up", &scale_uncert_envelope_nQCD3_up, "scale_uncert_envelope_nQCD3_up/D");
-            tree->Branch("scale_uncert_envelope_nQCD3_down", &scale_uncert_envelope_nQCD3_down, "scale_uncert_envelope_nQCD3_down/D");
-
-            tree->Branch("PDFWeight_68perc_up", &PDFWeight_68perc_up, "PDFWeight_68perc_up/D");
-            tree->Branch("PDFWeight_68perc_down", &PDFWeight_68perc_down, "PDFWeight_68perc_down/D");
-
-            tree->Branch("PDFWeight_RMS_up", &PDFWeight_RMS_up, "PDFWeight_RMS_up/D");
-            tree->Branch("PDFWeight_RMS_down", &PDFWeight_RMS_down, "PDFWeight_RMS_down/D");
+                /*
+                tree->Branch("renormWeight_nQCD3_up",  &renormWeight_nQCD3_up, "renormWeight_nQCD3_up/D");
+                tree->Branch("renormWeight_nQCD3_down",    &renormWeight_nQCD3_down, "renormWeight_nQCD3_down/D");
 
 
-            // for Hessian method (from LHAPDF)
-            tree->Branch("nPDFWeights_hess", &nPDFWeights_hess    , "nPDFWeights_hess/I");
-            tree->Branch("PDFWeights_hess", PDFWeights_hess    , "PDFWeights_hess[nPDFWeights_hess]/D");
-            h_PDFWeights_hess = fs->make<TH1F>("h_PDFWeights_hess", "h_PDFWeights_hess", 101, 0, 101); 
+                tree->Branch("renormWeight_nQCD4_up",  &renormWeight_nQCD4_up, "renormWeight_nQCD4_up/D");
+                tree->Branch("renormWeight_nQCD4_down",    &renormWeight_nQCD4_down, "renormWeight_nQCD4_down/D");
+
+                tree->Branch("renormWeight_nQCD5_up",  &renormWeight_nQCD5_up, "renormWeight_nQCD5_up/D");
+                tree->Branch("renormWeight_nQCD5_down",    &renormWeight_nQCD5_down, "renormWeight_nQCD5_down/D"); */
+
+                tree->Branch("scale_uncert_envelope_nQCD1_up", &scale_uncert_envelope_nQCD1_up, "scale_uncert_envelope_nQCD1_up/D");
+                tree->Branch("scale_uncert_envelope_nQCD1_down", &scale_uncert_envelope_nQCD1_down, "scale_uncert_envelope_nQCD1_down/D");
+
+                tree->Branch("scale_uncert_envelope_nQCD2_up", &scale_uncert_envelope_nQCD2_up, "scale_uncert_envelope_nQCD2_up/D");
+                tree->Branch("scale_uncert_envelope_nQCD2_down", &scale_uncert_envelope_nQCD2_down, "scale_uncert_envelope_nQCD2_down/D");
+
+                tree->Branch("scale_uncert_envelope_nQCD3_up", &scale_uncert_envelope_nQCD3_up, "scale_uncert_envelope_nQCD3_up/D");
+                tree->Branch("scale_uncert_envelope_nQCD3_down", &scale_uncert_envelope_nQCD3_down, "scale_uncert_envelope_nQCD3_down/D");
+
+
+                if(pdfSetType == "relic")
+                {
+                    tree->Branch("PDFWeight_68perc_up", &PDFWeight_68perc_up, "PDFWeight_68perc_up/D");
+                    tree->Branch("PDFWeight_68perc_down", &PDFWeight_68perc_down, "PDFWeight_68perc_down/D");
+
+                    tree->Branch("PDFWeight_RMS_up", &PDFWeight_RMS_up, "PDFWeight_RMS_up/D");
+                    tree->Branch("PDFWeight_RMS_down", &PDFWeight_RMS_down, "PDFWeight_RMS_down/D");
+                }
+                else if(pdfSetType == "hessian")
+                {
+                    // for Hessian method (from LHAPDF)
+                    tree->Branch("nPDFWeights_hess", &nPDFWeights_hess    , "nPDFWeights_hess/I");
+                    tree->Branch("PDFWeights_hess", PDFWeights_hess    , "PDFWeights_hess[nPDFWeights_hess]/D");
+                    h_PDFWeights_hess = fs->make<TH1F>("h_PDFWeights_hess", "h_PDFWeights_hess", 101, 0, 101); 
+                }
+
+
+            }
 
 
             if( doPDFWeights)
@@ -1293,11 +1374,12 @@ clusteringAnalyzerAll::clusteringAnalyzerAll(const edm::ParameterSet& iConfig):
                 tree->Branch("PDFWeights_envelope_scale_uncertainty_down", &PDFWeights_envelope_scale_uncertainty_down, "PDFWeights_envelope_scale_uncertainty_down/D");
 
 
-                /// PDF weights as calculated by LHEEventWeight product
-                tree->Branch("PDFWeightUp", &PDFWeightUp, "PDFWeightUp/D");
-                tree->Branch("PDFWeightDown", &PDFWeightDown, "PDFWeightDown/D");
-
-
+                if(pdfSetType == "relic")
+                {
+                    /// PDF weights as calculated by LHEEventWeight product
+                    tree->Branch("PDFWeightUp_replica", &PDFWeightUp_replica, "PDFWeightUp_replica/D");
+                    tree->Branch("PDFWeightDown_replica", &PDFWeightDown_replica, "PDFWeightDown_replica/D");
+                }
 
 
                 // above: scale_envelope = all the envelope variations from the pdf as written in https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Factorization_and_renormalizatio
@@ -1575,7 +1657,7 @@ bool clusteringAnalyzerAll::isgoodjet(double eta, double NHF,double NEMF, const 
     }
     else if(year =="2017" || year == "2018")
     {
-        if( (abs(eta) > 2.5)) return false; 
+        if( (abs(eta) >= 2.5)) return false; 
     }
     // apply the MEDIUM PU jet id https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetIDUL
     //if( (!passesJetPUid) && (iJet_pt < 50.0)) return false; // jet PU ID is only relevant for AK4 jets with pt < 50 GeV
@@ -1598,7 +1680,7 @@ bool clusteringAnalyzerAll::isgoodjet(double eta, double NHF,double NEMF, const 
     }
     else if(year =="2017" || year == "2018")
     {
-        if ( (nAK8 < 2) && (abs(eta) > 2.5) ) return false;
+        if ( (nAK8 < 2) && (abs(eta) >= 2.5) ) return false;
         else if ( (nAK8 >= 2) && (abs(eta) > 1.4) ) return false;
     }
     
@@ -1960,7 +2042,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         double AK4_sf_total = 1.0;
         double AK4_JEC_corr_factor = 1.0;
 
-        if( (iJet->pt() < 10. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;  //don't even bother with these jets (lost causes)
+        if( (iJet->pt() < 10. ) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) >= 2.5 )) continue;  //don't even bother with these jets (lost causes)
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         ///////// _JET ENERGY CORRECTION UNCERTAINTY STUFF, AK4 jets should already be corrected in the cfg ////////
@@ -2665,7 +2747,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             leadAK4Jets.push_back(TLorentzVector(corrJet.px(),corrJet.py(),corrJet.pz(),corrJet.energy()));
         }
 
-        if(!AK4_isHEM[nAK4])nAK4_noHEM++;
+        if(!AK4_isHEM[nAK4] && !AK4_fails_veto_map[nAK4]  )nAK4_noHEM++; 
 
         nAK4++;
 
@@ -2862,7 +2944,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     for(auto iJet = fatJets->begin(); iJet != fatJets->end(); iJet++)    
     {
 
-        if( (sqrt(pow(iJet->mass(),2)+pow(iJet->pt(),2)) < 25.) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) > 2.5 )) continue;    //don't even bother with these jets
+        if( (sqrt(pow(iJet->mass(),2)+pow(iJet->pt(),2)) < 25.) || (!(iJet->isPFJet())) || ( abs(iJet->eta()) >= 2.5 )) continue;    //don't even bother with these jets
 
         double AK8_sf_total = 1.0; // this scales jet/particle 4-vectors, compounds all scale factors
         double AK8_JEC_corr_factor = 1.0;
@@ -3143,7 +3225,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         double jec = iJet->pt() / iJet->correctedP4("Uncorrected").pt();
         jet_jec_full[nAK8] = jec;
 
-        jet_mass_by_mass[nAK8] = corrJet.mass();
+        jet_mass_by_mass_[nAK8] = corrJet.mass();
 
         jet_pt_by_pt[nAK8] = corrJet.pt();
 
@@ -3199,7 +3281,25 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         nAK8++;
     } // end AK8 jet loop
 
-    std::sort(jet_mass_by_mass, jet_mass_by_mass + nAK8, std::greater<double>());
+
+    int pt_indices[nAK8];
+    std::iota(pt_indices, pt_indices + nAK8, 0); 
+
+
+    std::sort(pt_indices, pt_indices + nAK8, 
+    [this](int i, int j) {
+        return jet_pt_by_pt[i] > jet_pt_by_pt[j]; // Sort Ascending
+    }
+    );
+
+    for (int i = 0; i < nAK8; ++i) 
+    {
+        jet_mass_by_mass[i] = jet_mass_by_mass_[pt_indices[i]];
+    }
+
+
+
+    //std::sort(jet_mass_by_mass, jet_mass_by_mass + nAK8, std::greater<double>());
     std::sort(jet_pt_by_pt, jet_pt_by_pt + nAK8, std::greater<double>());
     std::sort(jet_nParts_by_mass , jet_nParts_by_mass + nAK8, std::greater<double>());
 
@@ -3328,9 +3428,11 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     /////////////// calculate _pdf weights //////////////////////
     /////////////////////////////////////////////////////////////
  
-    // try to calculate pdf weights by hand
+    // calculate pdf weights by hand
     if ((doPDFWeights) || (runType.find("QCD") != std::string::npos  && systematicType == "nom"))
     {
+
+        if (_verbose) std::cout << "Calculating pdf weights by hand." << std::endl;
         edm::Handle<GenEventInfoProduct> evt_info;
         if( (runType.find("MC") != std::string::npos)|| (runType.find("Suu") != std::string::npos) )
         {
@@ -3338,6 +3440,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             iEvent.getByToken(GeneratorToken_, evt_info);
 
             double weightsForVar[nVars]; 
+            if (_verbose) std::cout << "Getting scale PDF (Q)." << std::endl;
             double scalePDF = evt_info->pdf()->scalePDF; //scalePDF seems to return scale Q
 
             if (_verbose) 
@@ -3374,134 +3477,135 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             if (nPDFVars > 0)
             {
 
-
-                /////////////////////////////////////////////////////////
-                ////////////// PDF Weight via relic Method //////////////
-                /////////////////////////////////////////////////////////
-
-
-                // --- Nominal PDF and weight ---
-                double w_nom = nomPDF->xfxQ2(id1, x1, scalePDF*scalePDF) * nomPDF->xfxQ2(id2, x2, scalePDF*scalePDF); // #########
-
-                // --- Initialize accumulators ---
-                double varWeightsRMS = 0.;
-                double maxPDFWeight = 2.5; 
-                      
-
-                // --- PDF weights ---
-                for (int varN = 0; varN < nPDFVars; ++varN) 
+                if(pdfSetType == "relic")
                 {
-                    // LHAPDF replica weight for PDF RMS
-                    double w_var = varPDFs[varN]->xfxQ2(id1, x1, scalePDF*scalePDF) * varPDFs[varN]->xfxQ2(id2, x2, scalePDF*scalePDF); 
-                    if (w_nom > 0) weightsForVar[varN] = std::max(0., std::min(maxPDFWeight, w_var / w_nom));
-                    else {weightsForVar[varN] = 1.0; }
-                }
 
-                // --- Compute RMS for PDF replicas ---
-                double meanPDF = 0.;
-                double nGoodRelics = 0.;
+                    /////////////////////////////////////////////////////////
+                    ////////////// PDF Weight via relic Method //////////////
+                    /////////////////////////////////////////////////////////
 
-                for (int varN = 0; varN < nPDFVars; ++varN) 
-                {
-                    if(weightsForVar[varN] <= maxPDFWeight)
+                    // --- Nominal PDF and weight ---
+                    double w_nom = nomPDF->xfxQ2(id1, x1, scalePDF*scalePDF) * nomPDF->xfxQ2(id2, x2, scalePDF*scalePDF); // #########
+
+                    // --- Initialize accumulators ---
+                    double varWeightsRMS = 0.;
+                    double maxPDFWeight = 2.5; 
+                          
+
+                    // --- PDF weights ---
+                    for (int varN = 0; varN < nPDFVars; ++varN) 
                     {
-                        meanPDF += weightsForVar[varN];
-                        nGoodRelics++;
+                        // LHAPDF replica weight for PDF RMS
+                        double w_var = varPDFs[varN]->xfxQ2(id1, x1, scalePDF*scalePDF) * varPDFs[varN]->xfxQ2(id2, x2, scalePDF*scalePDF); 
+                        if (w_nom > 0) weightsForVar[varN] = std::max(0., std::min(maxPDFWeight, w_var / w_nom));
+                        else {weightsForVar[varN] = 1.0; }
                     }
-                }
-                meanPDF /= nGoodRelics;
 
-                varWeightsRMS = 0.;
-                for (int varN = 0; varN < nPDFVars; ++varN)
-                {
-                    if(weightsForVar[varN] <= maxPDFWeight) 
+                    // --- Compute RMS for PDF replicas ---
+                    double meanPDF = 0.;
+                    double nGoodRelics = 0.;
+
+                    for (int varN = 0; varN < nPDFVars; ++varN) 
                     {
-                        varWeightsRMS += pow(weightsForVar[varN] - meanPDF, 2);
+                        if(weightsForVar[varN] <= maxPDFWeight)
+                        {
+                            meanPDF += weightsForVar[varN];
+                            nGoodRelics++;
+                        }
                     }
+                    meanPDF /= nGoodRelics;
+
+                    varWeightsRMS = 0.;
+                    for (int varN = 0; varN < nPDFVars; ++varN)
+                    {
+                        if(weightsForVar[varN] <= maxPDFWeight) 
+                        {
+                            varWeightsRMS += pow(weightsForVar[varN] - meanPDF, 2);
+                        }
+                    }
+                    ////////// PDF WEIGHTS RMS ////////////
+                    PDFWeight_RMS_up  =  1.0 + sqrt(varWeightsRMS / nGoodRelics);
+                    PDFWeight_RMS_down = std::max(0., (1.0 - sqrt(varWeightsRMS / nGoodRelics )) );
+
+
+                    if (PDFWeight_RMS_up > 5)
+                    {
+                        std::cout << "PDFWeight_RMS_up is a large! value = " << PDFWeight_RMS_up <<std::endl;
+
+                        std::cout << "the weightsForVar values are " << std::endl;
+                        for(int iii = 0; iii< nPDFVars; iii++) std::cout << weightsForVar[iii] << std::endl;
+
+                          std::cout << "The nominal pdf value is " << w_nom << std::endl;
+                          std::cout << "The mean pdf value is " << meanPDF << std::endl;
+
+                          std::cout << "q2 / x1 / x2 / id1 / id2 are " << q2 << "/" << x1 << "/" << x2 << "/" << id1<< "/" <<id2 << std::endl;
+
+                          std::cout << "--------------- NEW EVENT ------------- " << std::endl;
+                    }
+
+                    ///////////////////////////////////////
+
+                    // alternative: calculate the PDF uncert by treating it as a gaussian 
+                    //Need the values in sorted order
+                    int arrSize = sizeof(weightsForVar) / sizeof(weightsForVar[0]);
+                    sort(weightsForVar, weightsForVar + arrSize);
+                    //double weight16 = weightsForVar[15]; 
+                    //double weight84 = weightsForVar[83];
+
+                    double thresholdMax = 2.5;
+                    double thresholdMin = 0.0;
+
+                    // Find "good" 16th percentile weight
+                    int idx16 = 15; // nominal 16th percentile index
+                    int search16 = idx16;
+                    while ((weightsForVar[search16] < thresholdMin || weightsForVar[search16] > thresholdMax) && search16 < arrSize) 
+                    {
+                        search16++;  // move to next higher weight
+                    }
+                    double weight16_good = weightsForVar[search16];
+
+                    // Find "good" 84th percentile weight
+                    int idx84 = 83; // nominal 84th percentile index
+                    int search84 = idx84;
+                    while ((weightsForVar[search84] < thresholdMin || weightsForVar[search84] > thresholdMax) && search84 >= 0) 
+                    {
+                        search84--;  // move to next lower weight
+                    }
+                    double weight84_good = weightsForVar[search84];
+
+                    // Assign fractional PDF weights
+                    PDFWeight_68perc_down = weight16_good;
+                    PDFWeight_68perc_up   = weight84_good;
+
+                    //varWeightsErr = (weight84 - weight16) / 2.0;
+                    //if (varWeightsErr < 0) varWeightsErr = 0;
+
+                    ////////// PDF WEIGHTS GAUSS ////////////
+                    //PDFWeight_68perc_up = std::max(2.5,weightsForVar[83]  );
+                    //PDFWeight_68perc_down = std::min(0., weightsForVar[15]);
+                    /////////////////////////////////////////
                 }
-                ////////// PDF WEIGHTS RMS ////////////
-                PDFWeight_RMS_up  =  1.0 + sqrt(varWeightsRMS / nGoodRelics);
-                PDFWeight_RMS_down = std::max(0., (1.0 - sqrt(varWeightsRMS / nGoodRelics )) );
 
-
-                if (PDFWeight_RMS_up > 5)
+                else if(pdfSetType == "hessian")
                 {
-                    std::cout << "PDFWeight_RMS_up is a large! value = " << PDFWeight_RMS_up <<std::endl;
 
-                    std::cout << "the weightsForVar values are " << std::endl;
-                    for(int iii = 0; iii< nPDFVars; iii++) std::cout << weightsForVar[iii] << std::endl;
+                    /////////////////////////////////////////////////////////
+                    ///////////// PDF Weight via Hessian Method /////////////
+                    /////////////////////////////////////////////////////////
 
-                      std::cout << "The nominal pdf value is " << w_nom << std::endl;
-                      std::cout << "The mean pdf value is " << meanPDF << std::endl;
+                    nPDFWeights_hess = nVars;  // PDF Weight via Hessian Method
+                    if(_verbose) std::cout << "There are " << nVars << " hessian weights." << std::endl; 
+                    double w_nom_hess = nomPDF->xfxQ2(id1, x1, scalePDF *scalePDF) * nomPDF->xfxQ2(id2, x2, scalePDF*scalePDF); // #########
 
-                      std::cout << "q2 / x1 / x2 / id1 / id2 are " << q2 << "/" << x1 << "/" << x2 << "/" << id1<< "/" <<id2 << std::endl;
+                    for (int varN = 0; varN < nPDFWeights_hess; ++varN) 
+                    {
+                        double w_var = min(5.0,max(0.,varPDFs_hess[varN]->xfxQ2(id1, x1, scalePDF*scalePDF) * varPDFs_hess[varN]->xfxQ2(id2, x2, scalePDF*scalePDF) / w_nom_hess)); // prevents unphysical values
+                        PDFWeights_hess[varN] = w_var;         
+                        if(_verbose) std::cout << "PDF variation " << varN << " weight is " << w_var << std::endl;            
+                        h_PDFWeights_hess->Fill(varN+1,w_var); 
+                    }
 
-                      std::cout << "--------------- NEW EVENT ------------- " << std::endl;
                 }
-
-                ///////////////////////////////////////
-
-                // alternative: calculate the PDF uncert by treating it as a gaussian 
-                //Need the values in sorted order
-                int arrSize = sizeof(weightsForVar) / sizeof(weightsForVar[0]);
-                sort(weightsForVar, weightsForVar + arrSize);
-                //double weight16 = weightsForVar[15]; 
-                //double weight84 = weightsForVar[83];
-
-                double thresholdMax = 2.5;
-                double thresholdMin = 0.0;
-
-                // Find "good" 16th percentile weight
-                int idx16 = 15; // nominal 16th percentile index
-                int search16 = idx16;
-                while ((weightsForVar[search16] < thresholdMin || weightsForVar[search16] > thresholdMax) && search16 < arrSize) 
-                {
-                    search16++;  // move to next higher weight
-                }
-                double weight16_good = weightsForVar[search16];
-
-                // Find "good" 84th percentile weight
-                int idx84 = 83; // nominal 84th percentile index
-                int search84 = idx84;
-                while ((weightsForVar[search84] < thresholdMin || weightsForVar[search84] > thresholdMax) && search84 >= 0) 
-                {
-                    search84--;  // move to next lower weight
-                }
-                double weight84_good = weightsForVar[search84];
-
-                // Assign fractional PDF weights
-                PDFWeight_68perc_down = weight16_good;
-                PDFWeight_68perc_up   = weight84_good;
-
-                //varWeightsErr = (weight84 - weight16) / 2.0;
-                //if (varWeightsErr < 0) varWeightsErr = 0;
-
-                ////////// PDF WEIGHTS GAUSS ////////////
-                //PDFWeight_68perc_up = std::max(2.5,weightsForVar[83]  );
-                //PDFWeight_68perc_down = std::min(0., weightsForVar[15]);
-                /////////////////////////////////////////
-
-
-
-
-
-                /////////////////////////////////////////////////////////
-                ///////////// PDF Weight via Hessian Method /////////////
-                /////////////////////////////////////////////////////////
-
-
-
-                nPDFWeights_hess = nVars;  // PDF Weight via Hessian Method
-                double w_nom_hess = nomPDF_hess->xfxQ2(id1, x1, scalePDF *scalePDF) * nomPDF_hess->xfxQ2(id2, x2, scalePDF*scalePDF); // #########
-
-                for (int varN = 0; varN < nPDFWeights_hess; ++varN) 
-                {
-                    double w_var = min(5.0,max(0.,varPDFs_hess[varN]->xfxQ2(id1, x1, scalePDF*scalePDF) * varPDFs_hess[varN]->xfxQ2(id2, x2, scalePDF*scalePDF) / w_nom_hess)); // prevents unphysical values
-                    PDFWeights_hess[varN] = w_var;                     
-                    h_PDFWeights_hess->Fill(varN+1,w_var); 
-                }
-
-
 
 
                 /////////////////////////////////////////////////////////
@@ -3709,7 +3813,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
     }
 
      
-    // calculate the FULL PDF weights (for nom uncertainty, MC (not QCD_Pt as this lacks collections necessary for that))
+    // calculate the FULL PDF weights (for nom uncertainty via relic method, MC (not QCD_Pt as this lacks collections necessary for that))
     if(doPDFWeights) 
     {
         if(_verbose)std::cout << "Setting PDF variables";
@@ -3756,58 +3860,64 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             // Scale: ID=1049-1150
 
 
+            //PDFWeightNom = lheEventProduct->originalXWGTUP();
+            PDFWeightNom = lheEventProduct->weights()[0].wgt;
+
+
+            if(pdfSetType == "relic")
             // ---------------------------------------------------------------
-
-            unsigned int PDFstart, PDFend;
-            if(runType.find("QCD") != std::string::npos)
             {
-                PDFstart = 46; // corresponding to <weight MUF="1.0" MUR="1.0" PDF="325301" id="1047"> PDF=325300 MemberID=1 </weight>
-                PDFend = 147;  // cooresponding to <weight MUF="1.0" MUR="1.0" PDF="325402" id="1148"> PDF=325300 MemberID=102 </weight>
-            }
-            else if( runType.find("Suu") != std::string::npos )
-            {
-                PDFstart = 48;
-                PDFend = 147;
-            }
-            else if( runType.find("TTJets"))
-            {  
-                PDFstart = 48;   // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
-                PDFend  = 147; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
-            }
-            else if( runType.find("WJets"))
-            {  
-                PDFstart = 48;   // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
-                PDFend  = 149; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
-            }
-            else  // generic (won't work for powheg samples like TTTo)
-            {  
-                PDFstart = 48;   // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
-                PDFend  = 149; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
-            }
 
-            PDFWeightNom = lheEventProduct->originalXWGTUP();
-
-            for(unsigned int iii = 0; iii < lheEventProduct->weights().size(); iii++) 
-            {
-                //std::cout<<"Systematic "<<iii<<" ID: "<<lheEventProduct->weights()[iii].id<<", value "<<lheEventProduct->weights()[iii].wgt<<", ratio "<<lheEventProduct->weights()[iii].wgt/PDFWeightNom<<std::endl;
-                if( iii >= PDFstart && iii < PDFend) 
+                unsigned int PDFstart, PDFend;
+                if(runType.find("QCD") != std::string::npos)
                 {
-                    PDFwgt = lheEventProduct->weights()[iii].wgt;
-                    PDFWeightFrac = PDFwgt/PDFWeightNom;
-                    PDFWeightAvg += PDFWeightFrac;
+                    PDFstart = 46; // corresponding to <weight MUF="1.0" MUR="1.0" PDF="325301" id="1047"> PDF=325300 MemberID=1 </weight>
+                    PDFend = 147;  // cooresponding to <weight MUF="1.0" MUR="1.0" PDF="325402" id="1148"> PDF=325300 MemberID=102 </weight>
                 }
-            }
+                else if( runType.find("Suu") != std::string::npos )
+                {
+                    PDFstart = 48;
+                    PDFend = 147;
+                }
+                else if( runType.find("TTJets"))
+                {  
+                    PDFstart = 48;   // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
+                    PDFend  = 147; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
+                }
+                else if( runType.find("WJets"))
+                {  
+                    PDFstart = 48;   // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
+                    PDFend  = 149; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
+                }
+                else  // generic (won't work for powheg samples like TTTo)
+                {  
+                    PDFstart = 48;   // <weight MUF="1.0" MUR="1.0" PDF="325301" id="1049"> PDF=325300 MemberID=1 </weight>
+                    PDFend  = 149; // <weight MUF="1.0" MUR="1.0" PDF="325402" id="1150"> PDF=325300 MemberID=102 </weight>
+                }
 
-            PDFWeightAvg = PDFWeightAvg/(PDFend - PDFstart);
-            for (unsigned int i=PDFstart; i < PDFend; ++i) 
-            {
-                PDFwgt = lheEventProduct->weights()[i].wgt;
-                PDFWeightFrac = PDFwgt/(PDFWeightNom);
-                PDFWeightStdDev += pow((PDFWeightFrac - PDFWeightAvg),2);
+
+                for(unsigned int iii = 0; iii < lheEventProduct->weights().size(); iii++) 
+                {
+                    //std::cout<<"Systematic "<<iii<<" ID: "<<lheEventProduct->weights()[iii].id<<", value "<<lheEventProduct->weights()[iii].wgt<<", ratio "<<lheEventProduct->weights()[iii].wgt/PDFWeightNom<<std::endl;
+                    if( iii >= PDFstart && iii < PDFend) 
+                    {
+                        PDFwgt = lheEventProduct->weights()[iii].wgt;
+                        PDFWeightFrac = PDFwgt/PDFWeightNom;
+                        PDFWeightAvg += PDFWeightFrac;
+                    }
+                }
+
+                PDFWeightAvg = PDFWeightAvg/(PDFend - PDFstart);
+                for (unsigned int i=PDFstart; i < PDFend; ++i) 
+                {
+                    PDFwgt = lheEventProduct->weights()[i].wgt;
+                    PDFWeightFrac = PDFwgt/(PDFWeightNom);
+                    PDFWeightStdDev += pow((PDFWeightFrac - PDFWeightAvg),2);
+                }
+                PDFWeightStdDev = sqrt(PDFWeightStdDev/(PDFend - PDFstart - 1)); 
+                PDFWeightUp_replica     = 1.0 + PDFWeightStdDev;
+                PDFWeightDown_replica   = 1.0 - PDFWeightStdDev;
             }
-            PDFWeightStdDev = sqrt(PDFWeightStdDev/(PDFend - PDFstart - 1)); 
-            PDFWeightUp     = 1.0 + PDFWeightStdDev;
-            PDFWeightDown   = 1.0 - PDFWeightStdDev;
 
             //// calculate the renormalization and factorizations the "Ben" way
 
@@ -3816,6 +3926,10 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
             QCDRenormalization_down_BEST    = lheEventProduct->weights()[10].wgt/PDFWeightNom;   // muF = 1.0, muR = 0.5
             QCDFactorization_up_BEST        = lheEventProduct->weights()[15].wgt/PDFWeightNom;   // muF = 2.0, muR = 1.0
             QCDFactorization_down_BEST      = lheEventProduct->weights()[30].wgt/PDFWeightNom;   // muF = 0.5, muR = 1.0
+
+
+            if(_verbose)std::cout << QCDRenormalization_up_BEST << " " << QCDRenormalization_down_BEST << " " << QCDFactorization_up_BEST << " " << QCDFactorization_down_BEST << std::endl;
+            if(_verbose)std::cout << "weight: " << lheEventProduct->weights()[5].wgt << ", nom weight: " << PDFWeightNom << std::endl;
 
             // envelope indices are the same for QCD and TTbarMC  
             scale_envelope[0] = lheEventProduct->weights()[15].wgt; // index 0: muF = 2.0, muR = 1.0 : <weight MUF="2.0" MUR="1.0" PDF="325300" id="1016"> MUF=2.0 </weight>
@@ -4003,7 +4117,7 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
         {
             if(_verbose) std::cout << "Getting MPP_CA8_mass" << std::endl;
 
-            MPP_CA8_mass[nMPP_CA8_jets] = iJet->m();  
+            MPP_CA8_mass_[nMPP_CA8_jets] = iJet->m();  
 
             TLorentzVector CA8_jet_to_lab(iJet->px(),iJet->py(),iJet->pz(),iJet->E()); 
             CA8_jet_to_lab.Boost(totJetBeta.X(),totJetBeta.Y(),totJetBeta.Z()); /// boost BACK to lab frame
@@ -4036,9 +4150,26 @@ void clusteringAnalyzerAll::analyze(const edm::Event& iEvent, const edm::EventSe
 
     if(_verbose) std::cout << "About to sort MPP_CA8_mass vector for diagnostics." <<  std::endl;
 
-    std::sort(MPP_CA8_mass, MPP_CA8_mass + nMPP_CA8_jets, std::greater<double>());
+    int pt_indices_[nMPP_CA8_jets];
+    std::iota(pt_indices_, pt_indices_ + nMPP_CA8_jets, 0); 
+
+
+    std::sort(pt_indices_, pt_indices_ + nMPP_CA8_jets, 
+    [this](int i, int j) {
+        return MPP_CA8_pt[i] > MPP_CA8_pt[j]; // Sort Ascending
+    }
+    );
+
+    for (int i = 0; i < nMPP_CA8_jets; ++i) 
+    {
+        MPP_CA8_mass[i] = MPP_CA8_mass_[pt_indices_[i]];
+    }
+
+    // sort both of these by the pt
+    //std::sort(MPP_CA8_mass, MPP_CA8_mass + nMPP_CA8_jets, std::greater<double>());
     std::sort(MPP_CA8_pt, MPP_CA8_pt + nMPP_CA8_jets, std::greater<double>());
     //std::sort(MPP_CA8_nParts, MPP_CA8_nParts + nMPP_CA8_jets, std::greater<double>());
+
 
 
     if( _verbose &&  systematicType == "nom") 

@@ -154,9 +154,9 @@ class hist_loader:
 
 
 
-		if self.debug:
-			self.systematics 	  = ["nom",  "L1Prefiring"]
-			self.systematic_names = ["nom",  "CMS_L1Prefiring"]
+		#if self.debug:
+			#self.systematics 	  = ["nom",  "L1Prefiring"]
+			#self.systematic_names = ["nom",  "CMS_L1Prefiring"]
 
 
 		if self.WP:

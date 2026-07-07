@@ -4,6 +4,43 @@
 
 EOSBASE="/store/user/ecannaer/" 
 
+runOptWP=""  
+forceNonOptWP=""  
+signalOnly=false
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --runOptWP)
+            runOptWP="runOptWP"
+            echo "Merging as optimized WP data."
+            shift
+            ;;
+        --signalOnly)
+            signalOnly=true
+            echo "Running SIGNAL ONLY workflow."
+            shift
+            ;;
+        --forceNonOptWP)
+            forceNonOptWP="-f"
+            echo "Forcing to NOT be optWP."
+            shift
+            ;;
+        --) # end of options
+            shift
+            break
+            ;;
+        -*|--*)
+            echo "Warning: unknown option: $1" >&2
+            shift
+            ;;
+        *)
+            POSITIONAL+=("$1") # save positional
+            shift
+            ;;
+    esac
+done
+
 if [ -z "$1" ];
 then 
 	echo "Invalid crab submission folder. Please provide the most recent crab submission folder on eos (Ex. SuuToChiChi_123421234)."
@@ -14,7 +51,7 @@ else
 	source find_eos_files.sh $1 $2
 	
 	echo "Copying signal files"
-	python create_eos_copy_commands.py ../txt_files/signal_eos_paths.txt
+	python create_eos_copy_commands.py ../txt_files/signal_eos_paths.txt ${runOptWP:-""} ${forceNonOptWP:-""} 
 	source eos_copy_commands.sh
 	
 	rm *Suu*_combined_*.root

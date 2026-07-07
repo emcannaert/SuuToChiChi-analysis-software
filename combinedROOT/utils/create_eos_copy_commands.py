@@ -1,6 +1,6 @@
 import os, sys
 import pickle
-import numpy as np
+#import numpy as np
 
 
 
@@ -322,7 +322,7 @@ if __name__=="__main__":
 
 	signal_samples_pkl = open('../../data/pkl/signal_samples.pkl', 'r')
   	signal_samples     = pickle.load(signal_samples_pkl)
-	signal_samples = np.array(signal_samples)
+	#signal_samples = np.array(signal_samples)
 
   	signal_nCommands_pkl = open('../../data/pkl/signal_nCommands.pkl', 'r')
   	signal_nCommands     = pickle.load(signal_nCommands_pkl)
@@ -349,14 +349,23 @@ if __name__=="__main__":
 	years = ["2015","2016","2017","2018"]
 	eos_path = open(sys.argv[1], "r")
 	if sys.argv[2] != "":
-		output_folder_temp = "combinedROOT_temp_optWP"
-		output_folder_final = "combinedROOT_optWP" 
-		print("Running as optimal WP - will save to %s for temp and %s for final combined output."%(output_folder_temp,output_folder_final)  )
- 
+		if len(sys.argv) <= 3 or not (sys.argv[3] == "-f" or sys.argv[3] == "--f"):
+			output_folder_temp = "combinedROOT_temp_optWP"
+			output_folder_final = "combinedROOT_optWP" 
+			print("Running as optimal WP - will save to %s for temp and %s for final combined output."%(output_folder_temp,output_folder_final)  )
+	 
 	command_path = open("eos_copy_commands.sh", "w")
 	for line in eos_path:
 
-		if "_OptWP_" in line and sys.argv[2] == "": raise ValueError("ERROR in create_eos_copy_commands.py: The files at %s seem to be optimized, but the optimized option was not used in merge_eos_files.sh. Run this again with the '--runOptWP' option."%{sys.argv[1]})
+		if "_OptWP_" in line and sys.argv[2] == "": 
+			if len(sys.argv) > 3 and (sys.argv[3] == "-f" or sys.argv[3] == "--f"):
+				print(" '_OptWP_' found in name, but not being run as opt because you ran with -f.")
+			else:
+				raise ValueError("ERROR in create_eos_copy_commands.py: The files at %s seem to be optimized, but the optimized option was not used in merge_eos_files.sh. Run this again with the '--runOptWP' option."%{sys.argv[1]})
+
+
+		
+
 
 		if line.split() == "[]" or line == "\n" or line == "":
 			continue

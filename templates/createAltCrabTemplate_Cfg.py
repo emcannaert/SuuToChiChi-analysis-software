@@ -129,29 +129,29 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString,useOptimalWP
 			newCfg.write("config.Data.unitsPerJob = 1\n")
 
 	if "Suu" in sample:
-		if "JEC" in systematic : newCfg.write("config.JobType.maxMemoryMB = 5000 \n")
-		else:	newCfg.write("config.JobType.maxMemoryMB = 4000 \n")
+		if "JEC" in systematic : newCfg.write("config.JobType.maxMemoryMB = 3000 \n") # was 5000
+		else:	newCfg.write("config.JobType.maxMemoryMB = 3000 \n") # was 4000
 
 	elif "QCD" in sample:
 		if "JEC" in systematic: 
-			if "2000toInf" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
-			elif "1500to2000" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3250 \n")
+			if "2000toInf" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
+			elif "1500to2000" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 			elif "1000to1500" in sample:   newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 			else: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
 	elif "TTJets" in sample or "TTTo" in sample:
 		if "JEC" in systematic: 
-			if "800to1200" in sample: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
-			elif "1200to2500" in sample: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
-			elif "2500toInf" in sample: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+			if "800to1200" in sample: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
+			elif "1200to2500" in sample: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
+			elif "2500toInf" in sample: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 		elif systematic == "JER": newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
 	elif "ST" in sample:
-		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2000 \n")
 	elif "WJets" in sample:
-		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3500 \n")
+		if "JEC" in systematic: newCfg.write("config.JobType.maxMemoryMB = 3000 \n")
 		if "JER" in systematic: newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
 		else: newCfg.write("config.JobType.maxMemoryMB = 2500 \n")
 	elif "data" in sample:
@@ -260,7 +260,7 @@ def makeAltCrabCfg(sample, year, systematic, dataset,dateTimeString,useOptimalWP
 def main():
 
 
-	useOptimalWP = True
+	useOptimalWP = False
 
 
 

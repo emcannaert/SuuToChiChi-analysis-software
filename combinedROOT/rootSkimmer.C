@@ -162,25 +162,49 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          const Int_t nentries = t1->GetEntries();
 
 
+
+         // if this is nominal, get the histogram from the nom folder
+         if(( systematic == "nom") && !( inFileName.find("data") != std::string::npos ))
+         {
+            
+            std::string oldHistName = ("clusteringAnalyzerAll_" + tree_string + "/h_PDFWeights_hess").c_str();
+
+            TH1F* allPDFweights = (TH1F*)f->Get(oldHistName.c_str());
+
+            if(allPDFweights == nullptr)
+            {
+               std::cout << "ERROR: Failed to get histogram h_PDFWeights_hess from folder clusteringAnalyzerAll_" << tree_string <<  "." << std::endl;
+            }
+            else
+            {
+               std::cout << "Got histogram h_PDFWeights_hess with " <<allPDFweights->GetEntries() << " entries." << std::endl; ;
+
+               // write histogram to the new folder
+               dir->cd();
+               allPDFweights->Write();
+               std::cout << "Wrote h_PDFWeights_hess to file " << newTreeDirectory.c_str() << std::endl;
+            }
+         }
+
+         
+
+
          t1->SetBranchAddress("totHT", &totHT);   
          t1->SetBranchAddress("nAK8", &nAK8);     
          t1->SetBranchAddress("nHeavyAK8", &nHeavyAK8); 
          t1->SetBranchAddress("dijetMassOne", &dijetMassOne);   
          t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
 
-         t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
-         t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
-         t1->SetBranchAddress("dijetMassTwo", &dijetMassTwo);   
          t1->SetBranchAddress("nAK4" , &nAK4); 
 
          t1->SetBranchAddress("SJ_mass_100", SJ_mass_100);
-         t1->SetBranchAddress("SJ_mass_200", SJ_mass_200);
+         //t1->SetBranchAddress("SJ_mass_200", SJ_mass_200);
          t1->SetBranchAddress("SJ_mass_300", SJ_mass_300);
 
 
          t1->SetBranchAddress("SJ_nAK4_300", SJ_nAK4_300);
-         t1->SetBranchAddress("SJ_nAK4_100", SJ_nAK4_100);
-         t1->SetBranchAddress("SJ_nAK4_150", SJ_nAK4_150);
+         //t1->SetBranchAddress("SJ_nAK4_100", SJ_nAK4_100);
+         //t1->SetBranchAddress("SJ_nAK4_150", SJ_nAK4_150);
 
          //t1->SetBranchAddress("SJ1_decision", &SJ1_decision);
          //t1->SetBranchAddress("SJ2_decision", &SJ2_decision);
@@ -191,21 +215,17 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
          t1->SetBranchAddress("passesPFHT", &passesPFHT); 
          t1->SetBranchAddress("passesPFJet", &passesPFJet); 
 
-         t1->SetBranchAddress("passesPFHT", &passesPFHT); 
-         t1->SetBranchAddress("passesPFJet", &passesPFJet); 
-         t1->SetBranchAddress("passesPFHT", &passesPFHT); 
-
          t1->SetBranchAddress("nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse", &nTau_VLooseVsJet_VLooseVsMuon_VVLooseVse); 
          t1->SetBranchAddress("nMuons_looseID_medIso", &nMuons_looseID_medIso); 
          t1->SetBranchAddress("nElectrons_looseID_looseISO", &nElectrons_looseID_looseISO); 
 
-         if( !(inFileName.find("data") != std::string::npos))
+         if( !(inFileName.find("data") != std::string::npos) && ( systematic == "nom" ))
          {
-            t1->SetBranchAddress("bTag_eventWeight_T_nom", &bTag_eventWeight_T_nom); 
+            //t1->SetBranchAddress("bTag_eventWeight_T_nom", &bTag_eventWeight_T_nom); 
             t1->SetBranchAddress("bTag_eventWeight_M_nom", &bTag_eventWeight_M_nom); 
             t1->SetBranchAddress("PU_eventWeight_nom", &PU_eventWeight_nom); 
             t1->SetBranchAddress("AK4_hadronFlavour", AK4_hadronFlavour); 
-            t1->SetBranchAddress("AK8_partonFlavour", AK8_partonFlavour); 
+            //t1->SetBranchAddress("AK8_partonFlavour", AK8_partonFlavour); 
          }
 
 
@@ -322,7 +342,7 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
                }
 
                eventWeight = PU_eventWeight_nom;
-               average_bTagSF+= bTag_eventWeight_T_nom;
+               //average_bTagSF+= bTag_eventWeight_T_nom;
                average_PUSF  += PU_eventWeight_nom;
             }
 
@@ -437,8 +457,8 @@ bool doThings(std::string inFileName, std::string outFileName, double &eventScal
 
             ///// (G) -------> Apply nHeavyAK8 or diJet mass cuts
 
-            nHeavyAK8_noHEM = 0; // recount the nHeavyAK8 here to make sure they are not HEM
-            for(int iii =0; iii<nHeavyAK8)
+            int nHeavyAK8_noHEM = 0; // recount the nHeavyAK8 here to make sure they are not HEM
+            for(int iii =0; iii<nHeavyAK8;iii++)
             {
                if(!heavyAK8_isHEM[iii]) nHeavyAK8_noHEM++;
             }
@@ -672,7 +692,7 @@ void rootSkimmer()
    bool runExtras     = false;
    bool runSideband   = false;
 
-   bool runOptimizedWP  = true;
+   bool runOptimizedWP  = false;
 
 
    if (runOptimizedWP)
@@ -697,7 +717,7 @@ void rootSkimmer()
    //need to have the event scale factors calculated for each year and dataset
    double eventScaleFactor = 1; 
 
-   if (runSelection) years = {"2016"};  // single year to run over 
+   if (runSelection) years = {"2017"};  // single year to run over 
 
    if(runSingleFile)
    {
@@ -727,22 +747,22 @@ void rootSkimmer()
       {
          if(*datayear == "2015")
          {
-            dataBlocks_non_sig = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks_non_sig = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", // "TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_", "ZZ_MC_", "WW_MC_"}; // dataB-ver1 not present
          }
          else if(*datayear == "2016")
          {
-            dataBlocks_non_sig = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks_non_sig = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", //"TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"};
          }
          else if(*datayear == "2017")
          {
-            dataBlocks_non_sig = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks_non_sig = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", //"TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"};
          }
          else if(*datayear == "2018")
          {
-            dataBlocks_non_sig = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks_non_sig = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", //"TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_"};
          }    
 
@@ -780,7 +800,7 @@ void rootSkimmer()
          std::cout << "Running data & BR MC." << std::endl;
          if(*datayear == "2015")
          {
-            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataB-ver2_","dataC-HIPM_","dataD-HIPM_","dataE-HIPM_","dataF-HIPM_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", //"TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
             "QCDMC_Pt_300to470_",
             "QCDMC_Pt_470to600_",
@@ -794,7 +814,7 @@ void rootSkimmer()
          }
          else if(*datayear == "2016")
          {
-            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", "TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataF_", "dataG_", "dataH_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_", //"TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
             "QCDMC_Pt_300to470_",
             "QCDMC_Pt_470to600_",
@@ -808,7 +828,7 @@ void rootSkimmer()
          }
          else if(*datayear == "2017")
          {
-            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataB_","dataC_","dataD_","dataE_", "dataF_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",//"TTToHadronicMC_","TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
             "QCDMC_Pt_300to470_",
             "QCDMC_Pt_470to600_",
@@ -822,7 +842,7 @@ void rootSkimmer()
          }
          else if(*datayear == "2018")
          {
-            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_","TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
+            dataBlocks = {"dataA_","dataB_","dataC_","dataD_","QCDMC1000to1500_","QCDMC1500to2000_","QCDMC2000toInf_","TTJetsMCHT800to1200_","TTJetsMCHT1200to2500_", "TTJetsMCHT2500toInf_",//"TTToHadronicMC_", "TTToSemiLeptonicMC_", "TTToLeptonicMC_",
          "ST_t-channel-top_inclMC_","ST_t-channel-antitop_inclMC_","ST_s-channel-hadronsMC_","ST_s-channel-leptonsMC_","ST_tW-antiTop_inclMC_","ST_tW-top_inclMC_", "WJetsMC_LNu-HT800to1200_", "WJetsMC_LNu-HT1200to2500_",  "WJetsMC_LNu-HT2500toInf_", "WJetsMC_QQ-HT800toInf_","ZZ_MC_", "WW_MC_","QCDMC_Pt_170to300_",
             "QCDMC_Pt_300to470_",
             "QCDMC_Pt_470to600_",
@@ -897,7 +917,7 @@ void rootSkimmer()
 
          dataBlocks = 
          {
-            "Suu4_chi1_ZTZT_"
+            "WJetsMC_LNu-HT2500toInf_"
          };  
 
       }
